@@ -77,7 +77,7 @@ def junos_install_os(module, dev):
   if ok is not True:
     results['failed'] = True
     results['msg'] = "Unable to install the software"
-    logging.error(resutls['msg'])
+    logging.error(results['msg'])
     return results
 
   ### -------------------------------------------------------------------------
