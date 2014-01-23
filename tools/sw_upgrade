@@ -1,5 +1,8 @@
+#!/usr/bin/env python2.7
+
 import argparse
 import os, sys, re
+import logging
 from getpass import getpass
 from jnpr.junos import Device
 
@@ -70,16 +73,25 @@ def cli_args():
 ##### -------------------------------------------------------------------------
 
 def update_my_progress(dev, report):
-  print "{}: {}".format(args.hostname, report)
+  logging.info(report)
 
 def do_sw_upgrade(dev):
   from jnpr.junos.utils.sw import SW 
   sw = SW(dev)
+
+  logfile = LOGDIR+'/'+args.hostname+'.log'
+
+  logging.basicConfig(filename=logfile, level=logging.INFO,
+    format='%(asctime)s:%(name)s:%(message)s')
+  logging.getLogger().name = args.hostname
+
+  print "logging to file: {}".format(logfile)
+
+  logging.info("<BEGIN> Starting the software upgrade process: %s", args.package)
   ok = sw.install(args.package, progress=update_my_progress)
   if ok is not True:
     die("Unable to install software")
-
-  print "all done, rebooting device ..."
+  logging.info("<REBOOT>")
   rsp = sw.reboot()  
 
 ##### -------------------------------------------------------------------------

@@ -1,3 +1,11 @@
+[all:vars]
+PACKAGEDIR=/usr/local/junos/packages
+
+[switches:vars]
+package=jinstall-ex-4200-12.3R3.4-domestic-signed.tgz
+#package=jinstall-ex-4200-12.3R4.6-domestic-signed.tgz
+
+[switches]
 ex1
 ex2
 ex3

@@ -1,0 +1,25 @@
+---
+- name: Install Junos OS software
+  hosts: all
+  connection: local
+  gather_facts: no
+  vars:
+    reboot_wait_time: 10
+    restart_wait_time: 3600
+
+  tasks:
+    - name: install package
+      junos_install_os:
+        host={{ inventory_hostname }}
+        user={{ user }}
+        package={{ PACKAGEDIR }}/{{ package }}
+      register: sw
+      notify:
+        - Junos reboot
+        - Junos wait for restart
+
+  handlers:
+    - name: Junos reboot
+      pause: seconds={{ reboot_wait_time }}
+    - name: Junos wait for restart
+      wait_for: host={{ inventory_hostname }} port=830 timeout={{ restart_wait_time }}

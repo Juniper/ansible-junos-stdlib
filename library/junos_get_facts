@@ -7,7 +7,6 @@ version_added: 0.1.5
 short_description: Retrieve Junos device facts
 description:
    - Fun with Junos
-options: 
 author: Jeremy Schulman
 '''
 import sys
