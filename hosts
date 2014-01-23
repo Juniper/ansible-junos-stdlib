@@ -6,7 +6,7 @@ package=jinstall-ex-4200-12.3R3.4-domestic-signed.tgz
 #package=jinstall-ex-4200-12.3R4.6-domestic-signed.tgz
 
 [switches]
-ex1
-ex2
-ex3
+ex1 
+ex2 package=jinstall-ex-4200-11.4R10.3-domestic-signed.tgz
+ex3 package=jinstall-ex-4200-12.2R7.1-domestic-signed.tgz
 ex4
