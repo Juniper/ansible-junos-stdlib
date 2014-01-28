@@ -1,0 +1,63 @@
+#!/usr/bin/env python2.7
+
+DOCUMENTATION = '''
+---
+module: junos_qfxmode
+version_added: 0.1.5
+short_description: QFX mode setup
+description:
+   - Fun with Junos
+author: Jeremy Schulman
+'''
+import sys
+import logging
+
+_JUNOS_NCIFY_LIB = '/home/jeremy/py-junos-netconify/lib'
+sys.path.insert(0,_JUNOS_NCIFY_LIB)
+
+EXAMPLES = '''
+TBD
+'''
+
+from netconify.cmdo import *
+
+def main():
+  module = AnsibleModule(
+    argument_spec = dict(
+      port=dict(required=True),
+      name=dict(required=True),
+      mode=dict(required=False, default=None),
+      gather_facts=dict(required=False, default=False),
+      logfile=dict(required=False, default=None)
+    ),
+    supports_check_mode = False
+  )
+
+  args = []
+  args.append(module.params['port'])
+  if module.params['mode'] is not None:
+    args.append('--qfx-'+module.params['mode'])
+  if module.params['gather_facts'] is not False:
+    args.append('--facts')
+  args.append(module.params['name'])
+
+  logfile = module.params['logfile']
+  if logfile is not None:
+    logging.basicConfig(filename=logfile, level=logging.INFO,
+      format='%(asctime)s:%(name)s:%(message)s')
+    logging.getLogger().name = 'NETCONIFY:'+module.params['name']
+
+  def notify(event,message):
+    if logfile is not None: logging.info("%s:%s"%(event,message))
+
+  nc = netconifyCmdo(notify=notify)
+  nc.run( args )
+
+  results = dict(changed=nc.changed)
+  results['args'] = args
+
+  module.exit_json(**results)
+
+from ansible.module_utils.basic import *
+main()
+

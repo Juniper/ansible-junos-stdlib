@@ -1,0 +1,8 @@
+[qfx_nodes:vars]
+termserv=172.25.113.14
+
+[qfx_nodes]
+lc0 port=7009
+lc1 port=7010
+lc2 port=7012
+lc3 port=7013
