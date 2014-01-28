@@ -5,12 +5,14 @@
   gather_facts: no
   vars:
     mode: node
-    logfile: /var/tmp/netconify.log
+    logfile: /usr/local/junos/log/qfx_nodes.log
+    savedir: /usr/local/junos/inventory
 
   tasks:
     - name: QFX {{mode}}-mode
       junos_qfx_mode:
         name={{ inventory_hostname }}
-        port='-t={{termserv}}:{{port}}'
+        port='-t={{termserver}}:{{ts_port}}'
         mode={{ mode }}
         logfile={{ logfile }}
+        savedir={{ savedir }}

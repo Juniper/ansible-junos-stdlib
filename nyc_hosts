@@ -1,15 +1,16 @@
-[qfx_cpe]
-NYCD-EX-CPE-0 ipaddr=172.25.113.108/24
-NYCD-EX-CPE-1 ipaddr=172.25.113.109/24
+[all:vars]
+termserver=172.25.113.14
 
 [qfx_cpe:vars]
 gateway=172.25.113.1
 
-[qfx_nodes:vars]
-termserv=172.25.113.14
+[qfx_cpe]
+NYCD-EX-CPE-0 ipaddr=172.25.113.108 ts_port=7005
+NYCD-EX-CPE-1 ipaddr=172.25.113.109 ts_port=7006
+
 
 [qfx_nodes]
-lc0 port=7009
-lc1 port=7010
-lc2 port=7012
-lc3 port=7013
+lc0 ts_port=7009
+lc1 ts_port=7010
+lc2 ts_port=7012
+lc3 ts_port=7013

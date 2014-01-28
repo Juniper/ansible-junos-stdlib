@@ -28,7 +28,8 @@ def main():
       name=dict(required=True),
       mode=dict(required=False, default=None),
       gather_facts=dict(required=False, default=False),
-      logfile=dict(required=False, default=None)
+      logfile=dict(required=False, default=None),
+      savedir=dict(required=False)
     ),
     supports_check_mode = True
   )
@@ -39,9 +40,13 @@ def main():
     args.append('--qfx-'+module.params['mode'])
   if module.params['gather_facts'] is not False:
     args.append('--facts')
-  args.append(module.params['name'])
   if module.check_mode is True:
     args.append('--dry-run')
+  if module.params['savedir'] is not None:
+    args.append('--savedir='+module.params['savedir'])
+
+  args.append(module.params['name'])
+
 
   logfile = module.params['logfile']
   if logfile is not None:
