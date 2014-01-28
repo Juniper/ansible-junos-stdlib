@@ -1,5 +1,7 @@
 [all:vars]
 termserver=172.25.113.14
+destdir=/usr/local/junos/config
+savedir=/usr/local/junos/inventory
 
 [qfx_cpe:vars]
 gateway=172.25.113.1

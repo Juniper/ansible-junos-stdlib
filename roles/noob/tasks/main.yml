@@ -1,6 +1,6 @@
 ---
 - name: Creating Junos NOOB conf
-  template: src={{ template_conf }} dest='{{ destdir }}/{{inventory_hostname}}-noob.conf'
+  template: src={{ noob_conf }} dest='{{ destdir }}/{{inventory_hostname}}-noob.conf'
   register: noob_conf
 
 - name: Push Junos NOOB conf to device

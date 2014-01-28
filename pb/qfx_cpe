@@ -1,12 +1,11 @@
 ---
-- hosts: qfx_cpe
+- name: QFabric Control Plane Equipment (CPE)
+  hosts: qfx_cpe
   connection: local
   gather_facts: no
   vars:
+    noob_conf: qfx_cpe.conf  
     logfile: /usr/local/junos/log/qfx_cpe.log
-    destdir: /usr/local/junos/config
-    savedir: /usr/local/junos/inventory
-    template_conf: qfx_cpe.conf
   roles:
     - noob
 

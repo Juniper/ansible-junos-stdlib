@@ -1,12 +1,11 @@
 ---
-- name: Junos QFX ToR Mode-Configuration
+- name: Junos QFX Node Device Configuration
   hosts: qfx_nodes
   connection: local
   gather_facts: no
   vars:
     mode: node
     logfile: /usr/local/junos/log/qfx_nodes.log
-    savedir: /usr/local/junos/inventory
 
   tasks:
     - name: QFX {{mode}}-mode
