@@ -12,7 +12,7 @@
     - name: QFX {{mode}}-mode
       junos_qfx_mode:
         name={{ inventory_hostname }}
-        port='-t={{termserver}}:{{ts_port}}'
+        port='-t={{termserver}},{{ts_port}}'
         mode={{ mode }}
         logfile={{ logfile }}
         savedir={{ savedir }}

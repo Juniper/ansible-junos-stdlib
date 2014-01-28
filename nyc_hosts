@@ -8,7 +8,6 @@ gateway=172.25.113.1
 NYCD-EX-CPE-0 ipaddr=172.25.113.108 ts_port=7005
 NYCD-EX-CPE-1 ipaddr=172.25.113.109 ts_port=7006
 
-
 [qfx_nodes]
 lc0 ts_port=7009
 lc1 ts_port=7010

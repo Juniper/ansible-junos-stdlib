@@ -2,9 +2,9 @@
 
 DOCUMENTATION = '''
 ---
-module: junos_qfxmode
+module: junos_noob_config
 version_added: 0.1.5
-short_description: QFX mode setup
+short_description: Apply Junos NOOB config over TTY
 description:
    - Fun with Junos
 author: Jeremy Schulman
@@ -26,7 +26,7 @@ def main():
     argument_spec = dict(
       port=dict(required=True),
       name=dict(required=True),
-      mode=dict(required=False, default=None, choices=['node','switch']),
+      file=dict(required=True),
       gather_facts=dict(required=False, default=False),
       logfile=dict(required=False, default=None),
       savedir=dict(required=False)
@@ -36,8 +36,7 @@ def main():
 
   args = []
   args.append(module.params['port'])
-  if module.params['mode'] is not None:
-    args.append('--qfx-'+module.params['mode'])
+  args.append('-j=' + module.params['file'])
   if module.params['gather_facts'] is not False:
     args.append('--facts')
   if module.check_mode is True:
@@ -46,7 +45,6 @@ def main():
     args.append('--savedir='+module.params['savedir'])
 
   args.append(module.params['name'])
-
 
   logfile = module.params['logfile']
   if logfile is not None:

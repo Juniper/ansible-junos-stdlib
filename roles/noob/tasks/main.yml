@@ -1,0 +1,13 @@
+---
+- name: Creating Junos NOOB conf
+  template: src={{ template_conf }} dest='{{ destdir }}/{{inventory_hostname}}-noob.conf'
+  register: noob_conf
+
+- name: Push Junos NOOB conf to device
+  junos_noob_config:
+    name={{ inventory_hostname }}
+    port='-t{{termserver}},{{ts_port}}'
+    file={{ noob_conf.dest|default(noob_conf.path) }}
+    logfile={{ logfile }}
+    savedir={{ savedir }}
+  when: noob_conf.changed or force is defined

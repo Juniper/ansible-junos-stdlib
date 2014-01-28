@@ -1,0 +1,13 @@
+---
+- hosts: qfx_cpe
+  connection: local
+  gather_facts: no
+  vars:
+    logfile: /usr/local/junos/log/qfx_cpe.log
+    destdir: /usr/local/junos/config
+    savedir: /usr/local/junos/inventory
+    template_conf: qfx_cpe.conf
+  roles:
+    - noob
+
+
