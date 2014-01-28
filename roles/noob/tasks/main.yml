@@ -2,6 +2,8 @@
 - name: Creating Junos NOOB conf
   template: src={{ noob_conf }} dest='{{ destdir }}/{{inventory_hostname}}-noob.conf'
   register: noob_conf
+  tags:
+    - noob
 
 - name: Push Junos NOOB conf to device
   junos_noob_config:
@@ -10,4 +12,7 @@
     file={{ noob_conf.dest|default(noob_conf.path) }}
     logfile={{ logfile }}
     savedir={{ savedir }}
-  when: noob_conf.changed or force is defined
+    passwd={{ passwd }}
+  when: force is defined or noob_conf.changed
+  tags:
+    - noob

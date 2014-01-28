@@ -1,0 +1,13 @@
+---
+- name: Push Junos config
+  junos_install_config:
+    host={{ ipaddr }}
+    user={{ admin_user }}
+    file=roles/qfx_cpe/files/qfx_cpe.conf
+    logfile={{ logfile }}
+  when: force is defined or noob_conf.changed
+  tags:
+    - basebuild
+
+
+

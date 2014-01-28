@@ -1,0 +1,93 @@
+#!/usr/bin/env python2.7
+
+DOCUMENTATION = '''
+---
+module: junos_install_config
+version_added: 0.1.5
+short_description: Junos config installer (NETCONF)
+description:
+   - Fun with Junos
+author: Jeremy Schulman
+'''
+import sys
+import logging
+
+# the following is a hack, and should be removed once the jnpr.junos
+# module is properly installed in the system
+
+from jnpr.junos import Device 
+
+EXAMPLES = '''
+TBD
+'''
+
+import os
+from jnpr.junos.utils.config import Config
+
+def junos_install_config(module, dev):
+  args = module.params
+  cu = Config(dev)
+
+  results = {}
+
+  file_path = module.params['file']
+  file_path = os.path.abspath( file_path )
+
+  results['file'] = file_path
+  
+  logging.info("pushing file: {}".format(file_path))
+  try:
+    logging.info("taking lock")
+    cu.lock()
+    logging.info("loading config")    
+    cu.load(path=file_path)    
+    logging.info("committing change, please be patient")    
+    cu.commit()
+    logging.info("unlocking")        
+    cu.unlock()
+  except:
+    results['failed'] = True
+    results['msg'] = "Unable to commit changes"
+  else:
+    results['changed'] = True
+
+  logging.info("change completed")
+  return results
+
+### ---------------------------------------------------------------------------
+### MAIN
+### ---------------------------------------------------------------------------
+
+def main():
+  module = AnsibleModule(
+    argument_spec = dict(
+      host=dict(required=True),
+      user=dict(required=False, default=os.getenv('USER')),
+      passwd=dict(required=False, default=None),
+      file=dict(required=True),
+      override=dict(required=False, default=False),
+      logfile=dict(required=False, default=None)
+    ),
+    supports_check_mode = True
+  )
+
+  args = module.params
+
+  logfile = module.params.get('logfile')
+  if logfile is not None:
+    logging.basicConfig(filename=logfile, level=logging.INFO,
+      format='%(asctime)s:%(name)s:%(message)s')
+    logging.getLogger().name = 'CONFIG:'+module.params['host']
+
+  logging.info("connecting to host: {}@{}".format(args['user'], args['host']))
+  dev = Device(args['host'], user=args['user'], password=args['passwd'])
+  dev.open()
+
+  results = junos_install_config(module, dev)
+
+  dev.close()
+  module.exit_json(**results)
+
+from ansible.module_utils.basic import *
+main()
+

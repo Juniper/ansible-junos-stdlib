@@ -4,11 +4,9 @@
   connection: local
   gather_facts: no
   vars:
-    noob_conf: qfx_cpe.conf  
     logfile: /usr/local/junos/log/qfx_cpe.log
-    passwd: None
+    admin_user: jeremy
   roles:
-    - noob
     - qfx_cpe
 
 

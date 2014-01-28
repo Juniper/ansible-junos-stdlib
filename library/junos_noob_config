@@ -29,7 +29,8 @@ def main():
       file=dict(required=True),
       gather_facts=dict(required=False, default=False),
       logfile=dict(required=False, default=None),
-      savedir=dict(required=False)
+      savedir=dict(required=False),
+      passwd=dict(required=False, default=None)
     ),
     supports_check_mode = True
   )
@@ -43,6 +44,8 @@ def main():
     args.append('--dry-run')
   if module.params['savedir'] is not None:
     args.append('--savedir='+module.params['savedir'])
+  if module.params['passwd'] is not None:
+    args.append('--passwd='+module.params['passwd'])
 
   args.append(module.params['name'])
 
