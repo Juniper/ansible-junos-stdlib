@@ -1,14 +1,16 @@
 ---
-- hosts: all
+- name: Junos QFX ToR Mode-Configuration
+  hosts: qfx_nodes
   connection: local
   gather_facts: no
   vars:
     mode: node
+    logfile: /var/tmp/netconify.log
 
   tasks:
     - name: QFX {{mode}}-mode
       junos_qfx_mode:
         name={{ inventory_hostname }}
-        port="-t={{termserv}}:{{port}}"
+        port='-t={{termserv}}:{{port}}'
         mode={{ mode }}
-        logfile=/var/tmp/netconify.log
+        logfile={{ logfile }}

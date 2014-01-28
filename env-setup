@@ -1,0 +1,1 @@
+export ANSIBLE_LIBRARY=$ANSIBLE_LIBRARY:`pwd`/library

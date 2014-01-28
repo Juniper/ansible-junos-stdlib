@@ -30,7 +30,7 @@ def main():
       gather_facts=dict(required=False, default=False),
       logfile=dict(required=False, default=None)
     ),
-    supports_check_mode = False
+    supports_check_mode = True
   )
 
   args = []
@@ -40,17 +40,22 @@ def main():
   if module.params['gather_facts'] is not False:
     args.append('--facts')
   args.append(module.params['name'])
+  if module.check_mode is True:
+    args.append('--dry-run')
 
   logfile = module.params['logfile']
   if logfile is not None:
     logging.basicConfig(filename=logfile, level=logging.INFO,
       format='%(asctime)s:%(name)s:%(message)s')
     logging.getLogger().name = 'NETCONIFY:'+module.params['name']
+    def log_notify(event,message):
+      logging.info("%s:%s"%(event,message))
+    use_notifier = log_notify
+  else:
+    def silent_notify(event,message): pass
+    use_notifier = silent_notify
 
-  def notify(event,message):
-    if logfile is not None: logging.info("%s:%s"%(event,message))
-
-  nc = netconifyCmdo(notify=notify)
+  nc = netconifyCmdo(notify=use_notifier)
   nc.run( args )
 
   results = dict(changed=nc.changed)

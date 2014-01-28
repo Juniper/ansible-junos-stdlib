@@ -1,3 +1,10 @@
+[qfx_cpe]
+NYCD-EX-CPE-0 ipaddr=172.25.113.108/24
+NYCD-EX-CPE-1 ipaddr=172.25.113.109/24
+
+[qfx_cpe:vars]
+gateway=172.25.113.1
+
 [qfx_nodes:vars]
 termserv=172.25.113.14
 
