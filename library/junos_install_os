@@ -92,7 +92,7 @@ def junos_install_os(module, dev):
   ### -------------------------------------------------------------------------
   ### all done.
   ### -------------------------------------------------------------------------
-  do_log("upgrade completed.")
+  do_log("upgrade pending reboot cycle, please be patient.")
   return results
 
 

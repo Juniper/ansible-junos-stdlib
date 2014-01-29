@@ -6,6 +6,5 @@
     user={{ admin_user }}
     file={{ base_conf }}
     logfile={{ logfile }}
-  when: force or noob_conf.changed
   tags:
     - basebuild

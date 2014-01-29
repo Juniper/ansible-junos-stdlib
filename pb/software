@@ -6,7 +6,6 @@
   vars:
     reboot_wait_time: 10
     restart_wait_time: 3600
-    logfile: "{{ logdir }}/software.log"
 
   tasks:
     - name: Install Junos OS package
