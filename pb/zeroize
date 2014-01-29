@@ -1,0 +1,17 @@
+---
+- name: Junos ZEROIZE devices
+  hosts: all
+  connection: local
+  gather_facts: no
+  vars:
+    via_tty: no
+    via_nc: no
+  vars_prompt:
+    zeroize: "Enter zeroize to continue"
+
+  tasks:
+    - name: Via TTY
+      junos_zeroize: 
+        zeroize={{ zeroize }}
+        tty='-t={{ termserver }},{{ ts_port }}'
+      when: via_tty

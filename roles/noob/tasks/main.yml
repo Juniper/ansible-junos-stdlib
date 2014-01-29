@@ -1,4 +1,5 @@
 ---
+# noob/tasks/main.yml
 - name: Creating Junos NOOB conf
   template: src={{ noob_conf }} dest='{{ destdir }}/{{inventory_hostname}}-noob.conf'
   register: noob_conf
@@ -13,6 +14,6 @@
     logfile={{ logfile }}
     savedir={{ savedir }}
     passwd={{ passwd }}
-  when: force is defined or noob_conf.changed
+  when: force or noob_conf.changed
   tags:
     - noob
