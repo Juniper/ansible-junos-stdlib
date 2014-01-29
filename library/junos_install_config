@@ -15,6 +15,7 @@ import logging
 # the following is a hack, and should be removed once the jnpr.junos
 # module is properly installed in the system
 
+sys.path.insert(0,'/home/jeremy/Python/py-junos-eznc/lib')
 from jnpr.junos import Device 
 
 EXAMPLES = '''

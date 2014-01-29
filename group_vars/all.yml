@@ -1,0 +1,7 @@
+# roles/all/vars/main.yml
+---
+domain_name: mycorp.net
+root_passwd: $1$02qLguvb$L5wcWDKpgwOUiWu3.SD.o0
+admin_user: jeremy
+admin_passwd: $1$02qLguvb$L5wcWDKpgwOUiWu3.SD.o0
+admin_sshkey: ssh-rsa AAAAB3NzaC1yc2EAAAABIwAAAQEAzE4vYe2G+XbKKu7so62+7dJKvbQaNUoPSUOyAryXQm6xkZ3ji0FQWHFwkP0XM9wW3Hl6aDRGey27R6BJU/9iDpDrZp5ZjJODNhgJlGGxUg7clXmkB9OtfKlQXKrqP93tVVGI4Bd30VyD8JbH7Rw680jcKceuDGY5/hTaW3HqJtB9SvoUF6GKGPcIl3k44r6LpwgJg8tnUgTL/kAnhwvYj4lyhnG2CkmnUKBBq/1PU3N8DEXZUptBBCX5SK9sadqoYbCfFNTEXaRD5wsNhSU/ZRCQUwmgqWxMqIzG0g76Ni3UpVMlhPjvVpl2yPrCGe8REfuUMM+cpfGS6qL/z8koRQ==

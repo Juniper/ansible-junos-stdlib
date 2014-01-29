@@ -11,8 +11,8 @@ author: Jeremy Schulman
 '''
 import sys
 
-_JUNOS_NCIFY_LIB = '/home/jeremy/py-junos-netconify/lib'
-sys.path.insert(0,_JUNOS_NCIFY_LIB)
+sys.path.insert(0,'/home/jeremy/Python/py-junos-eznc/lib')
+sys.path.insert(0,'/home/jeremy/Python/py-junos-netconify/lib')
 
 EXAMPLES = '''
 TBD
@@ -34,7 +34,7 @@ def main():
 
   if args['zeroize'] != 'zeroize':
     results = dict(changed=False, failed=True)
-    results['msg'] = "You must set 'zeroize=zeroize'"
+    results['msg'] = "You must set 'zeroize=zeroize' ({})".format(args['zeroize'])
     module.exit_json(**results)
 
   results = {}

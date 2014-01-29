@@ -1,17 +1,21 @@
 [all:vars]
+gateway=172.25.113.1
 termserver=172.25.113.14
+logdir=/usr/local/junos/log
 destdir=/usr/local/junos/config
 savedir=/usr/local/junos/inventory
+packagedir=/usr/local/junos/packages
 
 [qfx_cpe:vars]
-gateway=172.25.113.1
+#package=jinstall-ex-4200-12.1R1.10-domestic-signed.tgz
+package=jinstall-ex-4200-12.3R2.5-domestic-signed.tgz
 
 [qfx_cpe]
 NYCD-EX-CPE-0 ipaddr=172.25.113.108 ts_port=7005
 NYCD-EX-CPE-1 ipaddr=172.25.113.109 ts_port=7006
 
 [qfx_nodes]
-lc0 ts_port=7009
+#lc0 ts_port=7009
 lc1 ts_port=7010
 lc2 ts_port=7012
 lc3 ts_port=7013

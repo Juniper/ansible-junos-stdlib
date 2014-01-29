@@ -1,14 +1,11 @@
 ---
 # qfx_cpe/tasks/main.yml
-- name: Push Junos config
+- name: Push Junos base config
   junos_install_config:
     host={{ ipaddr }}
     user={{ admin_user }}
-    file=roles/qfx_cpe/files/qfx_cpe.conf
+    file={{ base_conf }}
     logfile={{ logfile }}
   when: force or noob_conf.changed
   tags:
     - basebuild
-
-
-

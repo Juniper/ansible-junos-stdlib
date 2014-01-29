@@ -6,13 +6,18 @@
   vars:
     reboot_wait_time: 10
     restart_wait_time: 3600
+    logfile: "{{ logdir }}/software.log"
 
   tasks:
-    - name: install package
+    - name: Install Junos OS package
       junos_install_os:
         host={{ inventory_hostname }}
-        user={{ user }}
-        package={{ PACKAGEDIR }}/{{ package }}
+        user={{ admin_user }}
+        package={{ packagedir }}/{{ package }}
+        logfile={{ logfile }}
+        no_copy=yes
+        reboot=yes
+      when: package is defined
       register: sw
       notify:
         - Junos reboot

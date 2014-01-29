@@ -12,8 +12,7 @@ author: Jeremy Schulman
 import sys
 import logging
 
-_JUNOS_NCIFY_LIB = '/home/jeremy/py-junos-netconify/lib'
-sys.path.insert(0,_JUNOS_NCIFY_LIB)
+sys.path.insert(0,'/home/jeremy/Python/py-junos-netconify/lib')
 
 EXAMPLES = '''
 TBD

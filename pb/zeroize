@@ -6,6 +6,8 @@
   vars:
     via_tty: no
     via_netconf: no
+    user: None
+    passwd: None
   vars_prompt:
     zeroize: "Enter zeroize to continue"
 

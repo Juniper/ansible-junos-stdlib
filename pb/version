@@ -1,13 +1,14 @@
 ---
-- hosts: all
+- name: Junos OS version
+  hosts: all
   connection: local
   gather_facts: no
 
   tasks:
-    - name: Junos Facts
+    - name: Get Junos Facts
       junos_get_facts:
         host={{ inventory_hostname }}
-        user={{ user }}
+        user={{ admin_user }}
       register: junos
-    - name: Say my version
+    - name: version
       debug: msg="{{ junos.facts.version }}"

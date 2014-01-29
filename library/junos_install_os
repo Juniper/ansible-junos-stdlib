@@ -12,18 +12,8 @@ author: Jeremy Schulman
 import sys
 import logging
 
-# the following is a hack, and should be removed once the jnpr.junos
-# module is properly installed in the system
-
-_JUNOS_PYEZ_LIB = '/home/jeremy/Python/py-junos-eznc/lib'
-sys.path.insert(0,_JUNOS_PYEZ_LIB)
-
+sys.path.insert(0,'/home/jeremy/Python/py-junos-eznc/lib')
 from jnpr.junos import Device 
-
-# the following is a hack and should be parameterized
-JUNOSDIR = '/usr/local/junos'
-PACKAGEDIR = JUNOSDIR + '/packages'
-LOGDIR = JUNOSDIR + '/log'
 
 EXAMPLES = '''
 TBD
@@ -31,6 +21,20 @@ TBD
 
 def junos_install_os(module, dev):
   args = module.params
+
+  ### -------------------------------------------------------------------------
+  ### logging
+  ### -------------------------------------------------------------------------
+
+  logfile = args['logfile']
+  if logfile is not None:
+    logging.basicConfig(filename=logfile, level=logging.INFO,
+      format='%(asctime)s:%(name)s:%(message)s')
+    logging.getLogger().name = args['host']
+    def do_log(msg, level='info'):
+      getattr(logging,level)(msg)
+  else:
+    def do_log(msg): pass
 
   ### -------------------------------------------------------------------------
   ### check installed version against desired version
@@ -48,6 +52,7 @@ def junos_install_os(module, dev):
   results = dict(changed=need_upgrade, ver=dict(has=has_ver,should=should_ver)) 
 
   if need_upgrade is False:
+    do_log("No need to perform upgrade: {}".format( has_ver ))
     return results
   if module.check_mode is True:
     return results
@@ -59,39 +64,35 @@ def junos_install_os(module, dev):
   from jnpr.junos.utils.sw import SW 
   sw = SW(dev)
 
-  logfile = LOGDIR+'/'+args['host']+'.log'
-
-  logging.basicConfig(filename=logfile, level=logging.INFO,
-    format='%(asctime)s:%(name)s:%(message)s')
-  logging.getLogger().name = args['host']
-
   package = args['package']
-  logging.info("<BEGIN> Starting the software upgrade process: %s", package)
+  do_log("Starting the software upgrade process: {}".format(package))
 
   def update_my_progress(dev, report):
     # log the progress of the installing process
-    logging.info(report)
+    do_log(report)
 
-  ok = sw.install(package, progress=update_my_progress)
+  sw_args = dict(progress=update_my_progress)
+  sw_args['no_copy'] = module.boolean(args['no_copy'])
+  ok = sw.install(package, **sw_args)
 
   if ok is not True:
     results['failed'] = True
     results['msg'] = "Unable to install the software"
-    logging.error(results['msg'])
+    do_log(results['msg'], level='error')
     return results
 
   ### -------------------------------------------------------------------------
   ### reboot the box if desired
   ### -------------------------------------------------------------------------
 
-  if args['reboot'] is True:
-    logging.info("<REBOOT>")
+  if module.boolean(args['reboot']) is True:
+    do_log("<REBOOT>")
     rsp = sw.reboot()  
 
   ### -------------------------------------------------------------------------
   ### all done.
   ### -------------------------------------------------------------------------
-
+  do_log("upgrade completed.")
   return results
 
 
@@ -99,11 +100,13 @@ def main():
   module = AnsibleModule(
     argument_spec = dict(
       host=dict(required=True),
+      package=dict(required=True),      
       user=dict(required=False, default=os.getenv('USER')),
       passwd=dict(required=False, default=None),
       version=dict(required=False, default=None),
-      package=dict(required=True),
-      reboot=dict(required=False, default=True)
+      no_copy=dict(required=False, choices=BOOLEANS, default=False),
+      reboot=dict(required=False, choices=BOOLEANS, default=True),
+      logfile=dict(required=False, default=None)
     ),
     supports_check_mode = True
   )
