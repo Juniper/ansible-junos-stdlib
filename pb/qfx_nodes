@@ -9,7 +9,7 @@
 
   tasks:
     - name: QFX {{mode}}-mode
-      junos_qfx_mode:
+      junos_noob_qfx_node:
         name={{ inventory_hostname }}
         port='-t={{termserver}},{{ts_port}}'
         mode={{ mode }}

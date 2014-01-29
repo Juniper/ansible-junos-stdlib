@@ -1,0 +1,68 @@
+#!/usr/bin/env python2.7
+
+DOCUMENTATION = '''
+---
+module: junos_zeroize
+version_added: 0.1.5
+short_description: Retrieve Junos device facts
+description:
+   - Fun with Junos
+author: Jeremy Schulman
+'''
+import sys
+
+_JUNOS_NCIFY_LIB = '/home/jeremy/py-junos-netconify/lib'
+sys.path.insert(0,_JUNOS_NCIFY_LIB)
+
+EXAMPLES = '''
+TBD
+'''
+
+def main():
+  module = AnsibleModule(
+    argument_spec = dict(
+      zeroize=dict(required=True, default=None),  # must be set to 'zeroize'      
+      host=dict(required=False, default=None),    # host or ipaddr
+      tty=dict(required=False, default=None),     # param to netconify
+      user=dict(required=False, default=None),
+      passwd=dict(required=False, default=None),
+    ),
+    supports_check_mode = False
+  )
+
+  args = module.params
+
+  if args['zeroize'] != 'zeroize':
+    results = dict(changed=False, failed=True)
+    results['msg'] = "You must set 'zeroize=zeroize'"
+    module.exit_json(**results)
+
+  results = {}
+
+  if args.get('host') is not None:
+    from jnpr.junos import Device 
+    dev = Device(args['host'], user=args['user'], password=args['passwd'])
+    dev.open()
+    dev.cli('request system zeroize')
+    results['changed'] = True
+    # no close, we're done after this point.
+  elif args['tty'] is not None:
+    from netconify.cmdo import netconifyCmdo
+    nc_args = []
+    nc_args.append( args['tty'] )
+    nc_args.append( '--zeroize=zeroize')
+    if args['user'] is not None: nc_args.append('-u='+args['user'])
+    if args['passwd'] is not None: nc_args.append('--passwd='+args['passwd'])
+    def silent(event,message):pass
+    nc = netconifyCmdo(notify=silent)
+    nc.run( nc_args )
+    results['changed'] = True 
+  else:
+      results['failed'] = True
+      results['msg'] = "You must provide etierh 'host' or 'tty' option"
+
+  module.exit_json(**results)
+
+from ansible.module_utils.basic import *
+main()
+
