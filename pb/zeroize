@@ -5,7 +5,7 @@
   gather_facts: no
   vars:
     via_tty: no
-    via_nc: no
+    via_netconf: no
   vars_prompt:
     zeroize: "Enter zeroize to continue"
 
@@ -14,4 +14,14 @@
       junos_zeroize: 
         zeroize={{ zeroize }}
         tty='-t={{ termserver }},{{ ts_port }}'
+        user={{ user }}
+        passwd={{ passwd }}
       when: via_tty
+
+    - name: Via NETCONF
+      junos_zeroize: 
+        zeroize={{ zeroize }}
+        host={{ inventory_hostname }}
+        user={{ user }}
+        passwd={{ passwd }}
+      when: via_netconf      
