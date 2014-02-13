@@ -28,7 +28,9 @@ def main():
       mode=dict(required=False, default=None, choices=['node','switch']),
       gather_facts=dict(required=False, default=False),
       logfile=dict(required=False, default=None),
-      savedir=dict(required=False)
+      savedir=dict(required=False),
+      user=dict(required=False, default='root'),
+      passwd=dict(required=False, default=None)
     ),
     supports_check_mode = True
   )
@@ -43,9 +45,12 @@ def main():
     args.append('--dry-run')
   if module.params['savedir'] is not None:
     args.append('--savedir='+module.params['savedir'])
+  if module.params['user'] is not None:
+    args.append('--user='+module.params['user'])
+  if module.params['passwd'] is not None:
+    args.append('--passwd='+module.params['passwd'])
 
   args.append(module.params['name'])
-
 
   logfile = module.params['logfile']
   if logfile is not None:
@@ -53,6 +58,8 @@ def main():
       format='%(asctime)s:%(name)s:%(message)s')
     logging.getLogger().name = 'NETCONIFY:'+module.params['name']
     def log_notify(event,message):
+      log_notify.event = event
+      log_notify.message = message
       logging.info("%s:%s"%(event,message))
     use_notifier = log_notify
   else:
@@ -60,10 +67,13 @@ def main():
     use_notifier = silent_notify
 
   nc = netconifyCmdo(notify=use_notifier)
-  nc.run( args )
+  rc = nc.run( args )
 
   results = dict(changed=nc.changed)
   results['args'] = args
+  if rc is False: 
+    results['failed'] = True
+    results['msg'] = log_notify.message
 
   module.exit_json(**results)
 

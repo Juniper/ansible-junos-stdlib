@@ -1,8 +1,0 @@
----
-- hosts: all
-  connection: local
-  gather_facts: no
-
-  tasks:
-    - name: Waiting for NETCONF
-      wait_for: host={{ inventory_hostname }} port=830 timeout=3600
