@@ -1,0 +1,67 @@
+#!/usr/bin/env python2.7
+
+DOCUMENTATION = '''
+---
+module: junos_shutdown
+version_added: 0.1.5
+short_description: Shutdown Junos Device
+description:
+   - invokes "power-off in 0"        (-or-)
+   - invokes "reboot in 0"
+author: Jeremy Schulman
+'''
+import sys
+sys.path.insert(0,'/home/jeremy/Python/py-junos-eznc/lib')
+
+from jnpr.junos import Device
+from jnpr.junos.utils.sw import SW
+
+EXAMPLES = '''
+TBD
+'''
+
+def main():
+  module = AnsibleModule(
+    argument_spec = dict(
+      shutdown=dict(required=True, default=None),   # must be set to 'shutdown'      
+      host=dict(required=True, default=None),       # host or ipaddr
+      user=dict(required=False, default=os.getenv('USER')),
+      passwd=dict(required=False, default=None),
+      restart=dict(required=False, choices=BOOLEANS, default='no')
+    ),
+    supports_check_mode = False
+  )
+
+  args = module.params
+  if args['shutdown'] != 'shutdown':
+    module.fail_json(msg='Say "shutdown" to proceed')    
+
+  restart_mode = module.boolean(args['restart'])
+  results = {}
+
+  try:
+    dev = Device(args['host'], user=args['user'], password=args['passwd']).open()
+    results['changed'] = True
+    sw = SW(dev)
+
+    if restart_mode is True:
+      sw.reboot(0)
+      results['restart'] = True
+    else:
+      sw.poweroff(0)
+      results['restart'] = False
+
+    # dev.close isn't performed since the device will 
+    # be in the process of shutting down and we'll 
+    # lose connectivity anyways ...
+
+  except Exception as err:
+    results['failed'] = True
+    results['msg'] = 'unable to open NETCONF to device'
+    results['err'] = err.message
+
+  module.exit_json(**results)
+
+from ansible.module_utils.basic import *
+main()
+

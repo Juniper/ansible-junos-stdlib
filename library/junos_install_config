@@ -40,19 +40,29 @@ def junos_install_config(module, dev):
   try:
     logging.info("taking lock")
     cu.lock()
-    logging.info("loading config")    
-    cu.load(path=file_path)    
+    try:
+      # load the config.  the cu.load will raise
+      # an exception if there is even a warning.
+      # so we want to avoid that condition.
+      logging.info("loading config")    
+      cu.load(path=file_path)    
+    except Exception as err:
+      if err.rsp.find('.//ok') is None:
+        raise err
+      else:
+        pass
     logging.info("committing change, please be patient")    
     cu.commit()
     logging.info("unlocking")        
     cu.unlock()
-  except:
+  except Exception as err:
     results['failed'] = True
-    results['msg'] = "Unable to commit changes"
+    msg = "Unable to mkae changes"
+    results['msg'] = msg
   else:
+    logging.info("change completed")    
     results['changed'] = True
 
-  logging.info("change completed")
   return results
 
 ### ---------------------------------------------------------------------------
@@ -67,7 +77,8 @@ def main():
       passwd=dict(required=False, default=None),
       file=dict(required=True),
       override=dict(required=False, default=False),
-      logfile=dict(required=False, default=None)
+      logfile=dict(required=False, default=None),
+      timeout=dict(required=False, default=False)
     ),
     supports_check_mode = True
   )
@@ -83,6 +94,9 @@ def main():
   logging.info("connecting to host: {}@{}".format(args['user'], args['host']))
   dev = Device(args['host'], user=args['user'], password=args['passwd'])
   dev.open()
+
+  if args.get('timeout') is not False:
+    dev.timeout = int(args['timeout'])
 
   results = junos_install_config(module, dev)
 
