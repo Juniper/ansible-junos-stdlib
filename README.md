@@ -1,4 +1,7 @@
-ansible-junos-stdlib
-====================
+# NOTICE
 
-Junos modules for Ansible
+*EXPERIMENTAL*
+
+# ABOUT
+
+Ansible modules to support Junos network build automation use-cases
