@@ -116,7 +116,8 @@ def main():
   dev.open()
 
   results = junos_install_os(module, dev)
-
+  results['check_mode'] = module.check_mode
+  
   dev.close()
   module.exit_json(**results)
 
