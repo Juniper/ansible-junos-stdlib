@@ -9,9 +9,6 @@ description:
    - Fun with Junos
 author: Jeremy Schulman
 '''
-import sys
-_JUNOS_PYEZ_LIB = '/home/jeremy/Python/py-junos-eznc/lib'
-sys.path.insert(0,_JUNOS_PYEZ_LIB)
 
 from jnpr.junos import Device 
 

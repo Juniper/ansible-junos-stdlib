@@ -10,8 +10,6 @@ description:
    - invokes "reboot in 0"
 author: Jeremy Schulman
 '''
-import sys
-sys.path.insert(0,'/home/jeremy/Python/py-junos-eznc/lib')
 
 from jnpr.junos import Device
 from jnpr.junos.utils.sw import SW

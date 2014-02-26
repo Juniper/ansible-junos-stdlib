@@ -9,10 +9,8 @@ description:
    - Fun with Junos
 author: Jeremy Schulman
 '''
-import sys
-import logging
 
-sys.path.insert(0,'/home/jeremy/Python/py-junos-eznc/lib')
+import logging
 from jnpr.junos import Device 
 
 EXAMPLES = '''
@@ -55,6 +53,7 @@ def junos_install_os(module, dev):
     do_log("No need to perform upgrade: {}".format( has_ver ))
     return results
   if module.check_mode is True:
+    do_log("upgrade REQUIRED has: {}, shoud: {}".format( has_ver, should_ver ))
     return results
 
   ### -------------------------------------------------------------------------
@@ -104,21 +103,35 @@ def main():
       user=dict(required=False, default=os.getenv('USER')),
       passwd=dict(required=False, default=None),
       version=dict(required=False, default=None),
+      logfile=dict(required=False, default=None),
       no_copy=dict(required=False, choices=BOOLEANS, default=False),
       reboot=dict(required=False, choices=BOOLEANS, default=True),
-      logfile=dict(required=False, default=None)
+      reboot_pause=dict(required=False, type='int', default=10)
     ),
     supports_check_mode = True
   )
 
   args = module.params
+
+  ### @@@ need to verify that the package file actually exists
+  ### @@@ before proceeding.
+
   dev = Device(args['host'], user=args['user'], password=args['passwd'])
-  dev.open()
+  try:
+    dev.open()
+  except:
+    module.fail_exit(msg="unable to connect to: {}".format(args['host']))
+    return
 
   results = junos_install_os(module, dev)
   results['check_mode'] = module.check_mode
-  
   dev.close()
+
+  if not module.check_mode and results['changed'] is True:
+    logging.info('pausing: {}'.format(args['reboot_pause']))
+    import time
+    time.sleep( args['reboot_pause'])
+
   module.exit_json(**results)
 
 from ansible.module_utils.basic import *

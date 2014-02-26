@@ -9,14 +9,11 @@ description:
    - Fun with Junos
 author: Jeremy Schulman
 '''
-import sys
+
 import logging
-
-# the following is a hack, and should be removed once the jnpr.junos
-# module is properly installed in the system
-
-sys.path.insert(0,'/home/jeremy/Python/py-junos-eznc/lib')
+from os.path import isfile
 from jnpr.junos import Device 
+from jnpr.junos.exception import *
 
 EXAMPLES = '''
 TBD
@@ -35,11 +32,13 @@ def junos_install_config(module, dev):
   file_path = os.path.abspath( file_path )
 
   results['file'] = file_path
+  results['changed'] = False
   
   logging.info("pushing file: {}".format(file_path))
   try:
     logging.info("taking lock")
     cu.lock()
+
     try:
       # load the config.  the cu.load will raise
       # an exception if there is even a warning.
@@ -48,20 +47,39 @@ def junos_install_config(module, dev):
       cu.load(path=file_path)    
     except Exception as err:
       if err.rsp.find('.//ok') is None:
+        rpc_msg = err.rsp.findtext('.//error-message')
+        logging.error("unable to load config:{}".format(rpc_msg))
         raise err
       else:
         pass
-    logging.info("committing change, please be patient")    
-    cu.commit()
+
+    diff = cu.diff()
+    if diff is not None:
+      logging.info("committing change, please be patient")    
+      cu.commit()
+      results['changed'] = True
+
     logging.info("unlocking")        
     cu.unlock()
+    logging.info("change completed")    
+
+  except LockError:
+    results['failed'] = True
+    msg = "Unable to lock configuration"
+    results['msg'] = msg
+    logging.error(msg)
+
+  except CommitError:
+    results['failed'] = True
+    msg = "Unable to commit configuration"
+    results['msg'] = msg
+    logging.error(msg)
+
   except Exception as err:
     results['failed'] = True
-    msg = "Unable to mkae changes"
+    msg = "Unable to make changes"
     results['msg'] = msg
-  else:
-    logging.info("change completed")    
-    results['changed'] = True
+    logging.error(msg)
 
   return results
 
@@ -78,7 +96,7 @@ def main():
       file=dict(required=True),
       override=dict(required=False, default=False),
       logfile=dict(required=False, default=None),
-      timeout=dict(required=False, default=False)
+      timeout=dict(required=False, default=0)
     ),
     supports_check_mode = True
   )
@@ -91,15 +109,24 @@ def main():
       format='%(asctime)s:%(name)s:%(message)s')
     logging.getLogger().name = 'CONFIG:'+module.params['host']
 
+  # ------------------------------
+  # make sure file actually exists
+  # ------------------------------
+  if not isfile(args['file']):
+    module.fail_json(msg="file not found: {}".format(args['file']))
+    return
+
   logging.info("connecting to host: {}@{}".format(args['user'], args['host']))
-  dev = Device(args['host'], user=args['user'], password=args['passwd'])
-  dev.open()
+  try:
+    dev = Device(args['host'], user=args['user'], password=args['passwd'])    
+    dev.open()
+  except:
+    module.fail_json(msg='unable to connect to {}'.format(args['host']))
+    return
 
-  if args.get('timeout') is not False:
-    dev.timeout = int(args['timeout'])
-
+  timeout = int(args['timeout'])
+  if timeout > 0: dev.timeout = timeout
   results = junos_install_config(module, dev)
-
   dev.close()
   module.exit_json(**results)
 
