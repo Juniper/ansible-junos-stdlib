@@ -2,7 +2,7 @@ ___NOTICE___ - *EXPERIMENTAL*
 
 ## ABOUT
 
-Ansible modules to support Junos network build automation use-cases.  Developed for Ansible 1.5.  This library is not currently part of the Ansible distribution.  Please refer to [INSTALLATION]() section for setup.
+Ansible modules to support Junos network build automation use-cases.  Developed for Ansible 1.5.  This library is not currently part of the Ansible distribution.  Please refer to [INSTALLATION](#installation) section for setup.
 
 ## OVERVIEW OF MODULES
 
@@ -27,3 +27,7 @@ These modules are used to programmatically control the Junos device via the XML/
 
 * `junos_noob_config`
 * `junos_noob_qfx_node`
+
+## INSTALLATION
+
+This section, blah, blah, blah ....
