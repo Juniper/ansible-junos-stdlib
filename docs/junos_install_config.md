@@ -5,7 +5,7 @@
 Install a Junos OS configuration.  This could either be a complete configuration (overrite) or a "snippet" of change.  The format of the file can either be Junos "set" commands, "curly-text" format, or XML format.  This module uses the file extention to determine the format:
 
 * `.xml` = XML
-* `.conf` = curl-text
+* `.conf` = text
 * `.set` = set
 
 Check-Mode is supported.
