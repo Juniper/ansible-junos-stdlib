@@ -1,4 +1,4 @@
-### `junos_get_faces`
+### `junos_get_facts`
 
 ### Synopsis
 
