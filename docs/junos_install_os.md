@@ -20,7 +20,7 @@ If the existing version does not match, then the following actions are performed
 ````
 tasks:
    junos_install_os:
-      host=red_vsrx
+      host={{ inventory_hostname }}
       version=12.1X46-D10.2
       package=/usr/local/junos/images/junos-vsrx-12.1X46-D10.2-domestic.tgz
 ````
