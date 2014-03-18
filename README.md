@@ -31,3 +31,12 @@ These modules are used to programmatically control the Junos device via the XML/
 ## INSTALLATION
 
 This section, blah, blah, blah ....
+
+## DEPENDENCIES
+
+Thes modules require the following to be installed on the Ansible server:
+
+* [Ansible](www.ansible.com) 1.5 or later
+* Junos [py-junos-eznc](https://github.com/Juniper/py-junos-eznc) v0.0.5 or later
+* Junos [netconify](https://github.com/jeremyschulman/py-junos-netconify) if you plan to use the 'noob' modules
+
