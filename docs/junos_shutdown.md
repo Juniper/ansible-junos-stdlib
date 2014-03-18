@@ -1,19 +1,17 @@
-### `junos_get_faces`
+### `junos_shutdown`
 
 ### Synopsis
 
-Retrieves the Junos device "facts" JSON dictionary.  This dictionary contains information like serial-number, product model, software version, etc.
+Performs either a 'shutdown' or 'reboot' of the Junos device.
 
 ### Example Usage
 
 ````
   tasks:
-    - name: Get Junos Facts
-      junos_get_facts:
+    - name: Shutting down Junos
+      junos_shutdown:
         host={{ inventory_hostname }}
-      register: junos
-    - name: version
-      debug: msg="{{ junos.facts.version }}"
+        shutdown="shutdown"
 ````
 
 ### Options
@@ -23,3 +21,5 @@ Retrieves the Junos device "facts" JSON dictionary.  This dictionary contains in
 | host      	| yes      	|         	|         	| This should be set to {{ inventory_hostname }}                                   	|
 | user      	| no       	| $USER   	|         	| Login user-name                                                                  	|
 | passwd    	| no       	| None    	|         	| Login password.  If not supplied, assumes that ssh-keys are installed and active 	|
+| shutdown  	| yes      	| None    	|         	| You **MUST** set this to "shutdown" as a safe-guard                                	|
+| reboot    	| no       	| no      	| yes, no 	| If `yes` then this action will cause a reboot, rather than a shutdown            	|
