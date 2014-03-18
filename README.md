@@ -6,7 +6,7 @@ Ansible modules to support Junos network build automation use-cases.  Developed 
 
 ## OVERVIEW OF MODULES
 
-This library contains the following Ansible modules.  Please refer to the [MODULE DOCUMENTATION]() section for details on each of the modules.
+This library contains the following Ansible modules.  Please refer to the [MODULE DOCUMENTATION](docs) section for details on each of the modules.
 
 #### Build Automation modules
 
