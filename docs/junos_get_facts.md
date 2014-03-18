@@ -2,7 +2,7 @@
 
 ### Synopsis
 
-Retrieves the Junos device "facts" JSON dictionary.  This dictionary contains information like serial-number, product model, software version, etc.
+Retrieves the Junos device "facts" JSON dictionary.  This dictionary contains information like serial-number, product model, software version, etc.  For more details on the "facts" dictionary, refer to the [Junos PyEZ](https://github.com/Juniper/py-junos-eznc) python module.
 
 ### Example Usage
 
