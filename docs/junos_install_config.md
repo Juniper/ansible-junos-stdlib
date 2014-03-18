@@ -1,40 +1,36 @@
-### `junos_install_os`
+### `junos_install_config`
 
 ### Synopsis
 
-Install a Junos OS image on one or more routing-engine (RE) components.  This module supports single CPU devices, EX virtual-chassis (not-mixed mode), and MX dual-RE products.
+Install a Junos OS configuration.  This could either be a complete configuration (overrite) or a "snippet" of change.  The format of the file can either be Junos "set" commands, "curly-text" format, or XML format.  This module uses the file extention to determine the format:
 
-Check-Mode is supported to report whether or not the current version matched the desired version.
+* `.xml` = XML
+* `.conf` = curl-text
+* `.set` = set
 
-If the existing version matches, no action is performed, and the "changed" attribute reports False.
-If the existing version does not match, then the following actions are performed:
+Check-Mode is supported.
 
-1.  Compuste the MD5 checksum of the package located on the server
-2.  Copy the package image to the Junos device
-3.  Compute the MD5 checksum on the Junos device and compare the two
-4.  Install the Junos package
-5.  Reboot the device (default)
+If the configuration does not result in a change, then the "changed" flag will be `False`.
+
 
 ### Example Usage
 
 ````
 tasks:
-   junos_install_os:
+   junos_install_config:
       host={{ inventory_hostname }}
-      version=12.1X46-D10.2
-      package=/usr/local/junos/images/junos-vsrx-12.1X46-D10.2-domestic.tgz
+      file=/var/tmp/banner.conf
 ````
 
 ### Options
 
-| parameter    	| required 	| default 	| choices 	| description                                                                                                                                          	|
-|--------------	|----------	|---------	|---------	|------------------------------------------------------------------------------------------------------------------------------------------------------	|
-| host         	| yes      	|         	|         	| This should be set to {{ inventory_hostname }}                                                                                                       	|
-| user         	| no       	| $USER   	|         	| Login user-name                                                                                                                                      	|
-| passwd       	| no       	| None    	|         	| Login password.  If not supplied, assumes that ssh-keys are installed and active                                                                     	|
-| version      	| yes      	| None    	|         	| Junos version string as it would be reported by the "show version" command                                                                           	|
-| package      	| yes      	| None    	|         	| Complete path to the Junos package file (*.tgz) located on the                                                                                       	|
-|              	|          	|         	|         	| local server                                                                                                                                         	|
-| reboot       	| no       	| yes     	| yes, no 	| Controls if the device will be rebooted after the software has been installed                                                                        	|
-| reboot_pause 	| no       	| 10      	|         	| Controls the amount of time (seconds) to pause execution after the reboot command has been issues; allows time for the reboot process to take effect 	|
-| logfile      	| no       	| None    	|         	| Complete path to the logfile where this action will write progress and status                                                                        	|
+| parameter 	| required 	| default 	| choices     	| description                                                                                                                                	|
+|-----------	|----------	|---------	|-------------	|--------------------------------------------------------------------------------------------------------------------------------------------	|
+| host      	| yes      	|         	|             	| This should be set to {{ inventory_hostname }}                                                                                             	|
+| user      	| no       	| `$USER`   	|             	| Login user-name                                                                                                                            	|
+| passwd    	| no       	| None    	|             	| Login password.  If not supplied, assumes that ssh-keys are installed and active                                                           	|
+| file      	| yes      	| None    	|             	| File on the local server that contains the configuration change.                                                                           	|
+| overrite  	| no       	| False   	| True, False 	| Determines if the `file` contents will completely replace the existing configuration ('yes') or a merged change ('no')                     	|
+| timeout   	| no       	| 0       	|             	| Temporarily change the NETCONF RPC timeout value.  This should be set if you know the configuration change may take longer that 30 seconds 	|
+| logfile   	| no       	|         	|             	| File on the local server where progress and status is stored                                                                                	|
+
