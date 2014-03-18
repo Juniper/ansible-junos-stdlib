@@ -25,8 +25,8 @@ These are the primary modules used to install Junos OS softawre and deploy the i
 
 These modules are used to programmatically control the Junos device via the XML/API over the CONSOLE port; i.e. using a serial port or a terminal server port.  The purpose of these modules are to "bootstrap" the Junos device with IP reachability and enable NETCONF.
 
-* `junos_noob_config`
-* `junos_noob_qfx_node`
+* `junos_noob_config` - Install a noob config 
+* `junos_noob_qfx_node` - Change the operating mode of a QFX switch to QFabric "node"
 
 ## INSTALLATION
 
