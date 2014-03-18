@@ -27,10 +27,9 @@ tasks:
 | parameter 	| required 	| default 	| choices     	| description                                                                                                                                	|
 |-----------	|----------	|---------	|-------------	|--------------------------------------------------------------------------------------------------------------------------------------------	|
 | host      	| yes      	|         	|             	| This should be set to {{ inventory_hostname }}                                                                                             	|
-| user      	| no       	| `$USER`   	|             	| Login user-name                                                                                                                            	|
+| user      	| no       	| $USER   	|             	| Login user-name                                                                                                                            	|
 | passwd    	| no       	| None    	|             	| Login password.  If not supplied, assumes that ssh-keys are installed and active                                                           	|
 | file      	| yes      	| None    	|             	| File on the local server that contains the configuration change.                                                                           	|
-| overrite  	| no       	| False   	| True, False 	| Determines if the `file` contents will completely replace the existing configuration ('yes') or a merged change ('no')                     	|
+| overrite  	| no       	| False   	| True, False 	| Determines if the `file` contents will completely replace the existing configuration (True) or a merged change (False)                     	|
 | timeout   	| no       	| 0       	|             	| Temporarily change the NETCONF RPC timeout value.  This should be set if you know the configuration change may take longer that 30 seconds 	|
-| logfile   	| no       	|         	|             	| File on the local server where progress and status is stored                                                                                	|
-
+| logfile   	| no       	|         	|             	| File on the local server when progress and status is stored                                                                                	|
