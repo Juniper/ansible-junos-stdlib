@@ -4,9 +4,11 @@ ___NOTICE___ - *EXPERIMENTAL*
 
 Ansible modules to support Junos network build automation use-cases.  Developed for Ansible 1.5.  This library is not currently part of the Ansible distribution.  Please refer to [INSTALLATION](#installation) section for setup.
 
+For examples of using this module library, refer to the [Ansible + Junos FireFly](https://github.com/jeremyschulman/ansible-vsrx-demo) demo repository.
+
 ## OVERVIEW OF MODULES
 
-This library contains the following Ansible modules.  Please refer to the [MODULE DOCUMENTATION](docs) section for details on each of the modules.
+This library contains the following Ansible modules.  For detailed usage on each module, refer to [docs](docs).
 
 #### Build Automation modules
 
