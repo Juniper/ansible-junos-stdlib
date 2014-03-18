@@ -18,11 +18,13 @@ If the existing version does not match, then the following actions are performed
 ### Example Usage
 
 ````
-tasks:
-   junos_install_os:
-      host={{ inventory_hostname }}
-      version=12.1X46-D10.2
-      package=/usr/local/junos/images/junos-vsrx-12.1X46-D10.2-domestic.tgz
+  tasks:
+    - name: Installing Junos OS
+      junos_install_os:
+        host={{ inventory_hostname }}
+        version=12.1X46-D10.2
+        package=/usr/local/junos/images/junos-vsrx-12.1X46-D10.2-domestic.tgz
+        logfile=/usr/local/junos/log/software.log
 ````
 
 ### Options
