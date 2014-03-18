@@ -16,10 +16,11 @@ If the configuration does not result in a change, then the "changed" flag will b
 ### Example Usage
 
 ````
-tasks:
-   junos_install_config:
-      host={{ inventory_hostname }}
-      file=/var/tmp/banner.conf
+  tasks:
+    - name: Pushing banner config
+      junos_install_config:
+        host={{ inventory_hostname }}
+        file=/var/tmp/banner.conf
 ````
 
 ### Options
