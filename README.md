@@ -36,7 +36,7 @@ This section, blah, blah, blah ....
 
 Thes modules require the following to be installed on the Ansible server:
 
-* [Ansible](www.ansible.com) 1.5 or later
+* [Ansible](http://www.ansible.com) 1.5 or later
 * Junos [py-junos-eznc](https://github.com/Juniper/py-junos-eznc) v0.0.5 or later
 * Junos [netconify](https://github.com/jeremyschulman/py-junos-netconify) if you plan to use the 'noob' modules
 
