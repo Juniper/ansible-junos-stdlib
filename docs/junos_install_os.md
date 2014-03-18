@@ -27,17 +27,14 @@ tasks:
 
 ### Options
 
-| parameter    	| required 	| default 	| choices 	| description                                                                   	|
-|--------------	|----------	|---------	|---------	|-------------------------------------------------------------------------------	|
-| host         	| yes      	|         	|         	| This should be set to {{ inventory_hostname }}                                	|
-| user         	| no       	| $USER   	|         	| The username used during the NETCONF login process                            	|
-| passwd       	| no       	| None    	|         	| If not supplied, assumes that ssh-keys are installed and active               	|
-| version      	| yes      	| None    	|         	| The Junos version string as it would be reported by the "show version"        	|
-|              	|          	|         	|         	| command                                                                       	|
-| package      	| yes      	| None    	|         	| Complete path to the Junos package file (*.tgz) located on the                	|
-|              	|          	|         	|         	| local server                                                                  	|
-| reboot       	| no       	| yes     	| yes, no 	| Controls if the device will be rebooted after the software has been installed 	|
-| reboot_pause 	| no       	| 10      	|         	| Controls the amount of time (seconds) to pause execution after                	|
-|              	|          	|         	|         	| the reboot command has been issues; allows time for the reboot process        	|
-|              	|          	|         	|         	| to take effect                                                                	|
-| logfile      	| no       	| None    	|         	| Complete path to the logfile where this action will write progress and status 	|
+| parameter    	| required 	| default 	| choices 	| description                                                                                                                                          	|
+|--------------	|----------	|---------	|---------	|------------------------------------------------------------------------------------------------------------------------------------------------------	|
+| host         	| yes      	|         	|         	| This should be set to {{ inventory_hostname }}                                                                                                       	|
+| user         	| no       	| $USER   	|         	| Login user-name                                                                                                                                      	|
+| passwd       	| no       	| None    	|         	| Login password.  If not supplied, assumes that ssh-keys are installed and active                                                                     	|
+| version      	| yes      	| None    	|         	| Junos version string as it would be reported by the "show version" command                                                                           	|
+| package      	| yes      	| None    	|         	| Complete path to the Junos package file (*.tgz) located on the                                                                                       	|
+|              	|          	|         	|         	| local server                                                                                                                                         	|
+| reboot       	| no       	| yes     	| yes, no 	| Controls if the device will be rebooted after the software has been installed                                                                        	|
+| reboot_pause 	| no       	| 10      	|         	| Controls the amount of time (seconds) to pause execution after the reboot command has been issues; allows time for the reboot process to take effect 	|
+| logfile      	| no       	| None    	|         	| Complete path to the logfile where this action will write progress and status                                                                        	|
