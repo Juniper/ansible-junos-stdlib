@@ -1,4 +1,4 @@
-___NOTICE___ - *Under Active Development*
+___NOTICE___ - *Under active development*
 
 ## ABOUT
 
