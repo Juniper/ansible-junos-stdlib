@@ -1,7 +1,5 @@
 ### `junos_noob_config`
 
-*NOTE: do not use, under construction*
-
 ### Synopsis
 
 Install a minimal New Out of Box (NOOB) configuration that should at least set the IP-address and enable the NETCONF service.  This action is performed over the device CONSOLE port using either a SERIAL-PORT or a TERMINAL-SERVER.  This action will also log the device "facts" and "inventory" to a local server directory, which then provdies you with specific details about the device located on that console.  Refer to [netconify](https://github.com/jeremyschulman/py-junos-netconify) for further details on this process.
