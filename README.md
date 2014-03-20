@@ -32,7 +32,16 @@ These modules are used to programmatically control the Junos device via the XML/
 
 ## INSTALLATION
 
-This section, blah, blah, blah ....
+This repo assumes you have the DEPENCENCIES installaed on your system.  You can then `git clone` this repo and run the `env-setup` script in the repo directory:
+
+    user@ansible-junos-stdlib> source env-setup
+    
+This will set your `$ANSIBLE_LIBRARY` variable to the repo location and the installed Ansible library path.  For example:
+
+````
+[jeremy@ansible-junos-stdlib]$ echo $ANSIBLE_LIBRARY
+/home/jeremy/Ansible/ansible-junos-stdlib/library:/usr/share/ansible
+````
 
 ## DEPENDENCIES
 
@@ -41,4 +50,9 @@ Thes modules require the following to be installed on the Ansible server:
 * [Ansible](http://www.ansible.com) 1.5 or later
 * Junos [py-junos-eznc](https://github.com/Juniper/py-junos-eznc) v0.0.5 or later
 * Junos [netconify](https://github.com/jeremyschulman/py-junos-netconify) if you plan to use the 'noob' modules
+
+## DEMO
+
+For a demo using the Junos modules for Ansible, please see the [Firefly Host](https://github.com/jeremyschulman/ansible-vsrx-demo) demo repository.
+
 
