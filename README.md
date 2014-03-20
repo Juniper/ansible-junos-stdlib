@@ -1,5 +1,3 @@
-___NOTICE___ - *Under active development*
-
 ## ABOUT
 
 Ansible modules to support Junos network build automation use-cases.  Developed for Ansible 1.5.  This library is not currently part of the Ansible distribution.  Please refer to [INSTALLATION](#installation) section for setup.
