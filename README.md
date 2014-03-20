@@ -1,4 +1,4 @@
-___NOTICE___ - *EXPERIMENTAL*
+___NOTICE___ - *Under active development*
 
 ## ABOUT
 
