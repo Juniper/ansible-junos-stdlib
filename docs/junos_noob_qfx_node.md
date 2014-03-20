@@ -7,11 +7,11 @@ New Out of Box (NOOB) configuration that will change the "device mode" for a QFX
 ### Example Usage
 ````
   tasks:
-    - name: QFX {{mode}}-mode
+    - name: QFX node-mode
       junos_noob_qfx_node:
         name={{ inventory_hostname }}
         port='-t={{TERMSERV}},{{TERMSERVPORT}}'
-        logfile=/usr/local/junos/noob.log
+        logfile=/usr/local/junos/log/qfx_node.log
         savedir=/usr/local/junos/inventory
 ````
 
