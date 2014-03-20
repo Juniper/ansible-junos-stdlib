@@ -1,7 +1,5 @@
 ### `junos_noob_qfx_node`
 
-*NOTE: do not use, under construction*
-
 ### Synopsis
 
 New Out of Box (NOOB) configuration that will change the "device mode" for a QFX switch.  For QFabric deployments, the QFX switch must be configured into 'node' mode.  This action is performed over the device CONSOLE port using either a SERIAL-PORT or a TERMINAL-SERVER.  This action will also log the device "facts" and "inventory" to a local server directory, which then provdies you with specific details about the device located on that console.  Refer to [netconify](https://github.com/jeremyschulman/py-junos-netconify) for further details on this process.
