@@ -21,6 +21,6 @@ Performs a Junos 'zeroize' command to wipe the system to factory state.  This ac
 | host      	| no       	|         	|         	| This should be set to {{ inventory_hostname }} when using NETCONF mode, not needed if using the `tty` parameter                                  	|
 | user      	| no       	| $USER   	|         	| Login user-name                                                                                                                                  	|
 | passwd    	| no       	| None    	|         	| Login password.  If not supplied, assumes that ssh-keys are installed and active                                                                 	|
-| zeroize   	| yes      	| None    	|         	| You *MUST* set this to "zeroize" as a safe-guard                                                                                                 	|
+| zeroize   	| yes      	| None    	|         	| You **MUST** set this to "zeroize" as a safe-guard                                                                                                 	|
 | port       	| no       	| None    	|         	| If set, this parameter is the same value passed to the `netconify` utility to issue the command over either the SERIAL port or a TERMINAL-SERVER 	|
 
