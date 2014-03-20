@@ -4,8 +4,6 @@
 
 Performs a Junos 'zeroize' command to wipe the system to factory state.  This action can be performed either over the NETCONF interface or over the CONSOLE interface (requires 'netconify').
 
-*NOTE*: do not use at present.
-
 ### Example Usage
 
 ````
