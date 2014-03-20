@@ -3,7 +3,7 @@
 DOCUMENTATION = '''
 ---
 module: junos_install_config
-author: Jeremy Schulman
+author: Jeremy Schulman, Juniper Networks
 version_added: "1.5.0"
 short_description: Install Junos configuration file/snippet
 description:
@@ -144,7 +144,7 @@ def main():
             user=dict(required=False, default=os.getenv('USER')),
             passwd=dict(required=False, default=None),
             file=dict(required=True),
-            override=dict(required=False, default=False),
+            overwrite=dict(required=False, default=False),
             logfile=dict(required=False, default=None),
             timeout=dict(required=False, default=0)),
         supports_check_mode = True )

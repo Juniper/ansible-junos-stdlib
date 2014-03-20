@@ -3,19 +3,84 @@
 DOCUMENTATION = '''
 ---
 module: junos_install_os
-version_added: 0.1.5
-short_description: Junos OS software installer
+author: Jeremy Schulman, Juniper Networks
+version_added: "1.5.0"
+short_description: Install Junos OS image
 description:
-   - Fun with Junos
-author: Jeremy Schulman
+   - Install a Junos OS image on one or more routing-engine (RE) components. 
+     This module supports single CPU devices, EX virtual-chassis 
+     (not-mixed mode), and MX dual-RE products.
+
+     Check-Mode is supported to report whether or not the current version 
+     matched the desired version.
+
+     If the existing version matches, no action is performed, and the 
+     "changed" attribute reports False. If the existing version does not 
+     match, then the following actions are performed
+
+     (1) Compuste the MD5 checksum of the package located on the server
+     (2) Copy the package image to the Junos device
+     (3) Compute the MD5 checksum on the Junos device and compare the two
+     (4) Install the Junos package
+     (5) Reboot the device (default)
+
+requirements:
+   - py-junos-eznc >= 0.0.5
+options:
+   host:
+        description:
+            - should be {{ inventory_hostname }}
+        required: true  
+   user:
+      description:
+         - login user-name 
+      required: false 
+      default: $USER 
+   passwd:
+      description:
+         - login password
+      required: false 
+      default: assumes ssh-key active    
+   reboot:
+      description:
+         - determines if a reboot is performed after the OS is loaded
+      required: false
+      default: yes
+      choices: ['yes','no']
+   reboot_pause:
+      description:
+         - amount of time in seconds to wait after the reboot is issued
+      required: false 
+      default: "10"
+   version:
+      description:
+         - Junos version string as it would be reported by the 'show version' 
+           command
+      required: true
+   package:
+      description:
+         - complete path on the local server to the Junos image package file 
+      required: true  
+   logfile:
+      description:
+         - path on the local server where progress status is logged
+           for debugging purposes
+      required: false 
+      default: None
+'''
+
+EXAMPLES = '''
+   tasks:
+      - name: Installing Junos OS
+        junos_install_os:
+            host={{ inventory_hostname }}
+            version=12.1X46-D10.2
+            package=/usr/local/junos/images/junos-vsrx-12.1X46-D10.2-domestic.tgz
+            logfile=/usr/local/junos/log/software.log
 '''
 
 import logging
 from jnpr.junos import Device 
-
-EXAMPLES = '''
-TBD
-'''
 
 def junos_install_os(module, dev):
   args = module.params
@@ -131,6 +196,7 @@ def main():
     logging.info('pausing: {}'.format(args['reboot_pause']))
     import time
     time.sleep( args['reboot_pause'])
+    logging.info('process completed OK.')    
 
   module.exit_json(**results)
 
