@@ -3,40 +3,61 @@
 DOCUMENTATION = '''
 ---
 module: junos_get_facts
-version_added: 0.1.5
+author: Jeremy Schulman
+version_added: "1.5.0"
 short_description: Retrieve Junos device facts
 description:
-   - Fun with Junos
-author: Jeremy Schulman
+    - Junos facts returns as a JSON dictionary, includes items
+      such as version, serial-number, product module, etc.  Similar
+      to facts gathered by other IT frameworks
+requirements:
+    - py-junos-eznc
+options:
+    host:
+        description:
+            - should be {{ inventory_hostname }}
+        required: true  
+    user:
+        description:
+            - login user-name 
+        required: false 
+        default: $USER 
+    passwd:
+        description:
+            - login password
+        required: false 
+        default: assumes ssh-key active         
+'''
+
+EXAMPLES = '''
+  tasks:
+    - name: Pushing banner config
+      junos_install_config:
+        host={{ inventory_hostname }}
+        file=/var/tmp/banner.conf
 '''
 
 from jnpr.junos import Device 
 
-EXAMPLES = '''
-TBD
-'''
-
 def main():
-  module = AnsibleModule(
-    argument_spec = dict(
-      host=dict(required=True),
-      user=dict(required=False, default=os.getenv('USER')),
-      passwd=dict(required=False, default=None)
-    ),
-    supports_check_mode = True
-  )
+    module = AnsibleModule(
+        argument_spec = dict(
+            host=dict(required=True),
+            user=dict(required=False, default=os.getenv('USER')),
+            passwd=dict(required=False, default=None)),
+        supports_check_mode = True)
 
-  args = module.params
+    args = module.params
 
-  dev = Device(args['host'], user=args['user'], password=args['passwd'])
-  dev.open()
-  dev.close()
+    dev = Device(args['host'], user=args['user'], password=args['passwd'])
+    dev.open()
+    dev.close()
 
-  results = dict(changed=False)
-  del dev.facts['version_info']   # currently not JSON serializable.
-  results['facts'] = dev.facts
+    results = dict(changed=False)
+    del dev.facts['version_info']   # currently not JSON serializable.
+    results['facts'] = dev.facts
 
-  module.exit_json(**results)
+    module.exit_json(**results)
 
 from ansible.module_utils.basic import *
 main()

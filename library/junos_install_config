@@ -3,11 +3,57 @@
 DOCUMENTATION = '''
 ---
 module: junos_install_config
-version_added: 0.1.5
-short_description: Junos config installer (NETCONF)
-description:
-   - Fun with Junos
 author: Jeremy Schulman
+version_added: "1.5.0"
+short_description: Install Junos configuration file/snippet
+description:
+    - Install a complete Junos configuration (overwrite) or
+    - merge a Junos configuration snippet onto the device.
+    - This process will perform an atomic lock/edit/unlock.
+    - If the process fails at any step, then the complete
+    - change is discarded.  The file contents can be in
+    - the form of standard text, XML, or set statements
+requirements:
+    - py-junos-eznc
+options:
+    host:
+        description:
+            - should be {{ inventory_hostname }}
+        required: true  
+    user:
+        description:
+            - login user-name 
+        required: false 
+        default: $USER 
+    passwd:
+        description:
+            - login password
+        required: false 
+        default: assumes ssh-key active      
+    file:
+        description:
+            - path to file containing the Junos configuration
+        required: true 
+    overwrite:
+        description:
+            - determines if the I(file) completely replaces the
+              existing configuration   
+        required: false 
+        default: no
+        choices: ['true','false','yes','no']
+    timeout:
+        description:
+            - enables you to extend the NETCONF RPC timeout beyond
+              the standard 30 seconds.  Set this value when you know
+              the configuration change (commit) may take a long time
+        required: false
+        default: "0"
+    logfile:
+        description:
+            - path on the local server where progress status is logged
+              for debugging purposes
+        required: false 
+        default: None
 '''
 
 import logging
@@ -16,119 +62,121 @@ from jnpr.junos import Device
 from jnpr.junos.exception import *
 
 EXAMPLES = '''
-TBD
+  tasks:
+    - name: Pushing banner config
+      junos_install_config:
+        host={{ inventory_hostname }}
+        file=/var/tmp/banner.conf
 '''
 
 import os
 from jnpr.junos.utils.config import Config
 
 def junos_install_config(module, dev):
-  args = module.params
-  cu = Config(dev)
+    args = module.params
+    cu = Config(dev)
 
-  results = {}
+    results = {}
 
-  file_path = module.params['file']
-  file_path = os.path.abspath( file_path )
+    file_path = module.params['file']
+    file_path = os.path.abspath( file_path )
 
-  results['file'] = file_path
-  results['changed'] = False
+    results['file'] = file_path
+    results['changed'] = False
   
-  logging.info("pushing file: {}".format(file_path))
-  try:
-    logging.info("taking lock")
-    cu.lock()
-
+    logging.info("pushing file: {}".format(file_path))
     try:
-      # load the config.  the cu.load will raise
-      # an exception if there is even a warning.
-      # so we want to avoid that condition.
-      logging.info("loading config")    
-      cu.load(path=file_path)    
+        logging.info("taking lock")
+        cu.lock()
+
+        try:
+        # load the config.  the cu.load will raise
+        # an exception if there is even a warning.
+        # so we want to avoid that condition.
+            logging.info("loading config")    
+            cu.load(path=file_path)    
+        except Exception as err:
+            if err.rsp.find('.//ok') is None:
+                rpc_msg = err.rsp.findtext('.//error-message')
+                logging.error("unable to load config:{}".format(rpc_msg))
+            raise err
+        else:
+            pass
+
+        diff = cu.diff()
+        if diff is not None:
+            logging.info("committing change, please be patient")    
+            cu.commit()
+            results['changed'] = True
+
+        logging.info("unlocking")        
+        cu.unlock()
+        logging.info("change completed")    
+
+    except LockError:
+        results['failed'] = True
+        msg = "Unable to lock configuration"
+        results['msg'] = msg
+        logging.error(msg)
+
+    except CommitError:
+        results['failed'] = True
+        msg = "Unable to commit configuration"
+        results['msg'] = msg
+        logging.error(msg)
+
     except Exception as err:
-      if err.rsp.find('.//ok') is None:
-        rpc_msg = err.rsp.findtext('.//error-message')
-        logging.error("unable to load config:{}".format(rpc_msg))
-        raise err
-      else:
-        pass
+        results['failed'] = True
+        msg = "Unable to make changes"
+        results['msg'] = msg
+        logging.error(msg)
 
-    diff = cu.diff()
-    if diff is not None:
-      logging.info("committing change, please be patient")    
-      cu.commit()
-      results['changed'] = True
-
-    logging.info("unlocking")        
-    cu.unlock()
-    logging.info("change completed")    
-
-  except LockError:
-    results['failed'] = True
-    msg = "Unable to lock configuration"
-    results['msg'] = msg
-    logging.error(msg)
-
-  except CommitError:
-    results['failed'] = True
-    msg = "Unable to commit configuration"
-    results['msg'] = msg
-    logging.error(msg)
-
-  except Exception as err:
-    results['failed'] = True
-    msg = "Unable to make changes"
-    results['msg'] = msg
-    logging.error(msg)
-
-  return results
+    return results
 
 ### ---------------------------------------------------------------------------
 ### MAIN
 ### ---------------------------------------------------------------------------
 
 def main():
-  module = AnsibleModule(
-    argument_spec = dict(
-      host=dict(required=True),
-      user=dict(required=False, default=os.getenv('USER')),
-      passwd=dict(required=False, default=None),
-      file=dict(required=True),
-      override=dict(required=False, default=False),
-      logfile=dict(required=False, default=None),
-      timeout=dict(required=False, default=0)
-    ),
-    supports_check_mode = True
-  )
+    module = AnsibleModule(
+        argument_spec = dict(
+            host=dict(required=True),
+            user=dict(required=False, default=os.getenv('USER')),
+            passwd=dict(required=False, default=None),
+            file=dict(required=True),
+            override=dict(required=False, default=False),
+            logfile=dict(required=False, default=None),
+            timeout=dict(required=False, default=0)),
+        supports_check_mode = True )
 
-  args = module.params
+    args = module.params
 
-  logfile = module.params.get('logfile')
-  if logfile is not None:
-    logging.basicConfig(filename=logfile, level=logging.INFO,
-      format='%(asctime)s:%(name)s:%(message)s')
-    logging.getLogger().name = 'CONFIG:'+module.params['host']
+    logfile = module.params.get('logfile')
+    if logfile is not None:
+        logging.basicConfig(filename=logfile, level=logging.INFO,
+          format='%(asctime)s:%(name)s:%(message)s')
+        logging.getLogger().name = 'CONFIG:'+module.params['host']
 
-  # ------------------------------
-  # make sure file actually exists
-  # ------------------------------
-  if not isfile(args['file']):
-    module.fail_json(msg="file not found: {}".format(args['file']))
-    return
+    # ------------------------------
+    # make sure file actually exists
+    # ------------------------------
+    if not isfile(args['file']):
+        module.fail_json(msg="file not found: {}".format(args['file']))
+        return
 
-  logging.info("connecting to host: {}@{}".format(args['user'], args['host']))
-  try:
-    dev = Device(args['host'], user=args['user'], password=args['passwd'])    
-    dev.open()
-  except:
-    module.fail_json(msg='unable to connect to {}'.format(args['host']))
-    return
+    logging.info("connecting to host: {}@{}".format(args['user'], args['host']))
+    try:
+        dev = Device(args['host'], user=args['user'], password=args['passwd'])    
+        dev.open()
+    except:
+        module.fail_json(msg='unable to connect to {}'.format(args['host']))
+        return
 
-  timeout = int(args['timeout'])
-  if timeout > 0: dev.timeout = timeout
-  results = junos_install_config(module, dev)
-  dev.close()
-  module.exit_json(**results)
+    timeout = int(args['timeout'])
+    if timeout > 0: dev.timeout = timeout
+    results = junos_install_config(module, dev)
+    dev.close()
+    module.exit_json(**results)
 
 from ansible.module_utils.basic import *
 main()
