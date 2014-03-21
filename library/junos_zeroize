@@ -3,20 +3,56 @@
 DOCUMENTATION = '''
 ---
 module: junos_zeroize
-version_added: 0.1.5
-short_description: Retrieve Junos device facts
+author: Jeremy Schulman, Juniper Networks
+version_added: "1.5.0"
+short_description: Zeroize Junos system
 description:
-   - Fun with Junos
-author: Jeremy Schulman
+    - Remove all configuration information on the Routing Engines and 
+    -  reset all key values. The command removes all data files, 
+    -  including customized configuration and log files, by unlinking
+    -  the files from their directories.
+requirements:
+    - py-junos-eznc >= 0.0.5
+    - netconify
+options:
+    host:
+        description:
+            - should be {{ inventory_hostname }}
+        required: false   
+    user:
+        description:
+            - login user-name 
+        required: false 
+        default: $USER 
+    passwd:
+        description:
+            - login password
+        required: false 
+        default: assumes ssh-key active   
+    port:
+        description:
+            - SERIAL or TERMINAL-SERVER port setting, per use with
+            - the M(netconify) utility
+        required: false
+        default: None
+    zeroize:
+        description:
+            - safety mechanism, you B(MUST) set this to 'zeroize'
+        required: yes
+        default: None
+notes:
+    - You B(MUST) either use the I(host) option or the I(port) option to designate
+    - how the device is accessed.
 '''
-import sys
-
-sys.path.insert(0,'/home/jeremy/Python/py-junos-eznc/lib')
-sys.path.insert(0,'/home/jeremy/Python/py-junos-netconify/lib')
 
 EXAMPLES = '''
-TBD
+- junos_zeroize:
+    host={{ inventory_hostname }}
+    zeroize="zeroize"
 '''
+
+import sys
+sys.path.insert(0,'/home/jeremy/Python/py-junos-netconify/lib')
 
 def main():
   module = AnsibleModule(
@@ -46,10 +82,10 @@ def main():
     dev.cli('request system zeroize')
     results['changed'] = True
     # no close, we're done after this point.
-  elif args['tty'] is not None:
+  elif args['port'] is not None:
     from netconify.cmdo import netconifyCmdo
     nc_args = []
-    nc_args.append( args['tty'] )
+    nc_args.append( args['port'] )
     nc_args.append( '--zeroize=zeroize')
     if args['user'] is not None: nc_args.append('-u='+args['user'])
     if args['passwd'] is not None: nc_args.append('--passwd='+args['passwd'])
@@ -59,7 +95,7 @@ def main():
     results['changed'] = True 
   else:
       results['failed'] = True
-      results['msg'] = "You must provide etierh 'host' or 'tty' option"
+      results['msg'] = "You must provide etierh 'host' or 'port' option"
 
   module.exit_json(**results)
 

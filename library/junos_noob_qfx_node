@@ -2,21 +2,56 @@
 
 DOCUMENTATION = '''
 ---
-module: junos_qfxmode
-version_added: 0.1.5
-short_description: QFX mode setup
+module: junos_noob_qfx_mode
+author: Jeremy Schulman, Juniper Networks
+version_added: "1.5.0"
+short_description: Shutdown or Reboot the Junos device
 description:
-   - Fun with Junos
-author: Jeremy Schulman
+    - Used to shutdown (power-off) or reboot the Junos device; includes
+    - all routing-engines (REs) in a virtual-chassis or a dual-RE system.
+requirements:
+    - py-junos-eznc
+options:
+    host:
+        description:
+            - should be {{ inventory_hostname }}
+        required: true  
+    user:
+        description:
+            - login user-name 
+        required: false 
+        default: $USER 
+    passwd:
+        description:
+            - login password
+        required: false 
+        default: assumes ssh-key active   
+    reboot:
+        description:
+            - if B(yes) then the device will be rebooted rather than power-off
+        required: false 
+        default: no
+        choices: ['yes','no']
+    shutdown:
+        description:
+            - safety mechanism, you B(MUST) set this to 'shutdown'
+        required: yes
+        default: None
 '''
+
+EXAMPLES = '''
+- junos_shutdown:
+    host={{ inventory_hostname }}
+    shutdown="shutdown"
+    reboot="yes"
+'''
+
 import sys
 import logging
 
 sys.path.insert(0,'/home/jeremy/Python/py-junos-netconify/lib')
 
-EXAMPLES = '''
-TBD
-'''
+
 
 from netconify.cmdo import *
 

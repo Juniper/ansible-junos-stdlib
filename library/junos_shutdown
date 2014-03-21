@@ -3,20 +3,51 @@
 DOCUMENTATION = '''
 ---
 module: junos_shutdown
-version_added: 0.1.5
-short_description: Shutdown Junos Device
+author: Jeremy Schulman, Juniper Networks
+version_added: "1.5.0"
+short_description: Shutdown or Reboot the Junos device
 description:
-   - invokes "power-off in 0"        (-or-)
-   - invokes "reboot in 0"
-author: Jeremy Schulman
+    - Used to shutdown (power-off) or reboot the Junos device; includes
+    - all routing-engines (REs) in a virtual-chassis or a dual-RE system.
+requirements:
+    - py-junos-eznc
+options:
+    host:
+        description:
+            - should be {{ inventory_hostname }}
+        required: true  
+    user:
+        description:
+            - login user-name 
+        required: false 
+        default: $USER 
+    passwd:
+        description:
+            - login password
+        required: false 
+        default: assumes ssh-key active   
+    reboot:
+        description:
+            - if B(yes) then the device will be rebooted rather than power-off
+        required: false 
+        default: no
+        choices: ['yes','no']
+    shutdown:
+        description:
+            - safety mechanism, you B(MUST) set this to 'shutdown'
+        required: yes
+        default: None
+'''
+
+EXAMPLES = '''
+- junos_shutdown:
+    host={{ inventory_hostname }}
+    shutdown="shutdown"
+    reboot="yes"
 '''
 
 from jnpr.junos import Device
 from jnpr.junos.utils.sw import SW
-
-EXAMPLES = '''
-TBD
-'''
 
 def main():
   module = AnsibleModule(
@@ -25,7 +56,7 @@ def main():
       host=dict(required=True, default=None),       # host or ipaddr
       user=dict(required=False, default=os.getenv('USER')),
       passwd=dict(required=False, default=None),
-      restart=dict(required=False, choices=BOOLEANS, default='no')
+      reboot=dict(required=False, choices=BOOLEANS, default='no')
     ),
     supports_check_mode = False
   )
@@ -34,7 +65,7 @@ def main():
   if args['shutdown'] != 'shutdown':
     module.fail_json(msg='Say "shutdown" to proceed')    
 
-  restart_mode = module.boolean(args['restart'])
+  restart_mode = module.boolean(args['reboot'])
   results = {}
 
   try:
@@ -44,10 +75,10 @@ def main():
 
     if restart_mode is True:
       sw.reboot(0)
-      results['restart'] = True
+      results['reboot'] = True
     else:
       sw.poweroff(0)
-      results['restart'] = False
+      results['reboot'] = False
 
     # dev.close isn't performed since the device will 
     # be in the process of shutting down and we'll 

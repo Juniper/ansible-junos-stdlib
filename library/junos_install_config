@@ -32,7 +32,11 @@ options:
         default: assumes ssh-key active      
     file:
         description:
-            - path to file containing the Junos configuration
+            - path to file containing the Junos configuration content.  
+              if the file has a B(*.conf) extension, it will be treated
+              as "text" format.  If the file has a B(*.xml) extension, it
+              will be treated as XML format.  If the file has a B(*.set)
+              extension, it will be treated as a file of "set" commands. 
         required: true 
     overwrite:
         description:
@@ -62,11 +66,9 @@ from jnpr.junos import Device
 from jnpr.junos.exception import *
 
 EXAMPLES = '''
-  tasks:
-    - name: Pushing banner config
-      junos_install_config:
-        host={{ inventory_hostname }}
-        file=/var/tmp/banner.conf
+- junos_install_config:
+    host={{ inventory_hostname }}
+    file=/var/tmp/banner.conf
 '''
 
 import os
