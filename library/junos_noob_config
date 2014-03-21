@@ -7,12 +7,18 @@ author: Jeremy Schulman, Juniper Networks
 version_added: "1.5.0"
 short_description: Shutdown or Reboot the Junos device
 description:
-    - Used to shutdown (power-off) or reboot the Junos device; includes
-    - all routing-engines (REs) in a virtual-chassis or a dual-RE system.
+  - Install a minimal New Out of Box (NOOB) configuration that should 
+    at least set the IP-address and enable the NETCONF service. This 
+    action is performed over the device CONSOLE port using either a 
+    SERIAL or a TERMINAL-SERVER. This action will also log the 
+    device "facts" and "inventory" to a local server directory, 
+    which then provdies you with specific details about the device 
+    located on that console. Refer to netconify for further details on 
+    this process.
 requirements:
-    - py-junos-eznc
+    - netconify
 options:
-    host:
+    name:
         description:
             - should be {{ inventory_hostname }}
         required: true  
@@ -20,33 +26,45 @@ options:
         description:
             - login user-name 
         required: false 
-        default: $USER 
+        default: root 
     passwd:
         description:
             - login password
         required: false 
-        default: assumes ssh-key active   
-    reboot:
+        default: None   
+    port:
         description:
-            - if B(yes) then the device will be rebooted rather than power-off
+            - port configuration per the B(netconify) utility
+        required: true
+        default: None
+    file:
+        description:
+            - path to file that contains the Junos NOOB configuration
+        required: true
+    logfile:
+        description:
+            - path on the local server where progress status is logged
+              for debugging purposes
         required: false 
-        default: no
-        choices: ['yes','no']
-    shutdown:
+        default: None
+    savedir:
         description:
-            - safety mechanism, you B(MUST) set this to 'shutdown'
-        required: yes
+            - path to the local server directory where device facts and 
+              inventory files will be stored. Refer to the B(netconify) 
+              utility for details.
+        required: false 
         default: None
 '''
-import sys
-import logging
 
 EXAMPLES = '''
-- junos_shutdown:
-    host={{ inventory_hostname }}
-    shutdown="shutdown"
-    reboot="yes"
+- junos_noob_config:
+    name={{ inventory_hostname }}
+    file=/usr/local/junos/noobconf/{{inventory_hostname}}/noob.conf
+    port="-t={{TERMSERV}},{{TERMSERVPORT}}"
 '''
+
+import sys
+import logging
 
 sys.path.insert(0,'/home/jeremy/Python/py-junos-netconify/lib')
 

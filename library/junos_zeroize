@@ -13,7 +13,7 @@ description:
     -  the files from their directories.
 requirements:
     - py-junos-eznc >= 0.0.5
-    - netconify
+    - netconify, if using I(port) option
 options:
     host:
         description:
@@ -32,7 +32,7 @@ options:
     port:
         description:
             - SERIAL or TERMINAL-SERVER port setting, per use with
-            - the M(netconify) utility
+              the B(netconify) utility
         required: false
         default: None
     zeroize:
@@ -42,7 +42,7 @@ options:
         default: None
 notes:
     - You B(MUST) either use the I(host) option or the I(port) option to designate
-    - how the device is accessed.
+      how the device is accessed.
 '''
 
 EXAMPLES = '''

@@ -7,12 +7,18 @@ author: Jeremy Schulman, Juniper Networks
 version_added: "1.5.0"
 short_description: Shutdown or Reboot the Junos device
 description:
-    - Used to shutdown (power-off) or reboot the Junos device; includes
-    - all routing-engines (REs) in a virtual-chassis or a dual-RE system.
+    - New Out of Box (NOOB) configuration that will change the "device mode" 
+      for a QFX switch. For QFabric deployments, the QFX switch must be 
+      configured into 'node' mode. This action is performed over the device 
+      CONSOLE port using either a SERIAL-PORT or a TERMINAL-SERVER. 
+      This action will also log the device "facts" and "inventory" to a 
+      local server directory, which then provdies you with specific details 
+      about the device located on that console. Refer to netconify for 
+      further details on this process.
 requirements:
-    - py-junos-eznc
+    - netconify
 options:
-    host:
+    name:
         description:
             - should be {{ inventory_hostname }}
         required: true  
@@ -20,30 +26,44 @@ options:
         description:
             - login user-name 
         required: false 
-        default: $USER 
+        default: root 
     passwd:
         description:
             - login password
         required: false 
-        default: assumes ssh-key active   
-    reboot:
+        default: None   
+    port:
         description:
-            - if B(yes) then the device will be rebooted rather than power-off
+            - port configuration per the B(netconify) utility
+        required: true
+        default: None
+    mode:
+        description:
+            - determine the device mode
+        required: true
+        choices: ['node','switch']
+        default: node
+    logfile:
+        description:
+            - path on the local server where progress status is logged
+              for debugging purposes
         required: false 
-        default: no
-        choices: ['yes','no']
-    shutdown:
+        default: None
+    savedir:
         description:
-            - safety mechanism, you B(MUST) set this to 'shutdown'
-        required: yes
+            - path to the local server directory where device facts and 
+              inventory files will be stored. Refer to the B(netconify) 
+              utility for details.
+        required: false 
         default: None
 '''
 
 EXAMPLES = '''
-- junos_shutdown:
-    host={{ inventory_hostname }}
-    shutdown="shutdown"
-    reboot="yes"
+- junos_noob_qfx_node:
+    name={{ inventory_hostname }}
+    port='-t={{TERMSERV}},{{TERMSERVPORT}}'
+    logfile=/usr/local/junos/log/qfx_node.log
+    savedir=/usr/local/junos/inventory
 '''
 
 import sys
