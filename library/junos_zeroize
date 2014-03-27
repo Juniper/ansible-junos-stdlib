@@ -8,12 +8,12 @@ version_added: "1.5.0"
 short_description: Zeroize Junos system
 description:
     - Remove all configuration information on the Routing Engines and 
-    -  reset all key values. The command removes all data files, 
-    -  including customized configuration and log files, by unlinking
-    -  the files from their directories.
+      reset all key values. The command removes all data files, including 
+      customized configuration and log files, by unlinking the files from 
+      their directories.
 requirements:
     - py-junos-eznc >= 0.0.5
-    - netconify, if using I(port) option
+    - netconify, if using I(console) option
 options:
     host:
         description:
@@ -29,12 +29,14 @@ options:
             - login password
         required: false 
         default: assumes ssh-key active   
-    port:
+    console:
         description:
             - SERIAL or TERMINAL-SERVER port setting, per use with
               the B(netconify) utility
         required: false
         default: None
+        notes:
+            - ex: "--telnet=termserv101,2000"
     zeroize:
         description:
             - safety mechanism, you B(MUST) set this to 'zeroize'
@@ -51,53 +53,49 @@ EXAMPLES = '''
     zeroize="zeroize"
 '''
 
-import sys
-sys.path.insert(0,'/home/jeremy/Python/py-junos-netconify/lib')
+import sys, os
 
 def main():
-  module = AnsibleModule(
-    argument_spec = dict(
-      zeroize=dict(required=True, default=None),  # must be set to 'zeroize'      
-      host=dict(required=False, default=None),    # host or ipaddr
-      tty=dict(required=False, default=None),     # param to netconify
-      user=dict(required=False, default=None),
-      passwd=dict(required=False, default=None),
-    ),
-    supports_check_mode = False
-  )
+    module = AnsibleModule(
+        argument_spec = dict(
+            zeroize=dict(required=True, default=None),  # must be set to 'zeroize'      
+            host=dict(required=False, default=None),    # host or ipaddr
+            console=dict(required=False, default=None),     # param to netconify
+            user=dict(required=False, default=os.getenv('USER')),
+            passwd=dict(required=False, default=None)),
+        supports_check_mode = False )
 
-  args = module.params
+    args = module.params
 
-  if args['zeroize'] != 'zeroize':
-    results = dict(changed=False, failed=True)
-    results['msg'] = "You must set 'zeroize=zeroize' ({})".format(args['zeroize'])
+    if args['zeroize'] != 'zeroize':
+        results = dict(changed=False, failed=True)
+        results['msg'] = "You must set 'zeroize=zeroize' ({})".format(args['zeroize'])
+        module.exit_json(**results)
+        #
+        # ! UNREACHABLE
+
+    results = {}
+
+    if args.get('console') is None:
+        from jnpr.junos import Device 
+        dev = Device(args['host'], user=args['user'], password=args['passwd'])
+        dev.open()
+        dev.cli('request system zeroize')
+        results['changed'] = True
+        # no close, we're done after this point.
+    else:
+        from netconify.cmdo import netconifyCmdo
+        nc_args = []
+        nc_args.append( args['console'] )
+        nc_args.append( '--zeroize=zeroize')
+        if args['user'] is not None: nc_args.append('-u='+args['user'])
+        if args['passwd'] is not None: nc_args.append('--passwd='+args['passwd'])
+        def silent(event,message):pass
+        nc = netconifyCmdo(notify=silent)
+        nc.run( nc_args )
+        results['changed'] = True 
+
     module.exit_json(**results)
-
-  results = {}
-
-  if args.get('host') is not None:
-    from jnpr.junos import Device 
-    dev = Device(args['host'], user=args['user'], password=args['passwd'])
-    dev.open()
-    dev.cli('request system zeroize')
-    results['changed'] = True
-    # no close, we're done after this point.
-  elif args['port'] is not None:
-    from netconify.cmdo import netconifyCmdo
-    nc_args = []
-    nc_args.append( args['port'] )
-    nc_args.append( '--zeroize=zeroize')
-    if args['user'] is not None: nc_args.append('-u='+args['user'])
-    if args['passwd'] is not None: nc_args.append('--passwd='+args['passwd'])
-    def silent(event,message):pass
-    nc = netconifyCmdo(notify=silent)
-    nc.run( nc_args )
-    results['changed'] = True 
-  else:
-      results['failed'] = True
-      results['msg'] = "You must provide etierh 'host' or 'port' option"
-
-  module.exit_json(**results)
 
 from ansible.module_utils.basic import *
 main()

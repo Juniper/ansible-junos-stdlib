@@ -2,10 +2,10 @@
 
 DOCUMENTATION = '''
 ---
-module: junos_noob_config
+module: junos_console_config
 author: Jeremy Schulman, Juniper Networks
 version_added: "1.5.0"
-short_description: Shutdown or Reboot the Junos device
+short_description: Install Junos Config over CONSOLE port
 description:
   - Install a minimal New Out of Box (NOOB) configuration that should 
     at least set the IP-address and enable the NETCONF service. This 
@@ -18,7 +18,7 @@ description:
 requirements:
     - netconify
 options:
-    name:
+    host:
         description:
             - should be {{ inventory_hostname }}
         required: true  
@@ -32,7 +32,7 @@ options:
             - login password
         required: false 
         default: None   
-    port:
+    console:
         description:
             - port configuration per the B(netconify) utility
         required: true
@@ -57,24 +57,22 @@ options:
 '''
 
 EXAMPLES = '''
-- junos_noob_config:
+- junos_console_config:
     name={{ inventory_hostname }}
     file=/usr/local/junos/noobconf/{{inventory_hostname}}/noob.conf
-    port="-t={{TERMSERV}},{{TERMSERVPORT}}"
+    console="--telnet={{TERMSERV}},{{TERMSERVPORT}}"
 '''
 
 import sys
 import logging
-
-sys.path.insert(0,'/home/jeremy/Python/py-junos-netconify/lib')
 
 from netconify.cmdo import *
 
 def main():
   module = AnsibleModule(
     argument_spec = dict(
-      port=dict(required=True),
-      name=dict(required=True),
+      console=dict(required=True),
+      host=dict(required=True),
       file=dict(required=True),
       gather_facts=dict(required=False, default=False),
       logfile=dict(required=False, default=None),
@@ -85,7 +83,7 @@ def main():
   )
 
   args = []
-  args.append(module.params['port'])
+  args.append(module.params['console'])
   args.append('-j=' + module.params['file'])
   if module.params['gather_facts'] is not False:
     args.append('--facts')
@@ -96,13 +94,13 @@ def main():
   if module.params['passwd'] is not None:
     args.append('--passwd='+module.params['passwd'])
 
-  args.append(module.params['name'])
+  args.append(module.params['host'])
 
   logfile = module.params['logfile']
   if logfile is not None:
     logging.basicConfig(filename=logfile, level=logging.INFO,
       format='%(asctime)s:%(name)s:%(message)s')
-    logging.getLogger().name = 'NETCONIFY:'+module.params['name']
+    logging.getLogger().name = 'NETCONIFY:'+module.params['host']
     def log_notify(event,message):
       logging.info("%s:%s"%(event,message))
     use_notifier = log_notify

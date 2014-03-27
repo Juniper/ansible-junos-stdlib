@@ -1,0 +1,103 @@
+#!/usr/bin/env python2.7
+
+DOCUMENTATION = '''
+---
+module: junos_noob_inventory
+author: Jeremy Schulman, Juniper Networks
+version_added: "1.5.0"
+short_description: Shutdown or Reboot the Junos device
+description:
+    - Gather Junos facts/inventory via the CONSOLE port
+requirements:
+    - netconify
+options:
+    host:
+        description:
+            - should be {{ inventory_hostname }}
+        required: true  
+    user:
+        description:
+            - login user-name 
+        required: false 
+        default: root 
+    passwd:
+        description:
+            - login password
+        required: false 
+        default: None   
+    console:
+        description:
+            - port configuration per the B(netconify) utility
+        required: true
+        default: None
+    logfile:
+        description:
+            - path on the local server where progress status is logged
+              for debugging purposes
+        required: false 
+        default: None
+    savedir:
+        description:
+            - path to the local server directory where device facts and 
+              inventory files will be stored. Refer to the B(netconify) 
+              utility for details.
+        required: false 
+        default: None
+'''
+
+EXAMPLES = '''
+- junos_noob_config:
+    host={{ inventory_hostname }}
+    port="--telnet={{TERMSERV}},{{TERMSERVPORT}}"
+    savedir=/usr/local/junos/inventory
+'''
+
+import sys
+import logging
+
+from netconify.cmdo import *
+
+def main():
+    module = AnsibleModule(
+        argument_spec = dict(
+            host=dict(required=True),
+            console=dict(required=True),
+            user=dict(required=False, default='root'),            
+            passwd=dict(required=False, default=None),
+            logfile=dict(required=False, default=None),
+            savedir=dict(required=False, default=os.getcwd())),
+        supports_check_mode = False)
+
+    args = []
+    args.append(module.params['console'])
+    args.append('--facts')
+    args.append('--savedir='+module.params['savedir'])
+    args.append('--user='+module.params['user'])
+    if module.params['passwd'] is not None:
+        args.append('--passwd='+module.params['passwd'])
+
+    args.append(module.params['host'])
+
+    logfile = module.params['logfile']
+    if logfile is not None:
+        logging.basicConfig(filename=logfile, level=logging.INFO,
+            format='%(asctime)s:%(name)s:%(message)s')
+        logging.getLogger().name = 'NETCONIFY:'+module.params['host']
+        def log_notify(event,message):
+            logging.info("%s:%s"%(event,message))
+        use_notifier = log_notify
+    else:
+        def silent_notify(event,message): pass
+        use_notifier = silent_notify
+
+    nc = netconifyCmdo(notify=use_notifier)
+    nc.run( args )
+
+    results = dict(changed=False)
+    results['args'] = args
+
+    module.exit_json(**results)
+
+from ansible.module_utils.basic import *
+main()
+
