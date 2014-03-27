@@ -7,12 +7,12 @@ author: Jeremy Schulman, Juniper Networks
 version_added: "1.5.0"
 short_description: Install Junos configuration file/snippet
 description:
-    - Install a complete Junos configuration (overwrite) or
-    - merge a Junos configuration snippet onto the device.
-    - This process will perform an atomic lock/edit/unlock.
-    - If the process fails at any step, then the complete
-    - change is discarded.  The file contents can be in
-    - the form of standard text, XML, or set statements
+    - Install a complete Junos configuration (overwrite) or 
+      merge a Junos configuration snippet onto the device.  The default
+      behavior is to load/merge (overwrite='no').  This module will 
+      perform an atomic lock/edit/unlock.  If the process fails at any step, 
+      then the complete change is discarded.  The file contents can be in 
+      the form of standard text, XML, or set statements.
 requirements:
     - py-junos-eznc
 options:
@@ -96,7 +96,10 @@ def junos_install_config(module, dev):
         # an exception if there is even a warning.
         # so we want to avoid that condition.
             logging.info("loading config")    
-            cu.load(path=file_path)    
+            load_args = {'path': file_path}
+            overwrite = module.boolean(module.params['overwrite'])
+            if True == overwrite: load_args['overwrite'] = True
+            cu.load(**load_args)    
         except Exception as err:
             if err.rsp.find('.//ok') is None:
                 rpc_msg = err.rsp.findtext('.//error-message')
@@ -146,7 +149,7 @@ def main():
             user=dict(required=False, default=os.getenv('USER')),
             passwd=dict(required=False, default=None),
             file=dict(required=True),
-            overwrite=dict(required=False, default=False),
+            overwrite=dict(required=False, choices=BOOLEANS, default=False),
             logfile=dict(required=False, default=None),
             timeout=dict(required=False, default=0)),
         supports_check_mode = True )
@@ -176,7 +179,9 @@ def main():
 
     timeout = int(args['timeout'])
     if timeout > 0: dev.timeout = timeout
+
     results = junos_install_config(module, dev)
+
     dev.close()
     module.exit_json(**results)
 
