@@ -75,10 +75,9 @@ def main():
 
     results = {'changed': True, 'reboot': restart_mode}        
 
-    if restart_mode is True:
-        SW(dev).reboot(0)
-    else:
-        SW(dev).poweroff(0)
+    sw = SW(dev)
+    do_it = sw.reboot if restart_mode is True else sw.poweroff
+    do_it(0)
 
     # dev.close isn't performed since the device will 
     # be in the process of shutting down and we'll 

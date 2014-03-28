@@ -114,7 +114,7 @@ def main():
         nc = netconifyCmdo(notify=use_notifier)
         nc.run( nc_args )
         results['changed'] = True 
-        use_notfier('DONE','OK')
+        use_notifier('DONE','OK')
 
     module.exit_json(**results)
 
