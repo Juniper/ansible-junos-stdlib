@@ -59,7 +59,7 @@ options:
 EXAMPLES = '''
 - junos_console_config:
     name={{ inventory_hostname }}
-    file=/usr/local/junos/noobconf/{{inventory_hostname}}/noob.conf
+    file=build/{{inventory_hostname}}.conf
     console="--telnet={{TERMSERV}},{{TERMSERVPORT}}"
 '''
 
@@ -69,52 +69,48 @@ import logging
 from netconify.cmdo import *
 
 def main():
-  module = AnsibleModule(
-    argument_spec = dict(
-      console=dict(required=True),
-      host=dict(required=True),
-      file=dict(required=True),
-      gather_facts=dict(required=False, default=False),
-      logfile=dict(required=False, default=None),
-      savedir=dict(required=False),
-      passwd=dict(required=False, default=None)
-    ),
-    supports_check_mode = True
-  )
+    module = AnsibleModule(
+        argument_spec = dict(
+            console=dict(required=True),
+            host=dict(required=True),
+            file=dict(required=True),
+            logfile=dict(required=False, default=None),
+            savedir=dict(required=False),
+            user=dict(required=False, default='root'),
+            passwd=dict(required=False, default=None)),
+        supports_check_mode = False )
 
-  args = []
-  args.append(module.params['console'])
-  args.append('-j=' + module.params['file'])
-  if module.params['gather_facts'] is not False:
-    args.append('--facts')
-  if module.check_mode is True:
-    args.append('--dry-run')
-  if module.params['savedir'] is not None:
-    args.append('--savedir='+module.params['savedir'])
-  if module.params['passwd'] is not None:
-    args.append('--passwd='+module.params['passwd'])
+    args = []
+    args.append(module.params['console'])
+    args.append('-j=' + module.params['file'])
+    if module.params['savedir'] is not None:
+        args.append('--savedir='+module.params['savedir'])
+    if module.params['user'] != 'root':
+        args.append('--user='+module.params['user'])        
+    if module.params['passwd'] is not None:
+        args.append('--passwd='+module.params['passwd'])
 
-  args.append(module.params['host'])
+    args.append(module.params['host'])
 
-  logfile = module.params['logfile']
-  if logfile is not None:
-    logging.basicConfig(filename=logfile, level=logging.INFO,
-      format='%(asctime)s:%(name)s:%(message)s')
-    logging.getLogger().name = 'NETCONIFY:'+module.params['host']
-    def log_notify(event,message):
-      logging.info("%s:%s"%(event,message))
-    use_notifier = log_notify
-  else:
-    def silent_notify(event,message): pass
-    use_notifier = silent_notify
+    logfile = module.params['logfile']
+    if logfile is not None:
+        logging.basicConfig(filename=logfile, level=logging.INFO,
+            format='%(asctime)s:%(name)s:%(message)s')
+        logging.getLogger().name = 'NETCONIFY:'+module.params['host']
+        def log_notify(event,message):
+            logging.info("%s:%s"%(event,message))
+        use_notifier = log_notify
+    else:
+        def silent_notify(event,message): pass
+        use_notifier = silent_notify
 
-  nc = netconifyCmdo(notify=use_notifier)
-  nc.run( args )
+    nc = netconifyCmdo(notify=use_notifier)
+    nc.run( args )
+    results = dict(changed=nc.changed)
 
-  results = dict(changed=nc.changed)
-  results['args'] = args
+#    results['args'] = args
 
-  module.exit_json(**results)
+    module.exit_json(**results)
 
 from ansible.module_utils.basic import *
 main()

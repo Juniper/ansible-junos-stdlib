@@ -4,13 +4,13 @@ DOCUMENTATION = '''
 ---
 module: junos_shutdown
 author: Jeremy Schulman, Juniper Networks
-version_added: "1.5.0"
+version_added: "1.6.0"
 short_description: Shutdown or Reboot the Junos device
 description:
     - Used to shutdown (power-off) or reboot the Junos device; includes
     - all routing-engines (REs) in a virtual-chassis or a dual-RE system.
 requirements:
-    - py-junos-eznc
+    - py-junos-eznc >= 0.0.5
 options:
     host:
         description:
@@ -43,53 +43,48 @@ EXAMPLES = '''
 - junos_shutdown:
     host={{ inventory_hostname }}
     shutdown="shutdown"
-    reboot="yes"
+    reboot=yes
 '''
 
 from jnpr.junos import Device
 from jnpr.junos.utils.sw import SW
 
 def main():
-  module = AnsibleModule(
-    argument_spec = dict(
-      shutdown=dict(required=True, default=None),   # must be set to 'shutdown'      
-      host=dict(required=True, default=None),       # host or ipaddr
-      user=dict(required=False, default=os.getenv('USER')),
-      passwd=dict(required=False, default=None),
-      reboot=dict(required=False, choices=BOOLEANS, default='no')
-    ),
-    supports_check_mode = False
-  )
 
-  args = module.params
-  if args['shutdown'] != 'shutdown':
-    module.fail_json(msg='Say "shutdown" to proceed')    
+    module = AnsibleModule(
+        argument_spec = dict(
+            shutdown=dict(required=True, default=None),   # must be set to 'shutdown'      
+            host=dict(required=True, default=None),       # host or ipaddr
+            user=dict(required=False, default=os.getenv('USER')),
+            passwd=dict(required=False, default=None),
+            reboot=dict(required=False, choices=BOOLEANS, default=False)),
+        supports_check_mode = False )
 
-  restart_mode = module.boolean(args['reboot'])
-  results = {}
+    args = module.params
+    if args['shutdown'] != 'shutdown':
+        module.fail_json(msg='Say "shutdown" to proceed')    
 
-  try:
-    dev = Device(args['host'], user=args['user'], password=args['passwd']).open()
-    results['changed'] = True
-    sw = SW(dev)
+    restart_mode = module.boolean(args['reboot'])
+
+    try:
+        dev = Device(args['host'], user=args['user'], password=args['passwd']).open()
+    except Exception as err:
+        module.fail_exit(msg='unable to open NETCONF')
+        #
+        # --- UNREACHABLE ---
+
+    results = {'changed': True, 'reboot': restart_mode}        
 
     if restart_mode is True:
-      sw.reboot(0)
-      results['reboot'] = True
+        SW(dev).reboot(0)
     else:
-      sw.poweroff(0)
-      results['reboot'] = False
+        SW(dev).poweroff(0)
 
     # dev.close isn't performed since the device will 
     # be in the process of shutting down and we'll 
     # lose connectivity anyways ...
 
-  except Exception as err:
-    results['failed'] = True
-    results['msg'] = 'unable to open NETCONF to device'
-    results['err'] = err.message
-
-  module.exit_json(**results)
+    module.exit_json(**results)
 
 from ansible.module_utils.basic import *
 main()

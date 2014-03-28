@@ -42,6 +42,12 @@ options:
             - safety mechanism, you B(MUST) set this to 'zeroize'
         required: yes
         default: None
+    logfile:
+        description:
+            - path on the local server where progress status is logged
+              for debugging purposes
+        required: false 
+        default: None        
 notes:
     - You B(MUST) either use the I(host) option or the I(port) option to designate
       how the device is accessed.
@@ -54,6 +60,7 @@ EXAMPLES = '''
 '''
 
 import sys, os
+import logging
 
 def main():
     module = AnsibleModule(
@@ -62,7 +69,8 @@ def main():
             host=dict(required=False, default=None),    # host or ipaddr
             console=dict(required=False, default=None),     # param to netconify
             user=dict(required=False, default=os.getenv('USER')),
-            passwd=dict(required=False, default=None)),
+            passwd=dict(required=False, default=None),
+            logfile=dict(required=False, default=None)),
         supports_check_mode = False )
 
     args = module.params
@@ -76,6 +84,18 @@ def main():
 
     results = {}
 
+    logfile = module.params['logfile']
+    if logfile is not None:
+        logging.basicConfig(filename=logfile, level=logging.INFO,
+            format='%(asctime)s:%(name)s:%(message)s')
+        logging.getLogger().name = 'NETCONIFY:'+module.params['host']
+        def log_notify(event,message):
+            logging.info("%s:%s"%(event,message))
+        use_notifier = log_notify
+    else:
+        def silent_notify(event,message): pass
+        use_notifier = silent_notify    
+
     if args.get('console') is None:
         from jnpr.junos import Device 
         dev = Device(args['host'], user=args['user'], password=args['passwd'])
@@ -88,12 +108,13 @@ def main():
         nc_args = []
         nc_args.append( args['console'] )
         nc_args.append( '--zeroize=zeroize')
-        if args['user'] is not None: nc_args.append('-u='+args['user'])
+        if args['user'] is not None: nc_args.append('--user='+args['user'])
         if args['passwd'] is not None: nc_args.append('--passwd='+args['passwd'])
-        def silent(event,message):pass
-        nc = netconifyCmdo(notify=silent)
+
+        nc = netconifyCmdo(notify=use_notifier)
         nc.run( nc_args )
         results['changed'] = True 
+        use_notfier('DONE','OK')
 
     module.exit_json(**results)
 
