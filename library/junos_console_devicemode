@@ -18,7 +18,7 @@ description:
 requirements:
     - netconify
 options:
-    name:
+    host:
         description:
             - should be {{ inventory_hostname }}
         required: true  
@@ -61,7 +61,7 @@ options:
 
 EXAMPLES = '''
 - junos_console_devicemode:
-    name={{ inventory_hostname }}
+    host={{ inventory_hostname }}
     port='-t={{TERMSERV}},{{TERMSERVPORT}}'
     qfx=node
     logfile=/usr/local/junos/logs/qfx_node.log
@@ -76,8 +76,8 @@ from netconify.cmdo import *
 def main():
   module = AnsibleModule(
     argument_spec = dict(
-      port=dict(required=True),
-      name=dict(required=True),
+      host=dict(required=True),
+      console=dict(required=True),
       qfx=dict(required=False, default=None, choices=['node','switch']),
       logfile=dict(required=False, default=None),
       savedir=dict(required=False),
@@ -91,27 +91,28 @@ def main():
   # build the command args to the netconify utility
   # -----------------------------------------------
 
-  args = []
+  m_args = module.params
+  c_args = []  # for netconify
 
-  args.append(module.params['port'])
-  if module.params['mode'] is not None:
-    args.append('--qfx-'+module.params['mode'])
-  if module.params['savedir'] is not None:
-    args.append('--facts')
-    args.append('--savedir='+module.params['savedir'])
-  if module.params['user'] is not None:
-    args.append('--user='+module.params['user'])
-  if module.params['passwd'] is not None:
-    args.append('--passwd='+module.params['passwd'])
+  c_args.append(m_args['console'])
+  if m_args['qfx'] is not None:
+    c_args.append('--qfx-'+m_args['qfx'])
+  if m_args['savedir'] is not None:
+    # gather facts and save them to local filesys
+    c_args.append('--facts')
+    c_args.append('--savedir='+m_args['savedir'])
+  c_args.append('--user='+m_args['user'])
+  if m_args['passwd'] is not None:
+    c_args.append('--passwd='+m_args['passwd'])
 
   # the final arg should be the name we designate to this device.  
-  args.append(module.params['name'])  
+  c_args.append(m_args['host'])  
 
-  logfile = module.params['logfile']
+  logfile = m_args['logfile']
   if logfile is not None:
     logging.basicConfig(filename=logfile, level=logging.INFO,
       format='%(asctime)s:%(name)s:%(message)s')
-    logging.getLogger().name = 'NETCONIFY:'+module.params['name']
+    logging.getLogger().name = 'NETCONIFY:'+m_args['host']
     def log_notify(event,message):
       log_notify.event = event
       log_notify.message = message
@@ -122,15 +123,15 @@ def main():
     use_notifier = silent_notify
 
   nc = netconifyCmdo(notify=use_notifier)
-  rc = nc.run( args )
+  c_results = nc.run( c_args )
 
-  results = dict(changed=nc.changed)
-  results['args'] = args  # just for debug really.
-  if rc is False: 
-    results['failed'] = True
-    results['msg'] = log_notify.message
+  m_results = dict(changed=c_results['changed'])
+  m_results['args'] = m_args  # just for debug really.
 
-  module.exit_json(**results)
+  if c_results['failed'] is True:
+    module.fail_json(msg=c_results['errmsg'])
+  else:
+    module.exit_json(**m_results)
 
 from ansible.module_utils.basic import *
 main()
