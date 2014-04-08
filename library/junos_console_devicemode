@@ -2,13 +2,13 @@
 
 DOCUMENTATION = '''
 ---
-module: junos_noob_qfx_mode
+module: junos_console_devicemode
 author: Jeremy Schulman, Juniper Networks
 version_added: "1.5.0"
 short_description: Shutdown or Reboot the Junos device
 description:
-    - New Out of Box (NOOB) configuration that will change the "device mode" 
-      for a QFX switch. For QFabric deployments, the QFX switch must be 
+    - New Out of Box (NOOB) console configuration that will change the "device mode". 
+      For QFX devices in QFabric deployments, the QFX switch must be 
       configured into 'node' mode. This action is performed over the device 
       CONSOLE port using either a SERIAL-PORT or a TERMINAL-SERVER. 
       This action will also log the device "facts" and "inventory" to a 
@@ -34,15 +34,15 @@ options:
         default: None   
     port:
         description:
-            - port configuration per the B(netconify) utility
+            - CONSOLE port, per the B(netconify) utility
         required: true
         default: None
-    mode:
+    qfx:
         description:
-            - determine the device mode
+            - determine the QFX device mode
         required: true
         choices: ['node','switch']
-        default: node
+        default: node        
     logfile:
         description:
             - path on the local server where progress status is logged
@@ -53,25 +53,23 @@ options:
         description:
             - path to the local server directory where device facts and 
               inventory files will be stored. Refer to the B(netconify) 
-              utility for details.
+              utility for details.  If the path is not explicit, it will
+              be local to the playbook execution directory
         required: false 
         default: None
 '''
 
 EXAMPLES = '''
-- junos_noob_qfx_node:
+- junos_console_devicemode:
     name={{ inventory_hostname }}
     port='-t={{TERMSERV}},{{TERMSERVPORT}}'
-    logfile=/usr/local/junos/log/qfx_node.log
+    qfx=node
+    logfile=/usr/local/junos/logs/qfx_node.log
     savedir=/usr/local/junos/inventory
 '''
 
 import sys
 import logging
-
-sys.path.insert(0,'/home/jeremy/Python/py-junos-netconify/lib')
-
-
 
 from netconify.cmdo import *
 
@@ -80,8 +78,7 @@ def main():
     argument_spec = dict(
       port=dict(required=True),
       name=dict(required=True),
-      mode=dict(required=False, default=None, choices=['node','switch']),
-      gather_facts=dict(required=False, default=False),
+      qfx=dict(required=False, default=None, choices=['node','switch']),
       logfile=dict(required=False, default=None),
       savedir=dict(required=False),
       user=dict(required=False, default='root'),
@@ -90,22 +87,25 @@ def main():
     supports_check_mode = True
   )
 
+  # -----------------------------------------------
+  # build the command args to the netconify utility
+  # -----------------------------------------------
+
   args = []
+
   args.append(module.params['port'])
   if module.params['mode'] is not None:
     args.append('--qfx-'+module.params['mode'])
-  if module.params['gather_facts'] is not False:
-    args.append('--facts')
-  if module.check_mode is True:
-    args.append('--dry-run')
   if module.params['savedir'] is not None:
+    args.append('--facts')
     args.append('--savedir='+module.params['savedir'])
   if module.params['user'] is not None:
     args.append('--user='+module.params['user'])
   if module.params['passwd'] is not None:
     args.append('--passwd='+module.params['passwd'])
 
-  args.append(module.params['name'])
+  # the final arg should be the name we designate to this device.  
+  args.append(module.params['name'])  
 
   logfile = module.params['logfile']
   if logfile is not None:
@@ -125,7 +125,7 @@ def main():
   rc = nc.run( args )
 
   results = dict(changed=nc.changed)
-  results['args'] = args
+  results['args'] = args  # just for debug really.
   if rc is False: 
     results['failed'] = True
     results['msg'] = log_notify.message
