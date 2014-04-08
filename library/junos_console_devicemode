@@ -84,8 +84,7 @@ def main():
       user=dict(required=False, default='root'),
       passwd=dict(required=False, default=None)
     ),
-    supports_check_mode = True
-  )
+    supports_check_mode = False )
 
   # -----------------------------------------------
   # build the command args to the netconify utility
@@ -93,12 +92,14 @@ def main():
 
   m_args = module.params
   c_args = []  # for netconify
+  gather_facts = False
 
   c_args.append(m_args['console'])
   if m_args['qfx'] is not None:
     c_args.append('--qfx-'+m_args['qfx'])
   if m_args['savedir'] is not None:
     # gather facts and save them to local filesys
+    gather_facts = True
     c_args.append('--facts')
     c_args.append('--savedir='+m_args['savedir'])
   c_args.append('--user='+m_args['user'])
@@ -127,6 +128,8 @@ def main():
 
   m_results = dict(changed=c_results['changed'])
   m_results['args'] = m_args  # just for debug really.
+  if gather_facts is True:
+    m_results['facts'] = c_results['facts']
 
   if c_results['failed'] is True:
     module.fail_json(msg=c_results['errmsg'])
