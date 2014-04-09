@@ -107,7 +107,7 @@ def main():
         from netconify.cmdo import netconifyCmdo
         nc_args = []
         nc_args.append( args['console'] )
-        nc_args.append( '--zeroize=zeroize')
+        nc_args.append( '--zeroize')
         if args['user'] is not None: nc_args.append('--user='+args['user'])
         if args['passwd'] is not None: nc_args.append('--passwd='+args['passwd'])
 
