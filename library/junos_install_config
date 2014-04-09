@@ -245,7 +245,7 @@ def main():
             logfile=dict(required=False, default=None),
             savedir=dict(required=False),            
             timeout=dict(required=False, default=0)),
-        supports_check_mode = True )
+        supports_check_mode = False )
 
     args = module.params
 
