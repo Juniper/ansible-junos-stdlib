@@ -199,6 +199,14 @@ def _load_via_console(module):
     if m_args['passwd'] is not None:
         c_args.append('--passwd='+m_args['passwd'])
 
+    # the default mode for loading a config via the console
+    # is to load-overwrite.  So we need to check the module
+    # option and set the "--merge" option if overwrite is False
+
+    overwrite = module.boolean(module.params['overwrite'])    
+    if overwrite is False:
+        c_args.append('--merge')
+
     c_args.append(m_args['host'])
 
     logfile = m_args['logfile']
