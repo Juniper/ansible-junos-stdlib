@@ -4,7 +4,7 @@ Ansible modules to support Junos network build automation use-cases.  Developed 
 
 ## OVERVIEW OF MODULES
 
-Work in progress, please see [library](library) directory for modules.
+Work in progress, please see [library](library) directory for modules.  The modules are documented per-Ansible guidelines; look for the DOCSTRING within each file.
 
 ## INSTALLATION
 
