@@ -25,8 +25,8 @@ Alternatively you can copy the files in the [library](library) directory into th
 Thes modules require the following to be installed on the Ansible server:
 
 * [Ansible](http://www.ansible.com) 1.5 or later
-* Junos [py-junos-eznc](https://github.com/Juniper/py-junos-eznc) 
-* Junos [netconify](https://github.com/jeremyschulman/py-junos-netconify)
+* Junos [py-junos-eznc](https://github.com/Juniper/py-junos-eznc) v0.0.5 or later
+* Junos [netconify](https://github.com/jeremyschulman/py-junos-netconify) v0.1.0 or later
 
 
 
