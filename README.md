@@ -8,7 +8,7 @@ Work in progress, please see [library](library) directory for modules.  The modu
 
 ## INSTALLATION
 
-This repo assumes you have the DEPENCENCIES installaed on your system.  You can then `git clone` this repo and run the `env-setup` script in the repo directory:
+This repo assumes you have the DEPENDENCIES installed on your system.  You can then `git clone` this repo and run the `env-setup` script in the repo directory:
 
     user@ansible-junos-stdlib> source env-setup
     
