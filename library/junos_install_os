@@ -139,7 +139,8 @@ def junos_install_os(module, dev):
 
   if ok is not True:
     results['failed'] = True
-    results['msg'] = "Unable to install the software"
+    # ok will have the logs for installation failure
+    results['msg'] = "Unable to install the software: " + ok
     do_log(results['msg'], level='error')
     return results
 
