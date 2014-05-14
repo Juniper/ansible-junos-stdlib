@@ -36,7 +36,7 @@ DOCUMENTATION = '''
 ---
 module: junos_install_os
 author: Jeremy Schulman, Juniper Networks
-version_added: "1.5.0"
+version_added: "1.6.0"
 short_description: Install Junos OS image
 description:
    - Install a Junos OS image on one or more routing-engine (RE) components. 
@@ -214,9 +214,10 @@ def main():
   dev = Device(args['host'], user=args['user'], password=args['passwd'])
   try:
     dev.open()
-  except:
-    module.fail_exit(msg="unable to connect to: {}".format(args['host']))
-    return
+  except Exception as err:
+      msg = 'unable to connect to {}: {}'.format(args['host'], str(err))
+      module.fail_json(msg=msg)
+      return
 
   results = junos_install_os(module, dev)
   results['check_mode'] = module.check_mode

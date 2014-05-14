@@ -101,8 +101,8 @@ def main():
     try:
         dev = Device(args['host'], user=args['user'], password=args['passwd']).open()
     except Exception as err:
-        module.fail_exit(msg='unable to open NETCONF')
-        #
+        msg = 'unable to connect to {}: {}'.format(args['host'], str(err))
+        module.fail_json(msg=msg)        
         # --- UNREACHABLE ---
 
     results = {'changed': True, 'reboot': restart_mode}        
