@@ -123,7 +123,10 @@ def junos_install_config(module, dev):
             load_args = {'path': file_path}
             overwrite = module.boolean(module.params['overwrite'])
             if True == overwrite: load_args['overwrite'] = True
-            cu.load(**load_args)    
+            cu.load(**load_args)
+        except ValueError as err:
+            logging.error("unable to load config:{}".format(err.message))
+            raise err
         except Exception as err:
             if err.rsp.find('.//ok') is None:
                 rpc_msg = err.rsp.findtext('.//error-message')
