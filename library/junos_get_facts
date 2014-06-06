@@ -52,7 +52,7 @@ options:
 EXAMPLES = '''
 # getting facts via NETCONF, assumes ssh-keys
 
-- junos_get_faces: host={{ inventory_hostname }}
+- junos_get_facts: host={{ inventory_hostname }}
   register: junos
 
 # getting facts via CONSOLE, assumes Amnesiac system
