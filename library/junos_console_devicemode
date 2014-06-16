@@ -36,7 +36,7 @@ DOCUMENTATION = '''
 module: junos_console_devicemode
 author: Jeremy Schulman, Juniper Networks
 version_added: "1.5.0"
-short_description: Shutdown or Reboot the Junos device
+short_description: Change the operational device mode
 description:
     - New Out of Box (NOOB) console configuration that will change the "device mode". 
       For QFX devices in QFabric deployments, the QFX switch must be 
