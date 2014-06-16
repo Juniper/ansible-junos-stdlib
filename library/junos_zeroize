@@ -44,7 +44,7 @@ description:
       customized configuration and log files, by unlinking the files from 
       their directories.
 requirements:
-    - py-junos-eznc >= 0.0.5
+    - py-junos-eznc >= 1.0.0
     - netconify, if using I(console) option
 options:
     host:
@@ -128,16 +128,20 @@ def main():
         def silent_notify(event,message): pass
         use_notifier = silent_notify    
 
-    if args.get('console') is None:
+    if args.get('console') is None: 
+        ## via NETCONF
         from jnpr.junos import Device 
         dev = Device(args['host'], user=args['user'], password=args['passwd'])
         try:
+            use_notifier('LOGIN','host={0}'.format(args['host']))
             dev.open()
+            use_notifier('LOGIN','OK')
         except Exception as err:
             msg = 'unable to connect to {}: {}'.format(args['host'], str(err))
             module.fail_json(msg=msg)        
             # --- UNREACHABLE ---
-                    
+
+        use_notifier('ZEROIZE','invoking command')                    
         dev.cli('request system zeroize')
         results['changed'] = True
         # no close, we're done after this point.
@@ -152,8 +156,9 @@ def main():
         nc = netconifyCmdo(notify=use_notifier)
         nc.run( nc_args )
         results['changed'] = True 
-        use_notifier('DONE','OK')
 
+    # indicate done in the logfile and return results
+    use_notifier('DONE','OK')
     module.exit_json(**results)
 
 from ansible.module_utils.basic import *
