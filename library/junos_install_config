@@ -36,7 +36,7 @@ DOCUMENTATION = '''
 ---
 module: junos_install_config
 author: Jeremy Schulman, Juniper Networks
-version_added: "1.6.0"
+version_added: "1.7.0"
 short_description: Install Junos configuration file/snippet
 description:
     - Install a complete Junos configuration (overwrite) or 
@@ -48,22 +48,22 @@ description:
       can be loaded either via standard NETCONF, or via the CONSOLE port
       if the I(console) option is specified.
 requirements:
-    - py-junos-eznc
-    - netconify when I(console) option used
+    - py-junos-eznc >= 1.0.0
+    - netconify, when I(console) option used
 options:
     host:
         description:
             - should be {{ inventory_hostname }}
-        required: true  
+        required: False  
     user:
         description:
             - login user-name 
-        required: false 
+        required: False 
         default: $USER 
     passwd:
         description:
             - login password
-        required: false 
+        required: False 
         default: assumes ssh-key
     file:
         description:
@@ -72,12 +72,12 @@ options:
               as "text" format.  If the file has a B(*.xml) extension, it
               will be treated as XML format.  If the file has a B(*.set)
               extension, it will be treated as a file of "set" commands. 
-        required: true 
+        required: True
     overwrite:
         description:
             - determines if the I(file) completely replaces the
               existing configuration   
-        required: false 
+        required: False 
         default: no
         choices: ['true','false','yes','no']
     timeout:
@@ -85,25 +85,25 @@ options:
             - enables you to extend the NETCONF RPC timeout beyond
               the standard 30 seconds.  Set this value when you know
               the configuration change (commit) may take a long time
-        required: false
+        required: False
         default: "0"
     logfile:
         description:
             - path on the local server where progress status is logged
               for debugging purposes
-        required: false 
+        required: False 
         default: None
     console:
         description:
             - port configuration per the B(netconify) utility
-        required: true
+        required: False
         default: None
     savedir:
         description:
             - path to the local server directory where device facts and 
               inventory files will be stored. Used only with I(console) option.
               Refer to the B(netconify) utility for details.
-        required: false 
+        required: False 
         default: None
 '''
 
