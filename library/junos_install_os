@@ -92,7 +92,14 @@ options:
    package:
       description:
          - complete path on the local server to the Junos image package file 
-      required: true  
+      required: true
+    timeout:
+        description:
+            - enables you to extend the NETCONF RPC timeout beyond
+              the standard 30 seconds.  Set this value when you know
+              the configuration change (commit) may take a long time
+        required: False
+        default: "0"
    logfile:
       description:
          - path on the local server where progress status is logged
@@ -198,6 +205,7 @@ def main():
       user=dict(required=False, default=os.getenv('USER')),
       passwd=dict(required=False, default=None),
       version=dict(required=False, default=None),
+      timeout=dict(required=False, default=0),
       logfile=dict(required=False, default=None),
       no_copy=dict(required=False, choices=BOOLEANS, default=False),
       reboot=dict(required=False, choices=BOOLEANS, default=True),
@@ -212,6 +220,8 @@ def main():
   ### @@@ before proceeding.
 
   dev = Device(args['host'], user=args['user'], password=args['passwd'])
+  timeout = int(args['timeout'])
+  if timeout > 0: dev.timeout = timeout
   try:
     dev.open()
   except Exception as err:
