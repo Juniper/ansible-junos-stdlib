@@ -63,7 +63,7 @@ options:
             - login password
         required: false 
         default: None   
-    port:
+    console:
         description:
             - CONSOLE port, per the B(netconify) utility
         required: true
@@ -93,7 +93,7 @@ options:
 EXAMPLES = '''
 - junos_console_devicemode:
     host={{ inventory_hostname }}
-    port='-t={{TERMSERV}},{{TERMSERVPORT}}'
+    console='-t={{TERMSERV}},{{TERMSERVPORT}}'
     qfx=node
     logfile=/usr/local/junos/logs/qfx_node.log
     savedir=/usr/local/junos/inventory
