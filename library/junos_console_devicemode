@@ -73,7 +73,7 @@ options:
             - determine the QFX device mode
         required: true
         choices: ['node','switch']
-        default: node        
+        default: None
     logfile:
         description:
             - path on the local server where progress status is logged
