@@ -21,10 +21,10 @@
 #   names of its contributors may be used to endorse or promote products
 #   derived from this software without specific prior written permission.
 #
-# THIS SOFTWARE IS PROVIDED BY <copyright holder> ''AS IS'' AND ANY
+# THIS SOFTWARE IS PROVIDED BY Juniper Networks, Inc. ''AS IS'' AND ANY
 # EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL <copyright holder> BE LIABLE FOR ANY
+# DISCLAIMED. IN NO EVENT SHALL Juniper Networks, Inc. BE LIABLE FOR ANY
 # DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 # (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 # LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
@@ -36,7 +36,7 @@ DOCUMENTATION = '''
 ---
 module: junos_shutdown
 author: Jeremy Schulman, Juniper Networks
-version_added: "1.6.0"
+version_added: "1.7.0"
 short_description: Shutdown or Reboot the Junos device
 description:
     - Used to shutdown (power-off) or reboot the Junos device; includes
@@ -47,21 +47,21 @@ options:
     host:
         description:
             - should be {{ inventory_hostname }}
-        required: true  
+        required: true
     user:
         description:
-            - login user-name 
-        required: false 
-        default: $USER 
+            - login user-name
+        required: false
+        default: $USER
     passwd:
         description:
             - login password
-        required: false 
-        default: assumes ssh-key active   
+        required: false
+        default: assumes ssh-key active
     reboot:
         description:
             - if B(yes) then the device will be rebooted rather than power-off
-        required: false 
+        required: false
         default: no
         choices: ['yes','no']
     shutdown:
@@ -81,42 +81,42 @@ EXAMPLES = '''
 from jnpr.junos import Device
 from jnpr.junos.utils.sw import SW
 
+
 def main():
 
     module = AnsibleModule(
-        argument_spec = dict(
-            shutdown=dict(required=True, default=None),   # must be set to 'shutdown'      
+        argument_spec=dict(
+            shutdown=dict(required=True, default=None),   # must be set to 'shutdown'
             host=dict(required=True, default=None),       # host or ipaddr
             user=dict(required=False, default=os.getenv('USER')),
             passwd=dict(required=False, default=None),
             reboot=dict(required=False, choices=BOOLEANS, default=False)),
-        supports_check_mode = False )
+        supports_check_mode=False)
 
     args = module.params
     if args['shutdown'] != 'shutdown':
-        module.fail_json(msg='Say "shutdown" to proceed')    
+        module.fail_json(msg='Say "shutdown" to proceed')
 
     restart_mode = module.boolean(args['reboot'])
 
     try:
         dev = Device(args['host'], user=args['user'], password=args['passwd']).open()
     except Exception as err:
-        msg = 'unable to connect to {}: {}'.format(args['host'], str(err))
-        module.fail_json(msg=msg)        
+        msg = 'unable to connect to {0}: {1}'.format(args['host'], str(err))
+        module.fail_json(msg=msg)
         # --- UNREACHABLE ---
 
-    results = {'changed': True, 'reboot': restart_mode}        
+    results = {'changed': True, 'reboot': restart_mode}
 
     sw = SW(dev)
     do_it = sw.reboot if restart_mode is True else sw.poweroff
     do_it(0)
 
-    # dev.close isn't performed since the device will 
-    # be in the process of shutting down and we'll 
+    # dev.close isn't performed since the device will
+    # be in the process of shutting down and we'll
     # lose connectivity anyways ...
 
     module.exit_json(**results)
 
 from ansible.module_utils.basic import *
 main()
-

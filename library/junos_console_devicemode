@@ -20,10 +20,10 @@
 #   names of its contributors may be used to endorse or promote products
 #   derived from this software without specific prior written permission.
 #
-# THIS SOFTWARE IS PROVIDED BY <copyright holder> ''AS IS'' AND ANY
+# THIS SOFTWARE IS PROVIDED BY Juniper Networks, Inc. ''AS IS'' AND ANY
 # EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL <copyright holder> BE LIABLE FOR ANY
+# DISCLAIMED. IN NO EVENT SHALL Juniper Networks, Inc. BE LIABLE FOR ANY
 # DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 # (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 # LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
@@ -35,16 +35,16 @@ DOCUMENTATION = '''
 ---
 module: junos_console_devicemode
 author: Jeremy Schulman, Juniper Networks
-version_added: "1.5.0"
+version_added: "1.7.0"
 short_description: Change the operational device mode
 description:
-    - New Out of Box (NOOB) console configuration that will change the "device mode". 
-      For QFX devices in QFabric deployments, the QFX switch must be 
-      configured into 'node' mode. This action is performed over the device 
-      CONSOLE port using either a SERIAL-PORT or a TERMINAL-SERVER. 
-      This action will also log the device "facts" and "inventory" to a 
-      local server directory, which then provdies you with specific details 
-      about the device located on that console. Refer to netconify for 
+    - New Out of Box (NOOB) console configuration that will change the "device mode".
+      For QFX devices in QFabric deployments, the QFX switch must be
+      configured into 'node' mode. This action is performed over the device
+      CONSOLE port using either a SERIAL-PORT or a TERMINAL-SERVER.
+      This action will also log the device "facts" and "inventory" to a
+      local server directory, which then provdies you with specific details
+      about the device located on that console. Refer to netconify for
       further details on this process.
 requirements:
     - netconify
@@ -52,17 +52,17 @@ options:
     host:
         description:
             - should be {{ inventory_hostname }}
-        required: true  
+        required: true
     user:
         description:
-            - login user-name 
-        required: false 
-        default: root 
+            - login user-name
+        required: false
+        default: root
     passwd:
         description:
             - login password
-        required: false 
-        default: None   
+        required: false
+        default: None
     console:
         description:
             - CONSOLE port, per the B(netconify) utility
@@ -78,15 +78,15 @@ options:
         description:
             - path on the local server where progress status is logged
               for debugging purposes
-        required: false 
+        required: false
         default: None
     savedir:
         description:
-            - path to the local server directory where device facts and 
-              inventory files will be stored. Refer to the B(netconify) 
+            - path to the local server directory where device facts and
+              inventory files will be stored. Refer to the B(netconify)
               utility for details.  If the path is not explicit, it will
               be local to the playbook execution directory
-        required: false 
+        required: false
         default: None
 '''
 
@@ -99,74 +99,76 @@ EXAMPLES = '''
     savedir=/usr/local/junos/inventory
 '''
 
-import sys
+
 import logging
 
 from netconify.cmdo import *
 
+
 def main():
-  module = AnsibleModule(
-    argument_spec = dict(
-      host=dict(required=True),
-      console=dict(required=True),
-      qfx=dict(required=False, default=None, choices=['node','switch']),
-      logfile=dict(required=False, default=None),
-      savedir=dict(required=False),
-      user=dict(required=False, default='root'),
-      passwd=dict(required=False, default=None)
-    ),
-    supports_check_mode = False )
+    module = AnsibleModule(
+        argument_spec=dict(
+            host=dict(required=True),
+            console=dict(required=True),
+            qfx=dict(required=False, default=None, choices=['node', 'switch']),
+            logfile=dict(required=False, default=None),
+            savedir=dict(required=False),
+            user=dict(required=False, default='root'),
+            passwd=dict(required=False, default=None)
+            ),
+        supports_check_mode=False)
 
-  # -----------------------------------------------
-  # build the command args to the netconify utility
-  # -----------------------------------------------
+    # -----------------------------------------------
+    # build the command args to the netconify utility
+    # -----------------------------------------------
 
-  m_args = module.params
-  c_args = []  # for netconify
-  gather_facts = False
+    m_args = module.params
+    c_args = []  # for netconify
+    gather_facts = False
 
-  c_args.append(m_args['console'])
-  if m_args['qfx'] is not None:
-    c_args.append('--qfx-'+m_args['qfx'])
-  if m_args['savedir'] is not None:
-    # gather facts and save them to local filesys
-    gather_facts = True
-    c_args.append('--facts')
-    c_args.append('--savedir='+m_args['savedir'])
-  c_args.append('--user='+m_args['user'])
-  if m_args['passwd'] is not None:
-    c_args.append('--passwd='+m_args['passwd'])
+    c_args.append(m_args['console'])
+    if m_args['qfx'] is not None:
+        c_args.append('--qfx-' + m_args['qfx'])
+    if m_args['savedir'] is not None:
+        # gather facts and save them to local filesys
+        gather_facts = True
+        c_args.append('--facts')
+        c_args.append('--savedir=' + m_args['savedir'])
+    c_args.append('--user=' + m_args['user'])
+    if m_args['passwd'] is not None:
+        c_args.append('--passwd=' + m_args['passwd'])
 
-  # the final arg should be the name we designate to this device.  
-  c_args.append(m_args['host'])  
+    # the final arg should be the name we designate to this device.
+    c_args.append(m_args['host'])
 
-  logfile = m_args['logfile']
-  if logfile is not None:
-    logging.basicConfig(filename=logfile, level=logging.INFO,
-      format='%(asctime)s:%(name)s:%(message)s')
-    logging.getLogger().name = 'NETCONIFY:'+m_args['host']
-    def log_notify(event,message):
-      log_notify.event = event
-      log_notify.message = message
-      logging.info("%s:%s"%(event,message))
-    use_notifier = log_notify
-  else:
-    def silent_notify(event,message): pass
-    use_notifier = silent_notify
+    logfile = m_args['logfile']
+    if logfile is not None:
+        logging.basicConfig(filename=logfile, level=logging.INFO,
+                            format='%(asctime)s:%(name)s:%(message)s')
+        logging.getLogger().name = 'NETCONIFY:' + m_args['host']
 
-  nc = netconifyCmdo(notify=use_notifier)
-  c_results = nc.run( c_args )
+        def log_notify(event, message):
+            log_notify.event = event
+            log_notify.message = message
+            logging.info("%s:%s" % (event, message))
+        use_notifier = log_notify
+    else:
+        def silent_notify(event, message):
+            pass
+        use_notifier = silent_notify
 
-  m_results = dict(changed=c_results['changed'])
-  m_results['args'] = m_args  # just for debug really.
-  if gather_facts is True:
-    m_results['facts'] = c_results['facts']
+    nc = netconifyCmdo(notify=use_notifier)
+    c_results = nc.run(c_args)
 
-  if c_results['failed'] is True:
-    module.fail_json(msg=c_results['errmsg'])
-  else:
-    module.exit_json(**m_results)
+    m_results = dict(changed=c_results['changed'])
+    m_results['args'] = m_args  # just for debug really.
+    if gather_facts is True:
+        m_results['facts'] = c_results['facts']
+
+    if c_results['failed'] is True:
+        module.fail_json(msg=c_results['errmsg'])
+    else:
+        module.exit_json(**m_results)
 
 from ansible.module_utils.basic import *
 main()
-

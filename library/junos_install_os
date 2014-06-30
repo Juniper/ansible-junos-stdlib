@@ -21,10 +21,10 @@
 #   names of its contributors may be used to endorse or promote products
 #   derived from this software without specific prior written permission.
 #
-# THIS SOFTWARE IS PROVIDED BY <copyright holder> ''AS IS'' AND ANY
+# THIS SOFTWARE IS PROVIDED BY Juniper Networks, Inc. ''AS IS'' AND ANY
 # EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
 # WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-# DISCLAIMED. IN NO EVENT SHALL <copyright holder> BE LIABLE FOR ANY
+# DISCLAIMED. IN NO EVENT SHALL Juniper Networks, Inc. BE LIABLE FOR ANY
 # DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
 # (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
 # LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
@@ -36,18 +36,18 @@ DOCUMENTATION = '''
 ---
 module: junos_install_os
 author: Jeremy Schulman, Juniper Networks
-version_added: "1.6.0"
+version_added: "1.7.0"
 short_description: Install Junos OS image
 description:
-   - Install a Junos OS image on one or more routing-engine (RE) components. 
-     This module supports single CPU devices, EX virtual-chassis 
+   - Install a Junos OS image on one or more routing-engine (RE) components.
+     This module supports single CPU devices, EX virtual-chassis
      (not-mixed mode), and MX dual-RE products.
 
-     Check-Mode is supported to report whether or not the current version 
+     Check-Mode is supported to report whether or not the current version
      matched the desired version.
 
-     If the existing version matches, no action is performed, and the 
-     "changed" attribute reports False. If the existing version does not 
+     If the existing version matches, no action is performed, and the
+     "changed" attribute reports False. If the existing version does not
      match, then the following actions are performed
 
      (1) Compuste the MD5 checksum of the package located on the server
@@ -62,17 +62,17 @@ options:
    host:
         description:
             - should be {{ inventory_hostname }}
-        required: true  
+        required: true
    user:
       description:
-         - login user-name 
-      required: false 
-      default: $USER 
+         - login user-name
+      required: false
+      default: $USER
    passwd:
       description:
          - login password
-      required: false 
-      default: assumes ssh-key active    
+      required: false
+      default: assumes ssh-key active
    reboot:
       description:
          - determines if a reboot is performed after the OS is loaded
@@ -82,22 +82,22 @@ options:
    reboot_pause:
       description:
          - amount of time in seconds to wait after the reboot is issued
-      required: false 
+      required: false
       default: "10"
    version:
       description:
-         - Junos version string as it would be reported by the 'show version' 
+         - Junos version string as it would be reported by the 'show version'
            command
       required: true
    package:
       description:
-         - complete path on the local server to the Junos image package file 
-      required: true  
+         - complete path on the local server to the Junos image package file
+      required: true
    logfile:
       description:
          - path on the local server where progress status is logged
            for debugging purposes
-      required: false 
+      required: false
       default: None
 '''
 
@@ -110,127 +110,132 @@ EXAMPLES = '''
 '''
 
 import logging
-from jnpr.junos import Device 
+import re
+import os
+from jnpr.junos import Device
+
 
 def junos_install_os(module, dev):
-  args = module.params
+    args = module.params
 
-  ### -------------------------------------------------------------------------
-  ### logging
-  ### -------------------------------------------------------------------------
+    # -------------------------------------------------------------------------
+    # logging
+    # -------------------------------------------------------------------------
 
-  logfile = args['logfile']
-  if logfile is not None:
-    logging.basicConfig(filename=logfile, level=logging.INFO,
-      format='%(asctime)s:%(name)s:%(message)s')
-    logging.getLogger().name = args['host']
-    def do_log(msg, level='info'):
-      getattr(logging,level)(msg)
-  else:
-    def do_log(msg): pass
+    logfile = args['logfile']
+    if logfile is not None:
+        logging.basicConfig(filename=logfile, level=logging.INFO,
+                            format='%(asctime)s:%(name)s:%(message)s')
+        logging.getLogger().name = args['host']
 
-  ### -------------------------------------------------------------------------
-  ### check installed version against desired version
-  ### -------------------------------------------------------------------------
+        def do_log(msg, level='info'):
+            getattr(logging, level)(msg)
+    else:
+        def do_log(msg):
+            pass
 
-  if args['version'] is None:
-    # extract version string from package file
-    m = re.search('-([^\\-]*)-domestic.*',args['package'])
-    args['version'] = m.group(1)
+    # -------------------------------------------------------------------------
+    # check installed version against desired version
+    # -------------------------------------------------------------------------
 
-  has_ver = dev.facts['version']
-  should_ver = args['version']
-  need_upgrade = bool(has_ver != should_ver)
+    if args['version'] is None:
+        # extract version string from package file
+        m = re.search('-([^\\-]*)-domestic.*', args['package'])
+        args['version'] = m.group(1)
 
-  results = dict(changed=need_upgrade, ver=dict(has=has_ver,should=should_ver)) 
+    has_ver = dev.facts['version']
+    should_ver = args['version']
+    need_upgrade = bool(has_ver != should_ver)
 
-  if need_upgrade is False:
-    do_log("No need to perform upgrade: {}".format( has_ver ))
+    results = dict(changed=need_upgrade, ver=dict(has=has_ver, should=should_ver))
+
+    if need_upgrade is False:
+        do_log("No need to perform upgrade: {0}".format(has_ver))
+        return results
+    if module.check_mode is True:
+        do_log("upgrade REQUIRED has: {0}, shoud: {1}".format(has_ver, should_ver))
+        return results
+
+    # -------------------------------------------------------------------------
+    # proceeed with software install
+    # -------------------------------------------------------------------------
+
+    from jnpr.junos.utils.sw import SW
+    sw = SW(dev)
+
+    package = args['package']
+    do_log("Starting the software upgrade process: {0}".format(package))
+
+    def update_my_progress(dev, report):
+        # log the progress of the installing process
+        do_log(report)
+
+    sw_args = dict(progress=update_my_progress)
+    sw_args['no_copy'] = module.boolean(args['no_copy'])
+    ok = sw.install(package, **sw_args)
+
+    if ok is not True:
+        results['failed'] = True
+        results['msg'] = "Unable to install the software"
+        do_log(results['msg'], level='error')
+        return results
+
+    # -------------------------------------------------------------------------
+    # reboot the box if desired
+    # -------------------------------------------------------------------------
+
+    if module.boolean(args['reboot']) is True:
+        do_log("<REBOOT>")
+        rsp = sw.reboot()
+
+    # -------------------------------------------------------------------------
+    # all done.
+    # -------------------------------------------------------------------------
+    do_log("upgrade pending reboot cycle, please be patient.")
     return results
-  if module.check_mode is True:
-    do_log("upgrade REQUIRED has: {}, shoud: {}".format( has_ver, should_ver ))
-    return results
-
-  ### -------------------------------------------------------------------------
-  ### proceeed with software install
-  ### -------------------------------------------------------------------------
-
-  from jnpr.junos.utils.sw import SW 
-  sw = SW(dev)
-
-  package = args['package']
-  do_log("Starting the software upgrade process: {}".format(package))
-
-  def update_my_progress(dev, report):
-    # log the progress of the installing process
-    do_log(report)
-
-  sw_args = dict(progress=update_my_progress)
-  sw_args['no_copy'] = module.boolean(args['no_copy'])
-  ok = sw.install(package, **sw_args)
-
-  if ok is not True:
-    results['failed'] = True
-    results['msg'] = "Unable to install the software"
-    do_log(results['msg'], level='error')
-    return results
-
-  ### -------------------------------------------------------------------------
-  ### reboot the box if desired
-  ### -------------------------------------------------------------------------
-
-  if module.boolean(args['reboot']) is True:
-    do_log("<REBOOT>")
-    rsp = sw.reboot()  
-
-  ### -------------------------------------------------------------------------
-  ### all done.
-  ### -------------------------------------------------------------------------
-  do_log("upgrade pending reboot cycle, please be patient.")
-  return results
 
 
 def main():
-  module = AnsibleModule(
-    argument_spec = dict(
-      host=dict(required=True),
-      package=dict(required=True),      
-      user=dict(required=False, default=os.getenv('USER')),
-      passwd=dict(required=False, default=None),
-      version=dict(required=False, default=None),
-      logfile=dict(required=False, default=None),
-      no_copy=dict(required=False, choices=BOOLEANS, default=False),
-      reboot=dict(required=False, choices=BOOLEANS, default=True),
-      reboot_pause=dict(required=False, type='int', default=10)
-    ),
-    supports_check_mode = True
-  )
+    #
+    module = AnsibleModule(
+        argument_spec=dict(
+            host=dict(required=True),
+            package=dict(required=True),
+            user=dict(required=False, default=os.getenv('USER')),
+            passwd=dict(required=False, default=None),
+            version=dict(required=False, default=None),
+            logfile=dict(required=False, default=None),
+            no_copy=dict(required=False, choices=BOOLEANS, default=False),
+            reboot=dict(required=False, choices=BOOLEANS, default=True),
+            reboot_pause=dict(required=False, type='int', default=10)
+        ),
+        supports_check_mode=True
+    )
 
-  args = module.params
+    args = module.params
 
-  ### @@@ need to verify that the package file actually exists
-  ### @@@ before proceeding.
+    # @@@ need to verify that the package file actually exists
+    # @@@ before proceeding.
 
-  dev = Device(args['host'], user=args['user'], password=args['passwd'])
-  try:
-    dev.open()
-  except Exception as err:
-      msg = 'unable to connect to {}: {}'.format(args['host'], str(err))
-      module.fail_json(msg=msg)
-      return
+    dev = Device(args['host'], user=args['user'], password=args['passwd'])
+    try:
+        dev.open()
+    except Exception as err:
+        msg = 'unable to connect to {0}: {1}'.format(args['host'], str(err))
+        module.fail_json(msg=msg)
+        return
 
-  results = junos_install_os(module, dev)
-  results['check_mode'] = module.check_mode
-  dev.close()
+    results = junos_install_os(module, dev)
+    results['check_mode'] = module.check_mode
+    dev.close()
 
-  if not module.check_mode and results['changed'] is True:
-    logging.info('pausing: {}'.format(args['reboot_pause']))
-    import time
-    time.sleep( args['reboot_pause'])
-    logging.info('process completed OK.')    
+    if not module.check_mode and results['changed'] is True:
+        logging.info('pausing: {0}'.format(args['reboot_pause']))
+        import time
+        time.sleep(args['reboot_pause'])
+        logging.info('process completed OK.')
 
-  module.exit_json(**results)
+    module.exit_json(**results)
 
 from ansible.module_utils.basic import *
 main()
-
