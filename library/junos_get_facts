@@ -50,17 +50,17 @@ options:
     host:
         description:
             - should be {{ inventory_hostname }}
-        required: true  
+        required: true
     user:
         description:
-            - login user-name 
-        required: false 
-        default: $USER 
+            - login user-name
+        required: false
+        default: $USER
     passwd:
         description:
             - login password
-        required: false 
-        default: assumes ssh-key    
+        required: false
+        default: assumes ssh-key
     console:
         description:
             - CONSOLE port, per the B(netconify) utility
@@ -68,17 +68,17 @@ options:
         default: None
     savedir:
         description:
-            - path to the local server directory where device facts and 
-              inventory files will be stored. Refer to the B(netconify) 
+            - path to the local server directory where device facts and
+              inventory files will be stored. Refer to the B(netconify)
               utility for details. Used only with I(console) option.
-        required: false 
-        default: $CWD             
+        required: false
+        default: $CWD
     logfile:
         description:
             - path on the local server where progress status is logged
               for debugging purposes. Used only with I(console) option
-        required: false 
-        default: None        
+        required: false
+        default: None
 '''
 
 EXAMPLES = '''
@@ -94,7 +94,7 @@ EXAMPLES = '''
     host={{ inventory_hostname }}
     user=root
     console="--telnet={{TERMSERV}},{{TERMSERVPORT}}"
-    savedir=/usr/local/junos/inventory  
+    savedir=/usr/local/junos/inventory
   register: junos
 
 # accessing the facts
@@ -102,24 +102,25 @@ EXAMPLES = '''
 - name: version
   debug: msg="{{ junos.facts.version }}"
 '''
-import sys
+import os
+
 
 def main():
     module = AnsibleModule(
-        argument_spec = dict(
+        argument_spec=dict(
             host=dict(required=True),
-            console=dict(required=False, default=None),            
+            console=dict(required=False, default=None),
             logfile=dict(required=False, default=None),
             savedir=dict(required=False, default=None),
             user=dict(required=False, default=os.getenv('USER')),
             passwd=dict(required=False, default=None)),
-        supports_check_mode = False)
+        supports_check_mode=False)
 
     m_args = module.params
     m_results = dict(changed=False)
 
     if m_args['console'] is None:
-        from jnpr.junos import Device         
+        from jnpr.junos import Device
         # -----------
         # via NETCONF
         # -----------
@@ -127,15 +128,15 @@ def main():
         try:
             dev.open()
         except Exception as err:
-            msg = 'unable to connect to {}: {}'.format(m_args['host'], str(err))
+            msg = 'unable to connect to {0}: {1}'.format(m_args['host'], str(err))
             module.fail_json(msg=msg)
-            return        
+            return
         else:
             dev.close()
             del dev.facts['version_info']   # currently not JSON serializable.
             m_results['facts'] = dev.facts
     else:
-        # -----------        
+        # -----------
         # via CONSOLE
         # -----------
         from netconify.cmdo import netconifyCmdo
@@ -145,27 +146,29 @@ def main():
         c_args.append(m_args['console'])
         c_args.append('--facts')
         if m_args['savedir'] is not None:
-            c_args.append('--savedir='+m_args['savedir'])
-        c_args.append('--user='+m_args['user'])
-        if m_args['passwd'] is not None: 
-            c_args.append('--passwd='+m_args['passwd'])
+            c_args.append('--savedir=' + m_args['savedir'])
+        c_args.append('--user=' + m_args['user'])
+        if m_args['passwd'] is not None:
+            c_args.append('--passwd=' + m_args['passwd'])
 
         c_args.append(m_args['host'])
 
         logfile = m_args['logfile']
         if logfile is not None:
             logging.basicConfig(filename=logfile, level=logging.INFO,
-                format='%(asctime)s:%(name)s:%(message)s')
-            logging.getLogger().name = 'NETCONIFY:'+module.params['host']
-            def log_notify(event,message):
-                logging.info("%s:%s"%(event,message))
+                                format='%(asctime)s:%(name)s:%(message)s')
+            logging.getLogger().name = 'NETCONIFY:' + module.params['host']
+
+            def log_notify(event, message):
+                logging.info("%s:%s" % (event, message))
             use_notifier = log_notify
         else:
-            def silent_notify(event,message): pass
+            def silent_notify(event, message):
+                pass
             use_notifier = silent_notify
 
         nc = netconifyCmdo(notify=use_notifier)
-        c_results = nc.run( c_args )
+        c_results = nc.run(c_args)
         m_results['args'] = m_args        # for debug
         m_results['facts'] = c_results['facts']
 
