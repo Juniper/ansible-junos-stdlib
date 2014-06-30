@@ -35,7 +35,7 @@ DOCUMENTATION = '''
 ---
 module: junos_console_devicemode
 author: Jeremy Schulman, Juniper Networks
-version_added: "1.5.0"
+version_added: "1.7.0"
 short_description: Change the operational device mode
 description:
     - New Out of Box (NOOB) console configuration that will change the "device mode".

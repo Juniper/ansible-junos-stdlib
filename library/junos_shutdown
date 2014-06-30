@@ -36,7 +36,7 @@ DOCUMENTATION = '''
 ---
 module: junos_shutdown
 author: Jeremy Schulman, Juniper Networks
-version_added: "1.6.0"
+version_added: "1.7.0"
 short_description: Shutdown or Reboot the Junos device
 description:
     - Used to shutdown (power-off) or reboot the Junos device; includes

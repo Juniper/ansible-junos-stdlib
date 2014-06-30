@@ -36,7 +36,7 @@ DOCUMENTATION = '''
 ---
 module: junos_get_facts
 author: Jeremy Schulman, Juniper Networks
-version_added: "1.6.0"
+version_added: "1.7.0"
 short_description: Retrieve Junos device facts
 description:
     - Junos facts returns as a JSON dictionary, includes items
