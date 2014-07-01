@@ -48,7 +48,7 @@ description:
      If the existing Junos OS version matches the desired version, 
      no action is performed, and the "changed" attribute reports False.
      If the existing version does not match, then the module performs the 
-     following actions:
+     following actions
 
      (1) Computes the MD5 checksum of the package located on the server.
      (2) Copies the Junos OS software package to the device running Junos OS.
