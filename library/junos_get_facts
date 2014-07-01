@@ -36,31 +36,32 @@ DOCUMENTATION = '''
 ---
 module: junos_get_facts
 author: Jeremy Schulman, Juniper Networks
-version_added: "1.7.0"
-short_description: Retrieve Junos device facts
+version_added: "1.7"
+short_description: Retrieve facts for a device running Junos OS.
 description:
-    - Junos facts returns as a JSON dictionary, includes items
-      such as version, serial-number, product module, etc.  Similar
-      to facts gathered by other IT frameworks.  Support for both
-      NETCONF and CONSOLE based retrieval.
+    - Retrieve facts for a device running Junos OS, which includes information 
+      such as the serial number, product model, and Junos OS version.
+      The module supports using both NETCONF and CONSOLE-based retrieval
+      and returns the information as a JSON dictionary.
+      The information is similar to facts gathered by other IT frameworks. 
 requirements:
-    - py-junos-eznc (NETCONF)
+    - py-junos-eznc >= 1.0.0
     - netconify if using the I(console) option
 options:
     host:
         description:
-            - should be {{ inventory_hostname }}
+            - Set to {{ inventory_hostname }}
         required: true
     user:
         description:
-            - login user-name
+            - Login username
         required: false
         default: $USER
     passwd:
         description:
-            - login password
+            - Login password
         required: false
-        default: assumes ssh-key
+        default: assumes ssh-key active
     console:
         description:
             - CONSOLE port, per the B(netconify) utility
@@ -68,26 +69,28 @@ options:
         default: None
     savedir:
         description:
-            - path to the local server directory where device facts and
-              inventory files will be stored. Refer to the B(netconify)
-              utility for details. Used only with I(console) option.
+            - Path to the local server directory where device facts and
+              inventory files will be stored. This option is used only 
+              with the I(console) option.
+              Refer to the B(netconify) utility for details.        
         required: false
         default: $CWD
     logfile:
         description:
-            - path on the local server where progress status is logged
-              for debugging purposes. Used only with I(console) option
+            - Path on the local server where the progress status is logged
+              for debugging purposes. This option is used only with the 
+              I(console) option.
         required: false
         default: None
 '''
 
 EXAMPLES = '''
-# getting facts via NETCONF, assumes ssh-keys
+# retrieve facts using NETCONF, assumes ssh-keys
 
 - junos_get_facts: host={{ inventory_hostname }}
   register: junos
 
-# getting facts via CONSOLE, assumes Amnesiac system
+# retrieve facts using CONSOLE, assumes Amnesiac system
 # root login, no password
 
 - junos_get_facts:
@@ -97,13 +100,13 @@ EXAMPLES = '''
     savedir=/usr/local/junos/inventory
   register: junos
 
-# accessing the facts
+# access the facts
 
 - name: version
   debug: msg="{{ junos.facts.version }}"
 '''
-import os
 
+import os
 
 def main():
     module = AnsibleModule(

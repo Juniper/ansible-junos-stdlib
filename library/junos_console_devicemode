@@ -35,32 +35,32 @@ DOCUMENTATION = '''
 ---
 module: junos_console_devicemode
 author: Jeremy Schulman, Juniper Networks
-version_added: "1.7.0"
-short_description: Change the operational device mode
+version_added: "1.7"
+short_description: Configure the device mode of a QFX Series switch.
 description:
-    - New Out of Box (NOOB) console configuration that will change the "device mode".
-      For QFX devices in QFabric deployments, the QFX switch must be
-      configured into 'node' mode. This action is performed over the device
-      CONSOLE port using either a SERIAL-PORT or a TERMINAL-SERVER.
-      This action will also log the device "facts" and "inventory" to a
-      local server directory, which then provdies you with specific details
-      about the device located on that console. Refer to netconify for
-      further details on this process.
+    - For QFX Series switches with new out-of-box (NOOB) console configurations, 
+      configure the device mode to indicate operation as a standalone switch or as a 
+      Node in a QFabric™ system. QFX Series switches operating as a Node must be 
+      configured as  mode 'node'. This action is performed over the device CONSOLE 
+      port using either a SERIAL-PORT or a TERMINAL-SERVER. 
+      This action also logs the device facts and inventory to a local server directory, 
+      which provides you with specific details about the device located on that console. 
+      Refer to the B(netconify) utility for further details on this process.
 requirements:
     - netconify
 options:
     host:
         description:
-            - should be {{ inventory_hostname }}
+            - Set to {{ inventory_hostname }}
         required: true
     user:
         description:
-            - login user-name
+            - Login username
         required: false
         default: root
     passwd:
         description:
-            - login password
+            - Login password
         required: false
         default: None
     console:
@@ -70,22 +70,22 @@ options:
         default: None
     qfx:
         description:
-            - determine the QFX device mode
+            - Configure the mode of a QFX Series switch.
         required: true
         choices: ['node','switch']
-        default: None
+        default: node
     logfile:
         description:
-            - path on the local server where progress status is logged
+            - Path on the local server where the progress status is logged
               for debugging purposes
         required: false
         default: None
     savedir:
         description:
-            - path to the local server directory where device facts and
+            - Path to the local server directory where device facts and
               inventory files will be stored. Refer to the B(netconify)
-              utility for details.  If the path is not explicit, it will
-              be local to the playbook execution directory
+              utility for details. If the path is not explicit, it will
+              be local to the playbook execution directory.
         required: false
         default: None
 '''
@@ -98,7 +98,6 @@ EXAMPLES = '''
     logfile=/usr/local/junos/logs/qfx_node.log
     savedir=/usr/local/junos/inventory
 '''
-
 
 import logging
 

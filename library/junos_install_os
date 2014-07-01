@@ -36,66 +36,70 @@ DOCUMENTATION = '''
 ---
 module: junos_install_os
 author: Jeremy Schulman, Juniper Networks
-version_added: "1.7.0"
-short_description: Install Junos OS image
+version_added: "1.7"
+short_description: Install a Junos OS image.
 description:
-   - Install a Junos OS image on one or more routing-engine (RE) components.
-     This module supports single CPU devices, EX virtual-chassis
-     (not-mixed mode), and MX dual-RE products.
+   - Install a Junos OS image on one or more Routing Engines.
+     This module supports installations on single Routing Engine devices, 
+     MX Series routers with dual Routing Engines, and EX Series switches in 
+     a non-mixed Virtual Chassis. This action is equivalent to performing the  
+     Junos OS B(request system software add) operational command.
 
-     Check-Mode is supported to report whether or not the current version
-     matched the desired version.
+     If the existing Junos OS version matches the desired version, 
+     no action is performed, and the "changed" attribute reports False.
+     If the existing version does not match, then the module performs the 
+     following actions:
 
-     If the existing version matches, no action is performed, and the
-     "changed" attribute reports False. If the existing version does not
-     match, then the following actions are performed
+     (1) Computes the MD5 checksum of the package located on the server.
+     (2) Copies the Junos OS software package to the device running Junos OS.
+     (3) Computes the MD5 checksum on the device running Junos OS and compares the two.
+     (4) Installs the Junos OS software package.
+     (5) Reboots the device (default).
 
-     (1) Compuste the MD5 checksum of the package located on the server
-     (2) Copy the package image to the Junos device
-     (3) Compute the MD5 checksum on the Junos device and compare the two
-     (4) Install the Junos package
-     (5) Reboot the device (default)
+     Running the module in check mode reports whether the current Junos OS 
+     version matches the desired version. 
 
 requirements:
-   - py-junos-eznc >= 0.0.5
+   - py-junos-eznc >= 1.0.0
 options:
    host:
         description:
-            - should be {{ inventory_hostname }}
+            - Set to {{ inventory_hostname }}
         required: true
    user:
       description:
-         - login user-name
+         - Login username
       required: false
       default: $USER
    passwd:
       description:
-         - login password
+         - Login password
       required: false
       default: assumes ssh-key active
    reboot:
       description:
-         - determines if a reboot is performed after the OS is loaded
+         - If set to B(yes), the device reboots
+           after the installation completes.
       required: false
       default: yes
       choices: ['yes','no']
    reboot_pause:
       description:
-         - amount of time in seconds to wait after the reboot is issued
+         - Amount of time in seconds to wait after the reboot is issued
       required: false
       default: "10"
    version:
       description:
-         - Junos version string as it would be reported by the 'show version'
-           command
+         - Junos OS version string as it would be reported by the 
+           B(show version) command
       required: true
    package:
       description:
-         - complete path on the local server to the Junos image package file
+         - Absolute path on the local server to the Junos OS software package
       required: true
    logfile:
       description:
-         - path on the local server where progress status is logged
+         - Path on the local server where the progress status is logged
            for debugging purposes
       required: false
       default: None

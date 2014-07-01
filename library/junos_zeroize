@@ -36,29 +36,37 @@ DOCUMENTATION = '''
 ---
 module: junos_zeroize
 author: Jeremy Schulman, Juniper Networks
-version_added: "1.7.0"
-short_description: Zeroize Junos system
+version_added: "1.7"
+short_description: Erase all data, including configuration and log files, on a device running Junos OS.
 description:
-    - Remove all configuration information on the Routing Engines and
-      reset all key values. The command removes all data files, including
-      customized configuration and log files, by unlinking the files from
-      their directories.
+    - Execute the Junos OS B(request system zeroize) command to remove all
+      configuration information on the Routing Engines and reset all key
+      values on a device running Junos OS. The command removes all data files, 
+      including customized configuration and log files, by unlinking the files 
+      from their directories. The command also removes all user-created files 
+      from the system including all plain-text passwords, secrets, and 
+      private keys for SSH, local encryption, local authentication, IPsec,
+      RADIUS, TACACS+, and SNMP.
+
+      This command reboots the device and sets it to the factory default
+      configuration. After the reboot, you must log in through the console 
+      as root in order to access the device.
 requirements:
     - py-junos-eznc >= 1.0.0
     - netconify, if using I(console) option
 options:
     host:
         description:
-            - should be {{ inventory_hostname }}
+            - Set to {{ inventory_hostname }}
         required: false
     user:
         description:
-            - login user-name
+            - Login username
         required: false
         default: $USER
     passwd:
         description:
-            - login password
+            - Login password
         required: false
         default: assumes ssh-key active
     console:
@@ -71,17 +79,17 @@ options:
             - ex: "--telnet=termserv101,2000"
     zeroize:
         description:
-            - safety mechanism, you B(MUST) set this to 'zeroize'
+            - Safety mechanism. You B(MUST) set this to 'zeroize'.
         required: yes
         default: None
     logfile:
         description:
-            - path on the local server where progress status is logged
+            - Path on the local server where the progress status is logged
               for debugging purposes
         required: false
         default: None
 notes:
-    - You B(MUST) either use the I(host) option or the I(port) option to designate
+    - You B(MUST) either use the I(host) option or the I(console) option to designate
       how the device is accessed.
 '''
 
@@ -93,7 +101,6 @@ EXAMPLES = '''
 
 import os
 import logging
-
 
 def main():
     module = AnsibleModule(
