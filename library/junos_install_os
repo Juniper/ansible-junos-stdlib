@@ -73,6 +73,12 @@ options:
          - login password
       required: false
       default: assumes ssh-key active
+   no_copy:
+      description:
+         - Installer need to be copied or not on the device.
+      required: false
+      default: false
+      choices: ['true','false']
    reboot:
       description:
          - determines if a reboot is performed after the OS is loaded
