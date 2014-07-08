@@ -1,6 +1,6 @@
 ---
 galaxy_info:
-  author: Jeremy Schulman
+  author: Juniper #Jeremy Schulman
   description: Network build automation of Junos devices. 
   company: Juniper Networks, Inc.
   # Some suggested licenses:
@@ -101,7 +101,7 @@ galaxy_info:
   # Below are all categories currently available. Just as with
   # the platforms above, uncomment those that apply to your role.
   #
-  #categories:
+  categories:
   #- cloud
   #- cloud:ec2
   #- cloud:gce
