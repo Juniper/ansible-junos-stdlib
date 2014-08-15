@@ -168,6 +168,8 @@ def junos_install_config(module, dev):
             overwrite = module.boolean(module.params['overwrite'])
             if True == overwrite:
                 load_args['overwrite'] = True
+            elif False == overwrite:
+                load_args['merge'] = True
             cu.load(**load_args)
         except ValueError as err:
             logging.error("unable to load config:{0}".format(err.message))
