@@ -36,3 +36,8 @@ nosetests.xml
 .pydevproject
 
 .backup
+
+# Documentation
+docs/build
+docs/*.rst
+docs/_build/
