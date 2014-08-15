@@ -39,4 +39,5 @@ nosetests.xml
 
 # Documentation
 docs/build
-docs/source/*.rst
+docs/*.rst
+docs/_build/

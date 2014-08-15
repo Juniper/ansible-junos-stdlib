@@ -41,7 +41,7 @@ _URL    = re.compile(r"U\(([^)]+)\)")
 _CONST  = re.compile(r"C\(([^)]+)\)")
 
 MODULEDIR = "../library/"
-OUTPUTDIR = "source"
+OUTPUTDIR = "."
 
 #####################################################################################
 
