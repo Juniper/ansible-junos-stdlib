@@ -1,8 +1,9 @@
 from setuptools import setup
+from version import VERSION
 
 setup(
     name="ansible-junos-stdlib",    
-    version="1.0.0",
+    version=VERSION,
     author="Jeremy Schulman",
     author_email="jnpr-community-netdev@juniper.net",
     description=("Ansible Network build automation of Junos devices."),
