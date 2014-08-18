@@ -36,7 +36,7 @@ DOCUMENTATION = '''
 ---
 module: junos_zeroize
 author: Jeremy Schulman, Juniper Networks
-version_added: "1.6"
+version_added: "1.0.0"
 short_description: Erase all data, including configuration and log files, on a device running Junos OS.
 description:
     - Execute the Junos OS B(request system zeroize) command to remove all
