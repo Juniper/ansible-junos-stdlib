@@ -175,19 +175,15 @@ def junos_install_config(module, dev):
             logging.error("unable to load config:{0}".format(err.message))
             raise err
         except Exception as err:
-            rerrs = err.rsp[0].findall('rpc-error')
-            logging.error('unable to load config')
-            if ( len(rerrs) > 0 ):
-                err_list = []
-                for e in rerrs:
-                    err_list.append("severity:'{0}'".format(e.findtext('.//error-severity')))
-                    err_list.append("msg:'{0}'".format(e.findtext('.//error-message')))
-                    bad_elems = e.findall('.//bad-element')
-                    for bad_elem in bad_elems:
-                        err_list.append("bad element:'{0}'".format(bad_elem.text))
-                    msg = 'error: ' + ", ".join(err_list)
-                    logging.error(msg)
-                raise err
+            e = err.rsp[0].find('rpc-error')
+            err_list = []
+            err_list.append("severity:'{0}'".format(e.findtext('.//error-severity')))
+            err_list.append("msg:'{0}'".format(e.findtext('.//error-message')))
+            bad_elems = e.findall('.//bad-element')
+            err_list.append("bad element:'{0}'".format(bad_elems[0].text))
+            msg = 'unable to load config: ' + ", ".join(err_list)
+            logging.error(msg)
+            raise err
         else:
             pass
 
