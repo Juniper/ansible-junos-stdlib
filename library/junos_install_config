@@ -175,9 +175,14 @@ def junos_install_config(module, dev):
             logging.error("unable to load config:{0}".format(err.message))
             raise err
         except Exception as err:
-            if err.rsp.find('.//ok') is None:
-                rpc_msg = err.rsp.findtext('.//error-message')
-                logging.error("unable to load config:{0}".format(rpc_msg))
+            e = err.rsp[0].find('rpc-error')
+            err_list = []
+            err_list.append("severity:'{0}'".format(e.findtext('.//error-severity')))
+            err_list.append("msg:'{0}'".format(e.findtext('.//error-message')))
+            bad_elems = e.findall('.//bad-element')
+            err_list.append("bad element:'{0}'".format(bad_elems[0].text))
+            msg = 'unable to load config: ' + ", ".join(err_list)
+            logging.error(msg)
             raise err
         else:
             pass
