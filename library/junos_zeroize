@@ -88,6 +88,11 @@ options:
               for debugging purposes
         required: false
         default: None
+    port:
+        description:
+            - TCP port number to use when connecting to the device
+        required: false
+        default: 830
 notes:
     - You B(MUST) either use the I(host) option or the I(console) option to designate
       how the device is accessed.
@@ -111,7 +116,9 @@ def main():
             console=dict(required=False, default=None),     # param to netconify
             user=dict(required=False, default=os.getenv('USER')),
             passwd=dict(required=False, default=None),
-            logfile=dict(required=False, default=None)),
+            logfile=dict(required=False, default=None)
+            port=dict(required=False, default=830)
+        ),
         supports_check_mode=False)
 
     args = module.params
@@ -146,7 +153,7 @@ def main():
         except ImportError:
             module.fail_json(msg='junos-eznc is required for this module')
 
-        dev = Device(args['host'], user=args['user'], password=args['passwd'])
+        dev = Device(args['host'], user=args['user'], password=args['passwd'], port=args['port'])
         try:
             use_notifier('LOGIN', 'host={0}'.format(args['host']))
             dev.open()

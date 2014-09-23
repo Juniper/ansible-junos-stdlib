@@ -71,6 +71,11 @@ options:
             - Safety mechanism. You B(MUST) set this to 'shutdown'.
         required: yes
         default: None
+    port:
+        description:
+            - TCP port number to use when connecting to the device
+        required: false
+        default: 830
 '''
 
 EXAMPLES = '''
@@ -96,7 +101,9 @@ def main():
             host=dict(required=True, default=None),       # host or ipaddr
             user=dict(required=False, default=os.getenv('USER')),
             passwd=dict(required=False, default=None),
-            reboot=dict(required=False, choices=BOOLEANS, default=False)),
+            reboot=dict(required=False, choices=BOOLEANS, default=False),
+            port=dict(required=False, default=830)
+        ),
         supports_check_mode=False)
 
     if not HAS_PYEZ:
@@ -109,7 +116,7 @@ def main():
     restart_mode = module.boolean(args['reboot'])
 
     try:
-        dev = Device(args['host'], user=args['user'], password=args['passwd']).open()
+        dev = Device(args['host'], user=args['user'], password=args['passwd'], port=args['port']).open()
     except Exception as err:
         msg = 'unable to connect to {0}: {1}'.format(args['host'], str(err))
         module.fail_json(msg=msg)

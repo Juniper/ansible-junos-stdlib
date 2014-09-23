@@ -326,7 +326,8 @@ def main():
             savedir=dict(required=False),
             timeout=dict(required=False, default=0),
             comment=dict(required=False, default=None),
-            port=dict(required=False, default=830)),
+            port=dict(required=False, default=830)
+        ),
         supports_check_mode=False)
 
     if not HAS_PYEZ:
