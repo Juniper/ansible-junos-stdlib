@@ -111,6 +111,11 @@ options:
               Refer to the B(netconify) utility for details.
         required: false
         default: None
+    comment:
+        description:
+            - Provide a comment to the commit of the configuration
+        required: false
+        default: None
 '''
 
 EXAMPLES = '''
@@ -127,6 +132,12 @@ EXAMPLES = '''
     console="--telnet={{TERMSERV}},{{TERMSERV_PORT}}"
     file=default_new_switch.conf
     overwrite=yes
+
+# load merge a change to the Junos OS configuration using NETCONF and supplying a commit log message
+- junos_install_config:
+    host={{ inventory_hostname }}
+    file=banner.conf
+    comment="configured by ansible"
 '''
 
 import logging
@@ -185,7 +196,10 @@ def junos_install_config(module, dev):
         diff = cu.diff()
         if diff is not None:
             logging.info("committing change, please be patient")
-            cu.commit()
+            if args.has('comment'):
+                cu.commit(comment=args['comment'])
+            else:
+                cu.commit()
             results['changed'] = True
 
         logging.info("unlocking")
@@ -305,7 +319,8 @@ def main():
             overwrite=dict(required=False, choices=BOOLEANS, default=False),
             logfile=dict(required=False, default=None),
             savedir=dict(required=False),
-            timeout=dict(required=False, default=0)),
+            timeout=dict(required=False, default=0),
+            comment=dict(required=False, default=None)),
         supports_check_mode=False)
 
     if not HAS_PYEZ:
