@@ -163,10 +163,8 @@ def junos_install_config(module, dev):
 
     logging.info("pushing file: {0}".format(file_path))
     try:
-
-        if ( not in_check_mode ):
-            logging.info("taking lock")
-            cu.lock()
+        logging.info("taking lock")
+        cu.lock()
 
         try:
             # load the config.  the cu.load will raise
@@ -217,13 +215,8 @@ def junos_install_config(module, dev):
                 logging.info("committing change, please be patient")
                 cu.commit()
 
-        if ( in_check_mode ):
-            logging.info("rolling back")
-            cu.rollback()
-        else:
-            logging.info("unlocking")
-            cu.unlock()
-
+        logging.info("unlocking")
+        cu.unlock()
         logging.info("change completed")
 
     except LockError:
