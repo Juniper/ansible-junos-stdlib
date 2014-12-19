@@ -45,7 +45,7 @@ description:
       and returns the information as a JSON dictionary.
       The information is similar to facts gathered by other IT frameworks.
 requirements:
-    - junos-eznc >= 1.0.0
+    - junos-eznc >= 1.1.0
     - junos-netconify >= 0.1.1, when using the I(console) option
 options:
     host:
@@ -126,8 +126,11 @@ def main():
     if m_args['console'] is None:
         try:
             from jnpr.junos import Device
+            from jnpr.junos.version import VERSION
+            if not VERSION.startswith('1.1'):
+                module.fail_json(msg='junos-eznc >= 1.1.x is required for this module')
         except ImportError:
-            module.fail_json(msg='junos-eznc is required for this module')
+            module.fail_json(msg='junos-eznc >= 1.1.x is required for this module')
         # -----------
         # via NETCONF
         # -----------
@@ -140,9 +143,8 @@ def main():
             return
         else:
             dev.close()
-            del dev.facts['version_info']   # currently not JSON serializable.
             dev.facts['has_2RE'] = dev.facts['2RE']
-            del dev.facts['2RE'] # Ansible doesn't allow variables starting with numbers
+            del dev.facts['2RE']  # Ansible doesn't allow variables starting with numbers
             m_results['facts'] = dev.facts
     else:
         # -----------
