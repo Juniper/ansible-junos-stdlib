@@ -52,7 +52,7 @@ description:
       configuration. After the reboot, you must log in through the console
       as root in order to access the device.
 requirements:
-    - junos-eznc >= 1.0.0
+    - junos-eznc >= 1.1.0
     - junos-netconify >= 0.1.1, when using the I(console) option
 options:
     host:
@@ -143,8 +143,11 @@ def main():
         # via NETCONF
         try:
             from jnpr.junos import Device
+            from jnpr.junos.version import VERSION
+            if not VERSION.startswith('1.1'):
+                module.fail_json(msg='junos-eznc >= 1.1.x is required for this module')
         except ImportError:
-            module.fail_json(msg='junos-eznc is required for this module')
+            module.fail_json(msg='junos-eznc >= 1.1.x is required for this module')
 
         dev = Device(args['host'], user=args['user'], password=args['passwd'])
         try:

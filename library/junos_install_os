@@ -60,7 +60,7 @@ description:
      version matches the desired version.
 
 requirements:
-   - py-junos-eznc >= 1.0.0
+   - py-junos-eznc >= 1.1.0
 options:
    host:
         description:
@@ -124,7 +124,11 @@ import re
 import os
 try:
     from jnpr.junos import Device
-    HAS_PYEZ = True
+    from jnpr.junos.version import VERSION
+    if not VERSION.startswith('1.1'):
+        HAS_PYEZ = False
+    else:
+        HAS_PYEZ = True
 except ImportError:
     HAS_PYEZ = False
 
@@ -227,7 +231,7 @@ def main():
     )
 
     if not HAS_PYEZ:
-        module.fail_json(msg='junos-eznc is required for this module')
+        module.fail_json(msg='junos-eznc >= 1.1.x is required for this module')
 
     args = module.params
 
