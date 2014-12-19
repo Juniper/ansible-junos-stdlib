@@ -141,6 +141,8 @@ def main():
         else:
             dev.close()
             del dev.facts['version_info']   # currently not JSON serializable.
+            dev.facts['has_2RE'] = dev.facts['2RE']
+            del dev.facts['2RE'] # Ansible doesn't allow variables starting with numbers
             m_results['facts'] = dev.facts
     else:
         # -----------
