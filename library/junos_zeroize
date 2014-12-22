@@ -116,7 +116,7 @@ def main():
             console=dict(required=False, default=None),     # param to netconify
             user=dict(required=False, default=os.getenv('USER')),
             passwd=dict(required=False, default=None),
-            logfile=dict(required=False, default=None)
+            logfile=dict(required=False, default=None),
             port=dict(required=False, default=830)
         ),
         supports_check_mode=False)

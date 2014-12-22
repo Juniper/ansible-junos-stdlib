@@ -123,7 +123,7 @@ def main():
             savedir=dict(required=False, default=None),
             user=dict(required=False, default=os.getenv('USER')),
             passwd=dict(required=False, default=None),
-            port=dict(required=False, default=830))),
+            port=dict(required=False, default=830)),
         supports_check_mode=False)
 
     m_args = module.params

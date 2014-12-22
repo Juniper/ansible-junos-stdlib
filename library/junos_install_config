@@ -205,7 +205,7 @@ def junos_install_config(module, dev):
         diff = cu.diff()
         if diff is not None:
             logging.info("committing change, please be patient")
-            if args.has('comment'):
+            if args['comment'] is not None:
                 cu.commit(comment=args['comment'])
             else:
                 cu.commit()
