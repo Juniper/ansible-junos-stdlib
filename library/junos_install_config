@@ -212,9 +212,7 @@ def junos_install_config(module, dev):
         diff = cu.diff()
 
         if diff is not None:
-
-            
-            diffs_file= args['diffs_file']
+            diffs_file = args['diffs_file']
             if diffs_file is not None:
                 try:
                     f = open(diffs_file, 'w')
@@ -229,16 +227,16 @@ def junos_install_config(module, dev):
                     msg += "Unexpected error:", sys.exc_info()[0]
                     module.fail_json(msg=msg)
 
-            if ( in_check_mode ):
+            if (in_check_mode):
                 logging.info("doing a commit-check, please be patient")
                 cu.commit_check()
             else:
                 logging.info("committing change, please be patient")
-				if args['comment'] is not None:
-                	cu.commit(comment=args['comment'])
-            	else:
-                	cu.commit()
-				results['changed'] = True
+                if args['comment'] is not None:
+                    cu.commit(comment=args['comment'])
+                else:
+                    cu.commit()
+                results['changed'] = True
 
         logging.info("unlocking")
         cu.unlock()
