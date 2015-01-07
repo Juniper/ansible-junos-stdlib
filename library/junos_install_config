@@ -98,6 +98,11 @@ options:
               for debugging purposes
         required: false
         default: None
+    diffs_file:
+        description:
+            - Path to the file where any diffs will be written
+        required: false
+        default: None
     console:
         description:
             - Port configuration, per the B(netconify) utility
@@ -166,6 +171,8 @@ def junos_install_config(module, dev):
     args = module.params
     cu = Config(dev)
 
+    in_check_mode = module.check_mode
+
     results = {}
 
     file_path = module.params['file']
@@ -194,6 +201,11 @@ def junos_install_config(module, dev):
         except ValueError as err:
             logging.error("unable to load config:{0}".format(err.message))
             raise err
+        except ConfigLoadError as err:
+            logging.error("unable to load config:{0},{1},{2}".format(err.errs['severity'],
+                                                                     err.errs['bad_element'],
+                                                                     err.errs['message']))
+            raise err
         except Exception as err:
             if err.rsp.find('.//ok') is None:
                 rpc_msg = err.rsp.findtext('.//error-message')
@@ -203,13 +215,33 @@ def junos_install_config(module, dev):
             pass
 
         diff = cu.diff()
+
         if diff is not None:
-            logging.info("committing change, please be patient")
-            if args['comment'] is not None:
-                cu.commit(comment=args['comment'])
+            diffs_file = args['diffs_file']
+            if diffs_file is not None:
+                try:
+                    f = open(diffs_file, 'w')
+                    f.write(diff)
+                    f.close()
+                except IOError as (errno, strerror):
+                    msg = "Problem with diffs_file {0}: ".format(diffs_file)
+                    msg += "I/O Error: ({0}): {1}".format(errno, strerror)
+                    module.fail_json(msg=msg)
+                except:
+                    msg = "Problem with diffs_file {0}: ".format(diffs_file)
+                    msg += "Unexpected error:", sys.exc_info()[0]
+                    module.fail_json(msg=msg)
+
+            if (in_check_mode):
+                logging.info("doing a commit-check, please be patient")
+                cu.commit_check()
             else:
-                cu.commit()
-            results['changed'] = True
+                logging.info("committing change, please be patient")
+                if args['comment'] is not None:
+                    cu.commit(comment=args['comment'])
+                else:
+                    cu.commit()
+                results['changed'] = True
 
         logging.info("unlocking")
         cu.unlock()
@@ -221,9 +253,11 @@ def junos_install_config(module, dev):
         results['msg'] = msg
         logging.error(msg)
 
-    except CommitError:
+    except CommitError as err:
         results['failed'] = True
-        msg = "Unable to commit configuration"
+        msg = "Unable to commit configuration:{0},{1},{2}".format(err.errs['severity'],
+                                                                  err.errs['bad_element'],
+                                                                  err.errs['message'])
         results['msg'] = msg
         logging.error(msg)
 
@@ -327,12 +361,13 @@ def main():
             file=dict(required=True),
             overwrite=dict(required=False, choices=BOOLEANS, default=False),
             logfile=dict(required=False, default=None),
+            diffs_file=dict(required=False, default=None),
             savedir=dict(required=False),
             timeout=dict(required=False, default=0),
             comment=dict(required=False, default=None),
             port=dict(required=False, default=830)
         ),
-        supports_check_mode=False)
+        supports_check_mode=True)
 
     if not HAS_PYEZ:
         module.fail_json(msg='junos-eznc >= 1.1.x is required for this module')
