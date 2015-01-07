@@ -201,6 +201,11 @@ def junos_install_config(module, dev):
         except ValueError as err:
             logging.error("unable to load config:{0}".format(err.message))
             raise err
+        except ConfigLoadError as err:
+            logging.error("unable to load config:{0},{1},{2}".format(err.errs['severity'],
+                                                                     err.errs['bad_element'],
+                                                                     err.errs['message']))
+            raise err
         except Exception as err:
             if err.rsp.find('.//ok') is None:
                 rpc_msg = err.rsp.findtext('.//error-message')
@@ -248,9 +253,11 @@ def junos_install_config(module, dev):
         results['msg'] = msg
         logging.error(msg)
 
-    except CommitError:
+    except CommitError as err:
         results['failed'] = True
-        msg = "Unable to commit configuration"
+        msg = "Unable to commit configuration:{0},{1},{2}".format(err.errs['severity'],
+                                                                  err.errs['bad_element'],
+                                                                  err.errs['message'])
         results['msg'] = msg
         logging.error(msg)
 
