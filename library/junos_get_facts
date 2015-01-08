@@ -133,7 +133,8 @@ def main():
         try:
             from jnpr.junos import Device
             from jnpr.junos.version import VERSION
-            if not VERSION.startswith('1.1'):
+            import re
+            if not float(re.match('\d+.\d+', VERSION).group()) >= 1.1:
                 module.fail_json(msg='junos-eznc >= 1.1.x is required for this module')
         except ImportError:
             module.fail_json(msg='junos-eznc >= 1.1.x is required for this module')

@@ -130,7 +130,8 @@ import os
 try:
     from jnpr.junos import Device
     from jnpr.junos.version import VERSION
-    if not VERSION.startswith('1.1'):
+    import re
+    if not float(re.match('\d+.\d+', VERSION).group()) >= 1.1:
         HAS_PYEZ = False
     else:
         HAS_PYEZ = True
