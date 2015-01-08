@@ -1,0 +1,200 @@
+#!/usr/bin/python
+
+# Copyright (c) 1999-2014, Juniper Networks Inc.
+#               2014, Ashley Burston
+#
+# All rights reserved.
+#
+# License: Apache 2.0
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright
+#   notice, this list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright
+#   notice, this list of conditions and the following disclaimer in the
+#   documentation and/or other materials provided with the distribution.
+#
+# * Neither the name of the Juniper Networks nor the
+#   names of its contributors may be used to endorse or promote products
+#   derived from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY Juniper Networks, Inc. ''AS IS'' AND ANY
+# EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL Juniper Networks, Inc. BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+DOCUMENTATION = '''
+---
+module: junos_srx_cluster
+author: Patrik Bok, Juniper Networks
+author: Ashley Burston, Juniper Networks
+version_added: "1.0.0"
+short_description: Create an srx chassis cluster for cluster capable srx running Junos OS.
+description:
+    - Create an srx chassis cluster and reboot the device.
+      The device must be capable of forming an srx cluster and have the correct
+      cables installed.
+requirements:
+    - junos-eznc >= 1.0.0
+options:
+    host:
+        description:
+            - Set to {{ inventory_hostname }}
+        required: true
+    console:
+        description:
+            - SERIAL or TERMINAL-SERVER port setting, per use with
+              the B(netconify) utility
+        required: false
+        default: None
+        notes:
+            - ex: "--telnet=termserv101,2000"
+    user:
+        description:
+            - Login username
+        required: false
+        default: $USER
+    passwd:
+        description:
+            - Login password
+        required: false
+        default: assumes ssh-key active
+    cluster_enable:
+        description:
+            - yes/true : set device to cluster mode (specify cluster_id and node)
+            - no/false : set device to stand alone mode (disable cluster mode)
+        required: true
+        choices: ['true','false','yes','no']
+    cluster_id:
+        description:
+            - set to the cluster id , required for cluster_enable=YES
+        required: false
+        default: None
+    node:
+        description:
+            - set to the node required (0 or 1)
+        required: false
+        default: None
+   logfile:
+        description:
+         - Path on the local server where the progress status is logged
+           for debugging purposes
+        required: false
+        default: None
+'''
+
+EXAMPLES = '''
+- junos_srx_cluster:
+    host={{ inventory_hostname }}
+     or
+    console={{TERM_SRV}}:{{TERM_PORT}}
+    cluster_enable=yes
+    cluster_id=1
+    node=0
+'''
+
+try:
+    from jnpr.junos.utils.srx import SRX
+    HAS_PYEZ = True
+except ImportError:
+    HAS_PYEZ = False
+
+import os
+import logging
+
+def main():
+
+    module = AnsibleModule(
+        argument_spec=dict(
+            host=dict(required=True, default=None),       # host or ipaddr
+            user=dict(required=False, default=os.getenv('USER')),
+            passwd=dict(required=False, default=None),
+            console=dict(required=False, default=None),     # param to netconify
+            cluster_enable=dict(required=True, choices=BOOLEANS, default=None),
+            cluster_id=dict(required=False, default=None),
+            node=dict(required=False, default=None),
+	    logfile=dict(required=False, default=None)),
+        supports_check_mode=False
+    )
+
+    args = module.params
+    logfile = module.params['logfile']
+    if logfile is not None:
+        logging.basicConfig(filename=logfile, level=logging.INFO,
+            format='%(asctime)s:%(name)s:%(message)s')
+        logging.getLogger().name = 'NETCONIFY:' + module.params['host']
+
+        def log_notify(event, message):
+            logging.info("%s:%s" % (event, message))
+        use_notifier = log_notify
+    else:
+        def silent_notify(event, message):
+            pass
+        use_notifier = silent_notify
+    cluster = module.boolean(module.params['cluster_enable'])
+    if args.get('console') is None:
+        # via NETCONF
+        use_notifier('CONSOLE:','no console parametr, using NETCONF')
+	try:
+            from jnpr.junos import Device
+        except ImportError:
+            module.fail_json(msg='junos-eznc is required for this module')
+
+        dev = Device(args['host'], user=args['user'], password=args['passwd'], gather_facts=('false'))
+        try:
+            use_notifier('LOGIN', 'host={0}'.format(args['host']))
+            dev.open()
+            use_notifier('LOGIN', 'OK')
+        except Exception as err:
+            msg = 'unable to connect to {0}: {1}'.format(args['host'], str(err))
+            module.fail_json(msg=msg)
+            # --- UNREACHABLE ---
+
+        use_notifier('SRX cluster', 'invoking command')
+        if cluster == True:
+	   do_it = dev.rpc.set_chassis_cluster_enable(cluster_id=args['cluster_id'], node=args['node'], reboot=True)
+	   use_notifier('Device message-enable:',' %s' % do_it.findtext('.//message').strip())
+	else:
+           do_it = dev.rpc.set_chassis_cluster_disable(reboot=True)
+	   use_notifier('Device message:',' %s' % do_it.findtext('.//message').strip())
+        results = {'changed': True, 'reboot': True}
+    else:
+	### connection using NETCONIFY
+        try:
+            from netconify.cmdo import netconifyCmdo
+        except ImportError:
+            module.fail_json(msg='junos-netconify is required for this module')
+        nc_args = []
+        nc_args.append(args['console'])
+        if cluster is True:
+	   if args['cluster_id'] is not None:
+              nc_args.append('--srx_cluster=' + args['cluster_id'] + ':' + args['node'])
+	   else:
+	      use_notifier('FAIL:','No cluster ID specified with enable_cluster=YES')
+	else:
+            nc_args.append('--srx_cluster_disable')
+        if args['user'] is not None:
+            nc_args.append('--user=' + args['user'])
+        if args['passwd'] is not None:
+            nc_args.append('--passwd=' + args['passwd'])
+	use_notifier('Status',' passing argument to netconify: {}'.format(nc_args))
+        nc = netconifyCmdo(notify=use_notifier)
+        nc.run(nc_args)
+        results = {'changed': True, 'reboot': True}
+    if cluster == True:
+    	use_notifier('Cluster set...device rebooting', 'DONE')
+    else:
+    	use_notifier('Cluster disabled...device rebooting', 'DONE')
+    module.exit_json(**results)
+
+from ansible.module_utils.basic import *
+main()
