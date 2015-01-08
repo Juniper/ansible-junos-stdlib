@@ -124,7 +124,7 @@ def main():
             user=dict(required=False, default=os.getenv('USER')),
             passwd=dict(required=False, default=None),
             port=dict(required=False, default=830)),
-        supports_check_mode=False)
+        supports_check_mode=True)
 
     m_args = module.params
     m_results = dict(changed=False)
