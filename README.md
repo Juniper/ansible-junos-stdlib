@@ -8,6 +8,7 @@ Juniper Networks provides support for using Ansible to deploy devices running th
 - junos_install_config — Modify the configuration of a device running Junos OS.
 - junos_install_os — Install a Junos OS software package.
 - junos_shutdown — Shut down or reboot a device running Junos OS.
+- junos_srx_cluster — Enable/Disable cluster mode for SRX devices
 - junos_zeroize — Remove all configuration information on the Routing Engines and reset all key values on a device.
 
 ## DOCUMENTATION
