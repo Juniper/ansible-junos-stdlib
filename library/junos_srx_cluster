@@ -162,7 +162,7 @@ def main():
         use_notifier('SRX cluster', 'invoking command')
         if cluster == True:
 	   do_it = dev.rpc.set_chassis_cluster_enable(cluster_id=args['cluster_id'], node=args['node'], reboot=True)
-	   use_notifier('Device message-enable:',' %s' % do_it.findtext('.//message').strip())
+	   use_notifier('Device message:',' %s' % do_it.findtext('.//message').strip())
 	else:
            do_it = dev.rpc.set_chassis_cluster_disable(reboot=True)
 	   use_notifier('Device message:',' %s' % do_it.findtext('.//message').strip())
