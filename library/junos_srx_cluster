@@ -146,9 +146,13 @@ def main():
         use_notifier('CONSOLE:','no console parametr, using NETCONF')
 	try:
             from jnpr.junos import Device
+            from jnpr.junos.version import VERSION
+            import re
+            if not float(re.match('\d+.\d+', VERSION).group()) >= 1.1:
+               module.fail_json(msg='junos-eznc >= 1.1.x is required for this module')
         except ImportError:
-            module.fail_json(msg='junos-eznc is required for this module')
-
+            module.fail_json(msg='junos-eznc >= 1.1.x is required for this module')
+            
         dev = Device(args['host'], user=args['user'], password=args['passwd'], gather_facts=('false'))
         try:
             use_notifier('LOGIN', 'host={0}'.format(args['host']))
