@@ -52,7 +52,7 @@ description:
       Configurations performed through the console must only use ASCII text formatting.
 requirements:
     - junos-eznc >= 1.1.0
-    - junos-netconify >= 0.1.1, when using the I(console) option
+    - junos-netconify >= 1.0.0, when using the I(console) option
 options:
     host:
         description:
@@ -152,14 +152,14 @@ EXAMPLES = '''
 
 import logging
 from os.path import isfile
-
 import os
+import re
+
 try:
     from jnpr.junos import Device
     from jnpr.junos.exception import *
     from jnpr.junos.utils.config import Config
     from jnpr.junos.version import VERSION
-    import re
     if not float(re.match('\d+.\d+', VERSION).group()) >= 1.1:
         HAS_PYEZ = False
     else:
@@ -301,8 +301,11 @@ def _load_via_netconf(module):
 def _load_via_console(module):
     try:
         from netconify.cmdo import netconifyCmdo
+        from netconify.constants import version
+        if not float(re.match('\d+.\d+', version).group()) >= 1.0:
+            module.fail_json(msg='junos-netconify >= 1.0.x is required for this module')
     except ImportError:
-        module.fail_json(msg='junos-netconify is required for this module')
+        module.fail_json(msg='junos-netconify >= 1.0.x is required for this module')
 
     m_args = module.params
 
@@ -331,16 +334,19 @@ def _load_via_console(module):
                             format='%(asctime)s:%(name)s:%(message)s')
         logging.getLogger().name = 'NETCONIFY:' + m_args['host']
 
-        def log_notify(event, message):
+        def log_notify(self, event, message):
             logging.info("%s:%s" % (event, message))
         use_notifier = log_notify
     else:
-        def silent_notify(event, message):
+        def silent_notify(self, event, message):
             pass
         use_notifier = silent_notify
 
-    nc = netconifyCmdo(notify=use_notifier)
-    c_results = nc.run(c_args)
+    try:
+        nc = netconifyCmdo(notify=use_notifier)
+        c_results = nc.run(c_args)
+    except Exception as err:
+        module.fail_json(msg=str(err))
     m_results = dict(changed=c_results['changed'])
     if c_results['failed'] is True:
         module.fail_json(msg=c_results['errmsg'])

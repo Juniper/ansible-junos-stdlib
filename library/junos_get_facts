@@ -46,7 +46,7 @@ description:
       The information is similar to facts gathered by other IT frameworks.
 requirements:
     - junos-eznc >= 1.1.0
-    - junos-netconify >= 0.1.1, when using the I(console) option
+    - junos-netconify >= 1.0.0, when using the I(console) option
 options:
     host:
         description:
@@ -115,6 +115,7 @@ import os
 
 
 def main():
+    import re
     module = AnsibleModule(
         argument_spec=dict(
             host=dict(required=True),
@@ -133,7 +134,6 @@ def main():
         try:
             from jnpr.junos import Device
             from jnpr.junos.version import VERSION
-            import re
             if not float(re.match('\d+.\d+', VERSION).group()) >= 1.1:
                 module.fail_json(msg='junos-eznc >= 1.1.x is required for this module')
         except ImportError:
@@ -159,8 +159,11 @@ def main():
         # -----------
         try:
             from netconify.cmdo import netconifyCmdo
+            from netconify.constants import version
+            if not float(re.match('\d+.\d+', version).group()) >= 1.0:
+                module.fail_json(msg='junos-netconify >= 1.0.x is required for this module')
         except ImportError:
-            module.fail_json(msg='junos-netconify is required for this module')
+            module.fail_json(msg='junos-netconify >= 1.0.x is required for this module')
         import logging
 
         c_args = []
@@ -180,16 +183,19 @@ def main():
                                 format='%(asctime)s:%(name)s:%(message)s')
             logging.getLogger().name = 'NETCONIFY:' + module.params['host']
 
-            def log_notify(event, message):
+            def log_notify(self, event, message):
                 logging.info("%s:%s" % (event, message))
             use_notifier = log_notify
         else:
-            def silent_notify(event, message):
+            def silent_notify(self, event, message):
                 pass
             use_notifier = silent_notify
 
-        nc = netconifyCmdo(notify=use_notifier)
-        c_results = nc.run(c_args)
+        try:
+            nc = netconifyCmdo(notify=use_notifier)
+            c_results = nc.run(c_args)
+        except Exception as err:
+            module.fail_json(msg=str(err))
         m_results['args'] = m_args        # for debug
         m_results['facts'] = c_results['facts']
 
