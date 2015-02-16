@@ -126,6 +126,12 @@ options:
             - TCP port number to use when connecting to the device
         required: false
         default: 830
+    confirm:
+        description:
+            - Using commit confirmed, number of minutes until automatic
+              rollback
+        required: false
+        default: None
 '''
 
 EXAMPLES = '''
@@ -238,8 +244,11 @@ def junos_install_config(module, dev):
                 cu.commit_check()
             else:
                 logging.info("committing change, please be patient")
-                if args['comment'] is not None:
-                    cu.commit(comment=args['comment'])
+                if args['confirm'] is not None:
+                    if args['comment'] is not None:
+                        cu.commit(confirm=args['confirm'], comment=args['comment'])
+                    else:
+                        cu.commit(comment=args['comment'])
                 else:
                     cu.commit()
                 results['changed'] = True
@@ -372,7 +381,8 @@ def main():
             savedir=dict(required=False),
             timeout=dict(required=False, default=0),
             comment=dict(required=False, default=None),
-            port=dict(required=False, default=830)
+            port=dict(required=False, default=830),
+            confirm=dict(required=False, default=None)
         ),
         supports_check_mode=True)
 
