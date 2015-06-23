@@ -90,7 +90,7 @@ Thes modules require the following to be installed on the Ansible server:
 
 * Python 2.6 or 2.7
 * [Ansible](http://www.ansible.com) 1.5 or later
-* Junos [py-junos-eznc](https://github.com/Juniper/py-junos-eznc) 1.1.0 or later
+* Junos [py-junos-eznc](https://github.com/Juniper/py-junos-eznc) 1.2.1 or later
 * Junos [netconify](https://github.com/jeremyschulman/py-junos-netconify) 1.0.0 or later (if using console)
 
 ## LICENSE
