@@ -121,6 +121,11 @@ options:
             - Provide a comment to the commit of the configuration
         required: false
         default: None
+    confirm:
+        description:
+            - Provide a confirm to the commit of the configuration
+        required: false
+        default: None
     port:
         description:
             - TCP port number to use when connecting to the device
@@ -239,9 +244,15 @@ def junos_install_config(module, dev):
             else:
                 logging.info("committing change, please be patient")
                 if args['comment'] is not None:
-                    cu.commit(comment=args['comment'])
+                    if args['confirm'] is not None:
+                        cu.commit(confirm=args['confirm'], comment=args['comment'])
+                    else:
+                        cu.commit(comment=args['comment'])
                 else:
-                    cu.commit()
+                    if args['confirm'] is not None:
+                        cu.commit(confirm=args['confirm'])
+                    else:
+                        cu.commit()
                 results['changed'] = True
 
         logging.info("unlocking")
@@ -372,6 +383,7 @@ def main():
             savedir=dict(required=False),
             timeout=dict(required=False, default=0),
             comment=dict(required=False, default=None),
+            confirm=dict(required=False, default=None),
             port=dict(required=False, default=830)
         ),
         supports_check_mode=True)
