@@ -23,27 +23,28 @@
 
 import os
 import re
+import sys
 import datetime
 import cgi
 from jinja2 import Environment, FileSystemLoader
 
 import ansible.utils
-import ansible.utils.module_docs as module_docs
-
+from ansible.utils import module_docs
 
 #####################################################################################
 # constants and paths
 
 _ITALIC = re.compile(r"I\(([^)]+)\)")
-_BOLD   = re.compile(r"B\(([^)]+)\)")
+_BOLD = re.compile(r"B\(([^)]+)\)")
 _MODULE = re.compile(r"M\(([^)]+)\)")
-_URL    = re.compile(r"U\(([^)]+)\)")
-_CONST  = re.compile(r"C\(([^)]+)\)")
+_URL = re.compile(r"U\(([^)]+)\)")
+_CONST = re.compile(r"C\(([^)]+)\)")
 
 MODULEDIR = "../library/"
 OUTPUTDIR = "."
 
 #####################################################################################
+
 
 def rst_ify(text):
     ''' convert symbols like I(this is in italics) to valid restructured text '''
@@ -57,6 +58,7 @@ def rst_ify(text):
     return t
 
 #####################################################################################
+
 
 def html_ify(text):
     ''' convert symbols like I(this is in italics) to valid HTML '''
@@ -80,6 +82,7 @@ def rst_fmt(text, fmt):
 
 #####################################################################################
 
+
 def rst_xline(width, char="="):
     ''' return a restructured text line of a given length '''
 
@@ -87,7 +90,8 @@ def rst_xline(width, char="="):
 
 #####################################################################################
 
-def write_data(text, outputname, module, output_dir = None):
+
+def write_data(text, outputname, module, output_dir=None):
     ''' dumps module output to a file or the screen, as requested '''
 
     if output_dir is not None:
@@ -99,13 +103,14 @@ def write_data(text, outputname, module, output_dir = None):
 
 #####################################################################################
 
+
 def jinja2_environment(template_dir, typ):
 
     env = Environment(loader=FileSystemLoader(template_dir),
-        variable_start_string="@{",
-        variable_end_string="}@",
-        trim_blocks=True,
-    )
+                      variable_start_string="@{",
+                      variable_end_string="}@",
+                      trim_blocks=True,
+                      )
     env.globals['xline'] = rst_xline
 
     if typ == 'rst':
@@ -122,69 +127,71 @@ def jinja2_environment(template_dir, typ):
 
 #####################################################################################
 
+
 def process_module(fname, template, outputname):
 
-	doc, examples = ansible.utils.module_docs.get_docstring(MODULEDIR + fname)
+    print MODULEDIR + fname
+    doc, examples, returndocs = module_docs.get_docstring(MODULEDIR + fname)
 
-	all_keys = []
+    all_keys = []
 
-	if not 'version_added' in doc:
-		sys.stderr.write("*** ERROR: missing version_added in: %s ***\n" % module)
-		sys.exit(1)
+    if 'version_added' not in doc:
+        sys.stderr.write("*** ERROR: missing version_added in: %s ***\n".format(fname))
+        sys.exit(1)
 
-	added = 0
-	if doc['version_added'] == 'historical':
-		del doc['version_added']
-	else:
-		added = doc['version_added']
+    added = 0
+    if doc['version_added'] == 'historical':
+        del doc['version_added']
+    else:
+        added = doc['version_added']
 
-	# don't show version added information if it's too old to be called out
-	if added:
-		added_tokens = str(added).split(".")
-		added = added_tokens[0] + "." + added_tokens[1]
-		added_float = float(added)
+    # don't show version added information if it's too old to be called out
+    if added:
+        added_tokens = str(added).split(".")
+        added = added_tokens[0] + "." + added_tokens[1]
+        added_float = float(added)
 
-	for (k,v) in doc['options'].iteritems():
-		all_keys.append(k)
-	all_keys = sorted(all_keys)
-	doc['option_keys'] = all_keys
+    for (k, v) in doc['options'].iteritems():
+        all_keys.append(k)
+    all_keys = sorted(all_keys)
+    doc['option_keys'] = all_keys
 
-	doc['filename']         = fname
-	doc['docuri']           = doc['module'].replace('_', '-')
-	doc['now_date']         = datetime.date.today().strftime('%Y-%m-%d')	
-	doc['plainexamples']    = examples  #plain text
+    doc['filename'] = fname
+    doc['docuri'] = doc['module'].replace('_', '-')
+    doc['now_date'] = datetime.date.today().strftime('%Y-%m-%d')
+    doc['plainexamples'] = examples  # plain text
 
-	# here is where we build the table of contents...
+    # here is where we build the table of contents...
 
-	text = template.render(doc)
-	write_data(text, outputname, fname, OUTPUTDIR)
-	
+    text = template.render(doc)
+    write_data(text, outputname, fname, OUTPUTDIR)
+
 #####################################################################################
+
 
 def main():
 
-	env, template, outputname = jinja2_environment('.', 'rst')
-	modules = []
+    env, template, outputname = jinja2_environment('.', 'rst')
+    modules = []
 
-	for file in os.listdir(MODULEDIR):
-		if file.startswith("junos_"):
-			process_module(file, template, outputname)
-			modules.append(file)
-			
-	index_file_path = os.path.join(OUTPUTDIR, "index.rst")
-	index_file = open(index_file_path, "w")
-	index_file.write('Juniper.junos Ansible Modules\n')
-	index_file.write('=================================================\n')
-	index_file.write('\n')
-	index_file.write('Contents:\n')
-	index_file.write('\n')
-	index_file.write('.. toctree::\n')
-	index_file.write('   :maxdepth: 1\n')
-	index_file.write('\n')
-	
-	for module in modules:
-		index_file.write('   %s\n' % module)
-			
+    for module in os.listdir(MODULEDIR):
+        if module.startswith("junos_"):
+            process_module(module, template, outputname)
+            modules.append(module)
+
+    index_file_path = os.path.join(OUTPUTDIR, "index.rst")
+    index_file = open(index_file_path, "w")
+    index_file.write('Juniper.junos Ansible Modules\n')
+    index_file.write('=================================================\n')
+    index_file.write('\n')
+    index_file.write('Contents:\n')
+    index_file.write('\n')
+    index_file.write('.. toctree::\n')
+    index_file.write('   :maxdepth: 1\n')
+    index_file.write('\n')
+
+    for module in modules:
+        index_file.write('   %s\n' % module)
+
 if __name__ == '__main__':
     main()
-
