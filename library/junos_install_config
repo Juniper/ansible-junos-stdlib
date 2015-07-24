@@ -84,6 +84,13 @@ options:
         required: false
         default: no
         choices: ['true','false','yes','no']
+    replace:
+        description:
+            - Specify whether the configuration I(file) uses "replace:" statements.
+              (NETCONF only)
+        required: false
+        default: no
+        choices: ['true','false','yes','no']
     timeout:
         description:
             - Extend the NETCONF RPC timeout beyond the default value of
@@ -199,10 +206,16 @@ def junos_install_config(module, dev):
             logging.info("loading config")
             load_args = {'path': file_path}
             overwrite = module.boolean(module.params['overwrite'])
+            replace = module.boolean(module.params['replace'])
             if overwrite is True:
                 load_args['overwrite'] = True
+                load_args['merge'] = False
             elif overwrite is False:
                 load_args['merge'] = True
+                load_args['overwrite'] = False
+            if replace is True:
+                load_args['merge'] = False
+                load_args['overwrite'] = False
             cu.load(**load_args)
         except ValueError as err:
             logging.error("unable to load config:{0}".format(err.message))
@@ -375,6 +388,7 @@ def main():
             console=dict(required=False, default=None),
             file=dict(required=True),
             overwrite=dict(required=False, choices=BOOLEANS, default=False),
+            replace=dict(required=False, choices=BOOLEANS, default=False),
             logfile=dict(required=False, default=None),
             diffs_file=dict(required=False, default=None),
             savedir=dict(required=False),
