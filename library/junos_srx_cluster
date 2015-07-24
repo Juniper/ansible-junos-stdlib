@@ -36,8 +36,7 @@
 DOCUMENTATION = '''
 ---
 module: junos_srx_cluster
-author: Patrik Bok, Juniper Networks
-author: Ashley Burston, Juniper Networks
+author: Patrik Bok, Ashley Burston, Rick Sherman, Juniper Networks
 version_added: "1.2.0"
 short_description: Create an srx chassis cluster for cluster capable srx running Junos OS.
 description:
@@ -76,8 +75,8 @@ options:
         default: assumes ssh-key active
     cluster_enable:
         description:
-            - yes/true : set device to cluster mode (specify cluster_id and node)
-            - no/false : set device to stand alone mode (disable cluster mode)
+            - yes/true - set device to cluster mode (specify cluster_id and node)
+            - no/false - set device to stand alone mode (disable cluster mode)
         required: true
         choices: ['true','false','yes','no']
     cluster_id:
@@ -90,22 +89,31 @@ options:
             - set to the node required (0 or 1)
         required: false
         default: None
-   logfile:
+    logfile:
         description:
-         - Path on the local server where the progress status is logged
-           for debugging purposes
+            - Path on the local server where the progress status is logged
+              for debugging purposes
         required: false
         default: None
 '''
 
 EXAMPLES = '''
-- junos_srx_cluster:
-    host={{ inventory_hostname }}
-     or
-    console={{TERM_SRV}}:{{TERM_PORT}}
-    cluster_enable=yes
-    cluster_id=1
-    node=0
+-junos_srx_cluster:
+  host={{ inventory_hostname }}
+  console="--port={{ serial }}"
+  user=rick
+  passwd=password123
+  cluster_enable=true
+  logfile=cluster.log
+  cluster_id={{ cluster_id }}
+  node={{ node_id }}
+
+-junos_srx_cluster:
+  host={{ inventory_hostname }}
+  user=rick
+  passwd=password123
+  cluster_enable=false
+  logfile=cluster.log
 '''
 import os
 import logging
