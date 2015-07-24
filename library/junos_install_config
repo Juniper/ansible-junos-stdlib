@@ -51,8 +51,8 @@ description:
       NETCONF include ASCII text, Junos XML elements, and Junos OS B(set) commands.
       Configurations performed through the console must only use ASCII text formatting.
 requirements:
-    - junos-eznc >= 1.2.1
-    - junos-netconify >= 1.0.0, when using the I(console) option
+    - junos-eznc >= 1.2.2
+    - junos-netconify >= 1.0.1, when using the I(console) option
 options:
     host:
         description:
@@ -87,7 +87,7 @@ options:
     replace:
         description:
             - Specify whether the configuration I(file) uses "replace:" statements.
-              (NETCONF only)
+              (NETCONF only) B(NOT) compatible with B(set) format
         required: false
         default: no
         choices: ['true','false','yes','no']
@@ -160,6 +160,12 @@ EXAMPLES = '''
     host={{ inventory_hostname }}
     file=banner.conf
     comment="configured by ansible"
+
+# load replace a change to the Junos OS configuration using NETCONF
+- junos_install_config:
+    host={{ inventory_hostname }}
+    file=snmp.conf
+    replace=yes
 '''
 
 import logging
@@ -172,7 +178,7 @@ try:
     from jnpr.junos.exception import *
     from jnpr.junos.utils.config import Config
     from jnpr.junos.version import VERSION
-    if not LooseVersion(VERSION) >= LooseVersion('1.2.1'):
+    if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
         HAS_PYEZ = False
     else:
         HAS_PYEZ = True
@@ -185,6 +191,15 @@ def junos_install_config(module, dev):
     cu = Config(dev)
 
     in_check_mode = module.check_mode
+
+    overwrite = module.boolean(module.params['overwrite'])
+    replace = module.boolean(module.params['replace'])
+
+    if all([overwrite, replace]):
+        msg = "Overwrite and Replace cannot both be True!"
+        logging.error(msg)
+        results = {'failed': True, 'msg': msg}
+        return results
 
     results = {}
 
@@ -205,17 +220,12 @@ def junos_install_config(module, dev):
             # so we want to avoid that condition.
             logging.info("loading config")
             load_args = {'path': file_path}
-            overwrite = module.boolean(module.params['overwrite'])
-            replace = module.boolean(module.params['replace'])
-            if overwrite is True:
-                load_args['overwrite'] = True
-                load_args['merge'] = False
-            elif overwrite is False:
-                load_args['merge'] = True
-                load_args['overwrite'] = False
             if replace is True:
                 load_args['merge'] = False
-                load_args['overwrite'] = False
+            elif overwrite is True:
+                load_args['overwrite'] = True
+            elif overwrite is False:
+                load_args['merge'] = True
             cu.load(**load_args)
         except ValueError as err:
             logging.error("unable to load config:{0}".format(err.message))
@@ -323,10 +333,10 @@ def _load_via_console(module):
     try:
         from netconify.cmdo import netconifyCmdo
         from netconify.constants import version
-        if not LooseVersion(version) >= LooseVersion('1.0'):
-            module.fail_json(msg='junos-netconify >= 1.0.x is required for this module')
+        if not LooseVersion(version) >= LooseVersion('1.0.1'):
+            module.fail_json(msg='junos-netconify >= 1.0.1 is required for this module')
     except ImportError:
-        module.fail_json(msg='junos-netconify >= 1.0.x is required for this module')
+        module.fail_json(msg='junos-netconify >= 1.0.1 is required for this module')
 
     m_args = module.params
 
@@ -400,7 +410,7 @@ def main():
         supports_check_mode=True)
 
     if not HAS_PYEZ:
-        module.fail_json(msg='junos-eznc >= 1.2.1 is required for this module')
+        module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
 
     args = module.params
 
