@@ -45,8 +45,8 @@ description:
       and returns the information as a JSON dictionary.
       The information is similar to facts gathered by other IT frameworks.
 requirements:
-    - junos-eznc >= 1.2.1
-    - junos-netconify >= 1.0.0, when using the I(console) option
+    - junos-eznc >= 1.2.2
+    - junos-netconify >= 1.0.1, when using the I(console) option
 options:
     host:
         description:
@@ -69,10 +69,9 @@ options:
         default: None
     savedir:
         description:
-            - Path to the local server directory where device facts and
-              inventory files will be stored. This option is used only
-              with the I(console) option.
-              Refer to the B(netconify) utility for details.
+            - Path to the local server directory where device fact
+              files will be stored. Resulting file will be
+              I(savedir/hostname-facts.json)
         required: false
         default: $CWD
     logfile:
@@ -112,6 +111,7 @@ EXAMPLES = '''
 '''
 
 import os
+import json
 
 
 def main():
@@ -134,10 +134,10 @@ def main():
         try:
             from jnpr.junos import Device
             from jnpr.junos.version import VERSION
-            if not LooseVersion(VERSION) >= LooseVersion('1.2.1'):
-                module.fail_json(msg='junos-eznc >= 1.2.1 is required for this module')
+            if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
+                module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
         except ImportError:
-            module.fail_json(msg='junos-eznc >= 1.2.1 is required for this module')
+            module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
         # -----------
         # via NETCONF
         # -----------
@@ -153,6 +153,10 @@ def main():
             dev.facts['has_2RE'] = dev.facts['2RE']
             del dev.facts['2RE']  # Ansible doesn't allow variables starting with numbers
             m_results['facts'] = dev.facts
+            if m_args['savedir'] is not None:
+                fname = "{0}/{1}-facts.json".format(m_args['savedir'], dev.facts['hostname'])
+                with open(fname, 'w') as factfile:
+                    json.dump(dev.facts, factfile)
     else:
         # -----------
         # via CONSOLE
@@ -160,10 +164,10 @@ def main():
         try:
             from netconify.cmdo import netconifyCmdo
             from netconify.constants import version
-            if not LooseVersion(version) >= LooseVersion('1.0'):
-                module.fail_json(msg='junos-netconify >= 1.0.x is required for this module')
+            if not LooseVersion(version) >= LooseVersion('1.0.1'):
+                module.fail_json(msg='junos-netconify >= 1.0.1 is required for this module')
         except ImportError:
-            module.fail_json(msg='junos-netconify >= 1.0.x is required for this module')
+            module.fail_json(msg='junos-netconify >= 1.0.1 is required for this module')
         import logging
 
         c_args = []
