@@ -52,8 +52,8 @@ description:
       configuration. After the reboot, you must log in through the console
       as root in order to access the device.
 requirements:
-    - junos-eznc >= 1.2.1
-    - junos-netconify >= 1.0.0, when using the I(console) option
+    - junos-eznc >= 1.2.2
+    - junos-netconify >= 1.0.1, when using the I(console) option
 options:
     host:
         description:
@@ -152,10 +152,10 @@ def main():
         try:
             from jnpr.junos import Device
             from jnpr.junos.version import VERSION
-            if not LooseVersion(VERSION) >= LooseVersion('1.2.1'):
-                module.fail_json(msg='junos-eznc >= 1.2.1 is required for this module')
+            if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
+                module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
         except ImportError:
-            module.fail_json(msg='junos-eznc >= 1.2.1 is required for this module')
+            module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
 
         dev = Device(args['host'], user=args['user'], password=args['passwd'], port=args['port'])
         try:
@@ -175,10 +175,10 @@ def main():
         try:
             from netconify.cmdo import netconifyCmdo
             from netconify.constants import version
-            if not LooseVersion(version) >= LooseVersion('1.0'):
-                module.fail_json(msg='junos-netconify >= 1.0.x is required for this module')
+            if not LooseVersion(version) >= LooseVersion('1.0.1'):
+                module.fail_json(msg='junos-netconify >= 1.0.1 is required for this module')
         except ImportError:
-            module.fail_json(msg='junos-netconify >= 1.0.x is required for this module')
+            module.fail_json(msg='junos-netconify >= 1.0.1 is required for this module')
         nc_args = []
         nc_args.append(args['console'])
         nc_args.append('--zeroize')

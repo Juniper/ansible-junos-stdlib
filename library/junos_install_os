@@ -60,7 +60,7 @@ description:
       version matches the desired version.
 
 requirements:
-    - py-junos-eznc >= 1.2.1
+    - py-junos-eznc >= 1.2.2
 options:
     host:
         description:
@@ -131,7 +131,7 @@ from distutils.version import LooseVersion
 try:
     from jnpr.junos import Device
     from jnpr.junos.version import VERSION
-    if not LooseVersion(VERSION) >= LooseVersion('1.2.1'):
+    if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
         HAS_PYEZ = False
     else:
         HAS_PYEZ = True
@@ -238,7 +238,7 @@ def main():
     )
 
     if not HAS_PYEZ:
-        module.fail_json(msg='junos-eznc >= 1.2.1 is required for this module')
+        module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
 
     args = module.params
 

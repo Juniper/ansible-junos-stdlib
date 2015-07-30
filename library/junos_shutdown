@@ -44,7 +44,7 @@ description:
       This is equivalent to executing either the Junos OS B(request system power-off)
       or B(request system reboot) operational command.
 requirements:
-    - junos-eznc >= 1.2.1
+    - junos-eznc >= 1.2.2
 options:
     host:
         description:
@@ -90,7 +90,7 @@ try:
     from jnpr.junos import Device
     from jnpr.junos.utils.sw import SW
     from jnpr.junos.version import VERSION
-    if not LooseVersion(VERSION) >= LooseVersion('1.2.1'):
+    if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
         HAS_PYEZ = False
     else:
         HAS_PYEZ = True
@@ -112,7 +112,7 @@ def main():
         supports_check_mode=False)
 
     if not HAS_PYEZ:
-        module.fail_json(msg='junos-eznc >= 1.2.1 is required for this module')
+        module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
 
     args = module.params
     if args['shutdown'] != 'shutdown':
