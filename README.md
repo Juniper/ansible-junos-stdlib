@@ -4,9 +4,12 @@ Juniper Networks provides support for using Ansible to deploy devices running th
 
 ## OVERVIEW OF MODULES
 
+- junos_commit — Commit candidate configuration on device.
+- junos_get_config — Retrieve configuration of device.
 - junos_get_facts — Retrieve device-specific information from the host.
 - junos_install_config — Modify the configuration of a device running Junos OS.
 - junos_install_os — Install a Junos OS software package.
+- junos_rollback — Rollback configuration of device.
 - junos_shutdown — Shut down or reboot a device running Junos OS.
 - junos_srx_cluster — Enable/Disable cluster mode for SRX devices
 - junos_zeroize — Remove all configuration information on the Routing Engines and reset all key values on a device.
@@ -91,8 +94,8 @@ Thes modules require the following to be installed on the Ansible server:
 
 * Python 2.6 or 2.7
 * [Ansible](http://www.ansible.com) 1.5 or later
-* Junos [py-junos-eznc](https://github.com/Juniper/py-junos-eznc) 1.2.1 or later
-* Junos [netconify](https://github.com/jeremyschulman/py-junos-netconify) 1.0.0 or later (if using console)
+* Junos [py-junos-eznc](https://github.com/Juniper/py-junos-eznc) 1.2.2 or later
+* Junos [netconify](https://github.com/jeremyschulman/py-junos-netconify) 1.0.1 or later (if using console)
 
 ## LICENSE
 
@@ -103,5 +106,6 @@ Apache 2.0
 - Jeremy Schulman (@nwkautomaniac), Core developer
 - Rick Sherman (@shermdog01)
 - Nitin Kumar (@vnitinv)
-
+- Patrik Bok
+- Ashley Burston
 
