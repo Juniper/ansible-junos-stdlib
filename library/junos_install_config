@@ -207,7 +207,8 @@ def _load_via_netconf(module):
     logging.info("connecting to host: {0}@{1}:{2}".format(args['user'], args['host'], args['port']))
 
     try:
-        dev = Device(args['host'], user=args['user'], password=args['passwd'], port=args['port'])
+        dev = Device(args['host'], user=args['user'], password=args['passwd'],
+            port=args['port'], ssh_private_key_file=args['ssh_private_key_file'])
         dev.open(gather_facts=False)
     except Exception as err:
         msg = 'unable to connect to {0}: {1}'.format(args['host'], str(err))
@@ -399,7 +400,8 @@ def main():
             timeout=dict(required=False, default=0),
             comment=dict(required=False, default=None),
             port=dict(required=False, default=830),
-            confirm=dict(required=False, default=None)
+            confirm=dict(required=False, default=None),
+            ssh_private_key_file=dict(required=False, default=None)
         ),
         supports_check_mode=True)
 

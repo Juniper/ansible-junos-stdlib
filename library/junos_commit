@@ -107,13 +107,14 @@ def main():
 
     module = AnsibleModule(
         argument_spec=dict(host=dict(required=True, default=None),  # host or ipaddr
-                           user=dict(required=False, default=os.getenv('USER')),
-                           passwd=dict(required=False, default=None),
-                           port=dict(required=False, default=830),
-                           logfile=dict(required=False, default=None),
-                           comment=dict(required=False, default=None),
-                           confirm=dict(required=False, default=None)
-                           ),
+            user=dict(required=False, default=os.getenv('USER')),
+            passwd=dict(required=False, default=None),
+            port=dict(required=False, default=830),
+            logfile=dict(required=False, default=None),
+            comment=dict(required=False, default=None),
+            confirm=dict(required=False, default=None),
+            ssh_private_key_file=dict(required=False, default=None)
+        ),
         supports_check_mode=True)
 
     if not HAS_PYEZ:
@@ -134,7 +135,8 @@ def main():
 
     try:
         dev = Device(args['host'], user=args['user'], password=args['passwd'],
-                     port=args['port'], gather_facts=False).open()
+            port=args['port'], ssh_private_key_file=args['ssh_private_key_file'])
+        dev.open()
     except Exception as err:
         msg = 'unable to connect to {0}: {1}'.format(args['host'], str(err))
         logging.error(msg)

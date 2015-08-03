@@ -132,7 +132,9 @@ def main():
             cluster_enable=dict(required=True, choices=BOOLEANS, default=None),
             cluster_id=dict(required=False, default=None),
             node=dict(required=False, default=None),
-            logfile=dict(required=False, default=None)),
+            logfile=dict(required=False, default=None),
+            ssh_private_key_file=dict(required=False, default=None)
+        ),
         supports_check_mode=False)
 
     args = module.params
@@ -165,7 +167,9 @@ def main():
         except ImportError:
             module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
 
-        dev = Device(args['host'], user=args['user'], password=args['passwd'], port=args['port'], gather_facts=('false'))
+        dev = Device(args['host'], user=args['user'], password=args['passwd'],
+            port=args['port'], ssh_private_key_file=args['ssh_private_key_file'])
+        dev.open(gather_facts=False)
         try:
             logging.info('LOGIN: host={0} port={1}'.format(args['host'], args['port']))
             dev.open()
