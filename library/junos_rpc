@@ -98,11 +98,11 @@ import logging
 from distutils.version import LooseVersion
 import json
 import xml.etree.ElementTree as ET
-#from xml.etree.ElementTree import XML
+from xml.etree.ElementTree import XML
 
 
 def main():
-		# keep this results variable for returning our rpc response. 
+    # keep this results variable for returning our rpc response.
     rpc_result = "";
     module = AnsibleModule(
         argument_spec=dict(
@@ -118,8 +118,12 @@ def main():
 
     args = module.params
 
-    #Validate the RPc to make sure it is real XML 
-    # obviously we're not doing this yet. 
+    #Validate the XML of the RPC
+    try:
+        xml = XML(args['rpc'])
+    except Exception as err:
+        msg = 'rpc parameter does to appear to be valid XML: {0}'.format(str(error))
+        module.fail_json(msg=msg)
 
     results = {
         "ansible_facts" : {}
@@ -159,9 +163,6 @@ def main():
             msg = 'unable to connect to {0}: {1}'.format(args['host'], str(err))
             module.fail_json(msg=msg)
             # --- UNREACHABLE ---
-
-        #use_notifier(None, 'ZEROIZE', 'invoking command')
-
         try:
             rpc_result = dev.execute(rpc_cmd=args['rpc'])
         except Exception as err:
@@ -170,7 +171,8 @@ def main():
             try:
                 rpc_result = ET.tostring(rpc_result)
             except:
-                rpc_result = "No good!"
+                msg = 'Could not convert RPC response XML to string:  {0}'.format(str(err))
+                module.fail_json(msg=msg)
         results['ansible_facts']['rpc_results'] = { args['rpc'] : rpc_result }
         #results['changed'] = True
         # no close, we're done after this point.
