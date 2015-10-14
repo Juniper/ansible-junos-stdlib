@@ -96,9 +96,14 @@ EXAMPLES = '''
 import os
 import logging
 from distutils.version import LooseVersion
+import json
+import xml.etree.ElementTree as ET
+#from xml.etree.ElementTree import XML
 
 
 def main():
+		# keep this results variable for returning our rpc response. 
+    rpc_result = "";
     module = AnsibleModule(
         argument_spec=dict(
             rpc=dict(required=True, default=None),  
@@ -116,14 +121,9 @@ def main():
     #Validate the RPc to make sure it is real XML 
     # obviously we're not doing this yet. 
 
-    #if args['command'] == '':
-    #    results = dict(changed=False, failed=True)
-    #    results['msg'] = "You must set 'zeroize=zeroize' ({0})".format(args['zeroize'])
-    #    module.exit_json(**results)
-    #
-    #    # ! UNREACHABLE
-
-    results = {}
+    results = {
+        "ansible_facts" : {}
+    }
 
     logfile = module.params['logfile']
     if logfile is not None:
@@ -143,6 +143,7 @@ def main():
         # via NETCONF
         try:
             from jnpr.junos import Device
+            from jnpr.junos import Device
             from jnpr.junos.version import VERSION
             if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
                 module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
@@ -160,35 +161,46 @@ def main():
             # --- UNREACHABLE ---
 
         #use_notifier(None, 'ZEROIZE', 'invoking command')
-        rpc_result = dev.execute(rpc_cmd=args['rpc'])
-        #results['changed'] = True
-        # no close, we're done after this point.
-    elif False==True:   #this doesn't work yet. should be just else:
-        try:
-            from netconify.cmdo import netconifyCmdo
-            from netconify.constants import version
-            if not LooseVersion(version) >= LooseVersion('1.0.1'):
-                module.fail_json(msg='junos-netconify >= 1.0.1 is required for this module')
-        except ImportError:
-            module.fail_json(msg='junos-netconify >= 1.0.1 is required for this module')
-        nc_args = []
-        nc_args.append(args['console'])
-        #nc_args.append('--zeroize')
-        if args['user'] is not None:
-            nc_args.append('--user=' + args['user'])
-        if args['passwd'] is not None:
-            nc_args.append('--passwd=' + args['passwd'])
 
         try:
-            nc = netconifyCmdo(notify=use_notifier)
-            nc.run(nc_args)
+            rpc_result = dev.execute(rpc_cmd=args['rpc'])
         except Exception as err:
             module.fail_json(msg=str(err))
-        results['changed'] = True
+        if rpc_result is not None:
+            try:
+                rpc_result = ET.tostring(rpc_result)
+            except:
+                rpc_result = "No good!"
+        results['ansible_facts']['rpc_results'] = { args['rpc'] : rpc_result }
+        #results['changed'] = True
+        # no close, we're done after this point.
+    # else:
+    #     try:
+    #         from netconify.cmdo import netconifyCmdo
+    #         from netconify.constants import version
+    #         if not LooseVersion(version) >= LooseVersion('1.0.1'):
+    #             module.fail_json(msg='junos-netconify >= 1.0.1 is required for this module')
+    #     except ImportError:
+    #         module.fail_json(msg='junos-netconify >= 1.0.1 is required for this module')
+    #     nc_args = []
+    #     nc_args.append(args['console'])
+    #     #nc_args.append('--zeroize')
+    #     if args['user'] is not None:
+    #         nc_args.append('--user=' + args['user'])
+    #     if args['passwd'] is not None:
+    #         nc_args.append('--passwd=' + args['passwd'])
+    #
+    #     try:
+    #         nc = netconifyCmdo(notify=use_notifier)
+    #         nc.run(nc_args)
+    #     except Exception as err:
+    #         module.fail_json(msg=str(err))
+    #     results['changed'] = True
 
     # indicate done in the logfile and return results
     use_notifier(None, 'DONE', 'OK')
     module.exit_json(**results)
 
 from ansible.module_utils.basic import *
-main()
+if __name__ == '__main__':
+    main()
