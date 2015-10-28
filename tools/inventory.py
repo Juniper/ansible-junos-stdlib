@@ -2,9 +2,6 @@
 # inventory.py
 # returns the list of devices managed by Space as an inventory for Ansible.
 
-
-#Here's global variables so all the functions can use them.  
-
 import requests
 import json
 from xml.etree.ElementTree import XML
@@ -39,7 +36,13 @@ class Space:
   def __init__(self, config_filename='junos_space.json'):
     self.config_filename = config_filename
     self.loadConfig()
+    
   def loadConfig(self):
+    ''' 
+    loads the JSON-formatted config file.
+    Config file must contain data for all of the following keys:
+    ['SPACE_HOST','SPACE_USER','SPACE_PASSWORD']
+    '''
     filename  = os.path.join( os.getcwd() , self.config_filename)
     #import the config file. 
     try:
@@ -68,7 +71,15 @@ class Space:
     self.devices = None
     self.domains = None
     
-  def getDomains(self, domain_id=2):
+  def getDevices(self):
+    if self.devices is None:
+      self.updateDevices()
+    return self.devices
+  def getDomains(self):
+    if self.domains is None:
+      self.updateDomains()
+    return self.domains
+  def updateDomains(self, domain_id=2):
       url = "https://" + self.host + "/api/space/domain-management/domains/" + str(domain_id)
       data = retrieve(url, user=self.user, password=self.password);
       domains = {}
@@ -87,7 +98,7 @@ class Space:
                   child_id = i.find('id').text
                   if int(i.find('child-count').text) > 0:
                       #babies havin babies
-                      children = self.getDomains(domain_id = child_id)
+                      children = self.updateDomains(domain_id = child_id)
                       domains.update(children)
                   else:
                       new_domain = {}
@@ -97,13 +108,12 @@ class Space:
       self.domains = domains
       return domains
 
-  def getDevices(self, device_filter=None):
-      if self.domains is None:
-          domains  = self.getDomains()
+  def updateDevices(self, device_filter=None):
+      domains  = self.getDomains()
       devices = {}
       if device_filter is None:
           for d_id in domains.keys():
-              new_devices = self.getDevices( device_filter="(domain-id eq '" + d_id + "')")
+              new_devices = self.updateDevices( device_filter="(domain-id eq '" + d_id + "')")
               for (dev_id, device) in new_devices.items():
                   device['domain_id'] = d_id
               devices.update(new_devices)
@@ -143,9 +153,27 @@ class Space:
           devices[devId] = device
       self.devices = devices
       return devices;  
+      
+def export(devices):
+  ''' 
+  Creates an ansible host entry for the given device object
+  Expects the device to have  'name' attribute.
+  All the device's attributes are added as metavars.
+  '''
+  data = {    "_meta"  :  {
+      "hostvars" : {}
+    }
+  }
+  for (id, device) in devices.items():
+    data[device['name']] = [device['ip']]
+    data["_meta"]["hostvars"][device["name"]] = device
+  data = json.dumps(data)
+  print data
+  	
+
 if __name__ == "__main__":
-    # load config from space.ini
     space = Space()
     devs = space.getDevices()
-    print "There were %d devices" % len(devs.keys())
+    export(devs)
+    #print "There were %d devices" % len(devs.keys())
 
