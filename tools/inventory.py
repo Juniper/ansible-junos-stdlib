@@ -52,8 +52,6 @@ from xml.etree.ElementTree import XML
 import sys
 import os
 
-#dev-only.
-import sys
 def retrieve(url, user, password, postData=None, headers={}):
   '''Retrieve some HTTP-accessible resource.'''
   returnVal = None
