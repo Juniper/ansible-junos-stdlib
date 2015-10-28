@@ -1,7 +1,50 @@
 #!/usr/bin/env python
 # inventory.py
-# by Jason Pack
-# returns the list of devices managed by Space as an inventory for Ansible.
+# by Jason Pack for Juniper Networks
+# returns the list of devices managed by Junos Space as an inventory for Ansible.
+
+# To use this script, make sure that you place a file  containing Space credentials
+# into the same directory as this script, and name it junos_space.json
+# Look at junos_space_example.json for an example. 
+
+
+#================================#
+#====== Lawyer stuffs below.=====#
+#================================#
+# Copyright (c) 1999-2015, Juniper Networks Inc.
+#               2015, Jason Pack
+#
+# All rights reserved.
+#
+# License: Apache 2.0
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright
+#   notice, this list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright
+#   notice, this list of conditions and the following disclaimer in the
+#   documentation and/or other materials provided with the distribution.
+#
+# * Neither the name of the Juniper Networks nor the
+#   names of its contributors may be used to endorse or promote products
+#   derived from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY Juniper Networks, Inc. ''AS IS'' AND ANY
+# EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL Juniper Networks, Inc. BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#================================#
+#====== Lawyer stuffs above.=====#
+#================================#
 
 import requests
 import json
@@ -11,8 +54,6 @@ import os
 
 #dev-only.
 import sys
-from pprint import pprint as pp
-requests.packages.urllib3.disable_warnings() #disable insecure request warnings from urllib3.
 def retrieve(url, user, password, postData=None, headers={}):
   '''Retrieve some HTTP-accessible resource.'''
   returnVal = None
@@ -175,11 +216,12 @@ def export(devices):
     data[device['name']] = [device['ip']]
     data["_meta"]["hostvars"][device["name"]] = device
   data = json.dumps(data)
-  print data
+  return data
   	
 
 if __name__ == "__main__":
-    space = Space()
-    devs = space.getDevices()
-    export(devs)
-
+	space = Space()
+	devs = space.getDevices()
+	data = export(devs)
+	sys.stdout.write(data)
+	sys.stdout.flush()
