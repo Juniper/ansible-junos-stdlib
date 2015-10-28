@@ -85,7 +85,7 @@ class Space:
     Config file must contain data for all of the following keys:
     ['SPACE_HOST','SPACE_USER','SPACE_PASSWORD']
     '''
-    filename  = os.path.join( os.getcwd() , self.config_filename)
+    filename  = os.path.join( os.path.dirname(os.path.abspath(__file__)) , self.config_filename)
     #import the config file. 
     try:
       fh = open(filename);
