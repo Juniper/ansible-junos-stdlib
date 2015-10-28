@@ -46,6 +46,7 @@
 #====== Lawyer stuffs above.=====#
 #================================#
 
+import optparse
 import requests
 import json
 from xml.etree.ElementTree import XML
@@ -213,10 +214,27 @@ def export(devices):
   for (id, device) in devices.items():
     data[device['name']] = [device['ip']]
     data["_meta"]["hostvars"][device["name"]] = device
-  data = json.dumps(data)
-  return data
-  	
-
+  jsonData = json.dumps(data)
+  host = oneHost()
+  if host:
+    if host in data["_meta"]["hostvars"].keys():
+      meta = data["_meta"]["hostvars"][host]
+      return json.dumps(meta)
+    else:
+      return ''
+  else: 
+    return jsonData
+  
+  
+def oneHost():
+  parser = optparse.OptionParser()
+  parser.add_option( '--host', dest="opt_host", action="store",)
+  parser.add_option( '--list', dest="opt_list", action="store_true",)
+  options, remainder = parser.parse_args()
+  if options.opt_host:
+    return options.opt_host
+  else:
+    return False
 if __name__ == "__main__":
 	space = Space()
 	devs = space.getDevices()
