@@ -143,6 +143,7 @@ def main():
         module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
 
     args = module.params
+    results = {}
 
     logfile = args['logfile']
     if logfile is not None:
@@ -182,11 +183,25 @@ def main():
 
         config = dev.rpc.get_config(options=options, filter_xml=filter_xml)
 
-        with open(args['dest'], 'w') as confile:
-            if args['format'] == 'text':
-                confile.write(config.text.encode('ascii', 'replace'))
-            elif args['format'] == 'xml':
-                confile.write(etree.tostring(config))
+        ## Compare existing file (if exists) with new output
+        if args['format'] == 'text':
+            newconf = config.text.encode('ascii', 'replace')
+        elif args['format'] == 'xml':
+            newconf = etree.tostring(config)
+
+        oldconf = ''
+        if os.path.isfile(args['dest']):
+            with open(args['dest'], 'r') as confile:
+                oldconf = confile.read()
+
+        ## Correctly report 'changed' attribute
+        if oldconf != newconf:
+            results['changed'] = True
+
+        ## if check_mode, then don't actually change the dest file!
+        if not module.check_mode:
+            with open(args['dest'], 'w') as confile:
+                confile.write(newconf)
 
     except (ValueError, RpcError) as err:
         msg = 'Unable to get config: {0}'.format(str(err))
@@ -202,7 +217,7 @@ def main():
 
     dev.close()
 
-    module.exit_json()
+    module.exit_json(**results)
 
 from ansible.module_utils.basic import *
 main()
