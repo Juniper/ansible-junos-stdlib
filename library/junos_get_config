@@ -132,7 +132,7 @@ def main():
                            passwd=dict(required=False, default=None),
                            port=dict(required=False, default=830),
                            logfile=dict(required=False, default=None),
-                           dest=dict(required=False, default=None),
+                           dest=dict(required=True, default=None),
                            format=dict(required=False, choices=['text', 'xml'], default='text'),
                            options=dict(required=False, default=None),
                            filter=dict(required=False, default=None)
