@@ -107,7 +107,8 @@ def main():
             user=dict(required=False, default=os.getenv('USER')),
             passwd=dict(required=False, default=None),
             reboot=dict(required=False, choices=BOOLEANS, default=False),
-            port=dict(required=False, default=830)
+            port=dict(required=False, default=830),
+            ssh_private_key_file=dict(required=False, default=None)
         ),
         supports_check_mode=False)
 
@@ -121,7 +122,9 @@ def main():
     restart_mode = module.boolean(args['reboot'])
 
     try:
-        dev = Device(args['host'], user=args['user'], password=args['passwd'], port=args['port']).open()
+        dev = Device(args['host'], user=args['user'], password=args['passwd'],
+            port=args['port'], ssh_private_key_file=args['ssh_private_key_file'])
+        dev.open()
     except Exception as err:
         msg = 'unable to connect to {0}: {1}'.format(args['host'], str(err))
         module.fail_json(msg=msg)

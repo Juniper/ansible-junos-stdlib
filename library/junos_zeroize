@@ -118,7 +118,8 @@ def main():
             user=dict(required=False, default=os.getenv('USER')),
             passwd=dict(required=False, default=None),
             logfile=dict(required=False, default=None),
-            port=dict(required=False, default=830)
+            port=dict(required=False, default=830),
+            ssh_private_key_file=dict(required=False, default=None)
         ),
         supports_check_mode=False)
 
@@ -157,7 +158,8 @@ def main():
         except ImportError:
             module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
 
-        dev = Device(args['host'], user=args['user'], password=args['passwd'], port=args['port'])
+        dev = Device(args['host'], user=args['user'], password=args['passwd'],
+            port=args['port'], ssh_private_key_file=args['ssh_private_key_file'])
         try:
             use_notifier(None, 'LOGIN', 'host={0}'.format(args['host']))
             dev.open()
