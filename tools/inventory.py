@@ -1,11 +1,11 @@
 #!/usr/bin/env python
 # inventory.py
-# by Jason Pack for Juniper Networks
+# by Jason Pack for Juniper Networks 2015-2016
 # returns the list of devices managed by Junos Space as an inventory for Ansible.
 
 # To use this script, make sure that you place a file  containing Space credentials
 # into the same directory as this script, and name it junos_space.json
-# Look at junos_space_example.json for an example. 
+# Look at junos_space_example.json for an example.
 
 
 #================================#
@@ -49,195 +49,153 @@
 import optparse
 import requests
 import json
-from xml.etree.ElementTree import XML
+#from xml.etree.ElementTree import XML
 import sys
 import os
 
-def retrieve(url, user, password, postData=None, headers={}):
-  '''Retrieve some HTTP-accessible resource.'''
-  returnVal = None
-  if "https://" not in url:
-    url =  "https://" + url
-  r = None
-  sys.stderr.write("Requesting %s..\n" % url);
-  if postData is None:
-    r = requests.get(url, verify=False, auth=(user, password), headers=headers)
-  else:
-    r = requests.post(url, verify=False, auth=(user, password), headers=headers, data=postData)
-  if r.status_code!=200 and r.status_code!=204:
-    raise Exception("Got status code %d while retrieving %s!\n" % (r.status_code, url))
-  return r.content
-
-def xmlize(content):
-  '''Attempt to convert something to XML. otherwise return none.'''
-  try:
-    return XML(content)
-  except:
-    return None
-
 class Space:
-  def __init__(self, config_filename='junos_space.json'):
-    self.config_filename = config_filename
-    self.loadConfig()
-    
-  def loadConfig(self):
-    ''' 
-    loads the JSON-formatted config file.
-    Config file must contain data for all of the following keys:
-    ['SPACE_HOST','SPACE_USER','SPACE_PASSWORD']
-    '''
-    filename  = os.path.join( os.path.dirname(os.path.abspath(__file__)) , self.config_filename)
-    #import the config file. 
-    try:
-      fh = open(filename);
-      text = fh.read()
-      fh.close()
-    except:
-      sys.stderr.write("Problem opening config file %s.\n" % filename) 
-      sys.stderr.flush()
-      exit(-1)
-    try:
-      config = json.loads(text)
-    except:
-      sys.stderr.write("Config file %s is not valid JSON.\n" % filename) 
-      sys.stderr.flush()
-      exit(-1)
+  def __init__(self, host, user, passwd):
+   
+   self.host = host;
+   self.user = user
+   self.passwd = passwd
+   self._devices = []
 
-    #validate config
-    necessary = [ 'SPACE_HOST','SPACE_USER','SPACE_PASSWORD']
-    for i in necessary:
-      if i not in config.keys():
-        raise Exception("Config file %s is missing config value %s.\n" % (filename, i)) 
-    self.host = config['SPACE_HOST']
-    self.user = config['SPACE_USER']    
-    self.password = config['SPACE_PASSWORD']
-    self.devices = None
-    self.domains = None
-    
+  def _request(self, url, method='get', headers={}, postData=None,retries=0):
+   '''
+   Executes an arbitrary request against this Space instance. 
+   '''
+   if self.host not in url:
+       if url[0] is not '/':
+         url = "/%s" % url
+       url =  "https://%s%s" % (self.host, url)
+   if method=='get':
+     retrieve = requests.get
+   elif method=='post':
+     retrieve = requests.post
+   elif method=='put':
+     retrieve = requests.put
+   elif method=='delete':
+     retrieve = requests.delete
+   else:
+     raise Exception("Invalid HTTP method %s requested in call to Space.request" % method);
+   print "Requesting %s" % url
+   r = retrieve(url, verify=False, auth=(self.user, self.passwd), headers=headers, data=postData)
+   if r.status_code==204:
+     # "No Content"
+     return None
+     #sys.stderr.write("Got status code 204 while retrieving %s!:\n%s" % (url, r.content))
+   if r.status_code!=200:
+     sys.stderr.write("Got status code %d while retrieving %s!:\n%s" % (r.status_code, url, r.content))
+     sys.stderr.flush()
+   try:
+     return r.content
+   except:
+     sys.stderr.write("Couldn't get content from response for %s:\n%s" % (url, r.content))
+     sys.stderr.flush()
+     if retries==0:
+       return None
+     return self._request(url, method, headers, postData, retries-1)
+
   def getDevices(self):
-    '''Return the devices managed by this Space instance.'''
-    if self.devices is None:
-      self.updateDevices()
-    return self.devices
-    
-  def getDomains(self):
-    '''Return the domains managed by this Space instance.'''
-    if self.domains is None:
-      self.updateDomains()
-    return self.domains
-  def updateDomains(self, domain_id=2):
-    '''Get info about all domains managed by the Space instance.'''
-    url = "https://" + self.host + "/api/space/domain-management/domains/" + str(domain_id)
-    data = retrieve(url, user=self.user, password=self.password);
-    domains = {}
-    xml = xmlize(data)
-    if xml is None:
-      return domains
-    name = xml.find('name').text
-    id = xml.find('id').text
-    new_domain = {}
-    new_domain['id'] = id
-    new_domain['name'] = name
-    domains[id] = new_domain
-    if xml.find('child-count') is not None:
-      if int(xml.find('child-count').text) > 0:
-        for i in xml.findall('children/domain'):
-          child_id = i.find('id').text
-          if int(i.find('child-count').text) > 0:
-            #babies havin babies
-            children = self.updateDomains(domain_id = child_id)
-            domains.update(children)
-        else:
-            new_domain = {}
-            new_domain['id'] = child_id
-            new_domain['name'] = i.find('name').text
-            domains[child_id]  = new_domain
-    self.domains = domains
-    return domains
-
-  def updateDevices(self, device_filter=None):
-    '''Get info about all devices managed by the Space instance.'''
-    domains  = self.getDomains()
-    devices = {}
-    if device_filter is None:
-        for d_id in domains.keys():
-            new_devices = self.updateDevices( device_filter="(domain-id eq '" + d_id + "')")
-            for (dev_id, device) in new_devices.items():
-                device['domain_id'] = d_id
-            devices.update(new_devices)
-        return devices;
-    url = "https://" + self.host + "/api/space/device-management/devices?filter=" + device_filter + "&"
+    '''
+    Retrieves the list of devices from Space. 
+    '''
+    if len(self._devices) > 0:
+      return self._devices;
+    url = "https://" + self.host + "/api/space/device-management/devices?"
+    headers = {'Accept' : "application/vnd.net.juniper.space.device-management.devices+json;version=1"}
+    devices = []
     pageOffset = 0;
     pageMax = 1000;
-    xmlDevs = [];
-    numDevices = 9999
-    while pageOffset < numDevices:
-      #print "%d is less than %d" % (pageOffset, numDevices)
-      theseDevs = retrieve(url + "paging=(start eq "+str(pageOffset)+", limit eq "+str(pageMax)+ ")",user=self.user, password=self.password);
-      theseDevs = xmlize(theseDevs)
-      if theseDevs is None:
-          break
-      xmlDevs = xmlDevs + theseDevs.getchildren()
-      pageOffset = pageOffset + pageMax
-    for xml in xmlDevs:
-      platform = xml.find('platform')
-      if (platform is None):
-        sys.stderr.write("%s: Unable to determine platform.  It will not be included in inventory.\n" % xml.find('name').text)
-        continue;
-      version = xml.find('OSVersion')
-      if version is None:
-        sys.stderr.write("%s: Unable to determine Junos version.  It will not be included in inventory.\n" % xml.find('name').text)
-        continue;
-      ip = xml.find('ipAddr')
-      if ip is None:
-        sys.stderr.write("%s: Unable to determine IP address. It will not be included in inventory.\n" % xml.find('name').text)
-        continue;
-      devId = xml.get('key')
-      device = {'name'  :  xml.find('name').text,
-                'id'    :  devId,
-                'platform':  platform.text,
-                'version'  :  version.text,
-                'ip'      :  ip.text}
-      devices[devId] = device
-    self.devices = devices
-    return devices;  
-def export(devices):
-  ''' 
-  Creates ansible host entries for the given device objects
-  Expects the devices to have the 'name' attribute.
-  All the device's attributes are added as metavars.
-  '''
-  data = {    "_meta"  :  {
-      "hostvars" : {}
+    theseDevs = 1;
+    while theseDevs is not None:
+     pagingUrl = url +  "paging=(start eq "+str(pageOffset)+", limit eq "+str(pageMax)+ ")"
+     theseDevs = self._request(pagingUrl, 'get', headers)
+     try:
+       theseDevs = json.loads(theseDevs)
+       theseDevs = theseDevs['devices']['device']
+       devices = devices + theseDevs;
+       pageOffset = pageOffset + pageMax;
+     except:
+       theseDevs = None
+    for dev in devices:
+     # clean hostnames because Space likes to include re[0|1]-
+     for prefix in ['re0-','re1-']:
+       if 'name' in dev.keys() and dev['name'][0:4] == prefix:
+         dev['name'] = dev['name'][4:]
+    self._devices = devices
+    return devices;
+  def exportJson(self):
+    '''
+    Creates ansible host entries for the given device objects
+    Expects the devices to have the 'name' attribute.
+    All the device's attributes are added as metavars.
+    '''
+    data = {    "_meta"  :  {
+        "hostvars" : {}
+      }
     }
-  }
-  for (id, device) in devices.items():
-    data[device['name']] = [device['ip']]
-    data["_meta"]["hostvars"][device["name"]] = device
-  jsonData = json.dumps(data)
-  host = oneHost()
-  if host:
-    if host in data["_meta"]["hostvars"].keys():
-      meta = data["_meta"]["hostvars"][host]
-      return json.dumps(meta)
-    else:
-      return ''
-  else: 
-    return jsonData
-  
-  
-def oneHost():
+    devices = self.getDevices()
+    for device in devices:
+      if 'name' in device.keys() and 'ipAddr' in device.keys():
+        data[device['name']] = [device['ipAddr']]
+        data["_meta"]["hostvars"][device["name"]] = device
+
+    return data;
+
+
+def parseArgs():
+  '''
+  Parses the arguments passed on the command line.
+  '''
   parser = optparse.OptionParser()
   parser.add_option( '--host', dest="opt_host", action="store",)
   parser.add_option( '--list', dest="opt_list", action="store_true",)
+  parser.add_option( '--config', dest="config_file", action="store", default="junos_space.json")
   options, remainder = parser.parse_args()
-  if options.opt_host:
-    return options.opt_host
-  else:
-    return False
+  return options
+  
+def loadConfig(filename):
+  '''
+  loads a JSON-formatted config file.
+  Config file must contain data for all of the following keys:
+  ['SPACE_HOST','SPACE_USER','SPACE_PASSWORD']
+  '''
+  filename  = os.path.join( os.path.dirname(os.path.abspath(__file__)) ,filename)
+  
+  #import the config file.
+  try:
+    fh = open(filename);
+    text = fh.read()
+    fh.close()
+  except:
+    sys.stderr.write("Problem opening config file %s.\n" % filename)
+    sys.stderr.flush()
+    exit(-1)
+  try:
+    config = json.loads(text)
+  except:
+    sys.stderr.write("Config file %s is not valid JSON.\n" % filename)
+    sys.stderr.flush()
+    exit(-1)
+
+  #validate config
+  necessary = [ 'SPACE_HOST','SPACE_USER','SPACE_PASSWORD']
+  for i in necessary:
+    if i not in config.keys():
+      raise Exception("Config file %s is missing config value %s.\n" % (filename, i)) 
+  return config;
+  
 if __name__ == "__main__":
-	space = Space()
-	devs = space.getDevices()
-	data = export(devs)
-	sys.stdout.write(data)
-	sys.stdout.flush()
+  args = parseArgs()
+  config = loadConfig(args.config_file)
+  [host, user, password] = [ config['SPACE_HOST'], config['SPACE_USER'], config['SPACE_PASSWORD'] ]
+  space = Space(host, user, password)
+  space.getDevices()
+  data = space.exportJson()
+  if args.opt_hostj and args.opt_host in data['_meta']['hostvars'].keys():
+    data = data['meta']['hostvars'][args.opt_host]
+  data = json.dumps(data)
+  sys.stdout.write(data)
+  sys.stdout.flush()
