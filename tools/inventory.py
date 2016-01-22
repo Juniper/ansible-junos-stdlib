@@ -49,7 +49,6 @@
 import optparse
 import requests
 import json
-#from xml.etree.ElementTree import XML
 import sys
 import os
 
