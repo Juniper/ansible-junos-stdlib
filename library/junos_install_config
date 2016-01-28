@@ -266,7 +266,7 @@ def _load_via_netconf(module):
     diff = cu.diff()
 
     if diff is not None:
-        if getattr(module,'_diff',False):
+        if getattr(module,'_diff',False) is True:
             results['diff'] = dict(
                 prepared = diff
             )
