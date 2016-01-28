@@ -266,6 +266,10 @@ def _load_via_netconf(module):
     diff = cu.diff()
 
     if diff is not None:
+        if getattr(module,'_diff',False):
+            results['diff'] = dict(
+                prepared = diff
+            )
         diffs_file = args['diffs_file']
         if diffs_file is not None:
             try:

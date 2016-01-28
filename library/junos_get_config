@@ -197,6 +197,13 @@ def main():
         ## Correctly report 'changed' attribute
         if oldconf != newconf:
             results['changed'] = True
+            if getattr(module,'_diff',False) is True:
+                results['diff'] = dict(
+                    before = oldconf,
+                    after = newconf,
+                    before_header = args['dest'],
+                    after_header = args['host'],
+                )
 
         ## if check_mode, then don't actually change the dest file!
         if not module.check_mode:
