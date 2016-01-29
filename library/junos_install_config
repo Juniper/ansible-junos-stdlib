@@ -277,9 +277,9 @@ def _load_via_netconf(module):
                 msg += "I/O Error: ({0}): {1}".format(errno, strerror)
                 logging.error(msg)
                 module.fail_json(msg=msg)
-            except:
+            except Exception as err:
                 msg = "Problem with diffs_file {0}: ".format(diffs_file)
-                msg += "Unexpected error:", sys.exc_info()[0]
+                msg += "Unexpected error: {0}".format(err)
                 logging.error(msg)
                 module.fail_json(msg=msg)
 
