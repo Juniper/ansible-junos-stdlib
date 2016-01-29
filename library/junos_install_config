@@ -270,7 +270,7 @@ def _load_via_netconf(module):
         if diffs_file is not None:
             try:
                 f = open(diffs_file, 'w')
-                f.write(diff)
+                f.write(diff.encode('utf-8', 'ignore'))
                 f.close()
             except IOError as (errno, strerror):
                 msg = "Problem with diffs_file {0}: ".format(diffs_file)
