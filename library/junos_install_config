@@ -266,6 +266,7 @@ def _load_via_netconf(module):
     diff = cu.diff()
 
     if diff is not None:
+        results['changed'] = True
         if getattr(module,'_diff',False) is True:
             results['diff'] = dict(
                 prepared = diff
@@ -302,7 +303,6 @@ def _load_via_netconf(module):
                     opts['confirm'] = args['confirm']
 
                 cu.commit(**opts)
-                results['changed'] = True
 
         except CommitError as err:
             msg = "Unable to commit configuration: {0}".format(err)
