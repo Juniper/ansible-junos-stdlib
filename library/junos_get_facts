@@ -152,6 +152,9 @@ def main():
             dev.close()
             dev.facts['has_2RE'] = dev.facts['2RE']
             del dev.facts['2RE']  # Ansible doesn't allow variables starting with numbers
+            # Ansible 2 doesn't like custom objects in the return value.
+            # Convert the version_info key from a junos.version_info object to a dict
+            dev.facts['version_info'] = dict(dev.facts['version_info'])
             m_results['facts'] = dev.facts
             if m_args['savedir'] is not None:
                 fname = "{0}/{1}-facts.json".format(m_args['savedir'], dev.facts['hostname'])
