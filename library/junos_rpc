@@ -1,0 +1,194 @@
+#!/usr/bin/python
+
+# Copyright (c) 1999-2014, Juniper Networks Inc.
+#               2014, Jeremy Schulman
+#
+# All rights reserved.
+#
+# License: Apache 2.0
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright
+#   notice, this list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright
+#   notice, this list of conditions and the following disclaimer in the
+#   documentation and/or other materials provided with the distribution.
+#
+# * Neither the name of the Juniper Networks nor the
+#   names of its contributors may be used to endorse or promote products
+#   derived from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY Juniper Networks, Inc. ''AS IS'' AND ANY
+# EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL Juniper Networks, Inc. BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+DOCUMENTATION = '''
+---
+module: junos_run_rpc
+author: Nitin Kumar, Juniper Networks
+version_added: "1.6"
+short_description: run given rpc
+description:
+    - run given rpc
+requirements:
+    - junos-eznc >= 1.0.0
+    - junos-netconify >= 0.1.1, when using the I(console) option
+options:
+    host:
+        description:
+            - Set to {{ inventory_hostname }}
+        required: true
+    user:
+        description:
+            - Login username
+        required: false
+        default: $USER
+    passwd:
+        description:
+            - Login password
+        required: false
+        default: assumes ssh-key active
+    logfile:
+        description:
+            - Path on the local server where the progress status is logged
+              for debugging purposes. This option is used only with the
+              I(console) option.
+        required: false
+        default: None
+    rpc:
+        description:
+            - rpc to be executed
+    kwargs:
+        description:
+            - params need to be passed to rpc, comma seperated if more params to be passed
+    format:
+        description:
+            - default return value would be lxml object, xml if format=xml
+    dest:
+        description:
+            - Path to the local server directory where configuration will
+              be saved.
+        required: false
+        default: None
+'''
+
+EXAMPLES = '''
+# retrieve rpc response using NETCONF
+
+- junos_run_rpc: 
+  host={{ inventory_hostname }}
+  rpc=get-config
+  kwargs=interface_name='st0'
+  format=xml
+  register=junos
+
+# access the output
+
+- name: version
+  debug: msg="{{ junos.rpc_reply }}"
+
+# save rpc output into a file
+
+- junos_run_rpc: 
+  host={{ inventory_hostname }}
+  rpc=get-interface-information 
+  dest="get_interface_information.xml" 
+  format=xml
+'''
+
+import os
+import sys
+import logging
+from jnpr.junos import Device
+from lxml import etree
+
+def junos_rpc(module, dev):
+    args = module.params
+    logfile = args['logfile']
+    if logfile is not None:
+        logging.basicConfig(filename=logfile, level=logging.INFO,
+                            format='%(asctime)s:%(name)s:%(message)s')
+        logging.getLogger().name = 'CONFIG:' + args['host']
+
+    results = {}
+    kwargs = module.params['kwargs']
+    rpc = module.params['rpc']
+    results['rpc'] = rpc 
+    results['kwargs'] = kwargs 
+    results['changed'] = False
+    results['check_mode'] = module.check_mode
+    logging.info("calling RPC: {0}".format(rpc))
+    try:
+        if module.params['format']=="xml":
+            if kwargs == None:
+                results['rpc_reply'] = getattr(dev.rpc, rpc.replace('-','_'))()
+            else:
+                values = {k:v for k,v in [tuple(kwargs.split('='))]}
+                results['rpc_reply'] = getattr(dev.rpc, rpc.replace('-','_'))(**values)
+        else:
+            if kwargs == None:
+                results['rpc_reply'] = getattr(dev.rpc, rpc.replace('-','_'))()
+            else:
+                values = {k:v for k,v in [tuple(kwargs.split('='))]}
+                results['rpc_reply'] = getattr(dev.rpc, rpc.replace('-','_'))(**values)
+
+        if module.params['dest'] is not None:
+            with open(module.params['dest'], 'w') as confile:
+                if isinstance(results['rpc_reply'], etree._Element):
+                    confile.write(etree.tostring(results['rpc_reply']))
+                else:
+                    confile.write(results['rpc_reply'])
+ 
+        results['changed'] = True
+    except Exception as err:
+       print sys.exc_info()
+       results['failed'] = True
+       logging.error("unable to get rpc due to:{0}".format(err.message))
+       raise err
+    logging.info("rpc reponse recvd")
+    return results
+
+def main():
+    module = AnsibleModule(
+        argument_spec=dict(
+            host=dict(required=True),
+            logfile=dict(required=False, default=None),
+            user=dict(required=False, default=os.getenv('USER')),
+            passwd=dict(required=False, default=None),
+            rpc=dict(required=True, default=None),
+            kwargs=dict(required=False, default=None),
+            format=dict(required=False, default=None),
+            dest=dict(required=False, default=None)),
+        supports_check_mode=False)
+
+    m_args = module.params
+    # -----------
+    # via NETCONF
+    # -----------
+    dev = Device(m_args['host'], user=m_args['user'], passwd=m_args['passwd'])
+    try:
+        dev.open()
+    except Exception as err:
+        msg = 'unable to connect to {0}: {1}'.format(m_args['host'], str(err))
+        module.fail_json(msg=msg)
+        return
+
+    results = junos_rpc(module, dev)
+    dev.facts['version_info'] = dict(dev.facts['version_info'])
+    results['facts'] = dev.facts
+
+    dev.close()
+    module.exit_json(**results)
+
+from ansible.module_utils.basic import *
+main()
