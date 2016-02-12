@@ -34,7 +34,7 @@
 
 DOCUMENTATION = '''
 ---
-module: junos_run_rpc
+module: junos_rpc
 author: Nitin Kumar, Juniper Networks
 version_added: "1.6"
 short_description: run given rpc
@@ -85,7 +85,7 @@ options:
 EXAMPLES = '''
 # retrieve rpc response using NETCONF
 
-- junos_run_rpc: 
+- junos_rpc: 
   host={{ inventory_hostname }}
   rpc=get-config
   kwargs=interface_name='st0'
@@ -99,7 +99,7 @@ EXAMPLES = '''
 
 # save rpc output into a file
 
-- junos_run_rpc: 
+- junos_rpc: 
   host={{ inventory_hostname }}
   rpc=get-interface-information 
   dest="get_interface_information.xml" 
@@ -129,25 +129,32 @@ def junos_rpc(module, dev):
     results['check_mode'] = module.check_mode
     logging.info("calling RPC: {0}".format(rpc))
     try:
-        if module.params['format']=="xml":
+        if rpc in ['get-config', 'get_config']:
             if kwargs == None:
-                results['rpc_reply'] = getattr(dev.rpc, rpc.replace('-','_'))()
+                results['rpc_reply'] = getattr(dev.rpc, rpc.replace('-','_'))(options={'format':args['format']})
             else:
                 values = {k:v for k,v in [tuple(kwargs.split('='))]}
-                results['rpc_reply'] = getattr(dev.rpc, rpc.replace('-','_'))(**values)
+                values['format'] = args['format']
+                results['rpc_reply'] = getattr(dev.rpc, rpc.replace('-','_'))(options=values)
         else:
             if kwargs == None:
-                results['rpc_reply'] = getattr(dev.rpc, rpc.replace('-','_'))()
+                results['rpc_reply'] = getattr(dev.rpc, rpc.replace('-','_'))({'format':args['format']})
             else:
                 values = {k:v for k,v in [tuple(kwargs.split('='))]}
-                results['rpc_reply'] = getattr(dev.rpc, rpc.replace('-','_'))(**values)
+                results['rpc_reply'] = getattr(dev.rpc, rpc.replace('-','_'))({'format':args['format']}, **values)
 
         if module.params['dest'] is not None:
             with open(module.params['dest'], 'w') as confile:
                 if isinstance(results['rpc_reply'], etree._Element):
-                    confile.write(etree.tostring(results['rpc_reply']))
+                    if args.get('format') == 'text':
+                        confile.write((results['rpc_reply']).text)
+                    else:
+                        confile.write(etree.tostring(results['rpc_reply']))
                 else:
-                    confile.write(results['rpc_reply'])
+                    if args.get('format') == 'json':
+                        confile.write(str(results['rpc_reply']))
+                    else:
+                        confile.write(results['rpc_reply'])
  
         results['changed'] = True
     except Exception as err:
@@ -167,7 +174,7 @@ def main():
             passwd=dict(required=False, default=None),
             rpc=dict(required=True, default=None),
             kwargs=dict(required=False, default=None),
-            format=dict(required=False, default=None),
+            format=dict(required=False, default='xml'),
             dest=dict(required=False, default=None)),
         supports_check_mode=False)
 
