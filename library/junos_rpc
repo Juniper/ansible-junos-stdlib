@@ -73,7 +73,7 @@ options:
             - params need to be passed to rpc, comma seperated if more params to be passed
     format:
         description:
-            - default return value would be lxml object, xml if format=xml
+            - Which defines the output format 
     dest:
         description:
             - Path to the local server directory where configuration will
@@ -87,23 +87,16 @@ EXAMPLES = '''
 
 - junos_rpc: 
   host={{ inventory_hostname }}
-  rpc=get-config
-  kwargs=interface_name='st0'
-  format=xml
+  rpc=get-interface-information
+  kwargs="interface_name=em0"
+  format=xml/text/json
+  dest=get_interface_information.conf
   register=junos
 
-# access the output
+# print the config
 
 - name: version
   debug: msg="{{ junos.rpc_reply }}"
-
-# save rpc output into a file
-
-- junos_rpc: 
-  host={{ inventory_hostname }}
-  rpc=get-interface-information 
-  dest="get_interface_information.xml" 
-  format=xml
 '''
 
 import os
