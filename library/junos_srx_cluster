@@ -181,7 +181,8 @@ def main():
         if cluster is True:
             if (args['cluster_id'] and args['node']) is not None:
                 do_it = dev.rpc.set_chassis_cluster_enable(cluster_id=args['cluster_id'], node=args['node'], reboot=True)
-                logging.info('Device message: {0}'.format(do_it.findtext('.//message').strip()))
+                logging.info('Device message: {0}'.format(do_it.getparent().findtext('.//output').strip()))
+                results = {"changed": True, "reboot": True}
             else:
                 msg = 'FAIL: Cluster and Node ID required with enable_cluster=YES'
                 logging.error(msg)
