@@ -270,16 +270,16 @@ def _load_via_netconf(module):
         if diffs_file is not None:
             try:
                 f = open(diffs_file, 'w')
-                f.write(diff)
+                f.write(diff.encode('utf-8', 'ignore'))
                 f.close()
             except IOError as (errno, strerror):
                 msg = "Problem with diffs_file {0}: ".format(diffs_file)
                 msg += "I/O Error: ({0}): {1}".format(errno, strerror)
                 logging.error(msg)
                 module.fail_json(msg=msg)
-            except:
+            except Exception as err:
                 msg = "Problem with diffs_file {0}: ".format(diffs_file)
-                msg += "Unexpected error:", sys.exc_info()[0]
+                msg += "Unexpected error: {0}".format(err)
                 logging.error(msg)
                 module.fail_json(msg=msg)
 
