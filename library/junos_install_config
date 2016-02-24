@@ -77,6 +77,11 @@ options:
               extension, the content is treated as Junos OS B(set)
               commands.
         required: true
+    template_vars_file:
+        description:
+            - Path to the file containing a JSON string that gets
+              converted to a dict and fed to PyEZ for jinja templating
+        required: false
     overwrite:
         description:
             - Specify whether the configuration I(file) completely replaces
@@ -198,6 +203,7 @@ def _load_via_netconf(module):
     in_check_mode = module.check_mode
     overwrite = module.boolean(module.params['overwrite'])
     replace = module.boolean(module.params['replace'])
+    template_vars_file = module.params['template_vars_file']
 
     if all([overwrite, replace]):
         msg = "Overwrite and Replace cannot both be True!"
@@ -244,7 +250,22 @@ def _load_via_netconf(module):
         # an exception if there is even a warning.
         # so we want to avoid that condition.
         logging.info("loading config")
-        load_args = {'path': file_path}
+        load_args = {}
+
+        # normal config load from a 'static' file
+        if template_vars_file is not None:
+            # template config load from template,
+            # so load the template vars file
+            load_args['template_path'] = file_path
+
+            template_vars_file = os.path.abspath(template_vars_file)
+            logging.info("reading from template vars file: {0}".format(template_vars_file))
+            with open(template_vars_file) as vars_file:
+                load_args['template_vars'] = json.load(vars_file)
+
+        else:
+            load_args['path'] = file_path
+
         if replace is True:
             load_args['merge'] = False
         elif overwrite is True:
@@ -391,6 +412,7 @@ def main():
             passwd=dict(required=False, default=None),
             console=dict(required=False, default=None),
             file=dict(required=True),
+            template_vars_file=dict(required=False, default=None),
             overwrite=dict(required=False, choices=BOOLEANS, default=False),
             replace=dict(required=False, choices=BOOLEANS, default=False),
             logfile=dict(required=False, default=None),
