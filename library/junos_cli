@@ -2,7 +2,6 @@
 
 # Copyright (c) 1999-2015, Juniper Networks Inc.
 #               2014, Jeremy Schulman
-#               2015, Rick Sherman
 #
 # All rights reserved.
 #
@@ -38,9 +37,9 @@ DOCUMENTATION = '''
 module: junos_cli
 author: Damien Garros, Juniper Networks
 version_added: "1.2.0"
-short_description: Execute CLI/RPC on device and save the output locally
+short_description: Execute CLI on device and save the output locally
 description:
-    - Execute CLI/RPC on device and save the output locally on a file
+    - Execute CLI on device and save the output locally on a file
 requirements:
     - junos-eznc >= 1.2.2
 options:
