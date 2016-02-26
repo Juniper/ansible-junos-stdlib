@@ -4,9 +4,11 @@ Juniper Networks provides support for using Ansible to deploy devices running th
 
 ## OVERVIEW OF MODULES
 
+- junos_get_facts — Retrieve device-specific information from the host.
+- junos_rpc — To execute RPC on device and save output locally
+- junos_cli — To execute CLI on device and save output locally
 - junos_commit — Commit candidate configuration on device.
 - junos_get_config — Retrieve configuration of device.
-- junos_get_facts — Retrieve device-specific information from the host.
 - junos_install_config — Modify the configuration of a device running Junos OS.
 - junos_install_os — Install a Junos OS software package.
 - junos_rollback — Rollback configuration of device.
