@@ -128,6 +128,7 @@ EXAMPLES = '''
   register: junos
 
 # Example to fetch configuration in json for >=14.2
+# and use it with rpc_reply
 - name: Get Device Configuration
   hosts: all
   roles:
@@ -135,11 +136,12 @@ EXAMPLES = '''
   connection: local
   gather_facts: no
   tasks:
-    - name: Get rpc run
+    - name: Get interface information 
       junos_rpc:
         host={{ inventory_hostname }}
         rpc=get-interface-information
         kwargs={interface_name:em0,media:True}
+        format=json
         dest=get_interface_information.conf
       register: junos
 
