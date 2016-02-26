@@ -79,10 +79,12 @@ options:
               to retrieve specific config
     format:
         description:
-            - text - configuration saved as text (curly-brace) format
-            - xml - configuration saved as XML
+            - text - configuration saved as text (curly-brace) format. 
+              xml - configuration saved as XML. 
+              json - configuration saved as json, supported only for devices >=14.2
+              Also with this format, rpc_reply attribute can be used with results
         required: false
-        choices: ['text','xml']
+        choices: ['text','xml', 'json']
         default: 'xml'
     dest:
         description:
@@ -109,10 +111,6 @@ EXAMPLES = '''
   dest=get_interface_information.conf
   register=junos
 
-# print the config
-- name: version
-  debug: msg="{{ junos.rpc_reply }}"
- 
 # Example to fetch device configuration
 - name: Get Device Configuration
   junos_rpc:
@@ -128,6 +126,25 @@ EXAMPLES = '''
     filter_xml="<configuration><interfaces/></configuration>"
     dest=get_config.conf
   register: junos
+
+# Example to fetch configuration in json for >=14.2
+- name: Get Device Configuration
+  hosts: all
+  roles:
+    - Juniper.junos
+  connection: local
+  gather_facts: no
+  tasks:
+    - name: Get rpc run
+      junos_rpc:
+        host={{ inventory_hostname }}
+        rpc=get-interface-information
+        kwargs={interface_name:em0,media:True}
+        dest=get_interface_information.conf
+      register: junos
+
+    - name: Print configuration
+      debug: msg="{{ junos.rpc_reply }}"
 '''
 
 import os
@@ -170,21 +187,22 @@ def junos_rpc(module, dev):
             if filter_xml is not None:
                 filter_xml = etree.XML(filter_xml)
             values['format'] = args['format']
-            results['rpc_reply'] = getattr(dev.rpc, rpc.replace('-','_'))(filter_xml, options=values)
+            rpc_reply = getattr(dev.rpc, rpc.replace('-','_'))(filter_xml, options=values)
         else:
-            results['rpc_reply'] = getattr(dev.rpc, rpc.replace('-','_'))({'format':args['format']}, **values)
+            rpc_reply = getattr(dev.rpc, rpc.replace('-','_'))({'format':args['format']}, **values)
         if module.params['dest'] is not None:
             with open(module.params['dest'], 'w') as confile:
-                if isinstance(results['rpc_reply'], etree._Element):
+                if isinstance(rpc_reply, etree._Element):
                     if args.get('format') == 'text':
-                        confile.write((results['rpc_reply']).text)
+                        confile.write(rpc_reply.text)
                     else:
-                        confile.write(etree.tostring(results['rpc_reply']))
+                        confile.write(etree.tostring(rpc_reply))
                 else:
                     if args.get('format') == 'json':
-                        confile.write(str(results['rpc_reply']))
+                        results['rpc_reply'] = rpc_reply
+                        confile.write(str(rpc_reply))
                     else:
-                        confile.write(results['rpc_reply'])
+                        confile.write(rpc_reply)
  
         results['changed'] = True
     except Exception as err:
