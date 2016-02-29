@@ -1,7 +1,7 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 # Copyright (c) 1999-2016, Juniper Networks Inc.
-#               2016, Nitin Kumar 
+#               2016, Nitin Kumar
 #
 # All rights reserved.
 #
@@ -70,8 +70,8 @@ options:
     kwargs:
         description:
             - params need to be passed to rpc
-                kwargs="interface_name=em0" or kwargs="interface_name=em0,media=True" 
-                kwargs={interface_name:em0}  
+                kwargs="interface_name=em0" or kwargs="interface_name=em0,media=True"
+                kwargs={interface_name:em0}
                 kwargs={interface_name:em0,media:True}
     filter_xml:
         description:
@@ -79,8 +79,8 @@ options:
               to retrieve specific config
     format:
         description:
-            - text - configuration saved as text (curly-brace) format. 
-              xml - configuration saved as XML. 
+            - text - configuration saved as text (curly-brace) format.
+              xml - configuration saved as XML.
               json - configuration saved as json, supported only for devices >=14.2
               Also with this format, rpc_reply attribute can be used with results
         required: false
@@ -97,13 +97,13 @@ options:
 EXAMPLES = '''
 # retrieve rpc response using NETCONF
 
-- junos_rpc: 
+- junos_rpc:
   host={{ inventory_hostname }}
   rpc=get-interface-information
   dest=get_interface_information.conf
   register=junos
 
-- junos_rpc: 
+- junos_rpc:
   host={{ inventory_hostname }}
   rpc=get-interface-information
   kwargs="interface_name=em0"
@@ -119,7 +119,7 @@ EXAMPLES = '''
     dest=get_config.conf
 
 # Example to fetch device configuration
-- name: Get Device Configuration for interface 
+- name: Get Device Configuration for interface
   junos_rpc:
     host={{ inventory_hostname }}
     rpc=get-config
@@ -136,7 +136,7 @@ EXAMPLES = '''
   connection: local
   gather_facts: no
   tasks:
-    - name: Get interface information 
+    - name: Get interface information
       junos_rpc:
         host={{ inventory_hostname }}
         rpc=get-interface-information
@@ -167,8 +167,8 @@ def junos_rpc(module, dev):
     results = {}
     kwargs = module.params['kwargs']
     rpc = module.params['rpc']
-    results['rpc'] = rpc 
-    results['kwargs'] = kwargs 
+    results['rpc'] = rpc
+    results['kwargs'] = kwargs
     results['changed'] = False
     results['check_mode'] = module.check_mode
     logging.info("calling RPC: {0}".format(rpc))
@@ -205,7 +205,7 @@ def junos_rpc(module, dev):
                         confile.write(str(rpc_reply))
                     else:
                         confile.write(rpc_reply)
- 
+
         results['changed'] = True
     except Exception as err:
        results['failed'] = True
