@@ -57,6 +57,11 @@ options:
             - Login password
         required: false
         default: assumes ssh-key active
+    port:
+        description:
+            - TCP port number to use when connecting to the device
+        required: false
+        default: 830
     logfile:
         description:
             - Path on the local server where the progress status is logged
@@ -221,6 +226,7 @@ def main():
             logfile=dict(required=False, default=None),
             user=dict(required=False, default=os.getenv('USER')),
             passwd=dict(required=False, default=None),
+            port=dict(required=False, default=830),
             rpc=dict(required=True, default=None),
             kwargs=dict(required=False, default=None),
             filter_xml=dict(required=False, default=None),
@@ -232,7 +238,8 @@ def main():
     # -----------
     # via NETCONF
     # -----------
-    dev = Device(m_args['host'], user=m_args['user'], passwd=m_args['passwd'], gather_facts=False)
+    dev = Device(m_args['host'], user=m_args['user'], passwd=m_args['passwd'],
+                        port=m_args['port'], gather_facts=False)
     try:
         dev.open()
     except Exception as err:
