@@ -110,7 +110,6 @@ EXAMPLES = '''
 from distutils.version import LooseVersion
 import logging
 from lxml import etree
-from lxml.builder import E
 
 try:
     from jnpr.junos import Device
@@ -170,12 +169,13 @@ def main():
         if args['filter']:
             flist = args['filter'].split('/')
             if flist[0] == 'configuration':
-                filter_xml = E(flist.pop(0))
+                filter_xml = etree.Element(flist.pop(0))
             else:
-                filter_xml = E('configuration')
+                filter_xml = etree.Element('configuration')
+            current_element = filter_xml
 
             for f in flist:
-                filter_xml.append(E(f))
+                current_element = etree.SubElement(current_element,f)
 
             logging.info("Getting config with filter={0}".format(etree.tostring(filter_xml)))
 
