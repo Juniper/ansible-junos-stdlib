@@ -32,12 +32,10 @@ To download the junos role to the Ansible server, execute the ansible-galaxy ins
 
 ```
 [root@ansible-cm]# ansible-galaxy install Juniper.junos
-downloading role 'junos', owned by Juniper
-no version specified, installing 1.0.0
-- downloading role from
-https://github.com/Juniper/ansible-junos-stdlib/archive/1.0.0.tar.gz
-- extracting Juniper.junos to /etc/ansible/roles/Juniper.junos
-Juniper.junos was installed successfully
+- downloading role 'junos', owned by Juniper
+- downloading role from https://github.com/Juniper/ansible-junos-stdlib/archive/1.3.1.tar.gz
+- extracting Juniper.junos to /usr/local/etc/ansible/roles/Juniper.junos
+- Juniper.junos was installed successfully
 ```
 
 ### Git clone
