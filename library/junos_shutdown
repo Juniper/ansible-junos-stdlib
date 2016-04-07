@@ -106,7 +106,7 @@ def main():
             host=dict(required=True, default=None),       # host or ipaddr
             user=dict(required=False, default=os.getenv('USER')),
             passwd=dict(required=False, default=None),
-            reboot=dict(required=False, choices=BOOLEANS, default=False),
+            reboot=dict(required=False, type='bool', choices=BOOLEANS, default=False),
             port=dict(required=False, default=830)
         ),
         supports_check_mode=False)
