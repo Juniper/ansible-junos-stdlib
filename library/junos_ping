@@ -1,0 +1,239 @@
+#!/usr/bin/env python
+
+# Copyright (c) 1999-2016, Juniper Networks Inc.
+#               2016, Damien Garros
+#
+# All rights reserved.
+#
+# License: Apache 2.0
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright
+#   notice, this list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright
+#   notice, this list of conditions and the following disclaimer in the
+#   documentation and/or other materials provided with the distribution.
+#
+# * Neither the name of the Juniper Networks nor the
+#   names of its contributors may be used to endorse or promote products
+#   derived from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY Juniper Networks, Inc. ''AS IS'' AND ANY
+# EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL Juniper Networks, Inc. BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+DOCUMENTATION = '''
+---
+module: junos_ping
+author: Damien Garros, Juniper Networks
+version_added: "1.3.1"
+short_description: execute ping on junos devices
+description:
+    - execute ping on junos devices
+requirements:
+    - junos-eznc >= 1.2.2
+options:
+  host:
+    description:
+        - Set to {{ inventory_hostname }}
+    required: true
+  user:
+    description:
+        - Login username
+    required: false
+    default: $USER
+  passwd:
+    description:
+        - Login password
+    required: false
+    default: assumes ssh-key active
+  port:
+    description:
+        - TCP port number to use when connecting to the device
+    required: false
+    default: 830
+  dest_ip:
+    description:
+        - Destination ip
+    required: true
+  source_ip:
+    description:
+        - Source IP used to send the ping
+    required: false
+  ttl:
+    description:
+        - Number of device allowed between source and destination
+    required: false
+  routing_instance:
+    description:
+        - Name of the routing instance to use to send the ping
+    required: false
+  source_ip:
+    description:
+        - source IP
+    required: false
+  count:
+    description:
+        - Number of packet to send
+    required: false
+    default: 5
+'''
+
+EXAMPLES = '''
+# Simple example
+  tasks:
+    - name: "Execute ping peer"
+      junos_ping:
+        host={{ junos_host }}
+        port={{ netconf_port }}
+        user={{ ansible_ssh_user }}
+        passwd={{ ansible_ssh_pass }}
+        dest_ip=8.8.8.8
+
+# Using loop and more parameters
+  tasks:
+    - name: "Execute ping peer"
+      junos_ping:
+        host={{ junos_host }}
+        port={{ netconf_port }}
+        user={{ ansible_ssh_user }}
+        passwd={{ ansible_ssh_pass }}
+        dest_ip={{ item.peer_ip }}
+        source_ip={{ item.local_ip }}
+        ttl=1
+      with_items: "{{underlay.neighbors}}"
+'''
+
+import os
+import sys
+import logging
+import re
+from lxml import etree
+from distutils.version import LooseVersion
+try:
+    from jnpr.junos import Device
+    from jnpr.junos.version import VERSION
+    if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
+        HAS_PYEZ = False
+    else:
+        HAS_PYEZ = True
+except ImportError:
+    HAS_PYEZ = False
+
+
+def main():
+    module = AnsibleModule(
+        argument_spec=dict(
+            host=dict(required=True),
+            logfile=dict(required=False, default=None),
+            user=dict(required=False, default=os.getenv('USER')),
+            passwd=dict(required=False, default=None),
+            port=dict(required=False, default=830),
+            dest_ip=dict(required=True, default=None),
+            source_ip=dict(required=False, default=None),
+            rapid=dict(required=False, default=True),
+            routing_instance=dict(required=False, default=None),
+            ttl=dict(required=False, default=None),
+            count=dict(required=False, default='5')
+            ),
+        supports_check_mode=False
+    )
+
+    if not HAS_PYEZ:
+        module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
+
+    results = {}
+    m_args = module.params
+
+    # Open connection to device
+    dev = Device(
+            m_args['host'],
+            user=m_args['user'],
+            passwd=m_args['passwd'],
+            port=m_args['port'],
+            gather_facts=False)
+
+    try:
+        dev.open()
+    except Exception as err:
+        msg = 'Unable to connect to {0}: {1}'.format(m_args['host'], str(err))
+        module.fail_json(msg=msg)
+        return
+
+    results['dest_ip'] = m_args['dest_ip']
+    results['count'] = m_args['count']
+    results['rapid'] = m_args['rapid']
+
+    results['changed'] = False
+
+    # Prepare parameters
+    ping_params = dict(
+            host=m_args['dest_ip'],
+            count=m_args['count'],
+            rapid=m_args['rapid'])
+
+    if m_args['source_ip'] is not None:
+        ping_params['source'] = m_args['source_ip']
+        results['source_ip'] = m_args['source_ip']
+
+    if m_args['routing_instance'] is not None:
+        ping_params['routing_instance'] = m_args['routing_instance']
+        results['routing_instance'] = m_args['routing_instance']
+
+    if m_args['ttl'] is not None:
+        ping_params['ttl'] = m_args['ttl']
+        results['ttl'] = m_args['ttl']
+
+    try:
+
+        # Execute Ping
+        rpc_reply = dev.rpc.ping(**ping_params)
+
+        # results['xml_reply'] = etree.tostring(rpc_reply)
+
+        # Try to Find probe summary
+        probe_summary = rpc_reply.find('probe-results-summary')
+        if probe_summary is None:
+            results['failed'] = True
+
+            error_message = rpc_reply.find('rpc-error/error-message').text
+            if error_message is not None:
+                msg = error_message.strip()
+
+            logging.error(msg)
+            dev.close()
+            module.fail_json(msg=msg)
+
+        # Extract packet loss
+        packet_loss = rpc_reply.xpath("//ping-results/probe-results-summary/packet-loss")[0].text.strip()
+        packet_sent = rpc_reply.xpath("//ping-results/probe-results-summary/probes-sent")[0].text.strip()
+        responses_received = rpc_reply.xpath("//ping-results/probe-results-summary/responses-received")[0].text.strip()
+
+        if int(packet_loss) != 0:
+            results['failed'] = True
+            msg = 'Loss {0}% packets, (Sent {1} | Received {2})'.format(str(packet_loss), str(packet_sent), str(responses_received))
+            logging.error(msg)
+            dev.close()
+            module.fail_json(msg=msg)
+
+    except Exception as err:
+        results['failed'] = True
+        logging.error("unable to execute ping due to:{0}".format(err.message))
+        raise err
+
+    dev.close()
+    module.exit_json(**results)
+
+from ansible.module_utils.basic import *
+
+main()
