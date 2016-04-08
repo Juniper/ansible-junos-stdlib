@@ -152,8 +152,9 @@ def juniper_items_to_list_of_dicts(data):
         # table_fields - element 1 is also a list of uples
         temp = {}
         for normalized_key, normalized_value in table_fields:
-            # calling it normalized value because
-            # YOU/WE created the keys
+            # calling it normalized value because YOU/WE created the keys
+            if normalized_value and not isinstance(normalized_value, (str, list, int, dict)):
+                normalized_value = juniper_items_to_list_of_dicts(normalized_value)
             temp[normalized_key] = normalized_value
         list_of_resources.append(temp)
     return list_of_resources
