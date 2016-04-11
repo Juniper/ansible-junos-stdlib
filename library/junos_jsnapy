@@ -1,0 +1,169 @@
+#!/usr/bin/env python
+
+# Copyright (c) 1999-2015, Juniper Networks Inc.
+#               2016, Damien Garros
+#
+# All rights reserved.
+#
+# License: Apache 2.0
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright
+#   notice, this list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright
+#   notice, this list of conditions and the following disclaimer in the
+#   documentation and/or other materials provided with the distribution.
+#
+# * Neither the name of the Juniper Networks nor the
+#   names of its contributors may be used to endorse or promote products
+#   derived from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY Juniper Networks, Inc. ''AS IS'' AND ANY
+# EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL Juniper Networks, Inc. BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+DOCUMENTATION = '''
+---
+module: junos_cli
+author: Damien Garros, Juniper Networks
+version_added: "1.2.0"
+short_description: Execute tests with Jsnapy
+description:
+    - Execute tests with Jsnapy
+requirements:
+    - junos-eznc >= 1.2.2
+options:
+    host:
+        description:
+            - Set to {{ inventory_hostname }}
+        required: true
+    user:
+        description:
+            - Login username
+        required: false
+        default: $USER
+    passwd:
+        description:
+            - Login password
+        required: false
+        default: assumes ssh-key active
+    port:
+        description:
+            - TCP port number to use when connecting to the device
+        required: false
+        default: 830
+'''
+
+EXAMPLES = '''
+
+'''
+from distutils.version import LooseVersion
+import logging
+import os
+from lxml import etree
+from lxml.builder import E
+from jnpr.jsnapy import SnapAdmin
+
+try:
+    from jnpr.junos import Device
+    from jnpr.junos.version import VERSION
+    from jnpr.junos.exception import RpcError
+    if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
+        HAS_PYEZ = False
+    else:
+        HAS_PYEZ = True
+except ImportError:
+    HAS_PYEZ = False
+
+
+def main():
+
+    module = AnsibleModule(
+        argument_spec=dict(host=dict(required=True, default=None),  # host or ipaddr
+                           user=dict(required=False, default=os.getenv('USER')),
+                           passwd=dict(required=False, default=None),
+                           port=dict(required=False, default=830),
+                           test=dict(required=True, default=None),
+                           ),
+        supports_check_mode=True)
+
+    if not HAS_PYEZ:
+        module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
+
+    m_args = module.params
+
+    results = {}
+    results['test'] = m_args['test']
+
+    try:
+        dev = Device(m_args['host'],
+                        user=m_args['user'],
+                        password=m_args['passwd'],
+                        port=m_args['port'],
+                        gather_facts=False).open()
+
+    except Exception as err:
+        msg = 'Unable to connect to {0}: {1}'.format(args['host'], str(err))
+        logging.error(msg)
+        module.fail_json(msg=msg)
+        # --- UNREACHABLE ---
+
+    try:
+        js = SnapAdmin()
+        # config_file = os.path.abspath(m_args['test'])
+        config_file = '/Users/dgarros/projects/lab-evpn-vxlan/jsnap_tests/mytest.yml'
+
+        try:
+            js.snap(config_file, "mytestforjsnap", dev=dev)
+        except Exception as err:
+            msg = 'Unable to get snap from device - {0}'.format(str(err))
+            logging.error(msg)
+            dev.close()
+            module.fail_json(msg=msg)
+
+        try:
+            snapvalue = js.check(config_file, "mytestforjsnap")
+        except Exception as err:
+            msg = 'Exception during check - {0}'.format(str(err))
+            logging.error(msg)
+            dev.close()
+            module.fail_json(msg=msg)
+
+        for snapcheck in snapvalue:
+            results['snapcheck.result'] = snapcheck.result
+
+        #     results['snapresult'] = snapcheck.result
+
+        # if snapvalue[].no_failed != 0:
+        #     msg = 'Tests failed'
+        #     logging.error(msg)
+        #     dev.close()
+        #     module.fail_json(msg=msg)
+
+    except (ValueError, RpcError) as err:
+        msg = 'Unable execute Test'
+        logging.error(msg)
+        dev.close()
+        module.fail_json(msg=msg)
+
+    except Exception as err:
+        msg = 'Uncaught exception - please report: {0}'.format(str(err))
+        logging.error(msg)
+        dev.close()
+        module.fail_json(msg=msg)
+
+    dev.close()
+    module.exit_json(**results)
+
+from ansible.module_utils.basic import *
+main()
