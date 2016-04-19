@@ -83,6 +83,13 @@ options:
     description:
         - Name of the routing instance to use to send the ping
     required: false
+  timeout:
+    description:
+        - Extend the NETCONF RPC timeout beyond the default value of
+          30 seconds. Set this value to accommodate rollbacks
+          that might take longer than the default timeout interval.
+    required: false
+    default: "0"
   interface:
     description:
         - Interface used to send traffic out
@@ -144,6 +151,7 @@ def main():
             user=dict(required=False, default=os.getenv('USER')),
             passwd=dict(required=False, default=None),
             port=dict(required=False, default=830),
+            timeout=dict(required=False, default=0),
             dest_ip=dict(required=True, default=None),
             source_ip=dict(required=False, default=None),
             interface=dict(required=False, default=None),
@@ -203,6 +211,11 @@ def main():
     if m_args['ttl'] is not None:
         ping_params['ttl'] = m_args['ttl']
         results['ttl'] = m_args['ttl']
+
+    ## Change default Timeout 
+    timeout = int(args['timeout'])
+    if timeout > 0:
+        dev.timeout = timeout
 
     try:
 
