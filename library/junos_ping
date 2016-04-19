@@ -70,6 +70,11 @@ options:
     description:
         - Source IP used to send the ping
     required: false
+  rapid:
+    description:
+        - Execute ping at 100pps instead of 1pps
+    required: false
+    default: true
   ttl:
     description:
         - Number of device allowed between source and destination
@@ -77,10 +82,6 @@ options:
   routing_instance:
     description:
         - Name of the routing instance to use to send the ping
-    required: false
-  source_ip:
-    description:
-        - source IP
     required: false
   interface:
     description:
