@@ -94,6 +94,11 @@ options:
     description:
         - Interface used to send traffic out
     required: false
+  acceptable_packet_loss:
+    description:
+        - Number of packets lost that is acceptable to consider the test PASS
+    required: false
+    default: "0"
   count:
     description:
         - Number of packet to send
@@ -155,6 +160,7 @@ def main():
             rapid=dict(required=False, default=True),
             routing_instance=dict(required=False, default=None),
             ttl=dict(required=False, default=None),
+            acceptable_packet_loss=dict(required=False, default=0),
             count=dict(required=False, default='5')
             ),
         supports_check_mode=False
@@ -210,7 +216,7 @@ def main():
         results['ttl'] = m_args['ttl']
 
     ## Change default Timeout
-    timeout = int(args['timeout'])
+    timeout = int(m_args['timeout'])
     if timeout > 0:
         dev.timeout = timeout
 
@@ -239,7 +245,7 @@ def main():
 
         results['msg'] = 'Loss {0}% packets, (Sent {1} | Received {2})'.format(str(packet_loss), str(packets_sent), str(responses_received))
 
-        if int(packet_loss) != 0:
+        if int(packet_loss) > int(m_args['acceptable_packet_loss']):
             results['failed'] = True
             dev.close()
             module.exit_json(**results)
