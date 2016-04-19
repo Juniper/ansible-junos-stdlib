@@ -219,33 +219,35 @@ def main():
         # Execute Ping
         rpc_reply = dev.rpc.ping(**ping_params)
 
-        # results['xml_reply'] = etree.tostring(rpc_reply)
-
         # Try to Find probe summary
         probe_summary = rpc_reply.find('probe-results-summary')
         if probe_summary is None:
             results['failed'] = True
-
-            error_message = rpc_reply.find('rpc-error/error-message').text
-            if error_message is not None:
-                msg = error_message.strip()
-
+            results['msg'] = rpc_reply.findtext('rpc-error/error-message').strip()
             dev.close()
-            module.fail_json(msg=msg)
+            module.exit_json(**results)
 
         # Extract packet loss
-        packet_loss = rpc_reply.xpath("//ping-results/probe-results-summary/packet-loss")[0].text.strip()
-        packet_sent = rpc_reply.xpath("//ping-results/probe-results-summary/probes-sent")[0].text.strip()
-        responses_received = rpc_reply.xpath("//ping-results/probe-results-summary/responses-received")[0].text.strip()
+        packet_loss = rpc_reply.findtext("//ping-results/probe-results-summary/packet-loss").strip()
+        packets_sent = rpc_reply.findtext("//ping-results/probe-results-summary/probes-sent").strip()
+        responses_received = rpc_reply.findtext("//ping-results/probe-results-summary/responses-received").strip()
+
+        if packet_loss == "":
+            results['msg'] = 'Unable to collect results from ping, response was not found or was empty'
+            dev.close()
+            module.exit_json(**results)
+
+        results['msg'] = 'Loss {0}% packets, (Sent {1} | Received {2})'.format(str(packet_loss), str(packets_sent), str(responses_received))
 
         if int(packet_loss) != 0:
             results['failed'] = True
-            msg = 'Loss {0}% packets, (Sent {1} | Received {2})'.format(str(packet_loss), str(packet_sent), str(responses_received))
             dev.close()
-            module.fail_json(msg=msg)
+            module.exit_json(**results)
 
     except Exception as err:
         results['failed'] = True
+        results['msg'] = "unable to execute ping due to:{0}".format(err.message)
+        dev.close()
         raise err
 
     dev.close()
