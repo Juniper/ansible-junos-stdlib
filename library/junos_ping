@@ -128,7 +128,6 @@ EXAMPLES = '''
 
 import os
 import sys
-import logging
 import re
 from lxml import etree
 from distutils.version import LooseVersion
@@ -142,12 +141,10 @@ try:
 except ImportError:
     HAS_PYEZ = False
 
-
 def main():
     module = AnsibleModule(
         argument_spec=dict(
             host=dict(required=True),
-            logfile=dict(required=False, default=None),
             user=dict(required=False, default=os.getenv('USER')),
             passwd=dict(required=False, default=None),
             port=dict(required=False, default=830),
@@ -233,7 +230,6 @@ def main():
             if error_message is not None:
                 msg = error_message.strip()
 
-            logging.error(msg)
             dev.close()
             module.fail_json(msg=msg)
 
@@ -245,13 +241,11 @@ def main():
         if int(packet_loss) != 0:
             results['failed'] = True
             msg = 'Loss {0}% packets, (Sent {1} | Received {2})'.format(str(packet_loss), str(packet_sent), str(responses_received))
-            logging.error(msg)
             dev.close()
             module.fail_json(msg=msg)
 
     except Exception as err:
         results['failed'] = True
-        logging.error("unable to execute ping due to:{0}".format(err.message))
         raise err
 
     dev.close()
