@@ -77,7 +77,7 @@ options:
     default: true
   ttl:
     description:
-        - Number of device allowed between source and destination
+        - Maximum number of IP routers (IP hops) allowed between source and destination
     required: false
   routing_instance:
     description:
@@ -212,7 +212,7 @@ def main():
         ping_params['ttl'] = m_args['ttl']
         results['ttl'] = m_args['ttl']
 
-    ## Change default Timeout 
+    ## Change default Timeout
     timeout = int(args['timeout'])
     if timeout > 0:
         dev.timeout = timeout
