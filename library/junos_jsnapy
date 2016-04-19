@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+
 #Copyright (c) 1999-2015, Juniper Networks Inc.
 #               2016, Roslan Zaki
 #
@@ -91,6 +92,12 @@ options:
             - snap_post
         required: True
         default: None
+    test_files:
+        description:
+            - Test files which need to executed
+        required: False
+        type: list
+        default: None
     config_file:
         description:
             - The YAML configuration file for the JSNAPy tests
@@ -136,10 +143,13 @@ def jsnap_selection(dev, module):
 
     args = module.params
     action = args['action']
-    config_file = args['config_file']
-    dir = args['dir']
-
-    config_data = os.path.join(dir, config_file)
+    config_file = args.get('config_file')
+    if config_file:
+        config_dir = args['dir']
+        config_data = os.path.join(config_dir, config_file)
+    else:
+        test_files = args.get('test_files')
+        config_data = {'tests': test_files}
 
     results = dict()
     js = SnapAdmin()
@@ -175,10 +185,13 @@ def main():
                            passwd=dict(required=False, default=None),
                            port=dict(required=False, default=830),
                            logfile=dict(required=False, default=None),
+                           test_files=dict(required=False, type='list', default=None),
                            config_file=dict(required=False, default=None),
                            dir=dict(required=False, default='/etc/jsnapy/testfiles'),
                            action=dict(required=False, choices=['check', 'snapcheck', 'snap_pre', 'snap_post'], default=None)
                            ),
+        mutually_exclusive=[['test_files', 'config_file']],
+        required_one_of=[['test_files', 'config_file']],
         supports_check_mode=False)
 
     if not HAS_PYEZ:
