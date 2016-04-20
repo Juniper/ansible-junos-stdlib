@@ -212,8 +212,8 @@ def main():
         results['interface'] = m_args['interface']
 
     if m_args['ttl'] is not None:
-        ping_params['ttl'] = m_args['ttl']
-        results['ttl'] = m_args['ttl']
+        ping_params['ttl'] = str(m_args['ttl'])
+        results['ttl'] = str(m_args['ttl'])
 
     ## Change default Timeout
     timeout = int(m_args['timeout'])
@@ -225,6 +225,13 @@ def main():
         # Execute Ping
         rpc_reply = dev.rpc.ping(**ping_params)
 
+    except Exception as err:
+        results['failed'] = True
+        results['msg'] = "unable to execute ping due to:{0}".format(err.message)
+        dev.close()
+        raise err
+
+    try:
         # Try to Find probe summary
         probe_summary = rpc_reply.find('probe-results-summary')
         if probe_summary is None:
@@ -234,16 +241,16 @@ def main():
             module.exit_json(**results)
 
         # Extract packet loss
-        packet_loss = rpc_reply.findtext("//ping-results/probe-results-summary/packet-loss").strip()
-        packets_sent = rpc_reply.findtext("//ping-results/probe-results-summary/probes-sent").strip()
-        responses_received = rpc_reply.findtext("//ping-results/probe-results-summary/responses-received").strip()
+        packet_loss = rpc_reply.findtext("ping-results/probe-results-summary/packet-loss")
+        packets_sent = rpc_reply.findtext("ping-results/probe-results-summary/probes-sent")
+        responses_received = rpc_reply.findtext("ping-results/probe-results-summary/responses-received")
 
-        if packet_loss == "":
+        if packet_loss is None:
             results['msg'] = 'Unable to collect results from ping, response was not found or was empty'
             dev.close()
             module.exit_json(**results)
 
-        results['msg'] = 'Loss {0}% packets, (Sent {1} | Received {2})'.format(str(packet_loss), str(packets_sent), str(responses_received))
+        results['msg'] = 'Loss {0}% packets, (Sent {1} | Received {2})'.format(str(packet_loss.strip()), str(packets_sent.strip()), str(responses_received.strip()))
 
         if int(packet_loss) > int(m_args['acceptable_packet_loss']):
             results['failed'] = True
@@ -252,7 +259,7 @@ def main():
 
     except Exception as err:
         results['failed'] = True
-        results['msg'] = "unable to execute ping due to:{0}".format(err.message)
+        results['msg'] = "unable to analyze ping results  due to:{0}".format(err.message)
         dev.close()
         raise err
 
