@@ -86,7 +86,7 @@ options:
   timeout:
     description:
         - Extend the NETCONF RPC timeout beyond the default value of
-          30 seconds. Set this value to accommodate rollbacks
+          30 seconds. Set this value to accommodate pings
           that might take longer than the default timeout interval.
     required: false
     default: "0"
@@ -251,6 +251,9 @@ def main():
             module.exit_json(**results)
 
         results['msg'] = 'Loss {0}% packets, (Sent {1} | Received {2})'.format(str(packet_loss.strip()), str(packets_sent.strip()), str(responses_received.strip()))
+        results['packet_loss'] = packet_loss
+        results['packets_sent'] = packets_sent
+        results['packets_received'] = packets_received
 
         if int(packet_loss) > int(m_args['acceptable_packet_loss']):
             results['failed'] = True
