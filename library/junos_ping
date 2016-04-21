@@ -196,8 +196,10 @@ def main():
     # Prepare parameters
     ping_params = dict(
             host=m_args['dest_ip'],
-            count=m_args['count'],
-            rapid=m_args['rapid'])
+            count=str(m_args['count']))
+
+    if  m_args['rapid'] is True:
+        ping_params['rapid'] = m_args['rapid']
 
     if m_args['source_ip'] is not None:
         ping_params['source'] = m_args['source_ip']
