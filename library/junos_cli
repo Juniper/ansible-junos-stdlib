@@ -66,6 +66,13 @@ options:
             - TCP port number to use when connecting to the device
         required: false
         default: 830
+    timeout:
+        description:
+            - Extend the NETCONF RPC timeout beyond the default value of
+              30 seconds. Set this value to accommodate Cli commands
+              that might take longer than the default timeout interval.
+        required: false
+        default: "0"
     logfile:
         description:
             - Path on the local server where the progress status is logged
@@ -120,6 +127,7 @@ def main():
                            user=dict(required=False, default=os.getenv('USER')),
                            passwd=dict(required=False, default=None),
                            port=dict(required=False, default=830),
+                           timeout=dict(required=False, default=0),
                            logfile=dict(required=False, default=None),
                            dest=dict(required=False, default=None),
                            format=dict(required=False, choices=['text', 'xml'], default='text')
@@ -147,6 +155,11 @@ def main():
         logging.error(msg)
         module.fail_json(msg=msg)
         # --- UNREACHABLE ---
+
+    ## Change default Timeout
+    timeout = int(m_args['timeout'])
+    if timeout > 0:
+        dev.timeout = timeout
 
     try:
         options = {}
