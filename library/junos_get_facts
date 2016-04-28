@@ -74,6 +74,12 @@ options:
               I(savedir/hostname-facts.json)
         required: false
         default: $CWD
+    set_facts_as:
+        description:
+            - include ansible_facts dictionary key in output and copy 'facts'
+              key to ansible_facts.<provided_key>
+        required: false
+        default: None
     logfile:
         description:
             - Path on the local server where the progress status is logged
@@ -124,7 +130,8 @@ def main():
             savedir=dict(required=False, default=None),
             user=dict(required=False, default=os.getenv('USER')),
             passwd=dict(required=False, default=None),
-            port=dict(required=False, default=830)),
+            port=dict(required=False, default=830),
+            set_facts_as=dict(required=False, default=None)),
         supports_check_mode=True)
 
     m_args = module.params
@@ -205,6 +212,9 @@ def main():
             module.fail_json(msg=str(err))
         m_results['args'] = m_args        # for debug
         m_results['facts'] = c_results['facts']
+
+    if m_args['set_facts_as'] is not None:
+        m_results['ansible_facts'] = {m_args['set_facts_as']: m_results['facts']}
 
     module.exit_json(**m_results)
 
