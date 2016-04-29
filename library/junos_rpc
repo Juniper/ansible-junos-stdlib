@@ -93,11 +93,11 @@ options:
         default: 'xml'
     timeout:
         description:
-            - Set the NETCONF RPC timeout (default value of
-              30 seconds). Set this value to accommodate RPCs
-              that might take longer than the default timeout interval.
+            - Set the NETCONF RPC timeout. Set this value to accommodate Cli
+              commands that might take longer than the default timeout interval.
+              Setting to 0 will use the PyEZ default (30 seconds).
         required: false
-        default: "30"
+        default: "0"
     dest:
         description:
             - Path to the local server directory where configuration will
@@ -234,7 +234,7 @@ def main():
             user=dict(required=False, default=os.getenv('USER')),
             passwd=dict(required=False, default=None),
             port=dict(required=False, default=830),
-            timeout=dict(required=False, type='int', default=30),
+            timeout=dict(required=False, type='int', default=0),
             rpc=dict(required=True, default=None),
             kwargs=dict(required=False, default=None),
             filter_xml=dict(required=False, default=None),
@@ -256,7 +256,8 @@ def main():
         return
 
     ## Change default Timeout
-    dev.timeout = m_args['timeout']
+    if m_args['timeout'] > 0:
+        dev.timeout = m_args['timeout']
 
     results = junos_rpc(module, dev)
 
