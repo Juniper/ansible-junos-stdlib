@@ -243,19 +243,20 @@ def main():
             module.exit_json(**results)
 
         # Extract packet loss
-        packet_loss = rpc_reply.findtext("ping-results/probe-results-summary/packet-loss")
-        packets_sent = rpc_reply.findtext("ping-results/probe-results-summary/probes-sent")
-        responses_received = rpc_reply.findtext("ping-results/probe-results-summary/responses-received")
+        packet_loss = probe_summary.findtext("packet-loss")
+        packets_sent = probe_summary.findtext("probes-sent")
+        responses_received = probe_summary.findtext("responses-received")
 
         if packet_loss is None:
             results['msg'] = 'Unable to collect results from ping, response was not found or was empty'
+            results['failed'] = True
             dev.close()
             module.exit_json(**results)
 
         results['msg'] = 'Loss {0}% packets, (Sent {1} | Received {2})'.format(str(packet_loss.strip()), str(packets_sent.strip()), str(responses_received.strip()))
         results['packet_loss'] = packet_loss
         results['packets_sent'] = packets_sent
-        results['packets_received'] = packets_received
+        results['packets_received'] = responses_received
 
         if int(packet_loss) > int(m_args['acceptable_packet_loss']):
             results['failed'] = True
