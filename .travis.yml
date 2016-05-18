@@ -1,0 +1,20 @@
+language: python
+python:
+  - 2.7
+
+sudo: required
+
+env:
+  - ANSIBLE_VERSION=1.9.6
+  - ANSIBLE_VERSION=2.0.2.0
+#  - ANSIBLE_VERSION=2.0.0.2
+
+install:
+  - pip install -r requirements.txt
+  - pip install -q ansible==$ANSIBLE_VERSION
+  - cd ..
+  - tar -czf Juniper.junos $TRAVIS_REPO_SLUG
+  - ansible-galaxy install Juniper.junos
+
+script:
+  - python -m pytest -v --durations=10
