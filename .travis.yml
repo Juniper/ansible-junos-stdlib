@@ -6,7 +6,7 @@ sudo: required
 
 env:
   - ANSIBLE_VERSION=1.9.6
-  - ANSIBLE_VERSION=2.0.2.0
+#  - ANSIBLE_VERSION=2.0.2.0
 #  - ANSIBLE_VERSION=2.0.0.2
 
 install:
