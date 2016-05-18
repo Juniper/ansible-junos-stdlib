@@ -12,10 +12,14 @@ env:
 install:
   - pip install -r requirements.txt
   - pip install -q ansible==$ANSIBLE_VERSION
+## Create module package and install it at the same level as the project
   - cd ..
   - tar -czf Juniper.junos ansible-junos-stdlib
-  - sudo ansible-galaxy install Juniper.junos
-  - cd ansible-junos-stdlib/tests
+  - mkdir tmp
+  - mv Juniper.junos tmp/
+  - cd tmp
+  - ansible-galaxy install -p ../ Juniper.junos
+  - cd ../ansible-junos-stdlib/tests
 ## Install Vagrant
   - sudo apt-get update -q
   - sudo apt-get install -q virtualbox --fix-missing
@@ -27,4 +31,5 @@ install:
   - vagrant up
 
 script:
-  - vagrant status
+  - ansible-playbook junos_ping/pb.junos_ping.yaml
+  - ansible-playbook junos_get_facts/pb.junos_get_facts.yaml
