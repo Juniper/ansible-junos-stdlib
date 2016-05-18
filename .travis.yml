@@ -21,9 +21,13 @@ install:
   - cd tmp
   - ansible-galaxy install -p ../ Juniper.junos
   - cd ../ansible-junos-stdlib/tests
-## Install Vagrant
+## Install Virtualbox
   - sudo apt-get update -q
+  - sudo apt-get install linux-headers-$(uname -r)
   - sudo apt-get install -q virtualbox --fix-missing
+  - VBoxManage --version
+
+## Install Vagrant  
   - sudo wget -nv https://releases.hashicorp.com/vagrant/1.8.1/vagrant_1.8.1_x86_64.deb
   - sudo dpkg -i vagrant_1.8.1_x86_64.deb
   - vagrant plugin install vagrant-junos
