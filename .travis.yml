@@ -14,8 +14,17 @@ install:
   - pip install -q ansible==$ANSIBLE_VERSION
   - cd ..
   - tar -czf Juniper.junos ansible-junos-stdlib
-  - ansible-galaxy install Juniper.junos
-  - cd ansible-junos-stdlib
+  - sudo ansible-galaxy install Juniper.junos
+  - cd ansible-junos-stdlib/tests
+## Install Vagrant
+  - sudo apt-get update -q
+  - sudo apt-get install -q virtualbox --fix-missing
+  - sudo wget -nv https://releases.hashicorp.com/vagrant/1.8.1/vagrant_1.8.1_x86_64.deb
+  - sudo dpkg -i vagrant_1.8.1_x86_64.deb
+  - bundle install
+  - vagrant plugin install vagrant-junos
+  - vagrant plugin install vagrant-host-shell
+  - vagrant up
 
 script:
-  - python -m pytest -v --durations=10
+  - vagrant status
