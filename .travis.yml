@@ -20,11 +20,13 @@ install:
   - mv Juniper.junos tmp/
   - cd tmp
   - ansible-galaxy install -p ../ Juniper.junos
-  - cd ../ansible-junos-stdlib/tests
+
 ## Install Virtualbox
   - sudo apt-get update -q
+  - sudo apt-get install -y dkms
   - sudo apt-get install -y linux-headers-$(uname -r)
-  - sudo apt-get install -q virtualbox --fix-missing
+  - sudo wget -nv http://download.virtualbox.org/virtualbox/5.0.20/virtualbox-5.0_5.0.20-106931~Ubuntu~trusty_amd64.deb
+  - sudo dpkg -i virtualbox-5.0_5.0.20-106931~Ubuntu~trusty_amd64.deb
   - VBoxManage --version
 
 ## Install Vagrant
@@ -32,6 +34,9 @@ install:
   - sudo dpkg -i vagrant_1.8.1_x86_64.deb
   - vagrant plugin install vagrant-junos
   - vagrant plugin install vagrant-host-shell
+
+## start Junos VM
+  - cd ../ansible-junos-stdlib/tests
   - vagrant up
 
 script:
