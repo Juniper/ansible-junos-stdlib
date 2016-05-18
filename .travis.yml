@@ -13,8 +13,9 @@ install:
   - pip install -r requirements.txt
   - pip install -q ansible==$ANSIBLE_VERSION
   - cd ..
-  - tar -czf Juniper.junos $TRAVIS_REPO_SLUG
+  - tar -czf Juniper.junos ansible-junos-stdlib
   - ansible-galaxy install Juniper.junos
+  - cd ansible-junos-stdlib
 
 script:
   - python -m pytest -v --durations=10
