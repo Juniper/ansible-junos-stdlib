@@ -142,7 +142,7 @@ options:
         description:
             - Commits the configuration after it has been loaded
         required: false
-        default: True
+        default: true
         choices: ['true','false','yes','no']
 '''
 
