@@ -138,6 +138,12 @@ options:
             - Provide a confirm in minutes to the commit of the configuration
         required: false
         default: None
+    commit:
+        description:
+            - Commits the configuration after it has been loaded
+        required: false
+        default: True
+        choices: ['true','false','yes','no']
 '''
 
 EXAMPLES = '''
@@ -198,6 +204,7 @@ def _load_via_netconf(module):
     in_check_mode = module.check_mode
     overwrite = module.boolean(module.params['overwrite'])
     replace = module.boolean(module.params['replace'])
+    commit = module.boolean(module.params['commit'])
 
     if all([overwrite, replace]):
         msg = "Overwrite and Replace cannot both be True!"
@@ -288,32 +295,33 @@ def _load_via_netconf(module):
                 logging.error(msg)
                 module.fail_json(msg=msg)
 
-        try:
-            logging.info("doing a commit-check, please be patient")
-            cu.commit_check()
-            if (in_check_mode):
-                logging.info("Ansible check mode complete")
-                module.exit_json(**results)
-            else:
-                logging.info("committing change, please be patient")
-                opts = {}
-                if args['comment'] is not None:
-                    opts['comment'] = args['comment']
-                if args['confirm'] is not None:
-                    opts['confirm'] = args['confirm']
-
-                cu.commit(**opts)
-
-        except CommitError as err:
-            msg = "Unable to commit configuration: {0}".format(err)
-            logging.error(msg)
+        if commit:
             try:
-                logging.info("unlocking")
-                cu.unlock()
-            except UnlockError as err:
-                logging.error("Unable to unlock config: {0}".format(err))
-            dev.close()
-            module.fail_json(msg=msg)
+                logging.info("doing a commit-check, please be patient")
+                cu.commit_check()
+                if (in_check_mode):
+                    logging.info("Ansible check mode complete")
+                    module.exit_json(**results)
+                else:
+                    logging.info("committing change, please be patient")
+                    opts = {}
+                    if args['comment'] is not None:
+                        opts['comment'] = args['comment']
+                    if args['confirm'] is not None:
+                        opts['confirm'] = args['confirm']
+
+                    cu.commit(**opts)
+
+            except CommitError as err:
+                msg = "Unable to commit configuration: {0}".format(err)
+                logging.error(msg)
+                try:
+                    logging.info("unlocking")
+                    cu.unlock()
+                except UnlockError as err:
+                    logging.error("Unable to unlock config: {0}".format(err))
+                dev.close()
+                module.fail_json(msg=msg)
 
     try:
         logging.info("unlocking")
@@ -403,7 +411,8 @@ def main():
             timeout=dict(required=False, default=0),
             comment=dict(required=False, default=None),
             port=dict(required=False, default=830),
-            confirm=dict(required=False, default=None)
+            confirm=dict(required=False, default=None),
+            commit=dict(required=False, choices=BOOLEANS, default=True)
         ),
         supports_check_mode=True)
 
