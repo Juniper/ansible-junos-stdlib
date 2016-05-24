@@ -302,6 +302,7 @@ def _load_via_netconf(module):
                 if args['confirm'] is not None:
                     opts['confirm'] = args['confirm']
 
+                time.sleep(10)
                 cu.commit(**opts)
 
         except CommitError as err:
