@@ -310,9 +310,8 @@ def _load_via_netconf(module):
 
                 if args['dual_re']:
                     time.sleep(10)
-                    cu.commit(**opts)
-                else:
-                    cu.commit(**opts)
+
+                cu.commit(**opts)
 
         except CommitError as err:
             msg = "Unable to commit configuration: {0}".format(err)
