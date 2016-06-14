@@ -309,7 +309,7 @@ def _load_via_netconf(module):
                     opts['confirm'] = args['confirm']
 
                 if args['dual_re']:
-                    time.sleep(10)
+                    time.sleep(1)
 
                 cu.commit(**opts)
 
