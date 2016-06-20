@@ -74,6 +74,13 @@ options:
             - The rollback id value [0-49]
         required: true
         default: None
+    timeout:
+        description:
+            - Extend the NETCONF RPC timeout beyond the default value of
+              30 seconds. Set this value to accommodate rollbacks
+              that might take longer than the default timeout interval.
+        required: false
+        default: "0"
     comment:
         description:
             - Provide a comment to the commit of the configuration
@@ -125,6 +132,7 @@ def main():
                            port=dict(required=False, default=830),
                            logfile=dict(required=False, default=None),
                            rollback=dict(required=True, default=None),
+                           timeout=dict(required=False, default=0),
                            comment=dict(required=False, default=None),
                            confirm=dict(required=False, default=None),
                            diffs_file=dict(required=False, default=None)
@@ -161,6 +169,10 @@ def main():
         logging.error(msg)
         module.fail_json(msg=msg)
         # --- UNREACHABLE ---
+
+    timeout = int(args['timeout'])
+    if timeout > 0:
+        dev.timeout = timeout
 
     try:
         cu = Config(dev)
