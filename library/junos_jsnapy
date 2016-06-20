@@ -224,7 +224,7 @@ def main():
 
         if data['final_result']=='Failed':
             msg = 'Test Failed: Passed {0}, Failed {1}'.format(
-                  data.no_passed, data.no_failed
+                  data['total_passed'], data['total_failed']
             )
             logging.error(msg)
             dev.close()
