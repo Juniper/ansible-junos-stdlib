@@ -135,7 +135,7 @@ try:
         HAS_PYEZ = False
     else:
         HAS_PYEZ = True
-except ImportError:
+except ImportError as ex:
     HAS_PYEZ = False
 
 
@@ -151,7 +151,7 @@ def jsnap_selection(dev, module):
         test_files = args.get('test_files')
         config_data = {'tests': test_files}
 
-    results = dict()
+    results = {}
     js = SnapAdmin()
 
     if action == 'snapcheck':
@@ -170,6 +170,7 @@ def jsnap_selection(dev, module):
             results['final_result'] = snapCheck.result
             results['total_passed'] = snapCheck.no_passed
             results['total_failed'] = snapCheck.no_failed
+            results['test_results'] = snapCheck.test_results
             total_test = int(snapCheck.no_passed) + int(snapCheck.no_failed)
             results['total_tests'] = total_test
         percentagePassed = (int(results['total_passed']) * 100 ) / (results['total_tests'])
@@ -219,17 +220,15 @@ def main():
 
     try:
         logging.info("Main program: ")
-        results = jsnap_selection(dev, module)
+        data = jsnap_selection(dev, module)
 
-        if 'total_failed' in results and int(results['total_failed']) != 0:
-            msg = 'Test Failed: Executed: {0}, Passed {1}, Failed {2}'.format(
-                str(results['total_tests']),
-                str(results['total_passed']),
-                str(results['total_failed'])
+        if data['final_result']=='Failed':
+            msg = 'Test Failed: Passed {0}, Failed {1}'.format(
+                  data.no_passed, data.no_failed
             )
             logging.error(msg)
             dev.close()
-            module.fail_json(msg=msg)
+            module.fail_json(msg=msg, **data)
 
     except Exception as err:
         msg = 'Uncaught exception - please report: {0}'.format(str(err))
@@ -238,8 +237,7 @@ def main():
         module.fail_json(msg=msg)
 
     dev.close()
-
-    module.exit_json(**results)
+    module.exit_json(**data)
 
 from ansible.module_utils.basic import *
 main()
