@@ -175,8 +175,9 @@ def main():
             current_element = filter_xml
 
             for f in flist:
-                current_element = etree.SubElement(current_element,f)
-
+                current_element.append(etree.SubElement(current_element,f))
+            
+            filter_xml = current_element
             logging.info("Getting config with filter={0}".format(etree.tostring(filter_xml)))
 
         logging.info("Getting config with options={0}".format(options))
