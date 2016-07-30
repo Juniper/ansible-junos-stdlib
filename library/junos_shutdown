@@ -66,6 +66,17 @@ options:
         required: false
         default: no
         choices: ['yes','no']
+    at:
+        description:
+            - Specify a time for the reboot (yyyymmddhhmm). Can be used only with reboot=yes.
+        required: false
+        default: None
+    in_min:
+        description:
+            - Specify a delay, in minutes, before the shutdown or reboot.
+              If both "at" and "in_min" are specified, "in_min" will be ignored.
+        required: false
+        default: 0
     shutdown:
         description:
             - Safety mechanism. You B(MUST) set this to 'shutdown'.
@@ -107,7 +118,9 @@ def main():
             user=dict(required=False, default=os.getenv('USER')),
             passwd=dict(required=False, default=None),
             reboot=dict(required=False, type='bool', choices=BOOLEANS, default=False),
-            port=dict(required=False, default=830)
+            port=dict(required=False, default=830),
+            in_min=dict(required=False, default=0),
+            at=dict(required=False, type='str', default=None)
         ),
         supports_check_mode=False)
 
@@ -119,6 +132,12 @@ def main():
         module.fail_json(msg='Say "shutdown" to proceed')
 
     restart_mode = module.boolean(args['reboot'])
+    delay = args['in_min']
+
+    # because PyEZ does not support 'at' option on shutdown, only with reboot
+    if args['at'] and not restart_mode:
+        module.fail_json(msg="Argument *at* must be used with argument *reboot='yes'*")
+        # --- UNREACHABLE ---
 
     try:
         dev = Device(args['host'], user=args['user'], password=args['passwd'], port=args['port']).open()
@@ -127,16 +146,24 @@ def main():
         module.fail_json(msg=msg)
         # --- UNREACHABLE ---
 
-    results = {'changed': True, 'reboot': restart_mode}
-
     sw = SW(dev)
     do_it = sw.reboot if restart_mode is True else sw.poweroff
-    do_it(0)
 
-    # dev.close isn't performed since the device will
-    # be in the process of shutting down and we'll
-    # lose connectivity anyways ...
+    try:
+        if args['at']:
+            msg = do_it(at=args['at'])
+            dev.close()
+        else:
+            msg = do_it(in_min=delay)
+            # no need to close session with immediate shutdown/reboot because
+            # the device will be shutting and we will lose connectivity anyway
+            if delay > 0:
+                dev.close()
+    except Exception as err:
+        msg = 'error during device reboot or shutdown {0}: {1}'.format(args['host'], str(err))
+        module.fail_json(msg=msg)
 
+    results = {'changed': True, 'reboot': restart_mode, 'msg':msg}
     module.exit_json(**results)
 
 from ansible.module_utils.basic import *
