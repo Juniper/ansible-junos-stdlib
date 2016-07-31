@@ -123,6 +123,7 @@ from distutils.version import LooseVersion
 import logging
 from lxml import etree
 from lxml.builder import E
+import os.path
 
 try:
     from jnpr.junos import Device
@@ -149,6 +150,13 @@ def jsnap_selection(dev, module):
         config_data = os.path.join(config_dir, config_file)
     else:
         test_files = args.get('test_files')
+
+        for test_file in test_files:
+            if not os.path.isfile(test_file):
+                msg = 'unable to find the test file {0}'.format(test_file)
+                logging.error(msg)
+                module.fail_json(msg=msg)
+
         config_data = {'tests': test_files}
 
     results = {}
