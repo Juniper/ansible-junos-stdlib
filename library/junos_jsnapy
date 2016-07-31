@@ -163,6 +163,7 @@ def jsnap_selection(dev, module):
     elif action == 'check':
         snapValue = js.check(data=config_data, dev=dev, pre_file='PRE', post_file='POST')
 
+    percentagePassed = 0
     if isinstance(snapValue, (list)):
         for snapCheck in snapValue:
             router = snapCheck.device
@@ -173,7 +174,10 @@ def jsnap_selection(dev, module):
             results['test_results'] = snapCheck.test_results
             total_test = int(snapCheck.no_passed) + int(snapCheck.no_failed)
             results['total_tests'] = total_test
-        percentagePassed = (int(results['total_passed']) * 100 ) / (results['total_tests'])
+
+        if total_test != 0:
+            percentagePassed = (int(results['total_passed']) * 100 ) / (results['total_tests'])
+
         results['passPercentage'] = percentagePassed
 
     return results
