@@ -99,6 +99,12 @@ options:
               timeout interval.
         required: false
         default: "0"
+    mode:
+        description:
+            - Set mode to 'private' to work in private database
+        required: false
+        default: None
+        choices: ['private']
     logfile:
         description:
             - Path on the local server where the progress status is logged
@@ -219,107 +225,122 @@ def _load_via_netconf(module):
     if timeout > 0:
         dev.timeout = timeout
 
-    cu = Config(dev)
+    mode = args['mode']
+    if mode == 'private':
+        cu = Config(dev, mode='private')
+    else:
+        cu = Config(dev)
 
-    results = {}
+    with cu:
+        results = {}
 
-    file_path = module.params['file']
-    file_path = os.path.abspath(file_path)
+        file_path = module.params['file']
+        file_path = os.path.abspath(file_path)
 
-    results['file'] = file_path
-    results['changed'] = False
+        results['file'] = file_path
+        results['changed'] = False
 
-    logging.info("pushing file: {0}".format(file_path))
-    try:
-        logging.info("taking lock")
-        cu.lock()
+        logging.info("pushing file: {0}".format(file_path))
 
-    except LockError:
-        msg = "Unable to lock configuration"
-        logging.error(msg)
-        module.fail_json(msg=msg)
-
-    try:
-        # load the config.  the cu.load will raise
-        # an exception if there is even a warning.
-        # so we want to avoid that condition.
-        logging.info("loading config")
-        load_args = {'path': file_path}
-        if replace is True:
-            load_args['merge'] = False
-        elif overwrite is True:
-            load_args['overwrite'] = True
-        elif overwrite is False:
-            load_args['merge'] = True
-        cu.load(**load_args)
-    except (ValueError, ConfigLoadError, Exception) as err:
-        msg = "Unable to load config: {0}".format(err)
-        logging.error(msg)
-        try:
-            logging.info("unlocking")
-            cu.unlock()
-        except UnlockError as err:
-            logging.error("Unable to unlock config: {0}".format(err))
-        dev.close()
-        module.fail_json(msg=msg)
-
-    diff = cu.diff()
-
-    if diff is not None:
-        results['changed'] = True
-        if getattr(module,'_diff',False) is True:
-            results['diff'] = dict(
-                prepared = diff
-            )
-        diffs_file = args['diffs_file']
-        if diffs_file is not None:
+        # lock config if mode is not private
+        if mode is None:
             try:
-                f = open(diffs_file, 'w')
-                f.write(diff.encode('utf-8', 'ignore'))
-                f.close()
-            except IOError as (errno, strerror):
-                msg = "Problem with diffs_file {0}: ".format(diffs_file)
-                msg += "I/O Error: ({0}): {1}".format(errno, strerror)
-                logging.error(msg)
-                module.fail_json(msg=msg)
-            except Exception as err:
-                msg = "Problem with diffs_file {0}: ".format(diffs_file)
-                msg += "Unexpected error: {0}".format(err)
+                logging.info("taking lock")
+                cu.lock()
+
+            except LockError:
+                msg = "Unable to lock configuration"
                 logging.error(msg)
                 module.fail_json(msg=msg)
 
         try:
-            logging.info("doing a commit-check, please be patient")
-            cu.commit_check()
-            if (in_check_mode):
-                logging.info("Ansible check mode complete")
-                module.exit_json(**results)
-            else:
-                logging.info("committing change, please be patient")
-                opts = {}
-                if args['comment'] is not None:
-                    opts['comment'] = args['comment']
-                if args['confirm'] is not None:
-                    opts['confirm'] = args['confirm']
-
-                cu.commit(**opts)
-
-        except CommitError as err:
-            msg = "Unable to commit configuration: {0}".format(err)
+            # load the config.  the cu.load will raise
+            # an exception if there is even a warning.
+            # so we want to avoid that condition.
+            logging.info("loading config")
+            load_args = {'path': file_path}
+            if replace is True:
+                load_args['merge'] = False
+            elif overwrite is True:
+                load_args['overwrite'] = True
+            elif overwrite is False:
+                load_args['merge'] = True
+            cu.load(**load_args)
+        except (ValueError, ConfigLoadError, Exception) as err:
+            msg = "Unable to load config: {0}".format(err)
             logging.error(msg)
+            # unlock if mode is not private
+            if mode is None:
+                try:
+                    logging.info("unlocking")
+                    cu.unlock()
+                except UnlockError as err:
+                    logging.error("Unable to unlock config: {0}".format(err))
+            dev.close()
+            module.fail_json(msg=msg)
+
+        diff = cu.diff()
+
+        if diff is not None:
+            results['changed'] = True
+            if getattr(module,'_diff',False) is True:
+                results['diff'] = dict(
+                    prepared = diff
+                )
+            diffs_file = args['diffs_file']
+            if diffs_file is not None:
+                try:
+                    f = open(diffs_file, 'w')
+                    f.write(diff.encode('utf-8', 'ignore'))
+                    f.close()
+                except IOError as (errno, strerror):
+                    msg = "Problem with diffs_file {0}: ".format(diffs_file)
+                    msg += "I/O Error: ({0}): {1}".format(errno, strerror)
+                    logging.error(msg)
+                    module.fail_json(msg=msg)
+                except:
+                    msg = "Problem with diffs_file {0}: ".format(diffs_file)
+                    msg += "Unexpected error:", sys.exc_info()[0]
+                    logging.error(msg)
+                    module.fail_json(msg=msg)
+
+            try:
+                logging.info("doing a commit-check, please be patient")
+                cu.commit_check()
+                if (in_check_mode):
+                    logging.info("Ansible check mode complete")
+                    module.exit_json(**results)
+                else:
+                    logging.info("committing change, please be patient")
+                    opts = {}
+                    if args['comment'] is not None:
+                        opts['comment'] = args['comment']
+                    if args['confirm'] is not None:
+                        opts['confirm'] = args['confirm']
+
+                    cu.commit(**opts)
+                    results['changed'] = True
+
+            except CommitError as err:
+                msg = "Unable to commit configuration: {0}".format(err)
+                logging.error(msg)
+                # unlock if mode is not private
+                if mode is None:
+                    try:
+                        logging.info("unlocking")
+                        cu.unlock()
+                    except UnlockError as err:
+                        logging.error("Unable to unlock config: {0}".format(err))
+                dev.close()
+                module.fail_json(msg=msg)
+
+        # unlock if mode is not private
+        if mode is None:
             try:
                 logging.info("unlocking")
                 cu.unlock()
             except UnlockError as err:
                 logging.error("Unable to unlock config: {0}".format(err))
-            dev.close()
-            module.fail_json(msg=msg)
-
-    try:
-        logging.info("unlocking")
-        cu.unlock()
-    except UnlockError as err:
-        logging.error("Unable to unlock config: {0}".format(err))
 
     logging.info("change completed")
 
@@ -395,12 +416,13 @@ def main():
             passwd=dict(required=False, default=None),
             console=dict(required=False, default=None),
             file=dict(required=True),
-            overwrite=dict(required=False, type='bool', choices=BOOLEANS, default=False),
-            replace=dict(required=False, type='bool', choices=BOOLEANS, default=False),
+            overwrite=dict(required=False, choices=BOOLEANS, default=False),
+            replace=dict(required=False, choices=BOOLEANS, default=False),
             logfile=dict(required=False, default=None),
             diffs_file=dict(required=False, default=None),
             savedir=dict(required=False),
             timeout=dict(required=False, default=0),
+            mode=dict(required=False, default=None),
             comment=dict(required=False, default=None),
             port=dict(required=False, default=830),
             confirm=dict(required=False, default=None)
