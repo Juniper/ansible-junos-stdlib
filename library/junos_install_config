@@ -438,6 +438,9 @@ def main():
     # make sure file actually exists
     # ------------------------------
 
+    # PF: normalize file
+    args['file'] = os.path.abspath(os.path.expanduser(args['file']))
+
     if not isfile(args['file']):
         module.fail_json(msg="file not found: {0}".format(args['file']))
         return
