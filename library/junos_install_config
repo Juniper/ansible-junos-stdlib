@@ -308,7 +308,7 @@ def _load_via_netconf(module):
                 if args['confirm'] is not None:
                     opts['confirm'] = args['confirm']
 
-                if int(args['check_commit_wait']) > 0:
+                if args['check_commit_wait']:
 				   check_commit_wait = int(args['check_commit_wait'])
                    if 1 <= check_commit_wait <= 4:
                       time.sleep(check_commit_wait)
@@ -415,6 +415,7 @@ def main():
             comment=dict(required=False, default=None),
             port=dict(required=False, default=830),
             confirm=dict(required=False, default=None),
+            check_commit_wait=dict(required=False, default=None)
         ),
         supports_check_mode=True)
 
