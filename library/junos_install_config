@@ -138,12 +138,12 @@ options:
             - Provide a confirm in minutes to the commit of the configuration
         required: false
         default: None
-    dual_re:
+    check_commit_wait:
         description:
-            - Set to yes in a Dual RE scenario when 'commit sync' is enabled in the config
+            - Set to number of seconds to wait between check and commit.
         required: false
-        default: no
-        choices: ['true','false','yes','no']
+        default: "0"
+        choices: [1 - 4]
 '''
 
 EXAMPLES = '''
@@ -308,8 +308,10 @@ def _load_via_netconf(module):
                 if args['confirm'] is not None:
                     opts['confirm'] = args['confirm']
 
-                if args['dual_re']:
-                    time.sleep(1)
+                if int(args['check_commit_wait']) > 0:
+				   check_commit_wait = int(args['check_commit_wait'])
+                   if 1 <= check_commit_wait <= 4:
+                      time.sleep(check_commit_wait)
 
                 cu.commit(**opts)
 
@@ -413,7 +415,6 @@ def main():
             comment=dict(required=False, default=None),
             port=dict(required=False, default=830),
             confirm=dict(required=False, default=None),
-            dual_re=dict(required=False, type='bool', choices=BOOLEANS, default=False)
         ),
         supports_check_mode=True)
 
