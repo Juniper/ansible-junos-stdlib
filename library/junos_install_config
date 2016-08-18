@@ -142,7 +142,7 @@ options:
         description:
             - Set to number of seconds to wait between check and commit.
         required: false
-        default: "0"
+        default: None
         choices: [1 - 4]
 '''
 
