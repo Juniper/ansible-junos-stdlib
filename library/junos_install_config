@@ -144,6 +144,11 @@ options:
             - Provide a confirm in minutes to the commit of the configuration
         required: false
         default: None
+    commit_changes:
+        description:
+            - If set, we will actually commit the config, if not, we will just obtain the diff
+        required: false
+        default: True
 '''
 
 EXAMPLES = '''
@@ -267,17 +272,19 @@ def _load_via_netconf(module):
                 load_args['merge'] = True
             cu.load(**load_args)
         except (ValueError, ConfigLoadError, Exception) as err:
-            msg = "Unable to load config: {0}".format(err)
-            logging.error(msg)
-            # unlock if mode is not private
-            if mode is None:
-                try:
-                    logging.info("unlocking")
-                    cu.unlock()
-                except UnlockError as err:
-                    logging.error("Unable to unlock config: {0}".format(err))
-            dev.close()
-            module.fail_json(msg=msg)
+            # warning - this is a hack
+            if 'warning: statement not found' not in str(err):
+                msg = "Unable to load config: {0}".format(err)
+                logging.error(msg)
+                # unlock if mode is not private
+                if mode is None:
+                    try:
+                        logging.info("unlocking")
+                        cu.unlock()
+                    except UnlockError as err:
+                        logging.error("Unable to unlock config: {0}".format(err))
+                dev.close()
+                module.fail_json(msg=msg)
 
         diff = cu.diff()
 
@@ -303,6 +310,14 @@ def _load_via_netconf(module):
                     msg += "Unexpected error:", sys.exc_info()[0]
                     logging.error(msg)
                     module.fail_json(msg=msg)
+
+            # stop here if we don't want to commit the changes, but only save the diff
+            if not commit_changes:
+                cu.rollback(rb_id=0)
+                if mode is None:
+                    cu.unlock()
+                dev.close()
+                module.exit_json(**results)
 
             try:
                 logging.info("doing a commit-check, please be patient")
@@ -426,6 +441,7 @@ def main():
             comment=dict(required=False, default=None),
             port=dict(required=False, default=830),
             confirm=dict(required=False, default=None)
+            commit_changes=dict(required=False, default=True)
         ),
         supports_check_mode=True)
 
