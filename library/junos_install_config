@@ -460,6 +460,7 @@ def main():
 
     # PF: normalize file
     args['file'] = os.path.abspath(os.path.expanduser(args['file']))
+    args['diffs_file'] = os.path.abspath(os.path.expanduser(args['diffs_file']))
 
     if not isfile(args['file']):
         module.fail_json(msg="file not found: {0}".format(args['file']))
