@@ -209,6 +209,7 @@ def _load_via_netconf(module):
     in_check_mode = module.check_mode
     overwrite = module.boolean(module.params['overwrite'])
     replace = module.boolean(module.params['replace'])
+    commit_changes = module.boolean(module.params['commit_changes'])
 
     if all([overwrite, replace]):
         msg = "Overwrite and Replace cannot both be True!"
@@ -273,6 +274,7 @@ def _load_via_netconf(module):
             cu.load(**load_args)
         except (ValueError, ConfigLoadError, Exception) as err:
             # warning - this is a hack
+            logging.exception(err)
             if 'warning: statement not found' not in str(err):
                 msg = "Unable to load config: {0}".format(err)
                 logging.error(msg)
@@ -286,6 +288,7 @@ def _load_via_netconf(module):
                 dev.close()
                 module.fail_json(msg=msg)
 
+        logging.info("diff config")
         diff = cu.diff()
 
         if diff is not None:
@@ -313,6 +316,7 @@ def _load_via_netconf(module):
 
             # stop here if we don't want to commit the changes, but only save the diff
             if not commit_changes:
+                logging.info("discard changes")
                 cu.rollback(rb_id=0)
                 if mode is None:
                     cu.unlock()
@@ -440,8 +444,8 @@ def main():
             mode=dict(required=False, default=None),
             comment=dict(required=False, default=None),
             port=dict(required=False, default=830),
-            confirm=dict(required=False, default=None)
-            commit_changes=dict(required=False, default=True)
+            confirm=dict(required=False, default=None),
+            commit_changes=dict(required=False, choices=BOOLEANS, default=True)
         ),
         supports_check_mode=True)
 
