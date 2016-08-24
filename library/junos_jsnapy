@@ -240,7 +240,7 @@ def main():
             )
             logging.error(msg)
             dev.close()
-            module.fail_json(msg=msg, **data)
+            module.exit_json(msg=msg, **data)
 
     except Exception as err:
         msg = 'Uncaught exception - please report: {0}'.format(str(err))
