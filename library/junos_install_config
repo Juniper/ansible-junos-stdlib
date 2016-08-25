@@ -138,6 +138,12 @@ options:
             - Provide a confirm in minutes to the commit of the configuration
         required: false
         default: None
+    check_commit_wait:
+        description:
+            - Set to number of seconds to wait between check and commit.
+        required: false
+        default: None
+        choices: [1 - 4]
 '''
 
 EXAMPLES = '''
@@ -302,6 +308,11 @@ def _load_via_netconf(module):
                 if args['confirm'] is not None:
                     opts['confirm'] = args['confirm']
 
+                if args['check_commit_wait']:
+				   check_commit_wait = int(args['check_commit_wait'])
+                   if 1 <= check_commit_wait <= 4:
+                      time.sleep(check_commit_wait)
+
                 cu.commit(**opts)
 
         except CommitError as err:
@@ -403,7 +414,8 @@ def main():
             timeout=dict(required=False, default=0),
             comment=dict(required=False, default=None),
             port=dict(required=False, default=830),
-            confirm=dict(required=False, default=None)
+            confirm=dict(required=False, default=None),
+            check_commit_wait=dict(required=False, default=None)
         ),
         supports_check_mode=True)
 
