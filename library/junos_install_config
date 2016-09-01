@@ -309,7 +309,7 @@ def _load_via_netconf(module):
                     opts['confirm'] = args['confirm']
 
                 if args['check_commit_wait']:
-				   check_commit_wait = int(args['check_commit_wait'])
+                   check_commit_wait = int(args['check_commit_wait'])
                    if 1 <= check_commit_wait <= 4:
                       time.sleep(check_commit_wait)
 
