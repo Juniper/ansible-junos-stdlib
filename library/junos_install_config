@@ -173,17 +173,6 @@ from os.path import isfile
 import os
 from distutils.version import LooseVersion
 
-try:
-    from jnpr.junos import Device
-    from jnpr.junos.exception import *
-    from jnpr.junos.utils.config import Config
-    from jnpr.junos.version import VERSION
-    if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
-        HAS_PYEZ = False
-    else:
-        HAS_PYEZ = True
-except ImportError:
-    HAS_PYEZ = False
 
 
 def _load_via_netconf(module):
@@ -407,11 +396,18 @@ def main():
         ),
         supports_check_mode=True)
 
-    if not HAS_PYEZ:
-        module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
-
     args = module.params
 
+    try:
+        from jnpr.junos import Device
+        from jnpr.junos.exception import *
+        from jnpr.junos.utils.config import Config
+        from jnpr.junos.version import VERSION
+        if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
+            module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
+    except ImportError as ex:
+        module.fail_json(msg='ImportError: %s' % ex.message)
+    
     # ------------------------------
     # make sure file actually exists
     # ------------------------------

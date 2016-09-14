@@ -123,21 +123,8 @@ from distutils.version import LooseVersion
 import logging
 from lxml import etree
 from lxml.builder import E
-
-try:
-    from jnpr.junos import Device
-    from jnpr.junos.version import VERSION
-    from jnpr.junos.exception import RpcError
-    from jnpr.jsnapy import SnapAdmin
-    import os
-    import time
-    if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
-        HAS_PYEZ = False
-    else:
-        HAS_PYEZ = True
-except ImportError as ex:
-    HAS_PYEZ = False
-
+import os
+import time
 
 def jsnap_selection(dev, module):
 
@@ -195,11 +182,18 @@ def main():
         required_one_of=[['test_files', 'config_file']],
         supports_check_mode=False)
 
-    if not HAS_PYEZ:
-        module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
-
     args = module.params
     results = {}
+
+    try:
+        from jnpr.junos import Device
+        from jnpr.junos.version import VERSION
+        from jnpr.junos.exception import RpcError
+        from jnpr.jsnapy import SnapAdmin
+        if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
+            module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
+    except ImportError as ex:
+        module.fail_json(msg='ImportError: %s' % ex.message)
 
     logfile = args['logfile']
     if logfile is not None:

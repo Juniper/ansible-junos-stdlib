@@ -120,19 +120,8 @@ import logging
 import os
 from lxml import etree
 from lxml.builder import E
-from jnpr.junos.factory.factory_loader import FactoryLoader
 import yaml
 
-try:
-    from jnpr.junos import Device
-    from jnpr.junos.version import VERSION
-    import jnpr.junos.op as tables_dir
-    if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
-        HAS_PYEZ = False
-    else:
-        HAS_PYEZ = True
-except ImportError:
-    HAS_PYEZ = False
 
 TABLE_PATH = os.path.dirname(os.path.abspath(tables_dir.__file__))
 CHOICES = ['list_of_dicts', 'juniper_items']
@@ -178,10 +167,17 @@ def main():
                            ),
         supports_check_mode=False)
 
-    if not HAS_PYEZ:
-        module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
-
     args = module.params
+
+    try:
+        from jnpr.junos import Device
+        from jnpr.junos.version import VERSION
+        import jnpr.junos.op as tables_dir
+        from jnpr.junos.factory.factory_loader import FactoryLoader
+        if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
+            module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
+    except ImportError as ex:
+        module.fail_json(msg='ImportError: %s' % ex.message)
 
     logfile = args['logfile']
     response_type = args['response_type']

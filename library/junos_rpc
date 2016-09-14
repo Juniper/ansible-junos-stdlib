@@ -165,7 +165,6 @@ import os
 import sys
 import logging
 import re
-from jnpr.junos import Device
 from lxml import etree
 
 def junos_rpc(module, dev):
@@ -243,6 +242,15 @@ def main():
         supports_check_mode=False)
 
     m_args = module.params
+
+    try:
+        from jnpr.junos import Device
+        from jnpr.junos.version import VERSION
+        if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
+            module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
+    except ImportError as ex:
+        module.fail_json(msg='ImportError: %s' % ex.message)
+
     # -----------
     # via NETCONF
     # -----------
