@@ -136,15 +136,6 @@ import sys
 import re
 from lxml import etree
 from distutils.version import LooseVersion
-try:
-    from jnpr.junos import Device
-    from jnpr.junos.version import VERSION
-    if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
-        HAS_PYEZ = False
-    else:
-        HAS_PYEZ = True
-except ImportError:
-    HAS_PYEZ = False
 
 def main():
     module = AnsibleModule(
@@ -166,11 +157,16 @@ def main():
         supports_check_mode=False
     )
 
-    if not HAS_PYEZ:
-        module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
-
     results = {}
     m_args = module.params
+
+    try:
+        from jnpr.junos import Device
+        from jnpr.junos.version import VERSION
+        if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
+            module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
+    except ImportError as ex:
+        module.fail_json(msg='ImportError: %s' % ex.message)
 
     # Open connection to device
     dev = Device(

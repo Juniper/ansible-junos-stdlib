@@ -154,8 +154,8 @@ def main():
             from jnpr.junos.version import VERSION
             if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
                 module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
-        except ImportError:
-            module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
+        except ImportError as ex:
+            module.fail_json(msg='ImportError: %s' % ex.message)
 
         dev = Device(args['host'], user=args['user'], password=args['passwd'], port=args['port'])
         try:
