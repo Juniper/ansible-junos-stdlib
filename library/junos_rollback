@@ -110,19 +110,6 @@ EXAMPLES = '''
 from distutils.version import LooseVersion
 import logging
 
-try:
-    from jnpr.junos import Device
-    from jnpr.junos.version import VERSION
-    from jnpr.junos.utils.config import Config
-    from jnpr.junos.exception import CommitError, LockError, UnlockError, RpcError
-    if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
-        HAS_PYEZ = False
-    else:
-        HAS_PYEZ = True
-except ImportError:
-    HAS_PYEZ = False
-
-
 def main():
 
     module = AnsibleModule(
@@ -139,11 +126,18 @@ def main():
                            ),
         supports_check_mode=True)
 
-    if not HAS_PYEZ:
-        module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
-
     args = module.params
     in_check_mode = module.check_mode
+
+    try:
+        from jnpr.junos import Device
+        from jnpr.junos.version import VERSION
+        from jnpr.junos.utils.config import Config
+        from jnpr.junos.exception import CommitError, LockError, UnlockError, RpcError
+        if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
+            module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
+    except ImportError as ex:
+        module.fail_json(msg='ImportError: %s' % ex.message)
 
     results = dict(changed=False)
 
