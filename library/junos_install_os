@@ -128,16 +128,6 @@ import logging
 import re
 import os
 from distutils.version import LooseVersion
-try:
-    from jnpr.junos import Device
-    from jnpr.junos.version import VERSION
-    if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
-        HAS_PYEZ = False
-    else:
-        HAS_PYEZ = True
-except ImportError:
-    HAS_PYEZ = False
-
 
 def junos_install_os(module, dev):
     args = module.params
@@ -220,7 +210,6 @@ def junos_install_os(module, dev):
 
 
 def main():
-    #
     module = AnsibleModule(
         argument_spec=dict(
             host=dict(required=True),
@@ -236,11 +225,16 @@ def main():
         ),
         supports_check_mode=True
     )
-
-    if not HAS_PYEZ:
-        module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
-
     args = module.params
+
+    try:
+        from jnpr.junos import Device
+        from jnpr.junos.version import VERSION
+        if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
+            module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
+    except ImportError as ex:
+        module.fail_json(msg='ImportError: %s' % ex.message)
+
 
     # @@@ need to verify that the package file actually exists
     # @@@ before proceeding.
