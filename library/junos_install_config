@@ -51,7 +51,7 @@ description:
       NETCONF include ASCII text, Junos XML elements, and Junos OS B(set) commands.
       Configurations performed through the console must only use ASCII text formatting.
 requirements:
-    - junos-eznc >= 1.2.2
+    - junos-eznc >= 2.0.0
     - junos-netconify >= 1.0.1, when using the I(console) option
 options:
     host:
@@ -130,9 +130,14 @@ options:
         default: None
     port:
         description:
-            - TCP port number to use when connecting to the device
+            - port number to use when connecting to the device
         required: false
         default: 830
+    mode:
+        description:
+            - mode of console connection (telnet/serial)
+        required: false
+        default: None
     confirm:
         description:
             - Provide a confirm in minutes to the commit of the configuration
@@ -172,6 +177,14 @@ EXAMPLES = '''
     host={{ inventory_hostname }}
     file=snmp.conf
     replace=yes
+
+# Install/load config using Console connection via PyEZ
+
+- junos_install_config:
+    host={{ inventory_hostname }}
+    port=7016
+    mode='telnet'
+    file=default_new_switch.conf
 '''
 
 import logging
@@ -189,8 +202,8 @@ def _load_via_netconf(module):
         from jnpr.junos.exception import *
         from jnpr.junos.utils.config import Config
         from jnpr.junos.version import VERSION
-        if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
-            module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
+        if not LooseVersion(VERSION) >= LooseVersion('2.0.0'):
+            module.fail_json(msg='junos-eznc >= 2.0.0 is required for this module')
     except ImportError as ex:
         module.fail_json(msg='ImportError: %s' % ex.message)
 
@@ -212,8 +225,9 @@ def _load_via_netconf(module):
     logging.info("connecting to host: {0}@{1}:{2}".format(args['user'], args['host'], args['port']))
 
     try:
-        dev = Device(args['host'], user=args['user'], password=args['passwd'], port=args['port'])
-        dev.open(gather_facts=False)
+        dev = Device(args['host'], user=args['user'], password=args['passwd'], port=args['port'],
+                     mode=args['mode'], gather_facts=False)
+        dev.open()
     except Exception as err:
         msg = 'unable to connect to {0}: {1}'.format(args['host'], str(err))
         logging.error(msg)
@@ -413,6 +427,7 @@ def main():
             timeout=dict(required=False, default=0),
             comment=dict(required=False, default=None),
             port=dict(required=False, default=830),
+            mode=dict(required=False, default=None),
             confirm=dict(required=False, default=None),
             check_commit_wait=dict(required=False, default=None)
         ),

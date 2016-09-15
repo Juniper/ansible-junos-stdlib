@@ -45,7 +45,7 @@ description:
       and returns the information as a JSON dictionary.
       The information is similar to facts gathered by other IT frameworks.
 requirements:
-    - junos-eznc >= 1.2.2
+    - junos-eznc >= 2.0.0
     - junos-netconify >= 1.0.1, when using the I(console) option
 options:
     host:
@@ -83,9 +83,14 @@ options:
         default: None
     port:
         description:
-            - TCP port number to use when connecting to the device
+            - port number to use when connecting to the device
         required: false
         default: 830
+    mode:
+        description:
+            - mode of console connection (telnet/serial)
+        required: false
+        default: None
 '''
 
 EXAMPLES = '''
@@ -108,6 +113,19 @@ EXAMPLES = '''
 
 - name: version
   debug: msg="{{ junos.facts.version }}"
+
+# retrieve facts using console connection via PyEZ
+
+- junos_get_facts:
+    host={{ inventory_hostname }}
+    mode="telnet"
+    port=7016
+  register: junos
+
+# access the facts
+
+- name: version
+  debug: msg="{{ junos.facts }}"
 '''
 
 import os
@@ -123,7 +141,8 @@ def main():
             savedir=dict(required=False, default=None),
             user=dict(required=False, default=os.getenv('USER')),
             passwd=dict(required=False, default=None),
-            port=dict(required=False, default=830)),
+            port=dict(required=False, default=830),
+            mode=dict(required=False, default=None)),
         supports_check_mode=True)
 
     m_args = module.params
@@ -133,14 +152,15 @@ def main():
         try:
             from jnpr.junos import Device
             from jnpr.junos.version import VERSION
-            if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
-                module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
+            if not LooseVersion(VERSION) >= LooseVersion('2.0.0'):
+                module.fail_json(msg='junos-eznc >= 2.0.0 is required for this module')
         except ImportError as ex:
             module.fail_json(msg='ImportError: %s' % ex.message)
         # -----------
         # via NETCONF
         # -----------
-        dev = Device(m_args['host'], user=m_args['user'], passwd=m_args['passwd'], port=m_args['port'])
+        dev = Device(m_args['host'], user=m_args['user'], passwd=m_args['passwd'], port=m_args['port'],
+                     mode=m_args['mode'], gather_facts=True)
         try:
             dev.open()
         except Exception as err:

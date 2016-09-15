@@ -41,7 +41,7 @@ short_description: run given rpc
 description:
     - run given rpc
 requirements:
-    - junos-eznc >= 1.0.0
+    - junos-eznc >= 2.0.0
 options:
     host:
         description:
@@ -62,6 +62,11 @@ options:
             - TCP port number to use when connecting to the device
         required: false
         default: 830
+    mode:
+        description:
+            - mode of console connection (telnet/serial)
+        required: false
+        default: None
     logfile:
         description:
             - Path on the local server where the progress status is logged
@@ -130,6 +135,15 @@ EXAMPLES = '''
     rpc=get-config
     dest=get_config.conf
 
+# Example to fetch device configuration over console connection
+- name: Get Device Configuration
+  junos_rpc:
+    host={{ inventory_hostname }}
+    port=7005
+    mode='telnet'
+    rpc=get-config
+    dest=get_config.conf
+
 # Example to fetch device configuration
 - name: Get Device Configuration for interface
   junos_rpc:
@@ -165,6 +179,7 @@ import os
 import sys
 import logging
 import re
+from distutils.version import LooseVersion
 from lxml import etree
 
 def junos_rpc(module, dev):
@@ -233,6 +248,7 @@ def main():
             user=dict(required=False, default=os.getenv('USER')),
             passwd=dict(required=False, default=None),
             port=dict(required=False, default=830),
+            mode=dict(required=False, default=None),
             timeout=dict(required=False, type='int', default=0),
             rpc=dict(required=True, default=None),
             kwargs=dict(required=False, default=None),
@@ -246,8 +262,8 @@ def main():
     try:
         from jnpr.junos import Device
         from jnpr.junos.version import VERSION
-        if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
-            module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
+        if not LooseVersion(VERSION) >= LooseVersion('2.0.0'):
+            module.fail_json(msg='junos-eznc >= 2.0.0 is required for this module')
     except ImportError as ex:
         module.fail_json(msg='ImportError: %s' % ex.message)
 
@@ -255,7 +271,7 @@ def main():
     # via NETCONF
     # -----------
     dev = Device(m_args['host'], user=m_args['user'], passwd=m_args['passwd'],
-                        port=m_args['port'], gather_facts=False)
+                        port=m_args['port'], mode=m_args['mode'], gather_facts=False)
     try:
         dev.open()
     except Exception as err:
