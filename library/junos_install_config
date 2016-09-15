@@ -184,6 +184,16 @@ from distutils.version import LooseVersion
 def _load_via_netconf(module):
     args = module.params
 
+    try:
+        from jnpr.junos import Device
+        from jnpr.junos.exception import *
+        from jnpr.junos.utils.config import Config
+        from jnpr.junos.version import VERSION
+        if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
+            module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
+    except ImportError as ex:
+        module.fail_json(msg='ImportError: %s' % ex.message)
+
     logfile = args['logfile']
     if logfile is not None:
         logging.basicConfig(filename=logfile, level=logging.INFO,
@@ -410,16 +420,6 @@ def main():
 
     args = module.params
 
-    try:
-        from jnpr.junos import Device
-        from jnpr.junos.exception import *
-        from jnpr.junos.utils.config import Config
-        from jnpr.junos.version import VERSION
-        if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
-            module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
-    except ImportError as ex:
-        module.fail_json(msg='ImportError: %s' % ex.message)
-    
     # ------------------------------
     # make sure file actually exists
     # ------------------------------
