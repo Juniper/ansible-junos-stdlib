@@ -165,6 +165,7 @@ import os
 import sys
 import logging
 import re
+from distutils.version import LooseVersion
 from lxml import etree
 
 def junos_rpc(module, dev):
