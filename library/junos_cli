@@ -41,7 +41,7 @@ short_description: Execute CLI on device and save the output locally
 description:
     - Execute CLI on device and save the output locally on a file
 requirements:
-    - junos-eznc >= 1.2.2
+    - junos-eznc >= 2.0.0
 options:
     host:
         description:
@@ -63,7 +63,7 @@ options:
         default: assumes ssh-key active
     port:
         description:
-            - TCP port number to use when connecting to the device
+            - port number to use when connecting to the device
         required: false
         default: 830
     mode:
