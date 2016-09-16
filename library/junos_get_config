@@ -43,7 +43,7 @@ description:
     - Retrieve the configuration of a device running Junos and save it to a file.
       B(Note) unicode chars will be converted to '??' as also done in PyEZ
 requirements:
-    - junos-eznc >= 1.2.2
+    - junos-eznc >= 2.0.0
 options:
     host:
         description:
@@ -61,9 +61,14 @@ options:
         default: assumes ssh-key active
     port:
         description:
-            - TCP port number to use when connecting to the device
+            - port number to use when connecting to the device
         required: false
         default: 830
+    mode:
+        description:
+            - mode of console connection (telnet/serial)
+        required: false
+        default: None
     logfile:
         description:
             - Path on the local server where the progress status is logged
@@ -106,6 +111,15 @@ EXAMPLES = '''
    format: xml
    filter: "interfaces"
    options: {inherit: inherit, groups: groups}
+
+# over console connection via PyEZ
+- junos_get_config:
+   host: "{{ inventory_hostname }}"
+   logfile: get_config.log
+   dest: "{{ inventory_hostname }}.xml"
+   port: 7016
+   mode: 'telnet'
+   format: xml
 '''
 from distutils.version import LooseVersion
 import logging
@@ -118,6 +132,7 @@ def main():
                            user=dict(required=False, default=os.getenv('USER')),
                            passwd=dict(required=False, default=None),
                            port=dict(required=False, default=830),
+                           mode=dict(required=False, default=None),
                            logfile=dict(required=False, default=None),
                            dest=dict(required=True, default=None),
                            format=dict(required=False, choices=['text', 'xml'], default='text'),
@@ -132,8 +147,8 @@ def main():
         from jnpr.junos import Device
         from jnpr.junos.version import VERSION
         from jnpr.junos.exception import RpcError
-        if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
-            module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
+        if not LooseVersion(VERSION) >= LooseVersion('2.0.0'):
+            module.fail_json(msg='junos-eznc >= 2.0.0 is required for this module')
     except ImportError as ex:
         module.fail_json(msg='ImportError: %s' % ex.message)
 
@@ -149,7 +164,7 @@ def main():
 
     try:
         dev = Device(args['host'], user=args['user'], password=args['passwd'],
-                     port=args['port'], gather_facts=False).open()
+                     port=args['port'], mode=args['mode'], gather_facts=False).open()
     except Exception as err:
         msg = 'unable to connect to {0}: {1}'.format(args['host'], str(err))
         logging.error(msg)

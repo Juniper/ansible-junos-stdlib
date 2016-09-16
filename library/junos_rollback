@@ -42,7 +42,7 @@ short_description: Rollback configuration of device
 description:
     - Rollback the configuration of a device running Junos
 requirements:
-    - junos-eznc >= 1.2.2
+    - junos-eznc >= 2.0.0
 options:
     host:
         description:
@@ -60,9 +60,14 @@ options:
         default: assumes ssh-key active
     port:
         description:
-            - TCP port number to use when connecting to the device
+            - port number to use when connecting to the device
         required: false
         default: 830
+    mode:
+        description:
+            - mode of console connection (telnet/serial)
+        required: false
+        default: None
     logfile:
         description:
             - Path on the local server where the progress status is logged
@@ -106,7 +111,19 @@ EXAMPLES = '''
    rollback=1
    comment="Rolled back by Ansible"
    confirm=5
+
+# over console connection via PyEZ
+- junos_rollback:
+   host: "{{ inventory_hostname }}"
+   logfile=rollback.log
+   diffs_file=rollback.diff
+   rollback=1
+   comment="Rolled back by Ansible"
+   confirm=5
+   mode='telnet'
+   port=7015
 '''
+
 from distutils.version import LooseVersion
 import logging
 
@@ -117,6 +134,7 @@ def main():
                            user=dict(required=False, default=os.getenv('USER')),
                            passwd=dict(required=False, default=None),
                            port=dict(required=False, default=830),
+                           mode=dict(required=False, default=None),
                            logfile=dict(required=False, default=None),
                            rollback=dict(required=True, default=None),
                            timeout=dict(required=False, default=0),
@@ -134,8 +152,8 @@ def main():
         from jnpr.junos.version import VERSION
         from jnpr.junos.utils.config import Config
         from jnpr.junos.exception import CommitError, LockError, UnlockError, RpcError
-        if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
-            module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
+        if not LooseVersion(VERSION) >= LooseVersion('2.0.0'):
+            module.fail_json(msg='junos-eznc >= 2.0.0 is required for this module')
     except ImportError as ex:
         module.fail_json(msg='ImportError: %s' % ex.message)
 
@@ -157,7 +175,7 @@ def main():
 
     try:
         dev = Device(args['host'], user=args['user'], password=args['passwd'],
-                     port=args['port'], gather_facts=False).open()
+                     port=args['port'], mode=args['mode'], gather_facts=False).open()
     except Exception as err:
         msg = 'unable to connect to {0}: {1}'.format(args['host'], str(err))
         logging.error(msg)

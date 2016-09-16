@@ -52,7 +52,7 @@ description:
       configuration. After the reboot, you must log in through the console
       as root in order to access the device.
 requirements:
-    - junos-eznc >= 1.2.2
+    - junos-eznc >= 2.0.0 
     - junos-netconify >= 1.0.1, when using the I(console) option
 options:
     host:
@@ -90,9 +90,14 @@ options:
         default: None
     port:
         description:
-            - TCP port number to use when connecting to the device
+            - port number to use when connecting to the device
         required: false
         default: 830
+    mode:
+        description:
+            - mode of console connection (telnet/serial)
+        required: false
+        default: None
 notes:
     - You B(MUST) either use the I(host) option or the I(console) option to designate
       how the device is accessed.
@@ -102,6 +107,13 @@ EXAMPLES = '''
 - junos_zeroize:
     host={{ inventory_hostname }}
     zeroize="zeroize"
+
+# over console connection via PyEZ
+- junos_zeroize:
+    host={{ inventory_hostname }}
+    zeroize="zeroize"
+    port=7011
+    mode="telnet"
 '''
 
 import os
@@ -118,7 +130,8 @@ def main():
             user=dict(required=False, default=os.getenv('USER')),
             passwd=dict(required=False, default=None),
             logfile=dict(required=False, default=None),
-            port=dict(required=False, default=830)
+            port=dict(required=False, default=830),
+            mode=dict(required=False, default=None)
         ),
         supports_check_mode=False)
 
@@ -152,12 +165,13 @@ def main():
         try:
             from jnpr.junos import Device
             from jnpr.junos.version import VERSION
-            if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
-                module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
+            if not LooseVersion(VERSION) >= LooseVersion('2.0.0'):
+                module.fail_json(msg='junos-eznc >= 2.0.0 is required for this module')
         except ImportError as ex:
             module.fail_json(msg='ImportError: %s' % ex.message)
 
-        dev = Device(args['host'], user=args['user'], password=args['passwd'], port=args['port'])
+        dev = Device(args['host'], user=args['user'], password=args['passwd'], port=args['port'],
+                     mode=args['mode'], gather_facts=False)
         try:
             use_notifier(None, 'LOGIN', 'host={0}'.format(args['host']))
             dev.open()
