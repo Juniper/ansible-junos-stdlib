@@ -41,7 +41,7 @@ short_description: execute ping on junos devices
 description:
     - execute ping on junos devices
 requirements:
-    - junos-eznc >= 2.0.0
+    - junos-eznc >= 1.2.2
 options:
   host:
     description:
@@ -180,8 +180,8 @@ def main():
     try:
         from jnpr.junos import Device
         from jnpr.junos.version import VERSION
-        if not LooseVersion(VERSION) >= LooseVersion('2.0.0'):
-            module.fail_json(msg='junos-eznc >= 2.0.0 is required for this module')
+        if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
+            module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
     except ImportError as ex:
         module.fail_json(msg='ImportError: %s' % ex.message)
 

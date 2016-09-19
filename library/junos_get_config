@@ -43,7 +43,7 @@ description:
     - Retrieve the configuration of a device running Junos and save it to a file.
       B(Note) unicode chars will be converted to '??' as also done in PyEZ
 requirements:
-    - junos-eznc >= 2.0.0
+    - junos-eznc >= 1.2.2
 options:
     host:
         description:
@@ -147,8 +147,8 @@ def main():
         from jnpr.junos import Device
         from jnpr.junos.version import VERSION
         from jnpr.junos.exception import RpcError
-        if not LooseVersion(VERSION) >= LooseVersion('2.0.0'):
-            module.fail_json(msg='junos-eznc >= 2.0.0 is required for this module')
+        if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
+            module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
     except ImportError as ex:
         module.fail_json(msg='ImportError: %s' % ex.message)
 

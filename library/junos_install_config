@@ -51,7 +51,7 @@ description:
       NETCONF include ASCII text, Junos XML elements, and Junos OS B(set) commands.
       Configurations performed through the console must only use ASCII text formatting.
 requirements:
-    - junos-eznc >= 2.0.0
+    - junos-eznc >= 1.2.2
     - junos-netconify >= 1.0.1, when using the I(console) option
 options:
     host:
@@ -202,8 +202,8 @@ def _load_via_netconf(module):
         from jnpr.junos.exception import *
         from jnpr.junos.utils.config import Config
         from jnpr.junos.version import VERSION
-        if not LooseVersion(VERSION) >= LooseVersion('2.0.0'):
-            module.fail_json(msg='junos-eznc >= 2.0.0 is required for this module')
+        if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
+            module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
     except ImportError as ex:
         module.fail_json(msg='ImportError: %s' % ex.message)
 

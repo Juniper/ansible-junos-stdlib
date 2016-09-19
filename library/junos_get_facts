@@ -45,7 +45,7 @@ description:
       and returns the information as a JSON dictionary.
       The information is similar to facts gathered by other IT frameworks.
 requirements:
-    - junos-eznc >= 2.0.0
+    - junos-eznc >= 1.2.2
     - junos-netconify >= 1.0.1, when using the I(console) option
 options:
     host:
@@ -152,8 +152,8 @@ def main():
         try:
             from jnpr.junos import Device
             from jnpr.junos.version import VERSION
-            if not LooseVersion(VERSION) >= LooseVersion('2.0.0'):
-                module.fail_json(msg='junos-eznc >= 2.0.0 is required for this module')
+            if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
+                module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
         except ImportError as ex:
             module.fail_json(msg='ImportError: %s' % ex.message)
         # -----------

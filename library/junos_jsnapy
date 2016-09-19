@@ -45,7 +45,7 @@ Short_description: Integrate JSnapy to ansible
 description:
     - Execute JSnapy module from Ansible
 requirements:
-    - junos-eznc >= 2.0.0
+    - junos-eznc >= 1.2.2
 options:
     host:
         description:
@@ -137,8 +137,8 @@ try:
     from jnpr.junos.version import VERSION
     from jnpr.junos.exception import RpcError
     from jnpr.jsnapy import SnapAdmin
-    if not LooseVersion(VERSION) >= LooseVersion('2.0.0'):
-        import_err_message = 'junos-eznc >= 2.0.0 is required for this module'
+    if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
+        import_err_message = 'junos-eznc >= 1.2.2 is required for this module'
 except ImportError as ex:
     import_err_message = 'ImportError: %s' % ex.message
 

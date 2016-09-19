@@ -24,7 +24,7 @@ short_description: Retrieve data from a Junos device using Tables/Views
 description:
     - Retrieve data from a Junos device using Tables/Views
 requirements:
-    - junos-eznc >= 2.0.0
+    - junos-eznc >= 1.2.2
 options:
     host:
         description:
@@ -140,8 +140,8 @@ try:
     from jnpr.junos.version import VERSION
     import jnpr.junos.op as tables_dir
     from jnpr.junos.factory.factory_loader import FactoryLoader
-    if not LooseVersion(VERSION) >= LooseVersion('2.0.0'):
-        import_err_message = 'junos-eznc >= 2.0.0 is required for this module'
+    if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
+        import_err_message = 'junos-eznc >= 1.2.2 is required for this module'
 except ImportError as ex:
     import_err_message = 'ImportError: %s' % ex.message
 

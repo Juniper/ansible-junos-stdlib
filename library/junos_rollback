@@ -42,7 +42,7 @@ short_description: Rollback configuration of device
 description:
     - Rollback the configuration of a device running Junos
 requirements:
-    - junos-eznc >= 2.0.0
+    - junos-eznc >= 1.2.2
 options:
     host:
         description:
@@ -152,8 +152,8 @@ def main():
         from jnpr.junos.version import VERSION
         from jnpr.junos.utils.config import Config
         from jnpr.junos.exception import CommitError, LockError, UnlockError, RpcError
-        if not LooseVersion(VERSION) >= LooseVersion('2.0.0'):
-            module.fail_json(msg='junos-eznc >= 2.0.0 is required for this module')
+        if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
+            module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
     except ImportError as ex:
         module.fail_json(msg='ImportError: %s' % ex.message)
 
