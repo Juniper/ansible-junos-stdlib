@@ -267,6 +267,8 @@ def main():
     except ImportError as ex:
         module.fail_json(msg='ImportError: %s' % ex.message)
 
+    if m_args['mode'] is not None and LooseVersion(VERSION) < LooseVersion('2.0.0'):
+        module.fail_json(msg='junos-eznc >= 2.0.0 is required for console connection.')
     # -----------
     # via NETCONF
     # -----------

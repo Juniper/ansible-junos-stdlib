@@ -170,6 +170,9 @@ def main():
         except ImportError as ex:
             module.fail_json(msg='ImportError: %s' % ex.message)
 
+        if args['mode'] is not None and LooseVersion(VERSION) < LooseVersion('2.0.0'):
+            module.fail_json(msg='junos-eznc >= 2.0.0 is required for console connection')
+
         dev = Device(args['host'], user=args['user'], password=args['passwd'], port=args['port'],
                      mode=args['mode'], gather_facts=False)
         try:

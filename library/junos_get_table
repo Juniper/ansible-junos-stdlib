@@ -196,6 +196,9 @@ def main():
     if import_err_message is not None:
         module.fail_json(msg=import_err_message)
 
+    if args['mode'] is not None and LooseVersion(VERSION) < LooseVersion('2.0.0'):
+        module.fail_json(msg='junos-eznc >= 2.0.0 is required for console connection')
+
     logfile = args['logfile']
     response_type = args['response_type']
 

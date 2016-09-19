@@ -126,6 +126,8 @@ def main():
         ),
         supports_check_mode=False)
 
+    args = module.params
+
     try:
         from jnpr.junos import Device
         from jnpr.junos.utils.sw import SW
@@ -135,7 +137,9 @@ def main():
     except ImportError as ex:
         module.fail_json(msg='ImportError: %s' % ex.message)
 
-    args = module.params
+    if args['mode'] is not None and LooseVersion(VERSION) < LooseVersion('2.0.0'):
+        module.fail_json(msg='junos-eznc >= 2.0.0 is required for console connection.')
+
     if args['shutdown'] != 'shutdown':
         module.fail_json(msg='Say "shutdown" to proceed')
 
