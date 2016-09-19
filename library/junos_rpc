@@ -64,7 +64,8 @@ options:
         default: 830
     mode:
         description:
-            - mode of console connection (telnet/serial)
+            - mode of console connection (telnet/serial). If mode is not
+              provided SSH connection is used.
         required: false
         default: None
     logfile:
@@ -135,7 +136,7 @@ EXAMPLES = '''
     rpc=get-config
     dest=get_config.conf
 
-# Example to fetch device configuration over console connection
+# Fetch configuration over console server connection using PyEZ >= 2.0
 - name: Get Device Configuration
   junos_rpc:
     host={{ inventory_hostname }}

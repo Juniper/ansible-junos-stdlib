@@ -68,7 +68,8 @@ options:
         default: 830
     mode:
         description:
-            - mode of console connection (telnet/serial)
+            - mode of console connection (telnet/serial). If mode is not
+              provided SSH connection is used.
         required: false
         default: None
     logfile:

@@ -68,7 +68,8 @@ options:
         default: 830
     mode:
         description:
-            - mode of console connection (telnet/serial)
+            - mode of console connection (telnet/serial). If mode is not
+              provided SSH connection is used.
         required: false
         default: None
     timeout:
@@ -107,7 +108,7 @@ EXAMPLES = '''
    dest: "{{ inventory_hostname }}.xml"
    format: xml
 
-# Run cli over console connection via PyEZ
+# Run cli over console server connection using PyEZ >= 2.0
 - junos_cli:
     cli="show chassis hardware"
     host={{ inventory_hostname }}

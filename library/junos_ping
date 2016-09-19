@@ -64,7 +64,8 @@ options:
     default: 830
   mode:
     description:
-        - mode of console connection (telnet/serial)
+        - mode of console connection (telnet/serial). If mode is not
+          provided SSH connection is used.
     required: false
     default: None
   dest_ip:
@@ -122,7 +123,7 @@ EXAMPLES = '''
         passwd={{ ansible_ssh_pass }}
         dest_ip=8.8.8.8
 
-# ping over console connection 
+# ping over console server connection using PyEZ >= 2.0
   tasks:
     - name: "Execute ping peer"
       junos_ping:

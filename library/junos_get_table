@@ -53,7 +53,8 @@ options:
         default: 830
     mode:
         description:
-            - mode of console connection (telnet/serial)
+            - mode of console connection (telnet/serial). If mode is not
+              provided SSH connection is used.
         required: false
         default: None
     table:
@@ -91,7 +92,7 @@ EXAMPLES = '''
 - junos_get_table: table=NTCNeighborTable path=tables/ file=ntclldp.yaml host={{ inventory_hostname }} user={{ un }} passwd={{ pwd }}
 
 #
-- name: Table/View example via console connection 
+- name: Table/View example via console server connection using PyEZ >= 2.0
   junos_get_table:
     table=RouteTable
     file=routes.yml

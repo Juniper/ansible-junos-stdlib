@@ -88,7 +88,8 @@ options:
         default: 830
     mode:
         description:
-            - mode of console connection (telnet/serial)
+            - mode of console connection (telnet/serial). If mode is not
+              provided SSH connection is used.
         required: false
         default: None
 '''
@@ -114,7 +115,7 @@ EXAMPLES = '''
 - name: version
   debug: msg="{{ junos.facts.version }}"
 
-# retrieve facts using console connection via PyEZ
+# retrieve facts using console server connection using PyEZ >= 2.0
 
 - junos_get_facts:
     host={{ inventory_hostname }}

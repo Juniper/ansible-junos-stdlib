@@ -135,7 +135,8 @@ options:
         default: 830
     mode:
         description:
-            - mode of console connection (telnet/serial)
+            - mode of console connection (telnet/serial). If mode is not
+              provided SSH connection is used.
         required: false
         default: None
     confirm:
@@ -178,7 +179,7 @@ EXAMPLES = '''
     file=snmp.conf
     replace=yes
 
-# Install/load config using Console connection via PyEZ
+# Install/load config using console server connection using PyEZ >= 2.0
 
 - junos_install_config:
     host={{ inventory_hostname }}

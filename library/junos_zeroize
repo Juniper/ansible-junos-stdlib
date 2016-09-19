@@ -95,7 +95,8 @@ options:
         default: 830
     mode:
         description:
-            - mode of console connection (telnet/serial)
+            - mode of console connection (telnet/serial). If mode is not
+              provided SSH connection is used.
         required: false
         default: None
 notes:
@@ -108,7 +109,7 @@ EXAMPLES = '''
     host={{ inventory_hostname }}
     zeroize="zeroize"
 
-# over console connection via PyEZ
+# over console server connection using PyEZ >= 2.0
 - junos_zeroize:
     host={{ inventory_hostname }}
     zeroize="zeroize"
