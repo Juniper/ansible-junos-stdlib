@@ -138,6 +138,14 @@ options:
             - Provide a confirm in minutes to the commit of the configuration
         required: false
         default: None
+    check_commit:
+        description:
+            - Specify whether the configuration will be commit-checked or not.
+              Set to false, outputs similarly to the "show | compare" functionality,
+              while true returns the "commit check" result.
+        required: false
+        default: yes
+        choices: ['true','false','yes','no']
     check_commit_wait:
         description:
             - Set to number of seconds to wait between check and commit.
@@ -201,6 +209,7 @@ def _load_via_netconf(module):
         logging.getLogger().name = 'CONFIG:' + args['host']
 
     in_check_mode = module.check_mode
+    check_commit = module.boolean(module.params['check_commit'])
     overwrite = module.boolean(module.params['overwrite'])
     replace = module.boolean(module.params['replace'])
 
@@ -293,37 +302,38 @@ def _load_via_netconf(module):
                 logging.error(msg)
                 module.fail_json(msg=msg)
 
-        try:
-            logging.info("doing a commit-check, please be patient")
-            cu.commit_check()
-            if (in_check_mode):
-                logging.info("Ansible check mode complete")
-                module.exit_json(**results)
-            else:
-                logging.info("committing change, please be patient")
-                opts = {}
-                if args['comment'] is not None:
-                    opts['comment'] = args['comment']
-                if args['confirm'] is not None:
-                    opts['confirm'] = args['confirm']
-
-                if args['check_commit_wait']:
-                   check_commit_wait = int(args['check_commit_wait'])
-                   if 1 <= check_commit_wait <= 4:
-                      time.sleep(check_commit_wait)
-
-                cu.commit(**opts)
-
-        except CommitError as err:
-            msg = "Unable to commit configuration: {0}".format(err)
-            logging.error(msg)
+        if check_commit:
             try:
-                logging.info("unlocking")
-                cu.unlock()
-            except UnlockError as err:
-                logging.error("Unable to unlock config: {0}".format(err))
-            dev.close()
-            module.fail_json(msg=msg)
+                logging.info("doing a commit-check, please be patient")
+                cu.commit_check()
+                if (in_check_mode):
+                    logging.info("Ansible check mode complete")
+                    module.exit_json(**results)
+                else:
+                    logging.info("committing change, please be patient")
+                    opts = {}
+                    if args['comment'] is not None:
+                        opts['comment'] = args['comment']
+                    if args['confirm'] is not None:
+                        opts['confirm'] = args['confirm']
+
+                    if args['check_commit_wait']:
+                       check_commit_wait = int(args['check_commit_wait'])
+                       if 1 <= check_commit_wait <= 4:
+                          time.sleep(check_commit_wait)
+
+                    cu.commit(**opts)
+
+            except CommitError as err:
+                msg = "Unable to commit configuration: {0}".format(err)
+                logging.error(msg)
+                try:
+                    logging.info("unlocking")
+                    cu.unlock()
+                except UnlockError as err:
+                    logging.error("Unable to unlock config: {0}".format(err))
+                dev.close()
+                module.fail_json(msg=msg)
 
     try:
         logging.info("unlocking")
@@ -414,6 +424,7 @@ def main():
             comment=dict(required=False, default=None),
             port=dict(required=False, default=830),
             confirm=dict(required=False, default=None),
+            check_commit=dict(required=False, type='bool', choices=BOOLEANS, default=True),
             check_commit_wait=dict(required=False, default=None)
         ),
         supports_check_mode=True)
