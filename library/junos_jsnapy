@@ -36,14 +36,18 @@
 DOCUMENTATION = '''
 ---
 module: junos_jsnapy
-author: Roslan Zaki, Juniper Networks
-version_added: "1.0.0"
+author: Roslan Zaki & Damien Garros, Juniper Networks
+version_added: "1.4.0"
 version_control:
     13-Apr-2016     v1.0.0      - Basic working model
 
-Short_description: Integrate JSnapy to ansible
+Short_description: Integrate JSnapy to ansible.
 description:
-    - Execute JSnapy module from Ansible
+    - Execute JSnapy test from Ansible.
+      Attention, to not break Ansible behavior, this module only report "failed"
+      if the module itself fails, not if a test fails.
+      To check the test results you need to subscribe to the result and assert
+      the returned value
 requirements:
     - junos-eznc >= 1.2.2
 options:
@@ -114,16 +118,36 @@ options:
 EXAMPLES = '''
    - name: JUNOS Post Checklist
      junos_jsnapy:
-     host: "{{ inventory_hostname}}"
-     passwd: "{{ tm1_password }}"
-     action: "snap_post"
-     config_file: "first_test.yml"
-     logfile: "migration_post.log"
-     register: jsnapy
+       host: "{{ inventory_hostname}}"
+       passwd: "{{ tm1_password }}"
+       action: "snap_post"
+       config_file: "first_test.yml"
+       logfile: "migration_post.log"
+     register: test1
+
+   - name: Check JSNAPy tests results
+     assert:
+     that:
+       - "test1.passPercentage == 100"
 
    - name: Debug jsnapy
-     debug: msg="{{jsnapy}}"
+     debug: msg=test1
 
+---------
+   - name: Test based on a test_file directly
+     junos_jsnapy:
+       host: "{{ junos_host }}"
+       port: "{{ netconf_port }}"
+       user: "{{ ansible_ssh_user }}"
+       passwd: "{{ ansible_ssh_pass }}"
+       test_files: tests/test_junos_interface.yaml
+       action: snapcheck
+     register: test1
+
+   - name: Check JSNAPy tests results
+     assert:
+     that:
+       - "test1.passPercentage == 100"
 '''
 from distutils.version import LooseVersion
 import logging
