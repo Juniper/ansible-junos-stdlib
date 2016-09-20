@@ -46,12 +46,17 @@ options:
               for debugging purposes
         required: false
         default: None
-
     port:
         description:
-            - TCP port number to use when connecting to the device
+            - port number to use when connecting to the device
         required: false
         default: 830
+    mode:
+        description:
+            - mode of console connection (telnet/serial). If mode is not
+              provided SSH connection is used.
+        required: false
+        default: None
     table:
         description:
             - Name of PyEZ Table
@@ -86,6 +91,14 @@ EXAMPLES = '''
 # GET NEIGHBOR INFO USING CUSTOM LLDP TABLE IN CUSTOM PATH
 - junos_get_table: table=NTCNeighborTable path=tables/ file=ntclldp.yaml host={{ inventory_hostname }} user={{ un }} passwd={{ pwd }}
 
+#
+- name: Table/View example via console server connection using PyEZ >= 2.0
+  junos_get_table:
+    table=RouteTable
+    file=routes.yml
+    host={{ inventory_hostname }}
+    port=7016
+    mode='telnet'
 '''
 
 RETURN = '''
@@ -121,6 +134,17 @@ import os
 from lxml import etree
 from lxml.builder import E
 import yaml
+
+import_err_message = None
+try:
+    from jnpr.junos import Device
+    from jnpr.junos.version import VERSION
+    import jnpr.junos.op as tables_dir
+    from jnpr.junos.factory.factory_loader import FactoryLoader
+    if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
+        import_err_message = 'junos-eznc >= 1.2.2 is required for this module'
+except ImportError as ex:
+    import_err_message = 'ImportError: %s' % ex.message
 
 
 TABLE_PATH = os.path.dirname(os.path.abspath(tables_dir.__file__))
@@ -158,6 +182,7 @@ def main():
                                      default=os.getenv('USER')),
                            passwd=dict(required=False, default=None),
                            port=dict(required=False, default=830),
+                           mode=dict(required=False, default=None),
                            logfile=dict(required=False, default=None),
                            file=dict(required=True, default=None),
                            path=dict(required=False, default=TABLE_PATH),
@@ -169,15 +194,11 @@ def main():
 
     args = module.params
 
-    try:
-        from jnpr.junos import Device
-        from jnpr.junos.version import VERSION
-        import jnpr.junos.op as tables_dir
-        from jnpr.junos.factory.factory_loader import FactoryLoader
-        if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
-            module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
-    except ImportError as ex:
-        module.fail_json(msg='ImportError: %s' % ex.message)
+    if import_err_message is not None:
+        module.fail_json(msg=import_err_message)
+
+    if args['mode'] is not None and LooseVersion(VERSION) < LooseVersion('2.0.0'):
+        module.fail_json(msg='junos-eznc >= 2.0.0 is required for console connection')
 
     logfile = args['logfile']
     response_type = args['response_type']
@@ -195,7 +216,7 @@ def main():
                                                           args['port']))
     try:
         dev = Device(args['host'], user=args['user'], password=args['passwd'],
-                     port=args['port'], gather_facts=False).open()
+                     port=args['port'], mode=args['mode'], gather_facts=False).open()
     except Exception as err:
         msg = 'unable to connect to {0}: {1}'.format(args['host'], str(err))
         logging.error(msg)

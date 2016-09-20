@@ -63,9 +63,15 @@ options:
         default: assumes ssh-key active
     port:
         description:
-            - TCP port number to use when connecting to the device
+            - port number to use when connecting to the device
         required: false
         default: 830
+    mode:
+        description:
+            - mode of console connection (telnet/serial). If mode is not
+              provided SSH connection is used.
+        required: false
+        default: None
     timeout:
         description:
             - Set the NETCONF RPC timeout. Set this value to accommodate Cli
@@ -101,6 +107,15 @@ EXAMPLES = '''
    logfile: cli.log
    dest: "{{ inventory_hostname }}.xml"
    format: xml
+
+# Run cli over console server connection using PyEZ >= 2.0
+- junos_cli:
+    cli="show chassis hardware"
+    host={{ inventory_hostname }}
+    port=7001
+    mode='telnet'
+    dest="{{ inventory_hostname }}.xml"
+    format='xml'
 '''
 from distutils.version import LooseVersion
 import logging
@@ -115,6 +130,7 @@ def main():
                            user=dict(required=False, default=os.getenv('USER')),
                            passwd=dict(required=False, default=None),
                            port=dict(required=False, default=830),
+                           mode=dict(required=False, default=None),
                            timeout=dict(required=False, type='int', default=0),
                            logfile=dict(required=False, default=None),
                            dest=dict(required=False, default=None),
@@ -133,6 +149,9 @@ def main():
     except ImportError as ex:
         module.fail_json(msg='ImportError: %s' % ex.message)
 
+    if args['mode'] is not None and LooseVersion(VERSION) < LooseVersion('2.0.0'):
+        module.fail_json(msg='junos-eznc >= 2.0.0 is required for console connection.')
+
     logfile = args['logfile']
     if logfile is not None:
         logging.basicConfig(filename=logfile, level=logging.INFO,
@@ -143,7 +162,7 @@ def main():
 
     try:
         dev = Device(args['host'], user=args['user'], password=args['passwd'],
-                     port=args['port'], gather_facts=False).open()
+                     port=args['port'], mode=args['mode'], gather_facts=False).open()
     except Exception as err:
         msg = 'unable to connect to {0}: {1}'.format(args['host'], str(err))
         logging.error(msg)
