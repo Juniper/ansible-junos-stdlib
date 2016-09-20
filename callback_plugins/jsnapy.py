@@ -19,6 +19,9 @@ class CallbackModule(CallbackBase):
   CALLBACK_TYPE = 'aggregate'
   CALLBACK_NAME = 'jsnapy'
 
+## useful links regarding Callback
+## https://github.com/ansible/ansible/blob/devel/lib/ansible/plugins/callback/__init__.py
+
   def __init__(self):
     self._pp = pprint.PrettyPrinter(indent=4)
     self._results = {}
@@ -29,10 +32,12 @@ class CallbackModule(CallbackBase):
     """
     Collect test results for all tests executed if module is junos_jsnapy
     """
-    module_name = ''
+
     ## Extract module name
+    module_name = ''
     if 'invocation' in result._result:
-      module_name = result._result['invocation']['module_name']
+      if 'module_name' in result._result['invocation']:
+        module_name = result._result['invocation']['module_name']
 
     if module_name == 'junos_jsnapy':
       ## Check if dict entry already exist for this host
