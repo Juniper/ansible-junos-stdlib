@@ -63,9 +63,15 @@ options:
         default: assumes ssh-key active
     port:
         description:
-            - TCP port number to use when connecting to the device
+            - port number to use when connecting to the device
         required: false
         default: 830
+    mode:
+        description:
+            - mode of console connection (telnet/serial). If mode is not
+              provided SSH connection is used.
+        required: false
+        default: None
     logfile:
         description:
             - Path on the local server where the progress status is logged
@@ -121,24 +127,22 @@ EXAMPLES = '''
 '''
 from distutils.version import LooseVersion
 import logging
-from lxml import etree
 from lxml.builder import E
 import os.path
+import os
+import time
+
+import_err_message = None
 
 try:
     from jnpr.junos import Device
     from jnpr.junos.version import VERSION
     from jnpr.junos.exception import RpcError
     from jnpr.jsnapy import SnapAdmin
-    import os
-    import time
     if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
-        HAS_PYEZ = False
-    else:
-        HAS_PYEZ = True
+        import_err_message = 'junos-eznc >= 1.2.2 is required for this module'
 except ImportError as ex:
-    HAS_PYEZ = False
-
+    import_err_message = 'ImportError: %s' % ex.message
 
 def jsnap_selection(dev, module):
 
@@ -197,6 +201,7 @@ def main():
                            user=dict(required=False, default=os.getenv('USER')),
                            passwd=dict(required=False, default=None),
                            port=dict(required=False, default=830),
+                           mode=dict(required=False, default=None),
                            logfile=dict(required=False, default=None),
                            test_files=dict(required=False, type='list', default=None),
                            config_file=dict(required=False, default=None),
@@ -207,23 +212,26 @@ def main():
         required_one_of=[['test_files', 'config_file']],
         supports_check_mode=False)
 
-    if not HAS_PYEZ:
-        module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
-
     args = module.params
     results = {}
+
+    if import_err_message is not None:
+        module.fail_json(msg=import_err_message)
+
+    if args['mode'] is not None and LooseVersion(VERSION) < LooseVersion('2.0.0'):
+        module.fail_json(msg='junos-eznc >= 2.0.0 is required for console connection.')
 
     logfile = args['logfile']
     if logfile is not None:
         logging.basicConfig(filename=logfile, level=logging.INFO,
                             format='%(asctime)s:%(name)s:%(message)s')
-        logging.getLogger().name = 'JSnapy:' + args['host']
+        logging.getLogger().name = 'JSNAPy:' + args['host']
 
     logging.info("connecting to host: {0}@{1}:{2}".format(args['user'], args['host'], args['port']))
 
     try:
         dev = Device(args['host'], user=args['user'], password=args['passwd'],
-                     port=args['port'], gather_facts=False).open()
+                     port=args['port'], mode=args['mode'], gather_facts=False).open()
     except Exception as err:
         msg = 'unable to connect to {0}: {1}'.format(args['host'], str(err))
         logging.error(msg)
