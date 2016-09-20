@@ -84,9 +84,15 @@ options:
         default: None
     port:
         description:
-            - TCP port number to use when connecting to the device
+            - port number to use when connecting to the device
         required: false
         default: 830
+    mode:
+        description:
+            - mode of console connection (telnet/serial). If mode is not
+              provided SSH connection is used.
+        required: false
+        default: None
 '''
 
 EXAMPLES = '''
@@ -94,20 +100,16 @@ EXAMPLES = '''
     host={{ inventory_hostname }}
     shutdown="shutdown"
     reboot=yes
+
+# over console server connection using PyEZ >= 2.0
+- junos_shutdown:
+    host={{ inventory_hostname }}
+    shutdown="shutdown"
+    reboot=yes
+    mode='telnet'
+    port=7016
 '''
 from distutils.version import LooseVersion
-
-try:
-    from jnpr.junos import Device
-    from jnpr.junos.utils.sw import SW
-    from jnpr.junos.version import VERSION
-    if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
-        HAS_PYEZ = False
-    else:
-        HAS_PYEZ = True
-except ImportError:
-    HAS_PYEZ = False
-
 
 def main():
 
@@ -119,15 +121,26 @@ def main():
             passwd=dict(required=False, default=None),
             reboot=dict(required=False, type='bool', choices=BOOLEANS, default=False),
             port=dict(required=False, default=830),
+            mode=dict(required=False, default=None),
             in_min=dict(required=False, default=0),
             at=dict(required=False, type='str', default=None)
         ),
         supports_check_mode=False)
 
-    if not HAS_PYEZ:
-        module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
-
     args = module.params
+
+    try:
+        from jnpr.junos import Device
+        from jnpr.junos.utils.sw import SW
+        from jnpr.junos.version import VERSION
+        if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
+            module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
+    except ImportError as ex:
+        module.fail_json(msg='ImportError: %s' % ex.message)
+
+    if args['mode'] is not None and LooseVersion(VERSION) < LooseVersion('2.0.0'):
+        module.fail_json(msg='junos-eznc >= 2.0.0 is required for console connection.')
+
     if args['shutdown'] != 'shutdown':
         module.fail_json(msg='Say "shutdown" to proceed')
 
@@ -140,7 +153,8 @@ def main():
         # --- UNREACHABLE ---
 
     try:
-        dev = Device(args['host'], user=args['user'], password=args['passwd'], port=args['port']).open()
+        dev = Device(args['host'], user=args['user'], password=args['passwd'],
+                     port=args['port'], mode=args['mode'], gather_facts=False).open()
     except Exception as err:
         msg = 'unable to connect to {0}: {1}'.format(args['host'], str(err))
         module.fail_json(msg=msg)

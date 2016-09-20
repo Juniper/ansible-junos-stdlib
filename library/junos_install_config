@@ -130,14 +130,26 @@ options:
         default: None
     port:
         description:
-            - TCP port number to use when connecting to the device
+            - port number to use when connecting to the device
         required: false
         default: 830
+    mode:
+        description:
+            - mode of console connection (telnet/serial). If mode is not
+              provided SSH connection is used.
+        required: false
+        default: None
     confirm:
         description:
             - Provide a confirm in minutes to the commit of the configuration
         required: false
         default: None
+    check_commit_wait:
+        description:
+            - Set to number of seconds to wait between check and commit.
+        required: false
+        default: None
+        choices: [1 - 4]
 '''
 
 EXAMPLES = '''
@@ -166,6 +178,14 @@ EXAMPLES = '''
     host={{ inventory_hostname }}
     file=snmp.conf
     replace=yes
+
+# Install/load config using console server connection using PyEZ >= 2.0
+
+- junos_install_config:
+    host={{ inventory_hostname }}
+    port=7016
+    mode='telnet'
+    file=default_new_switch.conf
 '''
 
 import logging
@@ -173,21 +193,23 @@ from os.path import isfile
 import os
 from distutils.version import LooseVersion
 
-try:
-    from jnpr.junos import Device
-    from jnpr.junos.exception import *
-    from jnpr.junos.utils.config import Config
-    from jnpr.junos.version import VERSION
-    if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
-        HAS_PYEZ = False
-    else:
-        HAS_PYEZ = True
-except ImportError:
-    HAS_PYEZ = False
 
 
 def _load_via_netconf(module):
     args = module.params
+
+    try:
+        from jnpr.junos import Device
+        from jnpr.junos.exception import *
+        from jnpr.junos.utils.config import Config
+        from jnpr.junos.version import VERSION
+        if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
+            module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
+    except ImportError as ex:
+        module.fail_json(msg='ImportError: %s' % ex.message)
+
+    if args['mode'] is not None and LooseVersion(VERSION) < LooseVersion('2.0.0'):
+        module.fail_json(msg='junos-eznc >= 2.0.0 is required for console connection')
 
     logfile = args['logfile']
     if logfile is not None:
@@ -207,8 +229,9 @@ def _load_via_netconf(module):
     logging.info("connecting to host: {0}@{1}:{2}".format(args['user'], args['host'], args['port']))
 
     try:
-        dev = Device(args['host'], user=args['user'], password=args['passwd'], port=args['port'])
-        dev.open(gather_facts=False)
+        dev = Device(args['host'], user=args['user'], password=args['passwd'], port=args['port'],
+                     mode=args['mode'], gather_facts=False)
+        dev.open()
     except Exception as err:
         msg = 'unable to connect to {0}: {1}'.format(args['host'], str(err))
         logging.error(msg)
@@ -301,6 +324,11 @@ def _load_via_netconf(module):
                     opts['comment'] = args['comment']
                 if args['confirm'] is not None:
                     opts['confirm'] = args['confirm']
+
+                if args['check_commit_wait']:
+                   check_commit_wait = int(args['check_commit_wait'])
+                   if 1 <= check_commit_wait <= 4:
+                      time.sleep(check_commit_wait)
 
                 cu.commit(**opts)
 
@@ -403,12 +431,11 @@ def main():
             timeout=dict(required=False, default=0),
             comment=dict(required=False, default=None),
             port=dict(required=False, default=830),
-            confirm=dict(required=False, default=None)
+            mode=dict(required=False, default=None),
+            confirm=dict(required=False, default=None),
+            check_commit_wait=dict(required=False, default=None)
         ),
         supports_check_mode=True)
-
-    if not HAS_PYEZ:
-        module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
 
     args = module.params
 
