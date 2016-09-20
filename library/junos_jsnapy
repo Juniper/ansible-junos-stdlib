@@ -47,7 +47,11 @@ description:
       Attention, to not break Ansible behavior, this module only report "failed"
       if the module itself fails, not if a test fails.
       To check the test results you need to subscribe to the result and assert
-      the returned value
+      the returned value.
+      An experimental Callback_Plugin for junos_jsnapy is available to provide
+      additional information about tests that failed.
+      To enable it, you need to add "callback_whitelist = jsnapy" in your ansible
+      configuration file.
 requirements:
     - junos-eznc >= 1.2.2
 options:
