@@ -41,9 +41,9 @@ version_added: "1.4.0"
 version_control:
     13-Apr-2016     v1.0.0      - Basic working model
 
-Short_description: Integrate JSnapy to ansible.
+Short_description: Integrate JSNAPy to ansible.
 description:
-    - Execute JSnapy test from Ansible.
+    - Execute JSNAPy test from Ansible.
       Attention, to not break Ansible behavior, this module only report "failed"
       if the module itself fails, not if a test fails.
       To check the test results you need to subscribe to the result and assert

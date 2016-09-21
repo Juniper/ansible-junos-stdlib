@@ -17,6 +17,7 @@ Juniper Networks provides support for using Ansible to deploy devices running th
 - junos_zeroize — Remove all configuration information on the Routing Engines and reset all key values on a device.
 - junos_get_table - Retrieve data from a Junos device using Tables/Views
 - junos_ping - execute ping on junos devices
+- junos_jsnapy - Integrate JSNAPy to ansible which helps audit network devices
 
 ### OVERVIEW OF PLUGINS
 
