@@ -17,7 +17,10 @@ galaxy_info:
   # the ones that apply to your role. If you don't see your 
   # platform on this list, let us know and we'll get it added!
   #
-  #platforms:
+  platforms:
+    - name: junos
+      versions:
+        - all
   #- name: EL
   #  versions:
   #  - all
@@ -102,6 +105,8 @@ galaxy_info:
   # the platforms above, uncomment those that apply to your role.
   #
   categories:
+    - networking
+  galaxy_tags:
   #- cloud
   #- cloud:ec2
   #- cloud:gce
@@ -116,6 +121,8 @@ galaxy_info:
   #- packaging
   #- system
   #- web
+  - junos
+  - juniper
 dependencies: []
   # List your role dependencies here, one per line. Only
   # dependencies available via galaxy should be listed here.
