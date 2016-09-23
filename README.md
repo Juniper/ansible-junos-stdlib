@@ -15,7 +15,41 @@ Juniper Networks provides support for using Ansible to deploy devices running th
 - junos_shutdown — Shut down or reboot a device running Junos OS.
 - junos_srx_cluster — Enable/Disable cluster mode for SRX devices
 - junos_zeroize — Remove all configuration information on the Routing Engines and reset all key values on a device.
+- junos_get_table - Retrieve data from a Junos device using Tables/Views
+- junos_ping - execute ping on junos devices
+- junos_jsnapy - Integrate JSNAPy to ansible which helps audit network devices
 
+### OVERVIEW OF PLUGINS
+
+In addition to the modules listed above, a callback_plugin `jsnapy` is available for the module `junos_jsnapy`.
+
+The callback_plugin `jsnapy` helps to print on the screen additional information regarding
+ jsnapy failed tests.
+For each failed test, a log will be printed after the RECAP of the playbook.  
+
+> The plugin `jsnapy` is currently in **Experimental** stage, please provide feedback.
+
+```
+PLAY RECAP *********************************************************************
+qfx10002-01                : ok=3    changed=0    unreachable=0    failed=1
+qfx10002-02                : ok=3    changed=0    unreachable=0    failed=1
+qfx5100-01                 : ok=1    changed=0    unreachable=0    failed=1
+
+JSNAPy Results for: qfx10002-01 ************************************************
+Value of 'peer-state' not 'is-equal' at '//bgp-information/bgp-peer' with {"peer-as": "65200", "peer-state": "Active", "peer-address": "100.0.0.21"}
+Value of 'peer-state' not 'is-equal' at '//bgp-information/bgp-peer' with {"peer-as": "60021", "peer-state": "Idle", "peer-address": "192.168.0.1"}
+Value of 'oper-status' not 'is-equal' at '//interface-information/physical-interface[normalize-space(admin-status)='up' and logical-interface/address-family/address-family-name ]' with {"oper-status": "down", "name": "et-0/0/18"}
+
+JSNAPy Results for: qfx10002-02 ************************************************
+Value of 'peer-state' not 'is-equal' at '//bgp-information/bgp-peer' with {"peer-as": "65200", "peer-state": "Active", "peer-address": "100.0.0.21"}
+```
+
+Callback plugins are not activated by default and needs to be manually added to the
+configuration file under `[defaults]` with the variable `callback_whitelist`
+```
+[defaults]
+callback_whitelist = jsnapy
+```
 ## DOCUMENTATION
 
 [Official documentation](http://www.juniper.net/techpubs/en_US/release-independent/junos-ansible/information-products/pathway-pages/index.html) (detailed information, includes examples)
@@ -42,7 +76,7 @@ To download the junos role to the Ansible server, execute the ansible-galaxy ins
 For testing you can `git clone` this repo and run the `env-setup` script in the repo directory:
 
     user@ansible-junos-stdlib> source env-setup
-    
+
 This will set your `$ANSIBLE_LIBRARY` variable to the repo location and the installed Ansible library path.  For example:
 
 ````
@@ -100,7 +134,7 @@ Thes modules require the following to be installed on the Ansible server:
 ## LICENSE
 
 Apache 2.0
-  
+
 ## CONTRIBUTORS
 
 Juniper Networks is actively contributing to and maintaining this repo. Please contact jnpr-community-netdev@juniper.net for any queries.

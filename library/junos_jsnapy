@@ -36,14 +36,22 @@
 DOCUMENTATION = '''
 ---
 module: junos_jsnapy
-author: Roslan Zaki, Juniper Networks
-version_added: "1.0.0"
+author: Roslan Zaki & Damien Garros, Juniper Networks
+version_added: "1.4.0"
 version_control:
     13-Apr-2016     v1.0.0      - Basic working model
 
-Short_description: Integrate JSnapy to ansible
+Short_description: Integrate JSNAPy to ansible.
 description:
-    - Execute JSnapy module from Ansible
+    - Execute JSNAPy test from Ansible.
+      Attention, to not break Ansible behavior, this module only report "failed"
+      if the module itself fails, not if a test fails.
+      To check the test results you need to subscribe to the result and assert
+      the returned value.
+      An experimental Callback_Plugin for junos_jsnapy is available to provide
+      additional information about tests that failed.
+      To enable it, you need to add "callback_whitelist = jsnapy" in your ansible
+      configuration file.
 requirements:
     - junos-eznc >= 1.2.2
 options:
@@ -63,9 +71,15 @@ options:
         default: assumes ssh-key active
     port:
         description:
-            - TCP port number to use when connecting to the device
+            - port number to use when connecting to the device
         required: false
         default: 830
+    mode:
+        description:
+            - mode of console connection (telnet/serial). If mode is not
+              provided SSH connection is used.
+        required: false
+        default: None
     logfile:
         description:
             - Path on the local server where the progress status is logged
@@ -108,23 +122,55 @@ options:
 EXAMPLES = '''
    - name: JUNOS Post Checklist
      junos_jsnapy:
-     host: "{{ inventory_hostname}}"
-     passwd: "{{ tm1_password }}"
-     action: "snap_post"
-     config_file: "first_test.yml"
-     logfile: "migration_post.log"
-     register: jsnapy
+       host: "{{ inventory_hostname}}"
+       passwd: "{{ tm1_password }}"
+       action: "snap_post"
+       config_file: "first_test.yml"
+       logfile: "migration_post.log"
+     register: test1
+
+   - name: Check JSNAPy tests results
+     assert:
+     that:
+       - "test1.passPercentage == 100"
 
    - name: Debug jsnapy
-     debug: msg="{{jsnapy}}"
+     debug: msg=test1
 
+---------
+   - name: Test based on a test_file directly
+     junos_jsnapy:
+       host: "{{ junos_host }}"
+       port: "{{ netconf_port }}"
+       user: "{{ ansible_ssh_user }}"
+       passwd: "{{ ansible_ssh_pass }}"
+       test_files: tests/test_junos_interface.yaml
+       action: snapcheck
+     register: test1
+
+   - name: Check JSNAPy tests results
+     assert:
+     that:
+       - "test1.passPercentage == 100"
 '''
 from distutils.version import LooseVersion
 import logging
-from lxml import etree
 from lxml.builder import E
+import os.path
 import os
 import time
+
+import_err_message = None
+
+try:
+    from jnpr.junos import Device
+    from jnpr.junos.version import VERSION
+    from jnpr.junos.exception import RpcError
+    from jnpr.jsnapy import SnapAdmin
+    if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
+        import_err_message = 'junos-eznc >= 1.2.2 is required for this module'
+except ImportError as ex:
+    import_err_message = 'ImportError: %s' % ex.message
 
 def jsnap_selection(dev, module):
 
@@ -136,6 +182,13 @@ def jsnap_selection(dev, module):
         config_data = os.path.join(config_dir, config_file)
     else:
         test_files = args.get('test_files')
+
+        for test_file in test_files:
+            if not os.path.isfile(test_file):
+                msg = 'unable to find the test file {0}'.format(test_file)
+                logging.error(msg)
+                module.fail_json(msg=msg)
+
         config_data = {'tests': test_files}
 
     results = {}
@@ -150,6 +203,7 @@ def jsnap_selection(dev, module):
     elif action == 'check':
         snapValue = js.check(data=config_data, dev=dev, pre_file='PRE', post_file='POST')
 
+    percentagePassed = 0
     if isinstance(snapValue, (list)):
         for snapCheck in snapValue:
             router = snapCheck.device
@@ -160,7 +214,10 @@ def jsnap_selection(dev, module):
             results['test_results'] = snapCheck.test_results
             total_test = int(snapCheck.no_passed) + int(snapCheck.no_failed)
             results['total_tests'] = total_test
-        percentagePassed = (int(results['total_passed']) * 100 ) / (results['total_tests'])
+
+        if total_test != 0:
+            percentagePassed = (int(results['total_passed']) * 100 ) / (results['total_tests'])
+
         results['passPercentage'] = percentagePassed
 
     return results
@@ -172,6 +229,7 @@ def main():
                            user=dict(required=False, default=os.getenv('USER')),
                            passwd=dict(required=False, default=None),
                            port=dict(required=False, default=830),
+                           mode=dict(required=False, default=None),
                            logfile=dict(required=False, default=None),
                            test_files=dict(required=False, type='list', default=None),
                            config_file=dict(required=False, default=None),
@@ -185,27 +243,23 @@ def main():
     args = module.params
     results = {}
 
-    try:
-        from jnpr.junos import Device
-        from jnpr.junos.version import VERSION
-        from jnpr.junos.exception import RpcError
-        from jnpr.jsnapy import SnapAdmin
-        if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
-            module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
-    except ImportError as ex:
-        module.fail_json(msg='ImportError: %s' % ex.message)
+    if import_err_message is not None:
+        module.fail_json(msg=import_err_message)
+
+    if args['mode'] is not None and LooseVersion(VERSION) < LooseVersion('2.0.0'):
+        module.fail_json(msg='junos-eznc >= 2.0.0 is required for console connection.')
 
     logfile = args['logfile']
     if logfile is not None:
         logging.basicConfig(filename=logfile, level=logging.INFO,
                             format='%(asctime)s:%(name)s:%(message)s')
-        logging.getLogger().name = 'JSnapy:' + args['host']
+        logging.getLogger().name = 'JSNAPy:' + args['host']
 
     logging.info("connecting to host: {0}@{1}:{2}".format(args['user'], args['host'], args['port']))
 
     try:
         dev = Device(args['host'], user=args['user'], password=args['passwd'],
-                     port=args['port'], gather_facts=False).open()
+                     port=args['port'], mode=args['mode'], gather_facts=False).open()
     except Exception as err:
         msg = 'unable to connect to {0}: {1}'.format(args['host'], str(err))
         logging.error(msg)
@@ -222,7 +276,7 @@ def main():
             )
             logging.error(msg)
             dev.close()
-            module.fail_json(msg=msg, **data)
+            module.exit_json(msg=msg, **data)
 
     except Exception as err:
         msg = 'Uncaught exception - please report: {0}'.format(str(err))
