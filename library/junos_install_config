@@ -150,6 +150,14 @@ options:
         required: false
         default: None
         choices: [1 - 4]
+    commit_onwarnings:
+        description:
+            - Ignore "statement not found" warning messages during loading 
+              configuration. Proceed with commit. 
+        required: false
+        default: no
+        choices: ['true','false','yes','no']
+
 '''
 
 EXAMPLES = '''
@@ -220,6 +228,7 @@ def _load_via_netconf(module):
     in_check_mode = module.check_mode
     overwrite = module.boolean(module.params['overwrite'])
     replace = module.boolean(module.params['replace'])
+    commit_onwarnings = module.boolean(module.params['commit_onwarnings'])
 
     if all([overwrite, replace]):
         msg = "Overwrite and Replace cannot both be True!"
@@ -275,7 +284,27 @@ def _load_via_netconf(module):
         elif overwrite is False:
             load_args['merge'] = True
         cu.load(**load_args)
-    except (ValueError, ConfigLoadError, Exception) as err:
+    # If only "statement not found" warning messages are raised and 
+    # commit_onwarnings is set to "True", commit proceeds, otherwise fails. 
+    except ConfigLoadError as err:
+        severity = list(error['severity'] for error in err.errs)
+        messages = list(error['message'] for error in err.errs)
+
+        if not ((len(set(severity)) <=1 and severity[0] == 'warning') and
+                (len(set(messages)) <=1 and messages[0] == 'statement not found') and
+                commit_onwarnings):
+            msg = "Unable to load config: {0}".format(err)
+            logging.error(msg)
+            try:
+                logging.info("unlocking")
+                cu.unlock()
+            except UnlockError as err:
+                logging.error("Unable to unlock config: {0}".format(err))
+            dev.close()
+            module.fail_json(msg=msg)
+        else:
+            logging.info("Warnings 'statement not found' were raised but ignored, proceeding with commit.")
+    except (ValueError, Exception) as err:
         msg = "Unable to load config: {0}".format(err)
         logging.error(msg)
         try:
@@ -433,7 +462,8 @@ def main():
             port=dict(required=False, default=830),
             mode=dict(required=False, default=None),
             confirm=dict(required=False, default=None),
-            check_commit_wait=dict(required=False, default=None)
+            check_commit_wait=dict(required=False, default=None),
+            commit_onwarnings=dict(required=False, type='bool', choices=BOOLEANS, default=False)
         ),
         supports_check_mode=True)
 
