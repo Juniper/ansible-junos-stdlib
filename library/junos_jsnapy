@@ -94,7 +94,7 @@ options:
         default: None
     dir:
         description:
-            - Path for the JSNAPy yaml configuration file
+            - Path for the JSNAPy yaml testfiles/configuration file
         required: false
         default: '/etc/jsnapy/testfiles'
     action:
@@ -179,10 +179,16 @@ def jsnap_selection(dev, module):
     config_file = args.get('config_file')
     if config_file:
         config_dir = args['dir']
-        config_data = os.path.join(config_dir, config_file)
+        config_data = config_file
+        # in case config file given is not full path
+        if not os.path.isfile(config_file):
+            config_data = os.path.join(config_dir, config_file)
     else:
         test_files = args.get('test_files')
-
+        test_file_dir = args['dir']
+        fn = lambda test_file: os.path.join(test_file_dir, test_file) \
+                                if not os.path.isfile(test_file) else test_file
+        test_files = map(fn, test_files)
         for test_file in test_files:
             if not os.path.isfile(test_file):
                 msg = 'unable to find the test file {0}'.format(test_file)
@@ -191,7 +197,7 @@ def jsnap_selection(dev, module):
 
         config_data = {'tests': test_files}
 
-    results = {}
+    results = {'action': action}
     js = SnapAdmin()
 
     if action == 'snapcheck':
@@ -205,21 +211,21 @@ def jsnap_selection(dev, module):
 
     percentagePassed = 0
     if isinstance(snapValue, (list)):
-        for snapCheck in snapValue:
-            router = snapCheck.device
-            results['router'] = router
-            results['final_result'] = snapCheck.result
-            results['total_passed'] = snapCheck.no_passed
-            results['total_failed'] = snapCheck.no_failed
-            results['test_results'] = snapCheck.test_results
-            total_test = int(snapCheck.no_passed) + int(snapCheck.no_failed)
-            results['total_tests'] = total_test
-
-        if total_test != 0:
-            percentagePassed = (int(results['total_passed']) * 100 ) / (results['total_tests'])
-
-        results['passPercentage'] = percentagePassed
-
+        if action in ['snapcheck', 'check']:
+            for snapCheck in snapValue:
+                router = snapCheck.device
+                results['router'] = router
+                results['final_result'] = snapCheck.result
+                results['total_passed'] = snapCheck.no_passed
+                results['total_failed'] = snapCheck.no_failed
+                results['test_results'] = snapCheck.test_results
+                total_test = int(snapCheck.no_passed) + int(snapCheck.no_failed)
+                results['total_tests'] = total_test
+            if total_test != 0:
+                percentagePassed = (int(results['total_passed']) * 100 ) / (results['total_tests'])
+            results['passPercentage'] = percentagePassed
+        elif action in ['snap_pre', 'snap_post']:
+            results['changed'] = True
     return results
 
 def main():
@@ -270,7 +276,7 @@ def main():
         logging.info("Main program: ")
         data = jsnap_selection(dev, module)
 
-        if data['final_result']=='Failed':
+        if data['action'] in ['check', 'snapcheck'] and data['final_result']=='Failed':
             msg = 'Test Failed: Passed {0}, Failed {1}'.format(
                   data['total_passed'], data['total_failed']
             )
