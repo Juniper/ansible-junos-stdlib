@@ -1,0 +1,59 @@
+---
+- name: Test junos_ping module
+  hosts: all
+  connection: local
+  gather_facts: no
+  roles:
+    - Juniper.junos
+  tasks:
+    - name: "TEST 1 - Ping Google DNS"
+      junos_ping:
+        host: "{{ ansible_ssh_host }}"
+        port: "{{ ansible_ssh_port }}"
+        user: "{{ ansible_ssh_user }}"
+        passwd: "{{ ansible_ssh_pass }}"
+        dest_ip: 8.8.8.8
+      register: test1
+      ignore_errors: True
+#    - debug: var=test1
+
+    - name: Check TEST 1
+      assert:
+        that:
+          - test1.packet_loss == '0'
+
+############
+
+    - name: "TEST 2 - Ping Wrong IP"
+      junos_ping:
+        host: "{{ ansible_ssh_host }}"
+        port: "{{ ansible_ssh_port }}"
+        user: "{{ ansible_ssh_user }}"
+        passwd: "{{ ansible_ssh_pass }}"
+        dest_ip: 8.8.1.1
+      register: test2
+      ignore_errors: True
+#    - debug: var=test2
+
+    - name: Check TEST 2
+      assert:
+        that:
+          - test2.packet_loss == '100'
+#################
+
+    - name: "TEST 3 - Change nbr packets"
+      junos_ping:
+        host: "{{ ansible_ssh_host }}"
+        port: "{{ ansible_ssh_port }}"
+        user: "{{ ansible_ssh_user }}"
+        passwd: "{{ ansible_ssh_pass }}"
+        dest_ip: 8.8.8.8
+        count: 3
+      register: test3
+      ignore_errors: True
+#    - debug: var=test3
+
+    - name: Check TEST 3
+      assert:
+        that:
+          - test3.packets_sent == '3'

@@ -6,38 +6,21 @@ sudo: required
 dist: trusty
 
 env:
-  - ANSIBLE_VERSION=1.9.6
-#  - ANSIBLE_VERSION=2.0.2.0
-#  - ANSIBLE_VERSION=2.0.0.2
+  - ANSIBLE_VERSION=2.2.0.0
 
 install:
+  - cd tests
   - pip install -r requirements.txt
   - pip install -q ansible==$ANSIBLE_VERSION
-## Create module package and install it at the same level as the project
-  - cd ..
-  - tar -czf Juniper.junos ansible-junos-stdlib
-  - mkdir tmp
-  - mv Juniper.junos tmp/
-  - cd tmp
-  - ansible-galaxy install -p ../ Juniper.junos
-
-## Install Virtualbox
-  - sudo apt-get update -q
-  - sudo apt-get install -y dkms
-  - sudo apt-get install -y linux-headers-$(uname -r)
-  - sudo wget -nv http://download.virtualbox.org/virtualbox/5.0.20/virtualbox-5.0_5.0.20-106931~Ubuntu~trusty_amd64.deb
-  - sudo dpkg -i virtualbox-5.0_5.0.20-106931~Ubuntu~trusty_amd64.deb
-  - VBoxManage --version
-
-## Install Vagrant
-  - sudo wget -nv https://releases.hashicorp.com/vagrant/1.8.1/vagrant_1.8.1_x86_64.deb
-  - sudo dpkg -i vagrant_1.8.1_x86_64.deb
-  - vagrant plugin install vagrant-junos
-  - vagrant plugin install vagrant-host-shell
-
+  - ansible-galaxy install Juniper.junos -p ./roles
+  - pip install ansible junos-eznc lxml jxmlease markupsafe requests httplib2
+  - mkdir library
+  - git clone https://github.com/Juniper/ravello-ansible.git library/ravello-ansible
+  - mv .travis_ansible_python.yaml group_vars/all/travis_ansible_python.yaml
 ## start Junos VM
-  - cd ../ansible-junos-stdlib/tests
-  - vagrant up
+  - ansible-playbook -i ravello.ini pb.rav.token.create-deploy.yaml
+  - ansible-playbook -i ravello.ini pb.rav.token.fqdn_get.yaml
+  - ansible-playbook -i ravello.ini pb.junos_ping.yaml
 
 script:
   - ansible-playbook junos_ping/pb.junos_ping.yaml
