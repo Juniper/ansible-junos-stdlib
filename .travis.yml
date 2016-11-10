@@ -17,11 +17,8 @@ install:
   - mkdir library
   - git clone https://github.com/Juniper/ravello-ansible.git library/ravello-ansible
   - mv .travis_ansible_python.yaml group_vars/all/travis_ansible_python.yaml
-## start Junos VM
+
+script:
   - ansible-playbook -i ravello.ini pb.rav.token.create-deploy.yaml
   - ansible-playbook -i ravello.ini pb.rav.token.fqdn_get.yaml
   - ansible-playbook -i ravello.ini pb.junos_ping.yaml
-
-script:
-  - ansible-playbook junos_ping/pb.junos_ping.yaml
-  - ansible-playbook junos_get_facts/pb.junos_get_facts.yaml
