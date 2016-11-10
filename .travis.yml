@@ -9,11 +9,11 @@ env:
   - ANSIBLE_VERSION=2.2.0.0
 
 install:
-  - cd tests
   - pip install -r requirements.txt
   - pip install -q ansible==$ANSIBLE_VERSION
   - ansible-galaxy install Juniper.junos -p ./roles
   - pip install ansible junos-eznc lxml jxmlease markupsafe requests httplib2
+  - cd tests
   - mkdir library
   - git clone https://github.com/Juniper/ravello-ansible.git library/ravello-ansible
   - mv .travis_ansible_python.yaml group_vars/all/travis_ansible_python.yaml
