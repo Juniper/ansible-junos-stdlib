@@ -66,6 +66,17 @@ options:
         required: false
         default: no
         choices: ['yes','no']
+    at:
+        description:
+            - Specify a time for the reboot (yyyymmddhhmm). Can be used only with reboot=yes.
+        required: false
+        default: None
+    in_min:
+        description:
+            - Specify a delay, in minutes, before the shutdown or reboot.
+              If both "at" and "in_min" are specified, "in_min" will be ignored.
+        required: false
+        default: 0
     shutdown:
         description:
             - Safety mechanism. You B(MUST) set this to 'shutdown'.
@@ -73,9 +84,15 @@ options:
         default: None
     port:
         description:
-            - TCP port number to use when connecting to the device
+            - port number to use when connecting to the device
         required: false
         default: 830
+    mode:
+        description:
+            - mode of console connection (telnet/serial). If mode is not
+              provided SSH connection is used.
+        required: false
+        default: None
 '''
 
 EXAMPLES = '''
@@ -83,20 +100,16 @@ EXAMPLES = '''
     host={{ inventory_hostname }}
     shutdown="shutdown"
     reboot=yes
+
+# over console server connection using PyEZ >= 2.0
+- junos_shutdown:
+    host={{ inventory_hostname }}
+    shutdown="shutdown"
+    reboot=yes
+    mode='telnet'
+    port=7016
 '''
 from distutils.version import LooseVersion
-
-try:
-    from jnpr.junos import Device
-    from jnpr.junos.utils.sw import SW
-    from jnpr.junos.version import VERSION
-    if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
-        HAS_PYEZ = False
-    else:
-        HAS_PYEZ = True
-except ImportError:
-    HAS_PYEZ = False
-
 
 def main():
 
@@ -107,36 +120,64 @@ def main():
             user=dict(required=False, default=os.getenv('USER')),
             passwd=dict(required=False, default=None),
             reboot=dict(required=False, type='bool', choices=BOOLEANS, default=False),
-            port=dict(required=False, default=830)
+            port=dict(required=False, default=830),
+            mode=dict(required=False, default=None),
+            in_min=dict(required=False, default=0),
+            at=dict(required=False, type='str', default=None)
         ),
         supports_check_mode=False)
 
-    if not HAS_PYEZ:
-        module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
-
     args = module.params
+
+    try:
+        from jnpr.junos import Device
+        from jnpr.junos.utils.sw import SW
+        from jnpr.junos.version import VERSION
+        if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
+            module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
+    except ImportError as ex:
+        module.fail_json(msg='ImportError: %s' % ex.message)
+
+    if args['mode'] is not None and LooseVersion(VERSION) < LooseVersion('2.0.0'):
+        module.fail_json(msg='junos-eznc >= 2.0.0 is required for console connection.')
+
     if args['shutdown'] != 'shutdown':
         module.fail_json(msg='Say "shutdown" to proceed')
 
     restart_mode = module.boolean(args['reboot'])
+    delay = args['in_min']
+
+    # because PyEZ does not support 'at' option on shutdown, only with reboot
+    if args['at'] and not restart_mode:
+        module.fail_json(msg="Argument *at* must be used with argument *reboot='yes'*")
+        # --- UNREACHABLE ---
 
     try:
-        dev = Device(args['host'], user=args['user'], password=args['passwd'], port=args['port']).open()
+        dev = Device(args['host'], user=args['user'], password=args['passwd'],
+                     port=args['port'], mode=args['mode'], gather_facts=False).open()
     except Exception as err:
         msg = 'unable to connect to {0}: {1}'.format(args['host'], str(err))
         module.fail_json(msg=msg)
         # --- UNREACHABLE ---
 
-    results = {'changed': True, 'reboot': restart_mode}
-
     sw = SW(dev)
     do_it = sw.reboot if restart_mode is True else sw.poweroff
-    do_it(0)
 
-    # dev.close isn't performed since the device will
-    # be in the process of shutting down and we'll
-    # lose connectivity anyways ...
+    try:
+        if args['at']:
+            msg = do_it(at=args['at'])
+            dev.close()
+        else:
+            msg = do_it(in_min=delay)
+            # no need to close session with immediate shutdown/reboot because
+            # the device will be shutting and we will lose connectivity anyway
+            if delay > 0:
+                dev.close()
+    except Exception as err:
+        msg = 'error during device reboot or shutdown {0}: {1}'.format(args['host'], str(err))
+        module.fail_json(msg=msg)
 
+    results = {'changed': True, 'reboot': restart_mode, 'msg':msg}
     module.exit_json(**results)
 
 from ansible.module_utils.basic import *

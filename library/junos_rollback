@@ -60,9 +60,15 @@ options:
         default: assumes ssh-key active
     port:
         description:
-            - TCP port number to use when connecting to the device
+            - port number to use when connecting to the device
         required: false
         default: 830
+    mode:
+        description:
+            - mode of console connection (telnet/serial). If mode is not
+              provided SSH connection is used.
+        required: false
+        default: None
     logfile:
         description:
             - Path on the local server where the progress status is logged
@@ -106,22 +112,21 @@ EXAMPLES = '''
    rollback=1
    comment="Rolled back by Ansible"
    confirm=5
+
+# over console server connection using PyEZ >= 2.0
+- junos_rollback:
+   host: "{{ inventory_hostname }}"
+   logfile=rollback.log
+   diffs_file=rollback.diff
+   rollback=1
+   comment="Rolled back by Ansible"
+   confirm=5
+   mode='telnet'
+   port=7015
 '''
+
 from distutils.version import LooseVersion
 import logging
-
-try:
-    from jnpr.junos import Device
-    from jnpr.junos.version import VERSION
-    from jnpr.junos.utils.config import Config
-    from jnpr.junos.exception import CommitError, LockError, UnlockError, RpcError
-    if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
-        HAS_PYEZ = False
-    else:
-        HAS_PYEZ = True
-except ImportError:
-    HAS_PYEZ = False
-
 
 def main():
 
@@ -130,6 +135,7 @@ def main():
                            user=dict(required=False, default=os.getenv('USER')),
                            passwd=dict(required=False, default=None),
                            port=dict(required=False, default=830),
+                           mode=dict(required=False, default=None),
                            logfile=dict(required=False, default=None),
                            rollback=dict(required=True, default=None),
                            timeout=dict(required=False, default=0),
@@ -139,11 +145,21 @@ def main():
                            ),
         supports_check_mode=True)
 
-    if not HAS_PYEZ:
-        module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
-
     args = module.params
     in_check_mode = module.check_mode
+
+    try:
+        from jnpr.junos import Device
+        from jnpr.junos.version import VERSION
+        from jnpr.junos.utils.config import Config
+        from jnpr.junos.exception import CommitError, LockError, UnlockError, RpcError
+        if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
+            module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
+    except ImportError as ex:
+        module.fail_json(msg='ImportError: %s' % ex.message)
+
+    if args['mode'] is not None and LooseVersion(VERSION) < LooseVersion('2.0.0'):
+        module.fail_json(msg='junos-eznc >= 2.0.0 is required for console connection')
 
     results = dict(changed=False)
 
@@ -163,7 +179,7 @@ def main():
 
     try:
         dev = Device(args['host'], user=args['user'], password=args['passwd'],
-                     port=args['port'], gather_facts=False).open()
+                     port=args['port'], mode=args['mode'], gather_facts=False).open()
     except Exception as err:
         msg = 'unable to connect to {0}: {1}'.format(args['host'], str(err))
         logging.error(msg)
