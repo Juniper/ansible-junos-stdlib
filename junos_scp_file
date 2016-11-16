@@ -1,0 +1,153 @@
+#!/usr/bin/env python
+
+
+# Copyright (c) 1999-2016, Juniper Networks Inc.
+#
+# All rights reserved.
+#
+# License: Apache 2.0
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright
+#   notice, this list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright
+#   notice, this list of conditions and the following disclaimer in the
+#   documentation and/or other materials provided with the distribution.
+#
+# * Neither the name of the Juniper Networks nor the
+#   names of its contributors may be used to endorse or promote products
+#   derived from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY Juniper Networks, Inc. ''AS IS'' AND ANY
+# EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL Juniper Networks, Inc. BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+DOCUMENTATION = '''
+---
+module: junos_scp_file
+author: Boris Renet, Juniper Networks
+version_added: "1.0.0"
+short_description: scp a file to /var/tmp of the device.
+description:
+    - Install a file via scp to the /var/tmp directory of the target device.
+requirements:
+    - py-junos-eznc >= 1.2.3
+options:
+    host:
+        description:
+            - Set to {{ inventory_hostname }}
+        required: true
+    user:
+        description:
+            - Login username
+        required: false
+        default: $USER
+    passwd:
+        description:
+            - Login password
+        required: false
+        default: assumes ssh-key active
+    package:
+        description:
+            - Absolute path on the local server to the Junos OS software package
+        required: true
+    logfile:
+        description:
+            - Path on the local server where the progress status is logged
+              for debugging purposes
+        required: false
+        default: None
+'''
+
+EXAMPLES = '''
+- junos_scp_file:
+    host={{ inventory_hostname }}
+    package=/var/tmp/junos/junos-vsrx-12.1X46-D10.2-domestic.tgz
+'''
+import logging
+import re
+import os
+from distutils.version import LooseVersion
+from ansible.module_utils.basic import * 
+
+try:
+    from jnpr.junos import Device
+    from jnpr.junos.version import VERSION
+    if not LooseVersion(VERSION) >= LooseVersion('1.2.3'):
+        HAS_PYEZ = False
+    else:
+        HAS_PYEZ = True
+except ImportError:
+    HAS_PYEZ = False
+
+from jnpr.junos import Device
+from jnpr.junos.utils.scp import SCP
+def main():
+    module = AnsibleModule(
+        argument_spec=dict(
+            host=dict(required=True),
+            package=dict(required=True),
+            user=dict(required=False, default=os.getenv('USER')),
+            passwd=dict(required=False, default=None),
+            logfile=dict(required=False, default=None),
+        ),
+        supports_check_mode=True
+    )
+
+    if not HAS_PYEZ:
+        module.fail_json(msg='junos-eznc >= 1.2.3 is required for this module')
+
+    args = module.params
+
+    # -------------------------------------------------------------------------
+    # logging
+    # -------------------------------------------------------------------------
+
+    logfile = args['logfile']
+    if logfile is not None:
+        logging.basicConfig(filename=logfile, level=logging.INFO,
+                            format='%(asctime)s:%(name)s:%(message)s')
+        logging.getLogger().name = args['host']
+
+        def do_log(msg, level='info'):
+            getattr(logging, level)(msg)
+    else:
+        def do_log(msg):
+            pass
+
+
+    dev = Device(args['host'], user=args['user'], password=args['passwd'])
+
+    do_log("Starting the file transfer: {0}".format(args['package']))
+
+    def update_my_progress(dev, report):
+        # log the progress of the installing process
+        do_log(report)
+
+
+    try:
+        dev.open()
+        with SCP(dev,progress=update_my_progress) as scp1:
+            scp1.put(args['package'],remote_path="/var/tmp/")
+    except Exception as err:
+        msg = 'unable to scp the file {0}: {1}'.format(args['host'], str(err))
+        module.fail_json(msg=msg)
+        return
+    else:
+        dev.close()
+
+    module.exit_json(msg="Done")
+
+if __name__ == "__main__":
+    main()
+
