@@ -129,7 +129,7 @@ def main():
             passwd=dict(required=False, default=None),
             port=dict(required=False, default=830),
             console=dict(required=False, default=None),     # param to netconify
-            cluster_enable=dict(required=True, type='bool', choices=BOOLEANS, default=None),
+            cluster_enable=dict(required=True, type='bool', default=None),
             cluster_id=dict(required=False, default=None),
             node=dict(required=False, default=None),
             logfile=dict(required=False, default=None)),

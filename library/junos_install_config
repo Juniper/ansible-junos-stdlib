@@ -435,8 +435,8 @@ def main():
             passwd=dict(required=False, default=None),
             console=dict(required=False, default=None),
             file=dict(required=True),
-            overwrite=dict(required=False, choices=BOOLEANS, default=False),
-            replace=dict(required=False, choices=BOOLEANS, default=False),
+            overwrite=dict(required=False, type='bool', default=False),
+            replace=dict(required=False, type='bool', default=False),
             logfile=dict(required=False, default=None),
             diffs_file=dict(required=False, default=None),
             savedir=dict(required=False),
@@ -445,7 +445,7 @@ def main():
             comment=dict(required=False, default=None),
             port=dict(required=False, default=830),
             confirm=dict(required=False, default=None),
-            commit_changes=dict(required=False, choices=BOOLEANS, default=True)
+            commit_changes=dict(required=False, type='bool', default=True)
         ),
         supports_check_mode=True)
 

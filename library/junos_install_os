@@ -229,8 +229,8 @@ def main():
             passwd=dict(required=False, default=None),
             version=dict(required=False, default=None),
             logfile=dict(required=False, default=None),
-            no_copy=dict(required=False, type='bool', choices=BOOLEANS, default=False),
-            reboot=dict(required=False, type='bool', choices=BOOLEANS, default=True),
+            no_copy=dict(required=False, type='bool', default=False),
+            reboot=dict(required=False, type='bool', default=True),
             reboot_pause=dict(required=False, type='int', default=10),
             port=dict(required=False, default=830)
         ),
