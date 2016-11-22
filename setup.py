@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/python
 from setuptools import setup
 from version import VERSION
 
