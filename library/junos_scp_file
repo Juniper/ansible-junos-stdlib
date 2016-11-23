@@ -32,14 +32,26 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# <*******************
+#
+# Copyright 2016 Juniper Networks, Inc. All rights reserved.
+# Licensed under the Juniper Networks Script Software License (the "License").
+# You may not use this script file except in compliance with the License, which is located at
+# http://www.juniper.net/support/legal/scriptlicense/
+# Unless required by applicable law or otherwise agreed to in writing by the parties, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#
+# *******************>
+
+
 DOCUMENTATION = '''
 ---
 module: junos_scp_file
 author: Boris Renet, Juniper Networks
-version_added: "1.0.0"
-short_description: scp a file to /var/tmp of the device.
+version_added: "1.1.0"
+short_description: scp a file to from a device.
 description:
-    - Install a file via scp to the /var/tmp directory of the target device.
+    - scp a file to/from local directory to/from remote directory.
 requirements:
     - py-junos-eznc >= 1.2.3
 options:
@@ -57,10 +69,19 @@ options:
             - Login password
         required: false
         default: assumes ssh-key active
-    package:
+    file:
         description:
-            - Absolute path on the local server to the Junos OS software package
+            - Name of the file to scp
         required: true
+    type:
+        description:
+            - put or get depending on the direction of the scp
+    local_dir:
+        description:
+            - directory (without the last /) on the source of the scp
+    remote_dir:
+        description:
+            - directory (without the last /) on the destination of the scp
     logfile:
         description:
             - Path on the local server where the progress status is logged
@@ -70,15 +91,34 @@ options:
 '''
 
 EXAMPLES = '''
+Copy a file from the source to the destination:
 - junos_scp_file:
     host={{ inventory_hostname }}
-    package=/var/tmp/junos/junos-vsrx-12.1X46-D10.2-domestic.tgz
+    user={{ ansible_user }}
+    passwd={{ ansible_ssh_pass }}
+    local_dir="/var/tmp/junos"
+    remote_dir="/var/tmp"
+    type="put"
+    file={{ OS_satellite_package }}
+    logfile={{ log }}
+
+Copy a file from a destination to a source:
+- junos_scp_file:
+    host={{ inventory_hostname }}
+    user={{ ansible_user }}
+    passwd={{ ansible_ssh_pass }}
+    local_dir="/var/tmp"
+    remote_dir="/var/log"
+    type="get"
+    file="messages"
+    logfile={{ log }}
+
 '''
 import logging
 import re
 import os
 from distutils.version import LooseVersion
-from ansible.module_utils.basic import * 
+from ansible.module_utils.basic import *
 
 try:
     from jnpr.junos import Device
@@ -96,9 +136,12 @@ def main():
     module = AnsibleModule(
         argument_spec=dict(
             host=dict(required=True),
-            package=dict(required=True),
+            file=dict(required=True),
+            local_dir=dict(required=True),
+            remote_dir=dict(required=True),
             user=dict(required=False, default=os.getenv('USER')),
             passwd=dict(required=False, default=None),
+            type=dict(required=True, default=None),
             logfile=dict(required=False, default=None),
         ),
         supports_check_mode=True
@@ -128,7 +171,7 @@ def main():
 
     dev = Device(args['host'], user=args['user'], password=args['passwd'])
 
-    do_log("Starting the file transfer: {0}".format(args['package']))
+    do_log("Starting the file transfer: {0}".format(args['file']))
 
     def update_my_progress(dev, report):
         # log the progress of the installing process
@@ -137,8 +180,12 @@ def main():
 
     try:
         dev.open()
-        with SCP(dev,progress=update_my_progress) as scp1:
-            scp1.put(args['package'],remote_path="/var/tmp/")
+        if (args['type'] == "put"):
+            with SCP(dev,progress=update_my_progress) as scp1:
+                scp1.put(args['local_dir']+"/"+args['file'],remote_path=args['remote_dir'])
+        if (args['type'] == "get"):
+            with SCP(dev,progress=update_my_progress) as scp1:
+                scp1.get(args['remote_dir']+"/"+args['file'],local_path=args['local_dir'])
     except Exception as err:
         msg = 'unable to scp the file {0}: {1}'.format(args['host'], str(err))
         module.fail_json(msg=msg)
@@ -150,4 +197,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
