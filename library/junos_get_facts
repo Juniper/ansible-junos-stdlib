@@ -141,7 +141,7 @@ def main():
             logfile=dict(required=False, default=None),
             savedir=dict(required=False, default=None),
             user=dict(required=False, default=os.getenv('USER')),
-            passwd=dict(required=False, default=None),
+            passwd=dict(required=False, default=None, no_log=True),
             port=dict(required=False, default=830),
             mode=dict(required=False, default=None)),
         supports_check_mode=True)

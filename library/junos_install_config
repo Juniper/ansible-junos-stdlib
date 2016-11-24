@@ -420,7 +420,7 @@ def main():
         argument_spec=dict(
             host=dict(required=True),
             user=dict(required=False, default=os.getenv('USER')),
-            passwd=dict(required=False, default=None),
+            passwd=dict(required=False, default=None, no_log=True),
             console=dict(required=False, default=None),
             file=dict(required=True),
             overwrite=dict(required=False, type='bool', choices=BOOLEANS, default=False),
