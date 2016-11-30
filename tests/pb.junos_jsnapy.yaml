@@ -1,0 +1,217 @@
+---
+- name: Test junos_ping module
+  hosts: all
+  connection: local
+  gather_facts: no
+  roles:
+    - Juniper.junos
+  tasks:
+##################################################
+####    TEST 1                                  ##
+##################################################
+    - name: "TEST 1 - Execute SNAPCHECK with 1 test file / no dir"
+      junos_jsnapy:
+        host: "{{ ansible_ssh_host }}"
+        port: "{{ ansible_ssh_port }}"
+        user: "{{ ansible_ssh_user }}"
+        passwd: "{{ ansible_ssh_pass }}"
+        test_files: junos_jsnapy/test_junos_storage.yml
+        action: snapcheck
+      register: test1
+      ignore_errors: True
+      tags: [ test1 ]
+    # - debug: var=test1
+
+    - name: Check TEST 1
+      assert:
+        that:
+          - test1|succeeded
+          - test1.passPercentage == 100
+          - test1.total_tests == 1
+      tags: [ test1 ]
+
+##################################################
+####    TEST 2                                  ##
+##################################################
+    - name: "TEST 2 - Execute SNAPCHECK with 2 test file & dir"
+      junos_jsnapy:
+        host: "{{ ansible_ssh_host }}"
+        port: "{{ ansible_ssh_port }}"
+        user: "{{ ansible_ssh_user }}"
+        passwd: "{{ ansible_ssh_pass }}"
+        test_files:
+          - test_junos_storage.yml
+          - test_version.yml
+        dir: junos_jsnapy
+        action: snapcheck
+      register: test2
+      ignore_errors: True
+      tags: [ test2 ]
+    # - debug: var=test2
+
+    - name: Check TEST 2
+      assert:
+        that:
+          - test2|succeeded
+          - test2.passPercentage == 100
+          - test2.total_tests == 2
+      tags: [ test2 ]
+
+##################################################
+####    TEST 3                                  ##
+##################################################
+    - name: "TEST 3 - Wrong test file"
+      junos_jsnapy:
+        host: "{{ ansible_ssh_host }}"
+        port: "{{ ansible_ssh_port }}"
+        user: "{{ ansible_ssh_user }}"
+        passwd: "{{ ansible_ssh_pass }}"
+        test_files: file_that_doesnt_exist.yml
+        action: snapcheck
+      register: test3
+      ignore_errors: True
+      tags: [ test3 ]
+    # - debug: var=test3
+
+    - name: Check TEST 3
+      assert:
+        that:
+          - test3|failed
+      tags: [ test3 ]
+
+##################################################
+####    TEST 4                                  ##
+##################################################
+    - name: "TEST 4 - SNAP_PRE"
+      junos_jsnapy:
+        host: "{{ ansible_ssh_host }}"
+        port: "{{ ansible_ssh_port }}"
+        user: "{{ ansible_ssh_user }}"
+        passwd: "{{ ansible_ssh_pass }}"
+        test_files: junos_jsnapy/test_loopback.yml
+        action: snap_pre
+      register: test4
+      ignore_errors: True
+      tags: [ test4 ]
+
+    # - debug: var=test4
+
+    - name: Check TEST 4
+      assert:
+        that:
+          - test4|succeeded
+      tags: [ test4 ]
+
+##################################################
+####    TEST 5                                  ##
+##################################################
+    - name: "TEST 5 - SNAP_POST"
+      junos_jsnapy:
+        host: "{{ ansible_ssh_host }}"
+        port: "{{ ansible_ssh_port }}"
+        user: "{{ ansible_ssh_user }}"
+        passwd: "{{ ansible_ssh_pass }}"
+        test_files: junos_jsnapy/test_loopback.yml
+        action: snap_post
+      register: test5
+      ignore_errors: True
+      tags: [ test5 ]
+
+    # - debug: var=test5
+
+    - name: Check TEST 5
+      assert:
+        that:
+          - test5|succeeded
+      tags: [ test5 ]
+
+##################################################
+####    TEST 6                                  ##
+##################################################
+    - name: "TEST 6 - CHECK"
+      junos_jsnapy:
+        host: "{{ ansible_ssh_host }}"
+        port: "{{ ansible_ssh_port }}"
+        user: "{{ ansible_ssh_user }}"
+        passwd: "{{ ansible_ssh_pass }}"
+        test_files: junos_jsnapy/test_loopback.yml
+        action: check
+      register: test6
+      ignore_errors: True
+      tags: [ test6 ]
+
+    - debug: var=test6
+
+    - name: Check TEST 6
+      assert:
+        that:
+          - test6|succeeded
+          - test6.passPercentage == 100
+      tags: [ test6 ]
+
+##################################################
+####    TEST 7                                  ##
+##################################################
+    - name: "PRE-TEST 7 - Add loopback address"
+      junos_install_config:
+        host: "{{ ansible_ssh_host }}"
+        port: "{{ ansible_ssh_port }}"
+        user: "{{ ansible_ssh_user }}"
+        passwd: "{{ ansible_ssh_pass }}"
+        file: junos_jsnapy/add_loopback.set
+        overwrite: no
+      register: test7_1
+      ignore_errors: True
+      tags: [ test7 ]
+
+    - name: Wait for loopback to come up
+      pause: seconds=15
+
+    - name: "TEST 7 - SNAP_POST with additional loopback"
+      junos_jsnapy:
+        host: "{{ ansible_ssh_host }}"
+        port: "{{ ansible_ssh_port }}"
+        user: "{{ ansible_ssh_user }}"
+        passwd: "{{ ansible_ssh_pass }}"
+        test_files: junos_jsnapy/test_loopback.yml
+        action: snap_post
+      register: test7_2
+      ignore_errors: True
+      tags: [ test7 ]
+    # - debug: var=pretest7
+
+    - name: "TEST 7 - CHECK"
+      junos_jsnapy:
+        host: "{{ ansible_ssh_host }}"
+        port: "{{ ansible_ssh_port }}"
+        user: "{{ ansible_ssh_user }}"
+        passwd: "{{ ansible_ssh_pass }}"
+        test_files: junos_jsnapy/test_loopback.yml
+        action: check
+      register: test7
+      ignore_errors: True
+      tags: [ test7 ]
+    - debug: var=test7
+
+    - name: "TEST 7 - Cleanup"
+      junos_install_config:
+        host: "{{ ansible_ssh_host }}"
+        port: "{{ ansible_ssh_port }}"
+        user: "{{ ansible_ssh_user }}"
+        passwd: "{{ ansible_ssh_pass }}"
+        file: junos_jsnapy/delete_loopback.set
+        overwrite: no
+      register: test7_3
+      ignore_errors: True
+      tags: [ test7 ]
+
+    - name: Check TEST 7
+      assert:
+        that:
+          - test7_1|succeeded
+          - test7_2|succeeded
+          - test7_3|succeeded
+          - test7|succeeded
+          - test7.passPercentage == 50
+          - test7.total_tests == 2
+      tags: [ test7 ]

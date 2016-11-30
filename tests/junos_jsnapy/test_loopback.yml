@@ -1,0 +1,16 @@
+tests_include:
+  - test_command_version
+
+test_command_version:
+  - command: show interfaces terse lo*
+  - iterate:
+      xpath: //logical-interface
+      id: './name'
+      tests:
+        - list-not-more: admin-status
+          err: "Test Failed!! name list changed, <{{pre['admin-status']}}>  with name <{{id_0}}> is not found in post snapshot"
+          info: "Test successful!! name list is same, with name <{{id_0}}>"
+
+        - list-not-less: admin-status
+          err: "Test Failed!! name list changed, <{{pre['admin-status']}}>  with name <{{id_0}}> was not present in PRE snapshot"
+          info: "Test successful!! name list is same, with name <{{id_0}}>"

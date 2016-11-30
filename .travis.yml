@@ -7,7 +7,7 @@ dist: trusty
 
 env:
   - ANSIBLE_VERSION=2.2.0.0
-  
+
 
 install:
   - pip install -r requirements.txt
@@ -22,4 +22,6 @@ install:
 script:
   - ansible-playbook -i ravello.ini pb.rav.token.create-deploy.yaml
   - ansible-playbook -i ravello.ini pb.rav.token.fqdn_get.yaml
+## Execute Tests
   - ansible-playbook -i ravello.ini pb.junos_ping.yaml
+  - ansible-playbook -i ravello.ini pb.junos_jsnapy.yaml
