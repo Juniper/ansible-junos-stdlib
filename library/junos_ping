@@ -271,12 +271,6 @@ def main():
             dev.close()
             module.exit_json(**results)
 
-<<<<<<< HEAD
-        results['msg'] = 'Loss {0}% packets, (Sent {1} | Received {2})'.format(str(packet_loss.strip()), str(packets_sent.strip()), str(responses_received.strip()))
-        results['packet_loss'] = packet_loss.strip()
-        results['packets_sent'] = packets_sent.strip()
-        results['packets_received'] = responses_received.strip()
-=======
         packet_loss = packet_loss.strip()
         packets_sent = packets_sent.strip()
         responses_received = responses_received.strip()
@@ -284,7 +278,6 @@ def main():
         results['packet_loss'] = packet_loss
         results['packets_sent'] = packets_sent
         results['packets_received'] = responses_received
->>>>>>> b91c6f9171831cf6bc2ead72ee55c45f4b2758aa
 
         if int(packet_loss) > int(m_args['acceptable_packet_loss']):
             results['failed'] = True
