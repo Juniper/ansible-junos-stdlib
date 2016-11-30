@@ -16,6 +16,7 @@ RUN tar -czf Juniper.junos ansible-junos-stdlib &&\
     pip install junos-netconify &&\
     pip install jxmlease &&\
     pip install ansible &&\
+    pip install jsnapy &&\
     ansible-galaxy install Juniper.junos &&\
     apk del -r --purge gcc make g++ &&\
     rm -rf /source/* &&\
