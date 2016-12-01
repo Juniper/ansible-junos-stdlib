@@ -35,11 +35,21 @@ class CallbackModule(CallbackBase):
 
     ## Extract module name
     module_name = ''
+    module_args = {}
     if 'invocation' in result._result:
       if 'module_name' in result._result['invocation']:
         module_name = result._result['invocation']['module_name']
+        module_args = result._result['invocation']['module_args']
 
-    if module_name == 'junos_jsnapy':
+    ## Check if dic return has all valid information
+    if module_name == '' or module_args == {}:
+        return None
+    elif not module_args.has_key('action'):
+        return None
+
+    if module_name == 'junos_jsnapy' and \
+    ( module_args['action'] == 'snapcheck' or module_args['action'] == 'check' ):
+
       ## Check if dict entry already exist for this host
       host = result._host.name
       if not host in self._results.keys():
@@ -65,10 +75,18 @@ class CallbackModule(CallbackBase):
                   has_printed_banner = True
 
                 for test in testlet['failed']:
+
+                  # Check if POST exist in the response
+                  data = ''
+                  if test.has_key('post'):
+                      data = test['post']
+                  else:
+                      data = test
+
                   self._display.display(
                     "Value of '{0}' not '{1}' at '{2}' with {3}".format(
                       str(testlet['node_name']),
                       str(testlet['testoperation']),
                       str(testlet['xpath']),
-                      json.dumps(test['post'])),
+                      json.dumps(data)),
                     color=C.COLOR_ERROR)
