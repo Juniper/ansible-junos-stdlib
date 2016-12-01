@@ -18,7 +18,7 @@ install:
   - mkdir library
   - git clone https://github.com/Juniper/ravello-ansible.git library/ravello-ansible
   - pip install -r library/ravello-ansible/requirements.txt
-  - mv .travis_ansible_python.yaml group_vars/all/travis_ansible_python.yaml
+  - cp .travis_ansible_python.yaml group_vars/all/travis_ansible_python.yaml
 
 script:
 ## Start Virtual topology on Ravello with 2 VQFX and collect IP addresses
@@ -26,6 +26,7 @@ script:
 ## https://cloud.ravellosystems.com/#/GtHFbCOuKgD1pcfkvCCIgenj6DOtn3VgRLjaYipdideCsiPC1NxJitt1UHfhF0Bf/apps
   - ansible-playbook -i ravello.ini pb.rav.token.create-deploy.yaml
   - ansible-playbook -i ravello.ini pb.rav.token.fqdn_get.yaml
+  - rm group_vars/all/travis_ansible_python.yaml
 
 ## Execute Tests with Docker
   - docker run -t -i -v $(pwd):/project juniper/pyez-ansible:travis ansible-playbook -i ravello.ini pb.junos_ping.yaml
