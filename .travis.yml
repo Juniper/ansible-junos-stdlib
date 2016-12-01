@@ -22,6 +22,8 @@ install:
 
 script:
 ## Start Virtual topology on Ravello with 2 VQFX and collect IP addresses
+## Anyone can connect here to see the list of applications running and see the VMs
+## https://cloud.ravellosystems.com/#/GtHFbCOuKgD1pcfkvCCIgenj6DOtn3VgRLjaYipdideCsiPC1NxJitt1UHfhF0Bf/apps
   - ansible-playbook -i ravello.ini pb.rav.token.create-deploy.yaml
   - ansible-playbook -i ravello.ini pb.rav.token.fqdn_get.yaml
 
