@@ -162,7 +162,7 @@ def remote_md5(file, dev, type):
        else:
            raise err
        return checksum
-    logging.info("rpc reponse recvd %s" % checksum)
+    logging.info("rpc reponse recvd")
     return checksum
 
 try:
@@ -243,6 +243,8 @@ def main():
                 do_log('Remote checksum: %s' % remote_checksum)
                 if remote_checksum != local_checksum:
                     do_log("checksum check failed.")
+                    status="Transfer failed (different MD5 between source and destination)"
+                    module.fail_json(msg=status)
                     return False
                 else:
                     do_log("checksum check passed.")
@@ -265,6 +267,8 @@ def main():
                 do_log('Local checksum: %s' % local_checksum)
                 if remote_checksum != local_checksum:
                     do_log("checksum check failed.")
+                    status="Transfer failed (different MD5 between source and destination)" 
+                    module.fail_json(msg=status) 
                     return False
                 else:
                     do_log("checksum check passed.")
