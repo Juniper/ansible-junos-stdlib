@@ -32,10 +32,22 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
+# <*******************
+#
+# Copyright 2016 Juniper Networks, Inc. All rights reserved.
+# Licensed under the Juniper Networks Script Software License (the "License").
+# You may not use this script file except in compliance with the License, which is located at
+# http://www.juniper.net/support/legal/scriptlicense/
+# Unless required by applicable law or otherwise agreed to in writing by the parties, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+#
+# *******************>
+
+
 DOCUMENTATION = '''
 ---
 module: junos_scp_file
-author: Boris Renet, Juniper Networks
+author: Boris Renet, Juniper Networks from sw.py
 version_added: "1.1.0"
 short_description: scp a file to from a device.
 description:
@@ -70,7 +82,7 @@ options:
     remote_dir:
         description:
             - directory (without the last /) on the destination of the scp
-    logfile:
+    logfile:    
         description:
             - Path on the local server where the progress status is logged
               for debugging purposes
@@ -105,8 +117,53 @@ Copy a file from a destination to a source:
 import logging
 import re
 import os
+import hashlib
 from distutils.version import LooseVersion
-from ansible.module_utils.basic import *
+from ansible.module_utils.basic import * 
+
+
+def _hashfile(afile, hasher, blocksize=65536):
+    buf = afile.read(blocksize)
+    while len(buf) > 0:
+        hasher.update(buf)
+        buf = afile.read(blocksize)
+    return hasher.hexdigest()
+
+def local_md5(package,type):
+    """
+    Computes the MD5 checksum value on the local package file.
+
+    :param str package:
+      File-path to the package (\*.tgz) file on the local server
+
+    :returns: MD5 checksum (str)
+    :raises IOError: when **package** file does not exist
+    """
+    try:
+        checksum=_hashfile(open(package, 'rb'), hashlib.md5())
+    except Exception as err:
+        logging.error("unable to get rpc due to:{0}".format(err))
+        if (("No such file" in format(err)) and (type=="get")):
+            checksum="no_file"
+        else:
+            raise err
+        return checksum
+    logging.info("rpc reponse recvd")
+    return checksum
+
+def remote_md5(file, dev, type):
+    try:
+        rpc_reply=dev.rpc.get_checksum_information(path=file)
+        checksum=rpc_reply.findtext('.//checksum').strip() 
+    except Exception as err:
+       logging.error("unable to get rpc due to:{0}".format(err.message))
+       if (("No such file or directory" in err.message) and (type=="put")):
+           checksum="no_file" 
+       else:
+           raise err
+       return checksum
+    logging.info("rpc reponse recvd %s" % checksum)
+    return checksum
 
 try:
     from jnpr.junos import Device
@@ -120,13 +177,14 @@ except ImportError:
 
 from jnpr.junos import Device
 from jnpr.junos.utils.scp import SCP
+from lxml import etree
 def main():
     module = AnsibleModule(
         argument_spec=dict(
             host=dict(required=True),
             file=dict(required=True),
             local_dir=dict(required=True),
-            remote_dir=dict(required=True),
+            remote_dir=dict(required=True), 
             user=dict(required=False, default=os.getenv('USER')),
             passwd=dict(required=False, default=None),
             type=dict(required=True, default=None),
@@ -162,26 +220,70 @@ def main():
     do_log("Starting the file transfer: {0}".format(args['file']))
 
     def update_my_progress(dev, report):
-        # log the progress of the installing process
         do_log(report)
 
 
     try:
         dev.open()
-        if (args['type'] == "put"):
-            with SCP(dev,progress=update_my_progress) as scp1:
-                scp1.put(args['local_dir']+"/"+args['file'],remote_path=args['remote_dir'])
-        if (args['type'] == "get"):
-            with SCP(dev,progress=update_my_progress) as scp1:
-                scp1.get(args['remote_dir']+"/"+args['file'],local_path=args['local_dir'])
+        remote_path=args['remote_dir']
+        type=args['type']
+        local_file=args['local_dir']+"/"+args['file']
+        remote_file=args['remote_dir']+"/"+args['file']
+        if (type == "put"):
+            do_log('computing local MD5 checksum on: %s' % local_file)
+            local_checksum = local_md5(local_file,type)
+            do_log('Local checksum: %s' % local_checksum) 
+            remote_checksum = remote_md5(remote_file,dev,type)
+            if ((remote_checksum == "no_file") or (remote_checksum != local_checksum)):
+                with SCP(dev,progress=update_my_progress) as scp1:
+                    scp1.put(local_file,remote_path)
+                # validate checksum:
+                do_log('computing remote MD5 checksum on: %s' % remote_file)
+                remote_checksum = remote_md5(remote_file,dev,type)
+                do_log('Remote checksum: %s' % remote_checksum)
+                if remote_checksum != local_checksum:
+                    do_log("checksum check failed.")
+                    return False
+                else:
+                    do_log("checksum check passed.")
+                    status="File pushed OK"
+            else: 
+                do_log("File already present, skipping the scp")
+                status="File already present, skipping the scp" 
+
+        if (type == "get"): 
+            do_log('computing remote MD5 checksum on: %s' % remote_file)
+            remote_checksum = remote_md5(remote_file,dev,type)
+            do_log('Remote checksum: %s' % remote_checksum)
+            local_checksum = local_md5(local_file,type)               
+            if ((local_checksum == "no_file") or (remote_checksum != local_checksum)):
+                with SCP(dev,progress=update_my_progress) as scp1:
+                    scp1.get(remote_file,local_file)
+                # validate checksum:
+                do_log('computing local MD5 checksum on: %s' % local_file)
+                local_checksum = local_md5(local_file,type)
+                do_log('Local checksum: %s' % local_checksum)
+                if remote_checksum != local_checksum:
+                    do_log("checksum check failed.")
+                    return False
+                else:
+                    do_log("checksum check passed.")
+                status="File retrieved OK"
+            else:
+                do_log("File already present, skipping the scp")
+                status="File already present, skipping the scp"
+
     except Exception as err:
-        msg = 'unable to scp the file {0}: {1}'.format(args['host'], str(err))
+        if (type=="put"): 
+            msg = 'unable to scp the file to {0}: {1}'.format(args['host'], str(err))
+        else:
+            msg = 'unable to scp the file from {0}: {1}'.format(args['host'], str(err))
         module.fail_json(msg=msg)
         return
     else:
         dev.close()
 
-    module.exit_json(msg="Done")
+    module.exit_json(msg=status)
 
 if __name__ == "__main__":
     main()
