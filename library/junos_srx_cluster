@@ -143,7 +143,7 @@ def main():
         argument_spec=dict(
             host=dict(required=True, default=None),       # host or ipaddr
             user=dict(required=False, default=os.getenv('USER')),
-            passwd=dict(required=False, default=None),
+            passwd=dict(required=False, default=None, no_log=True),
             port=dict(required=False, default=830),
             mode=dict(required=False, default=None),
             console=dict(required=False, default=None),     # param to netconify
@@ -186,7 +186,7 @@ def main():
         if args['mode'] is not None and LooseVersion(VERSION) < LooseVersion('2.0.0'):
             module.fail_json(msg='junos-eznc >= 2.0.0 is required for console connection')
 
-        dev = Device(args['host'], user=args['user'], password=args['passwd'], port=args['port'], 
+        dev = Device(args['host'], user=args['user'], password=args['passwd'], port=args['port'],
                      mode=args['mode'], gather_facts=False)
         try:
             logging.info('LOGIN: host={0} port={1}'.format(args['host'], args['port']))

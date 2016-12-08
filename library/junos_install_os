@@ -215,7 +215,7 @@ def main():
             host=dict(required=True),
             package=dict(required=True),
             user=dict(required=False, default=os.getenv('USER')),
-            passwd=dict(required=False, default=None),
+            passwd=dict(required=False, default=None, no_log=True),
             version=dict(required=False, default=None),
             logfile=dict(required=False, default=None),
             no_copy=dict(required=False, type='bool', choices=BOOLEANS, default=False),
