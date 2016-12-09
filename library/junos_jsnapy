@@ -183,19 +183,35 @@ def jsnap_selection(dev, module):
         # in case config file given is not full path
         if not os.path.isfile(config_file):
             config_data = os.path.join(config_dir, config_file)
-    else:
-        test_files = args.get('test_files')
-        test_file_dir = args['dir']
-        fn = lambda test_file: os.path.join(test_file_dir, test_file) \
-                                if not os.path.isfile(test_file) else test_file
-        test_files = map(fn, test_files)
-        for test_file in test_files:
-            if not os.path.isfile(test_file):
-                msg = 'unable to find the test file {0}'.format(test_file)
+            if not os.path.isfile(config_data):
+                msg = 'unable to find the config file {0} (test directory:{1})'.format(config_file,args['dir'])
                 logging.error(msg)
                 module.fail_json(msg=msg)
 
-        config_data = {'tests': test_files}
+    else:
+        test_files = args.get('test_files')
+
+        test_files_validated = []
+        ## Check if file is present without and with dir
+        for test_file in test_files:
+            if not os.path.isfile(test_file):
+                test_file_full = os.path.join(args['dir'], test_file)
+                if not os.path.isfile(test_file_full):
+                    msg = 'unable to find the test file {0} (test directory:{1})'.format(test_file,args['dir'])
+                    logging.error(msg)
+                    module.fail_json(msg=msg)
+                else:
+                    test_files_validated.append(test_file_full)
+            else:
+                test_files_validated.append(test_file)
+
+        ## Check that we have at least one test file
+        if len(test_files_validated) == 0:
+            msg = 'The list of test file is empty, please check your input'
+            logging.error(msg)
+            module.fail_json(msg=msg)
+
+        config_data = {'tests': test_files_validated}
 
     results = {'action': action}
     js = SnapAdmin()
