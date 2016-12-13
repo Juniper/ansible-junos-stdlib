@@ -89,7 +89,7 @@ options:
         description:
             - Path to the local server directory where cli output will
               be saved.
-        required: true
+        required: false
         default: None
     format:
         description:
@@ -181,11 +181,12 @@ def main():
 
         cli_output = dev.cli(command=args['cli'], format=args['format'] )
 
-        with open(args['dest'], 'w') as outputfile:
-            if args['format'] == 'text':
-                outputfile.write(cli_output)
-            elif args['format'] == 'xml':
-                outputfile.write(etree.tostring(cli_output))
+        if dest is not None:
+            with open(args['dest'], 'w') as outputfile:
+                if args['format'] == 'text':
+                    outputfile.write(cli_output)
+                elif args['format'] == 'xml':
+                    outputfile.write(etree.tostring(cli_output))
 
     except (ValueError, RpcError) as err:
         msg = 'Unable to get cli output: {0}'.format(str(err))
