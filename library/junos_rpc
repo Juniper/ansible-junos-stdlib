@@ -217,6 +217,9 @@ def junos_rpc(module, dev):
                 filter_xml = etree.XML(filter_xml)
             values['format'] = args['format']
             rpc_reply = getattr(dev.rpc, rpc.replace('-','_'))(filter_xml, options=values)
+        elif rpc in ['request-license-add', 'request_license_add']:
+            values = {k:v for k,v in re.findall('([\w-]+)=(.*)', kwargs)}
+            rpc_reply = getattr(dev.rpc, rpc.replace('-','_'))({'format':args['format']}, **values)
         else:
             rpc_reply = getattr(dev.rpc, rpc.replace('-','_'))({'format':args['format']}, **values)
         if module.params['dest'] is not None:
