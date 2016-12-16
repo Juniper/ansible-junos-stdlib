@@ -168,11 +168,13 @@ EXAMPLES = '''
   tasks:
     - name: Get interface information
       junos_rpc:
-        host={{ inventory_hostname }}
-        rpc=get-interface-information
-        kwargs={interface_name:em0,media:True}
-        format=json
-        dest=get_interface_information.conf
+        host: "{{ inventory_hostname }}"
+        rpc: get-interface-information
+        kwargs:
+          interface_name: em0
+          media: True
+        format: json
+        dest: get_interface_information.conf
       register: junos
 
     - name: Print configuration
