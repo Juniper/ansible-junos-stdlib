@@ -84,6 +84,9 @@ options:
                 kwargs="interface_name=em0" or kwargs="interface_name=em0,media=True"
                 kwargs={interface_name:em0}
                 kwargs={interface_name:em0,media:True}
+                kwargs:
+                  interface_name: em0
+                  media: True
     filter_xml:
         description:
             - This options can be used with get-config rpc only,
@@ -202,6 +205,8 @@ def junos_rpc(module, dev):
     try:
         if kwargs is None:
             values = {}
+        elif isinstance(kwargs, dict):
+            values = kwargs
         elif re.search(r'\{.*\}', kwargs):
             values = {k:v for k,v in re.findall(r'([\w-]+)\s?:\s?\'?\"?([\w\.-]+)\'?\"?',kwargs)}
         else:
