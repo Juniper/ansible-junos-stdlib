@@ -1,0 +1,54 @@
+---
+- name: Get FQDN for all VM on Ravello
+  connection: local
+  hosts: junos
+  gather_facts: no
+  roles:
+    - ravello.lib
+
+  tasks:
+
+###############################
+## Get VM ID                ###
+###############################
+    - name: Get App ID from Ravello
+      ravello_get_id:
+        resource_name: "{{ ravello_ci_app_name }}"
+        resource_type: applications
+        token:  "{{ ravello_ci_token }}"
+      register: app
+      run_once: true
+
+  #  - debug: var=app
+
+    - name: Get VM ID from Ravello
+      ravello_get_id:
+        application_id: "{{ app.json.id }}"
+        resource_type: vms
+        resource_name: "{{ inventory_hostname }}"
+        token: "{{ ravello_ci_token }}"
+        failed_if_not_found: true
+      register: vm
+
+  #  - debug: var=vm
+
+    - name: Get VM public FQDN
+      uri:
+        url: "https://cloud.ravellosystems.com/api/v1/applications/{{ app.json.id }}/vms/{{ vm.json.id }}/fqdn;deployment"
+        method: GET
+        status_code: 200
+        HEADER_Content-Type: 'application/json'
+        HEADER_Accept: 'application/json'
+        HEADER_X-Ephemeral-Token-Authorization: "{{ ravello_ci_token }}"
+      register: ravello_public_ip
+
+    - name: Delete previous file
+      file:
+        path: "host_vars/{{ inventory_hostname}}/fqdn.yaml"
+        state: absent
+
+    - name: Populate ansible_ssh_host Variable based on FQDN
+      lineinfile:
+        create: yes
+        dest: "host_vars/{{ inventory_hostname}}/fqdn.yaml"
+        line: "ansible_ssh_host: {{ ravello_public_ip.json.value }}"

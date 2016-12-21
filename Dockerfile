@@ -1,6 +1,9 @@
 FROM juniper/pyez:2.0.1
 MAINTAINER ntwrkguru@gmail.com
 
+ARG ver_ansible=2.2.0.0
+ARG ver_jsnapy=1.0.0
+
 WORKDIR /tmp
 RUN mkdir /tmp/ansible-junos-stdlib &&\
     mkdir /tmp/ansible-junos-stdlib/library &&\
@@ -15,8 +18,8 @@ RUN tar -czf Juniper.junos ansible-junos-stdlib &&\
     apk add build-base gcc g++ make python-dev &&\
     pip install junos-netconify &&\
     pip install jxmlease &&\
-    pip install ansible &&\
-    pip install jsnapy &&\
+    pip install -q ansible==$ver_ansible &&\
+    pip install -q jsnapy==$ver_jsnapy &&\
     ansible-galaxy install Juniper.junos &&\
     apk del -r --purge gcc make g++ &&\
     rm -rf /source/* &&\

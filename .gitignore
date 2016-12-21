@@ -41,3 +41,5 @@ nosetests.xml
 docs/build
 docs/*.rst
 docs/_build/
+
+tests/.vagrant/*
