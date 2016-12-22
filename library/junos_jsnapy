@@ -86,12 +86,6 @@ options:
               for debugging purposes
         required: false
         default: None
-    dest:
-        description:
-            - Path to the local server directory where configuration will
-              be saved.
-        required: true
-        default: None
     dir:
         description:
             - Path for the JSNAPy yaml testfiles/configuration file
@@ -104,7 +98,7 @@ options:
             - check
             - snap_pre
             - snap_post
-        required: True
+        required: false
         default: None
     test_files:
         description:
@@ -115,7 +109,7 @@ options:
     config_file:
         description:
             - The YAML configuration file for the JSNAPy tests
-        required: true
+        required: false
         default: None
 '''
 
@@ -152,6 +146,45 @@ EXAMPLES = '''
      assert:
      that:
        - "test1.passPercentage == 100"
+---------
+   - name: "Collect Pre Snapshot"
+    junos_jsnapy:
+      host: "{{ junos_host }}"
+      port: "{{ netconf_port }}"
+      user: "{{ ansible_ssh_user }}"
+      passwd: "{{ ansible_ssh_pass }}"
+      test_files: tests/test_loopback.yml
+      action: snap_pre
+    register: test_pre
+
+---------
+  - name: "Collect Post Snapshot"
+    junos_jsnapy:
+      host: "{{ junos_host }}"
+      port: "{{ netconf_port }}"
+      user: "{{ ansible_ssh_user }}"
+      passwd: "{{ ansible_ssh_pass }}"
+      test_files: tests/test_loopback.yml
+      action: snap_post
+    register: test_post
+
+---------
+  - name: "Check after PRE - POST check"
+    junos_jsnapy:
+      host: "{{ junos_host }}"
+      port: "{{ netconf_port }}"
+      user: "{{ ansible_ssh_user }}"
+      passwd: "{{ ansible_ssh_pass }}"
+      test_files: tests/test_loopback.yml
+      action: check
+    register: test_check
+
+    - name: Check Results
+      assert:
+        that:
+          - test_check|succeeded
+          - test_check.passPercentage == 100
+
 '''
 from distutils.version import LooseVersion
 import logging
@@ -256,7 +289,7 @@ def main():
                            test_files=dict(required=False, type='list', default=None),
                            config_file=dict(required=False, default=None),
                            dir=dict(required=False, default='/etc/jsnapy/testfiles'),
-                           action=dict(required=False, choices=['check', 'snapcheck', 'snap_pre', 'snap_post'], default=None)
+                           action=dict(required=True, choices=['check', 'snapcheck', 'snap_pre', 'snap_post'], default=None)
                            ),
         mutually_exclusive=[['test_files', 'config_file']],
         required_one_of=[['test_files', 'config_file']],
