@@ -181,7 +181,7 @@ def main():
 
         cli_output = dev.cli(command=args['cli'], format=args['format'] )
 
-        if dest is not None:
+        if args['dest'] is not None:
             with open(args['dest'], 'w') as outputfile:
                 if args['format'] == 'text':
                     outputfile.write(cli_output)
