@@ -12,19 +12,29 @@ env:
 install:
 ## Create Docker with Ansible modules and all dependancies
   - docker build --build-arg ver_ansible=$ANSIBLE_VERSION -t juniper/pyez-ansible:travis .
+  - docker pull juniper/ravello-ansible:v0.1
 ## Install Ansible locally for Ravello and install Roles
-  - pip install -q ansible==$ANSIBLE_VERSION
   - cd tests
-  - mkdir library
-  - git clone https://github.com/Juniper/ravello-ansible.git library/ravello-ansible
-  - pip install -r library/ravello-ansible/requirements.txt
 
 script:
 ## Start Virtual topology on Ravello with 2 VQFX and collect IP addresses
 ## Anyone can connect here to see the list of applications running and see the VMs
 ## https://cloud.ravellosystems.com/#/GtHFbCOuKgD1pcfkvCCIgenj6DOtn3VgRLjaYipdideCsiPC1NxJitt1UHfhF0Bf/apps
-  - docker run -t -i -v $(pwd):/project juniper/pyez-ansible:travis ansible-playbook -i ravello.ini pb.rav.token.create-deploy.yaml
-  - docker run -t -i -v $(pwd):/project juniper/pyez-ansible:travis ansible-playbook -i ravello.ini pb.rav.token.fqdn_get.yaml
+  - >
+    docker run -t -i -v $(pwd):/project \
+    -e "ANSIBLE_VERSION=$(echo $ANSIBLE_VERSION)" \
+    -e "TRAVIS_JOB_ID=$(echo $TRAVIS_JOB_ID)" \
+    -e "TRAVIS_COMMIT=$(echo $TRAVIS_COMMIT)" \
+    juniper/ravello-ansible:v0.1 \
+    ansible-playbook -i ravello.ini pb.rav.token.create-deploy.yaml
+
+  - >
+    docker run -t -i -v $(pwd):/project \
+    -e "ANSIBLE_VERSION=$(echo $ANSIBLE_VERSION)" \
+    -e "TRAVIS_JOB_ID=$(echo $TRAVIS_JOB_ID)" \
+    -e "TRAVIS_COMMIT=$(echo $TRAVIS_COMMIT)" \
+    juniper/ravello-ansible:v0.1 \
+    ansible-playbook -i ravello.ini pb.rav.token.fqdn_get.yaml
 
 ## Execute Tests with Docker
   - docker run -t -i -v $(pwd):/project juniper/pyez-ansible:travis ansible-playbook -i ravello.ini pb.junos_ping.yaml
