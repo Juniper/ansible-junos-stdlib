@@ -144,13 +144,21 @@ options:
             - Provide a confirm in minutes to the commit of the configuration
         required: false
         default: None
+    check_commit:
+        description:
+            - Specify whether the configuration will be commit-checked or not.
+              Set to false, outputs similarly to the "show | compare" functionality,
+              while true returns the "commit check" result.
+        required: false
+        default: yes
+        choices: ['true','false','yes','no']
     check_commit_wait:
         description:
             - Set to number of seconds to wait between check and commit.
         required: false
         default: None
         choices: [1 - 4]
-    commit_onwarnings:
+    ignore_statement_not_found:
         description:
             - Ignore "statement not found" warning messages during loading 
               configuration. Proceed with commit. 
@@ -226,9 +234,10 @@ def _load_via_netconf(module):
         logging.getLogger().name = 'CONFIG:' + args['host']
 
     in_check_mode = module.check_mode
+    check_commit = module.boolean(module.params['check_commit'])
     overwrite = module.boolean(module.params['overwrite'])
     replace = module.boolean(module.params['replace'])
-    commit_onwarnings = module.boolean(module.params['commit_onwarnings'])
+    ignore_statement_not_found = module.boolean(module.params['ignore_statement_not_found'])
 
     if all([overwrite, replace]):
         msg = "Overwrite and Replace cannot both be True!"
@@ -285,14 +294,14 @@ def _load_via_netconf(module):
             load_args['merge'] = True
         cu.load(**load_args)
     # If only "statement not found" warning messages are raised and 
-    # commit_onwarnings is set to "True", commit proceeds, otherwise fails. 
+    # ignore_statement_not_found is set to "True", commit proceeds, otherwise fails. 
     except ConfigLoadError as err:
         severity = list(error['severity'] for error in err.errs)
         messages = list(error['message'] for error in err.errs)
 
         if not ((len(set(severity)) <=1 and severity[0] == 'warning') and
                 (len(set(messages)) <=1 and messages[0] == 'statement not found') and
-                commit_onwarnings):
+                ignore_statement_not_found ):
             msg = "Unable to load config: {0}".format(err)
             logging.error(msg)
             try:
@@ -303,7 +312,7 @@ def _load_via_netconf(module):
             dev.close()
             module.fail_json(msg=msg)
         else:
-            logging.info("Warnings 'statement not found' were raised but ignored, proceeding with commit.")
+            logging.info("'statement not found' warnings were raised but ignored, proceeding with commit.")
     except (ValueError, Exception) as err:
         msg = "Unable to load config: {0}".format(err)
         logging.error(msg)
@@ -340,37 +349,38 @@ def _load_via_netconf(module):
                 logging.error(msg)
                 module.fail_json(msg=msg)
 
-        try:
-            logging.info("doing a commit-check, please be patient")
-            cu.commit_check()
-            if (in_check_mode):
-                logging.info("Ansible check mode complete")
-                module.exit_json(**results)
-            else:
-                logging.info("committing change, please be patient")
-                opts = {}
-                if args['comment'] is not None:
-                    opts['comment'] = args['comment']
-                if args['confirm'] is not None:
-                    opts['confirm'] = args['confirm']
-
-                if args['check_commit_wait']:
-                   check_commit_wait = int(args['check_commit_wait'])
-                   if 1 <= check_commit_wait <= 4:
-                      time.sleep(check_commit_wait)
-
-                cu.commit(**opts)
-
-        except CommitError as err:
-            msg = "Unable to commit configuration: {0}".format(err)
-            logging.error(msg)
+        if check_commit:
             try:
-                logging.info("unlocking")
-                cu.unlock()
-            except UnlockError as err:
-                logging.error("Unable to unlock config: {0}".format(err))
-            dev.close()
-            module.fail_json(msg=msg)
+                logging.info("doing a commit-check, please be patient")
+                cu.commit_check()
+                if (in_check_mode):
+                    logging.info("Ansible check mode complete")
+                    module.exit_json(**results)
+                else:
+                    logging.info("committing change, please be patient")
+                    opts = {}
+                    if args['comment'] is not None:
+                        opts['comment'] = args['comment']
+                    if args['confirm'] is not None:
+                        opts['confirm'] = args['confirm']
+
+                    if args['check_commit_wait']:
+                       check_commit_wait = int(args['check_commit_wait'])
+                       if 1 <= check_commit_wait <= 4:
+                          time.sleep(check_commit_wait)
+
+                    cu.commit(**opts)
+
+            except CommitError as err:
+                msg = "Unable to commit configuration: {0}".format(err)
+                logging.error(msg)
+                try:
+                    logging.info("unlocking")
+                    cu.unlock()
+                except UnlockError as err:
+                    logging.error("Unable to unlock config: {0}".format(err))
+                dev.close()
+                module.fail_json(msg=msg)
 
     try:
         logging.info("unlocking")
@@ -462,8 +472,9 @@ def main():
             port=dict(required=False, default=830),
             mode=dict(required=False, default=None),
             confirm=dict(required=False, default=None),
-            check_commit_wait=dict(required=False, default=None),
-            commit_onwarnings=dict(required=False, type='bool', choices=BOOLEANS, default=False)
+            ignore_statement_not_found=dict(required=False, type='bool', choices=BOOLEANS, default=False),
+            check_commit=dict(required=False, type='bool', choices=BOOLEANS, default=True),
+            check_commit_wait=dict(required=False, default=None)
         ),
         supports_check_mode=True)
 
