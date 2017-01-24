@@ -86,6 +86,18 @@ This will set your `$ANSIBLE_LIBRARY` variable to the repo location and the inst
 /home/jeremy/Ansible/ansible-junos-stdlib/library:/usr/share/ansible
 ```
 
+An alternative to the above is installing the role from GitHub using ansible-galaxy. The first step is creating a yaml file for
+input data to ansible-galaxy. We'll use install_role.yml.
+
+```yaml
+---
+- src: https://github.com/Juniper/ansible-junos-stdlib
+  name: Juniper.junos
+```
+
+Now run `sudo ansible-galaxy install -r install_role.yml` to install the role.
+
+
 ## Example Playbook
 This example outlines how to use Ansible to install or upgrade the software image on a device running Junos OS.
 
