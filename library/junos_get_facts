@@ -86,6 +86,14 @@ options:
             - port number to use when connecting to the device
         required: false
         default: 830
+    ssh_private_key_file:
+        description:
+            - This can be used if you need to provide a private key rather than
+              loading the key into the ssh-key-ring/environment.  if your
+              ssh-key requires a password, then you must provide it via
+              **passwd**
+        required: false
+        default: None
     mode:
         description:
             - mode of console connection (telnet/serial). If mode is not
@@ -143,6 +151,7 @@ def main():
             user=dict(required=False, default=os.getenv('USER')),
             passwd=dict(required=False, default=None, no_log=True),
             port=dict(required=False, default=830),
+            ssh_private_key_file=dict(required=False, default=None),
             mode=dict(required=False, default=None)),
         supports_check_mode=True)
 
@@ -164,7 +173,8 @@ def main():
         # via NETCONF
         # -----------
         dev = Device(m_args['host'], user=m_args['user'], passwd=m_args['passwd'], port=m_args['port'],
-                     mode=m_args['mode'], gather_facts=True)
+                     ssh_private_key_file=m_args['ssh_private_key_file'], mode=m_args['mode'],
+                     gather_facts=True)
         try:
             dev.open()
         except Exception as err:

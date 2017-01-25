@@ -114,6 +114,14 @@ options:
             - port number to use when connecting to the device
         required: false
         default: 830
+    ssh_private_key_file:
+        description:
+            - This can be used if you need to provide a private key rather than
+              loading the key into the ssh-key-ring/environment.  if your
+              ssh-key requires a password, then you must provide it via
+              **passwd**
+        required: false
+        default: None
 '''
 
 EXAMPLES = '''
@@ -221,7 +229,8 @@ def main():
             no_copy=dict(required=False, type='bool', choices=BOOLEANS, default=False),
             reboot=dict(required=False, type='bool', choices=BOOLEANS, default=True),
             reboot_pause=dict(required=False, type='int', default=10),
-            port=dict(required=False, default=830)
+            port=dict(required=False, default=830),
+            ssh_private_key_file=dict(required=False, default=None)
         ),
         supports_check_mode=True
     )
@@ -242,7 +251,8 @@ def main():
     # @@@ need to verify that the package file actually exists
     # @@@ before proceeding.
 
-    dev = Device(args['host'], user=args['user'], password=args['passwd'], port=args['port'])
+    dev = Device(args['host'], user=args['user'], password=args['passwd'], port=args['port'],
+                 ssh_private_key_file=args['ssh_private_key_file'])
     try:
         dev.open()
     except Exception as err:
