@@ -204,7 +204,7 @@ def main():
             user=m_args['user'],
             passwd=m_args['passwd'],
             port=m_args['port'],
-            ssh_private_key_file=args['ssh_private_key_file'],
+            ssh_private_key_file=m_args['ssh_private_key_file'],
             mode=m_args['mode'],
             gather_facts=False)
 
