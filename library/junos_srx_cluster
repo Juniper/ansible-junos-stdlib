@@ -55,6 +55,14 @@ options:
             - port number to use when connecting to the device
         required: false
         default: 830
+    ssh_private_key_file:
+        description:
+            - This can be used if you need to provide a private key rather than
+              loading the key into the ssh-key-ring/environment.  if your
+              ssh-key requires a password, then you must provide it via
+              **passwd**
+        required: false
+        default: None
     mode:
         description:
             - mode of console connection (telnet/serial). If mode is not
@@ -145,6 +153,7 @@ def main():
             user=dict(required=False, default=os.getenv('USER')),
             passwd=dict(required=False, default=None, no_log=True),
             port=dict(required=False, default=830),
+            ssh_private_key_file=dict(required=False, default=None),
             mode=dict(required=False, default=None),
             console=dict(required=False, default=None),     # param to netconify
             cluster_enable=dict(required=True, type='bool', choices=BOOLEANS, default=None),
@@ -186,7 +195,8 @@ def main():
         if args['mode'] is not None and LooseVersion(VERSION) < LooseVersion('2.0.0'):
             module.fail_json(msg='junos-eznc >= 2.0.0 is required for console connection')
 
-        dev = Device(args['host'], user=args['user'], password=args['passwd'], port=args['port'],
+        dev = Device(args['host'], user=args['user'], password=args['passwd'],
+                     port=args['port'], ssh_private_key_file=args['ssh_private_key_file'],
                      mode=args['mode'], gather_facts=False)
         try:
             logging.info('LOGIN: host={0} port={1}'.format(args['host'], args['port']))
