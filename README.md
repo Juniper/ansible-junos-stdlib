@@ -75,26 +75,36 @@ To download the junos role to the Ansible server, execute the ansible-galaxy ins
 ```
 
 ### Git clone
+
 For testing you can `git clone` this repo and run the `env-setup` script in the repo directory:
+
 ```
 user@ansible-junos-stdlib> source env-setup
 ```
+
 This will set your `$ANSIBLE_LIBRARY` variable to the repo location and the installed Ansible library path.  For example:
 
 ```
 [jeremy@ansible-junos-stdlib]$ echo $ANSIBLE_LIBRARY
 /home/jeremy/Ansible/ansible-junos-stdlib/library:/usr/share/ansible
 ```
+
 ### Docker
+
 To run this as a Docker container, which includes JSNAPy and PyEZ, simply pull it from the Docker hub and run it. The following will pull the latest image and run it in an interactive ash shell.
+
 ```
 $ docker run -it --rm juniper/pyez-ansible ash
 ```
+
 Although, you'll probably want to bind mount a host directory (perhaps the directory containing your playbooks and associated files). The following will bind mount the current working directory and start the ash shell.
+
 ```
 $ docker run -it --rm -v $PWD:/playbooks ash
 ```
+
 You can also use the container as an executable to run your playbooks. Let's assume we have a typical playbook structure as below:
+
 ```
 example
 |playbook.yml
@@ -103,15 +113,21 @@ example
 |-templates
 |-scripts
 ```
+
 We can move to the example directory and run the playbook with the following command:
+
 ```
+$ cd example/
 $ docker run -it --rm -v $PWD:/playbooks juniper/pyez-ansible ansible-playbook -i hosts playbook.yml
 ```
+
 You may have noticed that the base command is almost always the same. We can also use an alias to save some keystrokes.
+
 ```
 $ alias pb-ansible="docker run -it --rm -v $PWD:/playbooks juniper/pyez-ansible ansible-playbook"
 $ pb-ansible -i hosts playbook.yml
 ```
+
 ## Example Playbook
 This example outlines how to use Ansible to install or upgrade the software image on a device running Junos OS.
 
@@ -168,8 +184,8 @@ Juniper Networks is actively contributing to and maintaining this repo. Please c
 
 *Contributors:*
 
-[Nitin Kumar](https://github.com/vnitinv), [Stacy W Smith](https://github.com/stacywsmith), [David Gethings](https://github.com/dgjnpr), [Damien Garros](https://github.com/dgarros)
+[Nitin Kumar](https://github.com/vnitinv), [Stacy W Smith](https://github.com/stacywsmith), [David Gethings](https://github.com/dgjnpr), [Stephen Steiner](https://github.com/ntwrkguru)
 
 *Former Contributors:*
 
-[Jeremy Schulman](https://github.com/jeremyschulman), [Rick Sherman](https://github.com/shermdog)
+[Jeremy Schulman](https://github.com/jeremyschulman), [Rick Sherman](https://github.com/shermdog), [Damien Garros](https://github.com/dgarros)
