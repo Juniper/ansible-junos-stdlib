@@ -105,11 +105,11 @@ example
 ```
 We can move to the example directory and run the playbook with the following command:
 ```
-$ docker run -it --rm -v $PWD:/playbooks ansible-playbook -i hosts playbook.yml
+$ docker run -it --rm -v $PWD:/playbooks juniper/pyez-ansible ansible-playbook -i hosts playbook.yml
 ```
 You may have noticed that the base command is almost always the same. We can also use an alias to save some keystrokes.
 ```
-$ alias pb-ansible="docker run -it --rm -v $PWD:/playbooks ansible-playbook"
+$ alias pb-ansible="docker run -it --rm -v $PWD:/playbooks juniper/pyez-ansible ansible-playbook"
 $ pb-ansible -i hosts playbook.yml
 ```
 ## Example Playbook
