@@ -146,7 +146,7 @@ def main():
                            logfile=dict(required=False, default=None),
                            dest=dict(required=True, default=None),
                            format=dict(required=False, choices=['text', 'xml'], default='text'),
-                           options=dict(required=False, default=None),
+                           options=dict(required=False, default=None, type='dict'),
                            filter=dict(required=False, default=None)
                            ),
         supports_check_mode=True)
