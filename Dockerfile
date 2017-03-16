@@ -15,6 +15,7 @@ ADD meta /tmp/ansible-junos-stdlib/meta
 
 RUN tar -czf Juniper.junos ansible-junos-stdlib &&\
     apk update && apk add ca-certificates &&\
+    apk add openssh-client &&\
     apk add build-base gcc g++ make python-dev &&\
     pip install junos-netconify &&\
     pip install jxmlease &&\
