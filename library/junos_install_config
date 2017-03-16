@@ -245,7 +245,7 @@ def _load_via_netconf(module):
 
     actions = filter(lambda item: module.params.get(item, False),
                      ('overwrite', 'replace', 'update'))
-    if len(actions) >= 2:
+    if len(list(actions)) >= 2:
         msg = 'action can be only one among %s' % ', '.join(actions)
         logging.error(msg)
         module.fail_json(msg=msg)
