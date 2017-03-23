@@ -88,7 +88,26 @@ options:
                after the installation completes.
         required: false
         default: yes
-        choices: ['yes','no']
+        choices: ['true','false', 'yes','no']
+    issu:
+        description:
+             - If set to B(true), allows unified in-service software upgrade
+               (ISSU) feature enables you to upgrade between two different
+               Junos OS releases with no disruption on the control plane and
+               with minimal disruption of traffic.
+        required: false
+        default: false
+        choices: ['true','false', 'yes','no']
+    nssu:
+        description:
+             - If set to B(true), allows nonstop software upgrade (NSSU)
+               enables you to upgrade the software running on a Juniper
+               Networks EX Series Virtual Chassis or a Juniper Networks EX
+               Series Ethernet Switch with redundant Routing Engines with a
+               single command and minimal disruption to network traffic.
+        required: false
+        default: false
+        choices: ['true','false', 'yes','no']
     reboot_pause:
         description:
             - Amount of time in seconds to wait after the reboot is issued
@@ -136,6 +155,7 @@ import logging
 import re
 import os
 from distutils.version import LooseVersion
+
 
 def junos_install_os(module, dev):
     args = module.params
@@ -194,6 +214,10 @@ def junos_install_os(module, dev):
 
     sw_args = dict(progress=update_my_progress)
     sw_args['no_copy'] = module.boolean(args['no_copy'])
+    if module.boolean(args['issu']):
+        sw_args['issu'] = module.boolean(args['issu'])
+    if module.boolean(args['nssu']):
+        sw_args['nssu'] = module.boolean(args['nssu'])
     ok = sw.install(package, **sw_args)
 
     if ok is not True:
@@ -228,6 +252,8 @@ def main():
             logfile=dict(required=False, default=None),
             no_copy=dict(required=False, type='bool', choices=BOOLEANS, default=False),
             reboot=dict(required=False, type='bool', choices=BOOLEANS, default=True),
+            issu=dict(required=False, type='bool', choices=BOOLEANS, default=False),
+            nssu=dict(required=False, type='bool', choices=BOOLEANS, default=False),
             reboot_pause=dict(required=False, type='int', default=10),
             port=dict(required=False, default=830),
             ssh_private_key_file=dict(required=False, default=None)
@@ -247,6 +273,9 @@ def main():
     if int(args['port']) == 23 and LooseVersion(VERSION) < LooseVersion('2.0.0'):
         module.fail_json(msg='junos-eznc >= 2.0.0 is required for telnet connection.')
 
+    if (module.boolean(args['issu']) or module.boolean(args['nssu'])) and \
+                    LooseVersion(VERSION) < LooseVersion('2.1.0'):
+        module.fail_json(msg='junos-eznc >= 2.1.0 is required for ISSU/NSSU support.')
 
     # @@@ need to verify that the package file actually exists
     # @@@ before proceeding.
