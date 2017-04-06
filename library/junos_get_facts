@@ -210,7 +210,7 @@ def main():
             if m_args['savedir'] is not None:
                 fname = "{0}/{1}-facts.json".format(m_args['savedir'], dev.facts['hostname'])
                 with open(fname, 'w') as factfile:
-                    json.dump(dev.facts, factfile)
+                    json.dump(m_results['facts'], factfile)
     else:
         # -----------
         # via CONSOLE
