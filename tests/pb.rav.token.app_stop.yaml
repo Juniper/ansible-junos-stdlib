@@ -1,0 +1,34 @@
+---
+- name: Get FQDN for all VM on Ravello
+  connection: local
+  hosts: all
+  gather_facts: no
+  roles:
+    - ravello.lib
+
+  tasks:
+###############################
+## Get VM ID                ###
+###############################
+    - name: Get App ID from Ravello
+      ravello_get_id:
+        resource_name: "{{ ravello_ci_app_name }}"
+        resource_type: applications
+        token:  "{{ ravello_ci_token }}"
+      register: app
+      run_once: true
+
+
+###############################
+##  Delete the application   ##
+###############################
+    - name: Stop Application on Ravello
+      uri:
+        url: "https://cloud.ravellosystems.com/api/v1/applications/{{ app.json.id }}/stop"
+        method: POST
+        status_code: 202
+        HEADER_Content-Type: 'application/json'
+        HEADER_Accept: 'application/json'
+        HEADER_X-Ephemeral-Token-Authorization: "{{ ravello_ci_token }}"
+      run_once: true
+      changed_when: true

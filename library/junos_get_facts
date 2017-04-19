@@ -86,6 +86,14 @@ options:
             - port number to use when connecting to the device
         required: false
         default: 830
+    ssh_private_key_file:
+        description:
+            - This can be used if you need to provide a private key rather than
+              loading the key into the ssh-key-ring/environment.  if your
+              ssh-key requires a password, then you must provide it via
+              **passwd**
+        required: false
+        default: None
     mode:
         description:
             - mode of console connection (telnet/serial). If mode is not
@@ -141,8 +149,9 @@ def main():
             logfile=dict(required=False, default=None),
             savedir=dict(required=False, default=None),
             user=dict(required=False, default=os.getenv('USER')),
-            passwd=dict(required=False, default=None),
+            passwd=dict(required=False, default=None, no_log=True),
             port=dict(required=False, default=830),
+            ssh_private_key_file=dict(required=False, default=None),
             mode=dict(required=False, default=None)),
         supports_check_mode=True)
 
@@ -164,7 +173,8 @@ def main():
         # via NETCONF
         # -----------
         dev = Device(m_args['host'], user=m_args['user'], passwd=m_args['passwd'], port=m_args['port'],
-                     mode=m_args['mode'], gather_facts=True)
+                     ssh_private_key_file=m_args['ssh_private_key_file'], mode=m_args['mode'],
+                     gather_facts=True)
         try:
             dev.open()
         except Exception as err:
@@ -172,17 +182,35 @@ def main():
             module.fail_json(msg=msg)
             return
         else:
+            # Ansible 2 doesn't like custom objects in the return value, and
+            # PyEZ facts are now a custom object rather than a true dict.
+            # Since facts are read-only, we must begin by copying facts into a
+            # dict. Also, since PyEZ facts are now "on-demand", this must be
+            # done before closing the connection. These changes remain backwards
+            # compatible with older PyEZ versions that have older fact gathering
+            # code.
+            m_results['facts'] = dict(dev.facts)
             dev.close()
-            dev.facts['has_2RE'] = dev.facts['2RE']
-            del dev.facts['2RE']  # Ansible doesn't allow variables starting with numbers
-            # Ansible 2 doesn't like custom objects in the return value.
-            # Convert the version_info key from a junos.version_info object to a dict
-            dev.facts['version_info'] = dict(dev.facts['version_info'])
-            m_results['facts'] = dev.facts
+            # Ansible doesn't allow keys starting with numbers.
+            # Replace the '2RE' key with the 'has_2RE' key.
+            if '2RE' in m_results['facts']:
+                m_results['facts']['has_2RE'] = m_results['facts']['2RE']
+                del m_results['facts']['2RE']
+            # The value of the 'version_info' key is a custom junos.version_info
+            # object. Convert this value to a dict.
+            if 'version_info' in m_results['facts']:
+                m_results['facts']['version_info'] = dict(
+                    m_results['facts']['version_info'])
+            # The values of the ['junos_info'][re_name]['object'] keys are
+            # custom junos.version_info objects. Convert all of these to dicts.
+            if 'junos_info' in m_results['facts']:
+                for key in m_results['facts']['junos_info']:
+                    m_results['facts']['junos_info'][key]['object'] = dict(
+                        m_results['facts']['junos_info'][key]['object'])
             if m_args['savedir'] is not None:
                 fname = "{0}/{1}-facts.json".format(m_args['savedir'], dev.facts['hostname'])
                 with open(fname, 'w') as factfile:
-                    json.dump(dev.facts, factfile)
+                    json.dump(m_results['facts'], factfile)
     else:
         # -----------
         # via CONSOLE
@@ -232,4 +260,6 @@ def main():
     module.exit_json(**m_results)
 
 from ansible.module_utils.basic import *
-main()
+
+if __name__ == '__main__':
+    main()

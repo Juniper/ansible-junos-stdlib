@@ -1,0 +1,11 @@
+tests_include:
+  - check_storage
+
+check_storage:
+    - command: show system storage
+    - iterate:
+        xpath: //system-storage-information/filesystem[normalize-space(mounted-on)='/']
+        tests:
+          - is-lt: used-percent, 95
+            info: "File system {{post['mounted-on']}} use less than 95%"
+            err: "File system {{post['mounted-on']}} use  {{post['used-percent']}} %"

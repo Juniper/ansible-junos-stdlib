@@ -2,22 +2,24 @@
 
 Juniper Networks provides support for using Ansible to deploy devices running the Junos operating system (Junos OS). The Juniper Networks Ansible library, which is hosted on the Ansible Galaxy website under the role [junos](https://galaxy.ansible.com/list#/roles/1116), enables you to use Ansible to perform specific operational and configuration tasks on devices running Junos OS, including installing and upgrading Junos OS, deploying specific devices in the network, loading configuration changes, retrieving information, and resetting, rebooting, or shutting down managed devices.  Please refer to [INSTALLATION](#installation) section for setup.
 
+In addition to these modules, Since 2.1, Ansible natively include some [core modules for Junos](http://docs.ansible.com/ansible/list_of_network_modules.html#junos). Both Core and Galaxy modules can cohexist on the same platform.
+
 ## OVERVIEW OF MODULES
 
-- junos_get_facts — Retrieve device-specific information from the host.
-- junos_rpc — To execute RPC on device and save output locally
-- junos_cli — To execute CLI on device and save output locally
-- junos_commit — Commit candidate configuration on device.
-- junos_get_config — Retrieve configuration of device.
-- junos_install_config — Modify the configuration of a device running Junos OS.
-- junos_install_os — Install a Junos OS software package.
-- junos_rollback — Rollback configuration of device.
-- junos_shutdown — Shut down or reboot a device running Junos OS.
-- junos_srx_cluster — Enable/Disable cluster mode for SRX devices
-- junos_zeroize — Remove all configuration information on the Routing Engines and reset all key values on a device.
-- junos_get_table - Retrieve data from a Junos device using Tables/Views
-- junos_ping - execute ping on junos devices
-- junos_jsnapy - Integrate JSNAPy to ansible which helps audit network devices
+- **junos_get_facts** — Retrieve device-specific information from the host.
+- **junos_commit** — Commit candidate configuration on device.
+- **junos_get_config** — Retrieve configuration of device.
+- **junos_install_config** — Modify the configuration of a device running Junos OS.
+- **junos_install_os** — Install a Junos OS software package.
+- **junos_rollback** — Rollback configuration of device.
+- **junos_shutdown** — Shut down or reboot a device running Junos OS.
+- **junos_srx_cluster** — Enable/Disable cluster mode for SRX devices
+- **junos_zeroize** — Remove all configuration information on the Routing Engines and reset all key values on a device.
+- **junos_get_table** - Retrieve data from a Junos device using Tables/Views
+- **junos_ping** - execute ping on junos devices
+- **junos_jsnapy** - Integrate JSNAPy to ansible which helps audit network devices
+- **junos_rpc** — To execute RPC on device and save output locally
+- **junos_cli** — To execute CLI on device and save output locally
 
 ### OVERVIEW OF PLUGINS
 
@@ -74,20 +76,46 @@ To download the junos role to the Ansible server, execute the ansible-galaxy ins
 
 ### Git clone
 For testing you can `git clone` this repo and run the `env-setup` script in the repo directory:
-
-    user@ansible-junos-stdlib> source env-setup
-
+```
+user@ansible-junos-stdlib> source env-setup
+```
 This will set your `$ANSIBLE_LIBRARY` variable to the repo location and the installed Ansible library path.  For example:
 
-````
+```
 [jeremy@ansible-junos-stdlib]$ echo $ANSIBLE_LIBRARY
 /home/jeremy/Ansible/ansible-junos-stdlib/library:/usr/share/ansible
-````
-
+```
+### Docker
+To run this as a Docker container, which includes JSNAPy and PyEZ, simply pull it from the Docker hub and run it. The following will pull the latest image and run it in an interactive ash shell.
+```
+$ docker run -it --rm juniper/pyez-ansible ash
+```
+Although, you'll probably want to bind mount a host directory (perhaps the directory containing your playbooks and associated files). The following will bind mount the current working directory and start the ash shell.
+```
+$ docker run -it --rm -v $PWD:/playbooks ash
+```
+You can also use the container as an executable to run your playbooks. Let's assume we have a typical playbook structure as below:
+```
+example
+|playbook.yml
+|hosts
+|-vars
+|-templates
+|-scripts
+```
+We can move to the example directory and run the playbook with the following command:
+```
+$ docker run -it --rm -v $PWD:/playbooks juniper/pyez-ansible ansible-playbook -i hosts playbook.yml
+```
+You may have noticed that the base command is almost always the same. We can also use an alias to save some keystrokes.
+```
+$ alias pb-ansible="docker run -it --rm -v $PWD:/playbooks juniper/pyez-ansible ansible-playbook"
+$ pb-ansible -i hosts playbook.yml
+```
 ## Example Playbook
 This example outlines how to use Ansible to install or upgrade the software image on a device running Junos OS.
 
-```
+```yaml
 ---
 - name: Install Junos OS
   hosts: dc1
@@ -107,11 +135,11 @@ This example outlines how to use Ansible to install or upgrade the software imag
       wait_for: host={{ inventory_hostname }} port=830 timeout=5
     - name: Install Junos OS package
       junos_install_os:
-        host={{ inventory_hostname }}
-        reboot=yes
-        version={{ OS_version }}
-        package={{ pkg_dir }}/{{ OS_package }}
-        logfile={{ log_dir }}/software.log
+        host: "{{ inventory_hostname }}"
+        reboot: yes
+        version: "{{ OS_version }}"
+        package: "{{ pkg_dir }}/{{ OS_package }}"
+        logfile: "{{ log_dir }}/software.log"
       register: sw
       notify:
         - wait_reboot
@@ -128,8 +156,7 @@ Thes modules require the following to be installed on the Ansible server:
 
 * Python 2.6 or 2.7
 * [Ansible](http://www.ansible.com) 1.5 or later
-* Junos [py-junos-eznc](https://github.com/Juniper/py-junos-eznc) 1.2.2 or later
-* Junos [netconify](https://github.com/jeremyschulman/py-junos-netconify) 1.0.1 or later (if using console)
+* Junos [py-junos-eznc](https://github.com/Juniper/py-junos-eznc) 1.2.2 or later (2.0.0 if you want to use the mode: telnet)
 
 ## LICENSE
 
@@ -141,7 +168,7 @@ Juniper Networks is actively contributing to and maintaining this repo. Please c
 
 *Contributors:*
 
-[Nitin Kumar](https://github.com/vnitinv), [Stacy W Smith](https://github.com/stacywsmith), [David Gethings](https://github.com/dgjnpr)
+[Nitin Kumar](https://github.com/vnitinv), [Stacy W Smith](https://github.com/stacywsmith), [David Gethings](https://github.com/dgjnpr), [Damien Garros](https://github.com/dgarros)
 
 *Former Contributors:*
 

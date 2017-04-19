@@ -52,7 +52,7 @@ description:
       configuration. After the reboot, you must log in through the console
       as root in order to access the device.
 requirements:
-    - junos-eznc >= 1.2.2 
+    - junos-eznc >= 1.2.2
     - junos-netconify >= 1.0.1, when using the I(console) option
 options:
     host:
@@ -93,6 +93,14 @@ options:
             - port number to use when connecting to the device
         required: false
         default: 830
+    ssh_private_key_file:
+        description:
+            - This can be used if you need to provide a private key rather than
+              loading the key into the ssh-key-ring/environment.  if your
+              ssh-key requires a password, then you must provide it via
+              **passwd**
+        required: false
+        default: None
     mode:
         description:
             - mode of console connection (telnet/serial). If mode is not
@@ -129,9 +137,10 @@ def main():
             host=dict(required=False, default=None),    # host or ipaddr
             console=dict(required=False, default=None),     # param to netconify
             user=dict(required=False, default=os.getenv('USER')),
-            passwd=dict(required=False, default=None),
+            passwd=dict(required=False, default=None, no_log=True),
             logfile=dict(required=False, default=None),
             port=dict(required=False, default=830),
+            ssh_private_key_file=dict(required=False, default=None),
             mode=dict(required=False, default=None)
         ),
         supports_check_mode=False)
@@ -174,7 +183,8 @@ def main():
         if args['mode'] is not None and LooseVersion(VERSION) < LooseVersion('2.0.0'):
             module.fail_json(msg='junos-eznc >= 2.0.0 is required for console connection')
 
-        dev = Device(args['host'], user=args['user'], password=args['passwd'], port=args['port'],
+        dev = Device(args['host'], user=args['user'], password=args['passwd'],
+                     port=args['port'], ssh_private_key_file=args['ssh_private_key_file'],
                      mode=args['mode'], gather_facts=False)
         try:
             use_notifier(None, 'LOGIN', 'host={0}'.format(args['host']))
@@ -217,4 +227,6 @@ def main():
     module.exit_json(**results)
 
 from ansible.module_utils.basic import *
-main()
+
+if __name__ == '__main__':
+    main()

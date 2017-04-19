@@ -74,6 +74,14 @@ options:
             - port number to use when connecting to the device
         required: false
         default: 830
+    ssh_private_key_file:
+        description:
+            - This can be used if you need to provide a private key rather than
+              loading the key into the ssh-key-ring/environment.  if your
+              ssh-key requires a password, then you must provide it via
+              **passwd**
+        required: false
+        default: None
     mode:
         description:
             - mode of console connection (telnet/serial). If mode is not
@@ -86,15 +94,9 @@ options:
               for debugging purposes
         required: false
         default: None
-    dest:
-        description:
-            - Path to the local server directory where configuration will
-              be saved.
-        required: true
-        default: None
     dir:
         description:
-            - Path for the JSNAPy yaml configuration file
+            - Path for the JSNAPy yaml testfiles/configuration file
         required: false
         default: '/etc/jsnapy/testfiles'
     action:
@@ -104,7 +106,7 @@ options:
             - check
             - snap_pre
             - snap_post
-        required: True
+        required: false
         default: None
     test_files:
         description:
@@ -115,7 +117,7 @@ options:
     config_file:
         description:
             - The YAML configuration file for the JSNAPy tests
-        required: true
+        required: false
         default: None
 '''
 
@@ -152,6 +154,45 @@ EXAMPLES = '''
      assert:
      that:
        - "test1.passPercentage == 100"
+---------
+   - name: "Collect Pre Snapshot"
+    junos_jsnapy:
+      host: "{{ junos_host }}"
+      port: "{{ netconf_port }}"
+      user: "{{ ansible_ssh_user }}"
+      passwd: "{{ ansible_ssh_pass }}"
+      test_files: tests/test_loopback.yml
+      action: snap_pre
+    register: test_pre
+
+---------
+  - name: "Collect Post Snapshot"
+    junos_jsnapy:
+      host: "{{ junos_host }}"
+      port: "{{ netconf_port }}"
+      user: "{{ ansible_ssh_user }}"
+      passwd: "{{ ansible_ssh_pass }}"
+      test_files: tests/test_loopback.yml
+      action: snap_post
+    register: test_post
+
+---------
+  - name: "Check after PRE - POST check"
+    junos_jsnapy:
+      host: "{{ junos_host }}"
+      port: "{{ netconf_port }}"
+      user: "{{ ansible_ssh_user }}"
+      passwd: "{{ ansible_ssh_pass }}"
+      test_files: tests/test_loopback.yml
+      action: check
+    register: test_check
+
+    - name: Check Results
+      assert:
+        that:
+          - test_check|succeeded
+          - test_check.passPercentage == 100
+
 '''
 from distutils.version import LooseVersion
 import logging
@@ -179,19 +220,41 @@ def jsnap_selection(dev, module):
     config_file = args.get('config_file')
     if config_file:
         config_dir = args['dir']
-        config_data = os.path.join(config_dir, config_file)
-    else:
-        test_files = args.get('test_files')
-
-        for test_file in test_files:
-            if not os.path.isfile(test_file):
-                msg = 'unable to find the test file {0}'.format(test_file)
+        config_data = config_file
+        # in case config file given is not full path
+        if not os.path.isfile(config_file):
+            config_data = os.path.join(config_dir, config_file)
+            if not os.path.isfile(config_data):
+                msg = 'unable to find the config file {0} (test directory:{1})'.format(config_file,args['dir'])
                 logging.error(msg)
                 module.fail_json(msg=msg)
 
-        config_data = {'tests': test_files}
+    else:
+        test_files = args.get('test_files')
 
-    results = {}
+        test_files_validated = []
+        ## Check if file is present without and with dir
+        for test_file in test_files:
+            if not os.path.isfile(test_file):
+                test_file_full = os.path.join(args['dir'], test_file)
+                if not os.path.isfile(test_file_full):
+                    msg = 'unable to find the test file {0} (test directory:{1})'.format(test_file,args['dir'])
+                    logging.error(msg)
+                    module.fail_json(msg=msg)
+                else:
+                    test_files_validated.append(test_file_full)
+            else:
+                test_files_validated.append(test_file)
+
+        ## Check that we have at least one test file
+        if len(test_files_validated) == 0:
+            msg = 'The list of test file is empty, please check your input'
+            logging.error(msg)
+            module.fail_json(msg=msg)
+
+        config_data = {'tests': test_files_validated}
+
+    results = {'action': action}
     js = SnapAdmin()
 
     if action == 'snapcheck':
@@ -205,21 +268,21 @@ def jsnap_selection(dev, module):
 
     percentagePassed = 0
     if isinstance(snapValue, (list)):
-        for snapCheck in snapValue:
-            router = snapCheck.device
-            results['router'] = router
-            results['final_result'] = snapCheck.result
-            results['total_passed'] = snapCheck.no_passed
-            results['total_failed'] = snapCheck.no_failed
-            results['test_results'] = snapCheck.test_results
-            total_test = int(snapCheck.no_passed) + int(snapCheck.no_failed)
-            results['total_tests'] = total_test
-
-        if total_test != 0:
-            percentagePassed = (int(results['total_passed']) * 100 ) / (results['total_tests'])
-
-        results['passPercentage'] = percentagePassed
-
+        if action in ['snapcheck', 'check']:
+            for snapCheck in snapValue:
+                router = snapCheck.device
+                results['router'] = router
+                results['final_result'] = snapCheck.result
+                results['total_passed'] = snapCheck.no_passed
+                results['total_failed'] = snapCheck.no_failed
+                results['test_results'] = snapCheck.test_results
+                total_test = int(snapCheck.no_passed) + int(snapCheck.no_failed)
+                results['total_tests'] = total_test
+            if total_test != 0:
+                percentagePassed = (int(results['total_passed']) * 100 ) / (results['total_tests'])
+            results['passPercentage'] = percentagePassed
+        elif action in ['snap_pre', 'snap_post']:
+            results['changed'] = True
     return results
 
 def main():
@@ -227,14 +290,15 @@ def main():
     module = AnsibleModule(
         argument_spec=dict(host=dict(required=True, default=None),  # host or ipaddr
                            user=dict(required=False, default=os.getenv('USER')),
-                           passwd=dict(required=False, default=None),
+                           passwd=dict(required=False, default=None, no_log=True),
                            port=dict(required=False, default=830),
+                           ssh_private_key_file=dict(required=False, default=None),
                            mode=dict(required=False, default=None),
                            logfile=dict(required=False, default=None),
                            test_files=dict(required=False, type='list', default=None),
                            config_file=dict(required=False, default=None),
                            dir=dict(required=False, default='/etc/jsnapy/testfiles'),
-                           action=dict(required=False, choices=['check', 'snapcheck', 'snap_pre', 'snap_post'], default=None)
+                           action=dict(required=True, choices=['check', 'snapcheck', 'snap_pre', 'snap_post'], default=None)
                            ),
         mutually_exclusive=[['test_files', 'config_file']],
         required_one_of=[['test_files', 'config_file']],
@@ -259,7 +323,8 @@ def main():
 
     try:
         dev = Device(args['host'], user=args['user'], password=args['passwd'],
-                     port=args['port'], mode=args['mode'], gather_facts=False).open()
+                     port=args['port'], ssh_private_key_file=args['ssh_private_key_file'],
+                     mode=args['mode'], gather_facts=False).open()
     except Exception as err:
         msg = 'unable to connect to {0}: {1}'.format(args['host'], str(err))
         logging.error(msg)
@@ -270,7 +335,7 @@ def main():
         logging.info("Main program: ")
         data = jsnap_selection(dev, module)
 
-        if data['final_result']=='Failed':
+        if data['action'] in ['check', 'snapcheck'] and data['final_result']=='Failed':
             msg = 'Test Failed: Passed {0}, Failed {1}'.format(
                   data['total_passed'], data['total_failed']
             )
@@ -288,4 +353,6 @@ def main():
     module.exit_json(**data)
 
 from ansible.module_utils.basic import *
-main()
+
+if __name__ == '__main__':
+    main()

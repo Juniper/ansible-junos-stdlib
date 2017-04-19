@@ -84,6 +84,19 @@ options:
         required: false
         default: no
         choices: ['true','false','yes','no']
+    update:
+        description:
+            - If set to ``True`` Compare a complete loaded configuration against
+              the candidate configuration. For each hierarchy level or
+              configuration object that is different in the two configurations,
+              the version in the loaded configuration replaces the version in the
+              candidate configuration. When the configuration is later committed,
+              only system processes that are affected by the changed configuration
+              elements parse the new configuration. This action is supported from
+              PyEZ 2.1
+        required: false
+        default: no
+        choices: ['true','false','yes','no']
     replace:
         description:
             - Specify whether the configuration I(file) uses "replace:" statements.
@@ -133,6 +146,14 @@ options:
             - port number to use when connecting to the device
         required: false
         default: 830
+    ssh_private_key_file:
+        description:
+            - This can be used if you need to provide a private key rather than
+              loading the key into the ssh-key-ring/environment.  if your
+              ssh-key requires a password, then you must provide it via
+              **passwd**
+        required: false
+        default: None
     mode:
         description:
             - mode of console connection (telnet/serial). If mode is not
@@ -144,14 +165,6 @@ options:
             - Provide a confirm in minutes to the commit of the configuration
         required: false
         default: None
-    check_commit:
-        description:
-            - Specify whether the configuration will be commit-checked or not.
-              Set to false, outputs similarly to the "show | compare" functionality,
-              while true returns the "commit check" result.
-        required: false
-        default: yes
-        choices: ['true','false','yes','no']
     check_commit_wait:
         description:
             - Set to number of seconds to wait between check and commit.
@@ -210,13 +223,13 @@ import os
 from distutils.version import LooseVersion
 
 
-
 def _load_via_netconf(module):
     args = module.params
 
     try:
         from jnpr.junos import Device
-        from jnpr.junos.exception import *
+        from jnpr.junos.exception import LockError, UnlockError, \
+            ConfigLoadError, CommitError
         from jnpr.junos.utils.config import Config
         from jnpr.junos.version import VERSION
         if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
@@ -234,13 +247,15 @@ def _load_via_netconf(module):
         logging.getLogger().name = 'CONFIG:' + args['host']
 
     in_check_mode = module.check_mode
-    check_commit = module.boolean(module.params['check_commit'])
     overwrite = module.boolean(module.params['overwrite'])
     replace = module.boolean(module.params['replace'])
     ignore_statement_not_found = module.boolean(module.params['ignore_statement_not_found'])
+    update = module.boolean(module.params['update'])
 
-    if all([overwrite, replace]):
-        msg = "Overwrite and Replace cannot both be True!"
+    actions = filter(lambda item: module.params.get(item, False),
+                     ('overwrite', 'replace', 'update'))
+    if len(list(actions)) >= 2:
+        msg = 'action can be only one among %s' % ', '.join(actions)
         logging.error(msg)
         module.fail_json(msg=msg)
 
@@ -248,7 +263,8 @@ def _load_via_netconf(module):
 
     try:
         dev = Device(args['host'], user=args['user'], password=args['passwd'], port=args['port'],
-                     mode=args['mode'], gather_facts=False)
+                     ssh_private_key_file=args['ssh_private_key_file'], mode=args['mode'],
+                     gather_facts=False)
         dev.open()
     except Exception as err:
         msg = 'unable to connect to {0}: {1}'.format(args['host'], str(err))
@@ -290,6 +306,8 @@ def _load_via_netconf(module):
             load_args['merge'] = False
         elif overwrite is True:
             load_args['overwrite'] = True
+        elif update is True:
+            load_args['update'] = True
         elif overwrite is False:
             load_args['merge'] = True
         cu.load(**load_args)
@@ -349,27 +367,26 @@ def _load_via_netconf(module):
                 logging.error(msg)
                 module.fail_json(msg=msg)
 
-        if check_commit:
-            try:
-                logging.info("doing a commit-check, please be patient")
-                cu.commit_check()
-                if (in_check_mode):
-                    logging.info("Ansible check mode complete")
-                    module.exit_json(**results)
-                else:
-                    logging.info("committing change, please be patient")
-                    opts = {}
-                    if args['comment'] is not None:
-                        opts['comment'] = args['comment']
-                    if args['confirm'] is not None:
-                        opts['confirm'] = args['confirm']
+        try:
+            logging.info("doing a commit-check, please be patient")
+            cu.commit_check()
+            if (in_check_mode):
+                logging.info("Ansible check mode complete")
+                module.exit_json(**results)
+            else:
+                logging.info("committing change, please be patient")
+                opts = {}
+                if args['comment'] is not None:
+                    opts['comment'] = args['comment']
+                if args['confirm'] is not None:
+                    opts['confirm'] = args['confirm']
 
-                    if args['check_commit_wait']:
-                       check_commit_wait = int(args['check_commit_wait'])
-                       if 1 <= check_commit_wait <= 4:
-                          time.sleep(check_commit_wait)
+                if args['check_commit_wait']:
+                   check_commit_wait = int(args['check_commit_wait'])
+                   if 1 <= check_commit_wait <= 4:
+                      time.sleep(check_commit_wait)
 
-                    cu.commit(**opts)
+                cu.commit(**opts)
 
             except CommitError as err:
                 msg = "Unable to commit configuration: {0}".format(err)
@@ -459,10 +476,11 @@ def main():
         argument_spec=dict(
             host=dict(required=True),
             user=dict(required=False, default=os.getenv('USER')),
-            passwd=dict(required=False, default=None),
+            passwd=dict(required=False, default=None, no_log=True),
             console=dict(required=False, default=None),
             file=dict(required=True),
             overwrite=dict(required=False, type='bool', choices=BOOLEANS, default=False),
+            update=dict(required=False, type='bool', choices=BOOLEANS, default=False),
             replace=dict(required=False, type='bool', choices=BOOLEANS, default=False),
             logfile=dict(required=False, default=None),
             diffs_file=dict(required=False, default=None),
@@ -470,10 +488,10 @@ def main():
             timeout=dict(required=False, default=0),
             comment=dict(required=False, default=None),
             port=dict(required=False, default=830),
+            ssh_private_key_file=dict(required=False, default=None),
             mode=dict(required=False, default=None),
             confirm=dict(required=False, default=None),
             ignore_statement_not_found=dict(required=False, type='bool', choices=BOOLEANS, default=False),
-            check_commit=dict(required=False, type='bool', choices=BOOLEANS, default=True),
             check_commit_wait=dict(required=False, default=None)
         ),
         supports_check_mode=True)
@@ -492,4 +510,6 @@ def main():
     _ldr(module)
 
 from ansible.module_utils.basic import *
-main()
+
+if __name__ == '__main__':
+    main()
