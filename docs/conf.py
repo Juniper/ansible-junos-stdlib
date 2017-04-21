@@ -50,7 +50,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'Junos Ansible Modules'
-copyright = u'2014, Juniper Networks, Inc'
+copyright = u'2014-2017, Juniper Networks, Inc'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
