@@ -92,9 +92,7 @@ options:
                 kwargs="interface_name=em0" or kwargs="interface_name=em0,media=True"
                 kwargs={interface_name:em0}
                 kwargs={interface_name:em0,media:True}
-                kwargs:
-                  interface_name: em0
-                  media: True
+                kwargs={interface_name:em0,media:True}
     filter_xml:
         description:
             - This options can be used with get-config rpc only,
