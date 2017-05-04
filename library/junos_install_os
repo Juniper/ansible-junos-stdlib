@@ -141,6 +141,12 @@ options:
               **passwd**
         required: false
         default: None
+    options:
+        description:
+            - A dictionary of options which are passed through as arguments to
+              the request-package-add RPC.
+        required: false
+        type: dict
 '''
 
 EXAMPLES = '''
@@ -155,7 +161,20 @@ import logging
 import re
 import os
 from distutils.version import LooseVersion
+from ansible.module_utils.six import string_types
+from ansible.module_utils.basic import *
 
+def _convert_to_boolean(val):
+    if val is None or isinstance(val, bool):
+        return val
+    if isinstance(val, string_types):
+        val = val.lower()
+    if val in BOOLEANS_TRUE:
+        return True
+    elif val in BOOLEANS_FALSE:
+        return False
+    else:
+        raise TypeError
 
 def junos_install_os(module, dev):
     args = module.params
@@ -218,6 +237,15 @@ def junos_install_os(module, dev):
         sw_args['issu'] = module.boolean(args['issu'])
     if module.boolean(args['nssu']):
         sw_args['nssu'] = module.boolean(args['nssu'])
+    # Add the options dict items to sw_args
+    for (k, v) in args['options'].items():
+        try:
+            # Convert Ansible-style boolean values to Python booleans
+            sw_args[k] = _convert_to_boolean(v)
+        except TypeError:
+            # Not an Ansible-style boolean value, use it as is.
+            sw_args[k] = v
+
     ok = sw.install(package, **sw_args)
 
     if ok is not True:
@@ -256,6 +284,7 @@ def main():
             nssu=dict(required=False, type='bool', choices=BOOLEANS, default=False),
             reboot_pause=dict(required=False, type='int', default=10),
             port=dict(required=False, default=830),
+            options=dict(required=False, type='dict', default=False),
             ssh_private_key_file=dict(required=False, default=None)
         ),
         supports_check_mode=True
@@ -265,23 +294,17 @@ def main():
     try:
         from jnpr.junos import Device
         from jnpr.junos.version import VERSION
-        if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
-            module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
+        if not LooseVersion(VERSION) >= LooseVersion('2.1.2'):
+            module.fail_json(msg='junos-eznc >= 2.1.2 is required for this '
+                                 'module')
     except ImportError as ex:
         module.fail_json(msg='ImportError: %s' % ex.message)
-
-    if int(args['port']) == 23 and LooseVersion(VERSION) < LooseVersion('2.0.0'):
-        module.fail_json(msg='junos-eznc >= 2.0.0 is required for telnet connection.')
-
-    if (module.boolean(args['issu']) or module.boolean(args['nssu'])) and \
-                    LooseVersion(VERSION) < LooseVersion('2.1.0'):
-        module.fail_json(msg='junos-eznc >= 2.1.0 is required for ISSU/NSSU support.')
 
     # @@@ need to verify that the package file actually exists
     # @@@ before proceeding.
 
-    dev = Device(args['host'], user=args['user'], password=args['passwd'], port=args['port'],
-                 ssh_private_key_file=args['ssh_private_key_file'])
+    dev = Device(args['host'], user=args['user'], password=args['passwd'],
+                 port=args['port'], ssh_private_key_file=args['ssh_private_key_file'])
     try:
         dev.open()
     except Exception as err:
@@ -301,7 +324,6 @@ def main():
 
     module.exit_json(**results)
 
-from ansible.module_utils.basic import *
 
 if __name__ == '__main__':
     main()
