@@ -142,7 +142,7 @@ def main():
                            mode=dict(required=False, default=None),
                            timeout=dict(required=False, type='int', default=0),
                            logfile=dict(required=False, default=None),
-                           dest=dict(required=False, default=None),
+                           dest=dict(required=True, default=None),
                            format=dict(required=False, choices=['text', 'xml'], default='text')
                            ),
         supports_check_mode=True)
