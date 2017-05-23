@@ -108,6 +108,13 @@ options:
         required: false
         default: false
         choices: ['true','false', 'yes','no']
+    force_host:
+        description:
+             - If set to B(true), forces the upgrade of the Host Software 
+               package on QFX-series devices.
+        required: false
+        default: false
+        choices: ['true','false', 'yes','no']
     reboot_pause:
         description:
             - Amount of time in seconds to wait after the reboot is issued
@@ -218,6 +225,8 @@ def junos_install_os(module, dev):
         sw_args['issu'] = module.boolean(args['issu'])
     if module.boolean(args['nssu']):
         sw_args['nssu'] = module.boolean(args['nssu'])
+    if module.boolean(args['force_host']):
+        sw_args['force_host'] = module.boolean(args['force_host'])
     ok = sw.install(package, **sw_args)
 
     if ok is not True:
@@ -254,6 +263,7 @@ def main():
             reboot=dict(required=False, type='bool', choices=BOOLEANS, default=True),
             issu=dict(required=False, type='bool', choices=BOOLEANS, default=False),
             nssu=dict(required=False, type='bool', choices=BOOLEANS, default=False),
+            force_host=dict(required=False, type='bool', choices=BOOLEANS, default=False),
             reboot_pause=dict(required=False, type='int', default=10),
             port=dict(required=False, default=830),
             ssh_private_key_file=dict(required=False, default=None)
