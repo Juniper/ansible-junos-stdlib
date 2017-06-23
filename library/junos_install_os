@@ -180,7 +180,7 @@ def junos_install_os(module, dev):
         def do_log(msg, level='info'):
             getattr(logging, level)(msg)
     else:
-        def do_log(msg):
+        def do_log(msg, level=None):
             pass
 
     # -------------------------------------------------------------------------
