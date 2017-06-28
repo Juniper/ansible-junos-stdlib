@@ -51,7 +51,7 @@ description:
       NETCONF include ASCII text, Junos XML elements, and Junos OS B(set) commands.
       Configurations performed through the console must only use ASCII text formatting.
 requirements:
-    - junos-eznc >= 1.2.2
+    - junos-eznc >= 2.1.1
     - junos-netconify >= 1.0.1, when using the I(console) option
 options:
     host:
@@ -223,7 +223,10 @@ import logging
 from os.path import isfile
 import os
 from distutils.version import LooseVersion
+import re
 import ast
+
+from ansible.module_utils.basic import *
 
 
 def _load_via_netconf(module):
@@ -235,13 +238,10 @@ def _load_via_netconf(module):
             ConfigLoadError, CommitError
         from jnpr.junos.utils.config import Config
         from jnpr.junos.version import VERSION
-        if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
-            module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
+        if not LooseVersion(VERSION) >= LooseVersion('2.1.1'):
+            module.fail_json(msg='junos-eznc >= 2.1.1 is required for this module')
     except ImportError as ex:
         module.fail_json(msg='ImportError: %s' % ex.message)
-
-    if args['mode'] is not None and LooseVersion(VERSION) < LooseVersion('2.0.0'):
-        module.fail_json(msg='junos-eznc >= 2.0.0 is required for console connection')
 
     logfile = args['logfile']
     if logfile is not None:
@@ -263,12 +263,19 @@ def _load_via_netconf(module):
 
     if args['ignore_warning'] in BOOLEANS + ["True", "False"]:
         args['ignore_warning'] = module.boolean(module.params['ignore_warning'])
+    elif isinstance(args['ignore_warning'], str) and \
+            re.search('\[.*\]', args['ignore_warning']):
+        args['ignore_warning'] = ast.literal_eval(args['ignore_warning'])
 
-    logging.info("connecting to host: {0}@{1}:{2}".format(args['user'], args['host'], args['port']))
+    logging.info("connecting to host: {0}@{1}:{2}".format(args['user'],
+                                                          args['host'],
+                                                          args['port']))
 
     try:
-        dev = Device(args['host'], user=args['user'], password=args['passwd'], port=args['port'],
-                     ssh_private_key_file=args['ssh_private_key_file'], mode=args['mode'],
+        dev = Device(args['host'], user=args['user'], password=args['passwd'],
+                     port=args['port'],
+                     ssh_private_key_file=args['ssh_private_key_file'],
+                     mode=args['mode'],
                      gather_facts=False)
         dev.open()
     except Exception as err:
@@ -498,8 +505,6 @@ def main():
 
     _ldr = _load_via_netconf if args['console'] is None else _load_via_console
     _ldr(module)
-
-from ansible.module_utils.basic import *
 
 if __name__ == '__main__':
     main()
