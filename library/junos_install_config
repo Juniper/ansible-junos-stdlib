@@ -261,7 +261,7 @@ def _load_via_netconf(module):
         logging.error(msg)
         module.fail_json(msg=msg)
 
-    if args['ignore_warning'] in BOOLEANS + ["True", "False"]:
+    if str(args['ignore_warning']).lower() in BOOLEANS:
         args['ignore_warning'] = module.boolean(module.params['ignore_warning'])
     elif isinstance(args['ignore_warning'], str) and \
             re.search('\[.*\]', args['ignore_warning']):
