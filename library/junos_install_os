@@ -180,7 +180,7 @@ def junos_install_os(module, dev):
         def do_log(msg, level='info'):
             getattr(logging, level)(msg)
     else:
-        def do_log(msg):
+        def do_log(msg, level=None):
             pass
 
     # -------------------------------------------------------------------------
@@ -189,7 +189,7 @@ def junos_install_os(module, dev):
 
     if args['version'] is None:
         # extract version string from package file
-        m = re.search('-([^\\-]*)-domestic.*', args['package'])
+        m = re.search('-(\d{2}\.\d.*)\..*$', args['package'])
         args['version'] = m.group(1)
 
     has_ver = dev.facts['version']
