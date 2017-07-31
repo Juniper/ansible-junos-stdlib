@@ -162,13 +162,12 @@ def main():
         try:
             from jnpr.junos import Device
             from jnpr.junos.version import VERSION
-            if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
-                module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
+            if not LooseVersion(VERSION) >= LooseVersion('2.1.2'):
+                module.fail_json(msg='junos-eznc >= 2.1.2 is required for this '
+                                     'module')
         except ImportError as ex:
             module.fail_json(msg='ImportError: %s' % ex.message)
 
-        if m_args['mode'] is not None and LooseVersion(VERSION) < LooseVersion('2.0.0'):
-            module.fail_json(msg='junos-eznc >= 2.0.0 is required for console connection.')
         # -----------
         # via NETCONF
         # -----------
@@ -190,6 +189,8 @@ def main():
             # compatible with older PyEZ versions that have older fact gathering
             # code.
             m_results['facts'] = dict(dev.facts)
+            m_results['facts']['re_name'] = dev.re_name
+            m_results['facts']['master_state'] = dev.master
             dev.close()
             # Ansible doesn't allow keys starting with numbers.
             # Replace the '2RE' key with the 'has_2RE' key.

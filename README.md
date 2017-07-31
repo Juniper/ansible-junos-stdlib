@@ -64,7 +64,8 @@ callback_whitelist = jsnapy
 This repo assumes you have the [DEPENDENCIES](#dependencies) installed on your system.  
 
 ### Ansible Galaxy Role
-To download the junos role to the Ansible server, execute the ansible-galaxy install command, and specify **Juniper.junos**.
+To download the latest released version of the junos role to the Ansible
+server, execute the ansible-galaxy install command, and specify **Juniper.junos**.
 
 ```
 [root@ansible-cm]# ansible-galaxy install Juniper.junos
@@ -72,6 +73,11 @@ To download the junos role to the Ansible server, execute the ansible-galaxy ins
 - downloading role from https://github.com/Juniper/ansible-junos-stdlib/archive/1.3.1.tar.gz
 - extracting Juniper.junos to /usr/local/etc/ansible/roles/Juniper.junos
 - Juniper.junos was installed successfully
+```
+You can also use the ansible-galaxy install command to install the latest
+development version of the junos role directly from GitHub.
+```
+sudo ansible-galaxy install git+https://github.com/Juniper/ansible-junos-stdlib.git,,Juniper.junos
 ```
 
 ### Git clone
@@ -156,7 +162,8 @@ Thes modules require the following to be installed on the Ansible server:
 
 * Python 2.6 or 2.7
 * [Ansible](http://www.ansible.com) 1.5 or later
-* Junos [py-junos-eznc](https://github.com/Juniper/py-junos-eznc) 1.2.2 or later (2.0.0 if you want to use the mode: telnet)
+* Junos [py-junos-eznc](https://github.com/Juniper/py-junos-eznc) 2.0.1 or
+later (2.1.1 is recommended and required for some features)
 
 ## LICENSE
 

@@ -43,3 +43,12 @@ docs/*.rst
 docs/_build/
 
 tests/.vagrant/*
+
+# Window File Explorer
+desktop.ini
+
+# Mac OS X Finder
+.DS_Store
+
+# PyCharm
+.idea
