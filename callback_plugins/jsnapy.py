@@ -177,7 +177,11 @@ class CallbackModule(CallbackBase):
                             self._display.display( "\t\t'{0}'".format( str(test['message'])),
                               color=C.COLOR_ERROR)
                             # With jsnapy 1.2 err field parsed into message for each failed test
+                        elif 'xpath_error' in test:
+                          if test['xpath_error'] is True:
+                            self._display.display( "\t\tTest execution failed parsing results(XPath)! Check the XML response file.",
+                              color=C.COLOR_ERROR)
                         else:
-                          self._display.display( "\t\tTest failed without providing message.",
+                          self._display.display( "\t\tTest execution failed! Check test definition.",
                             color=C.COLOR_ERROR)
     #self._display.display("Checking for callback value, in '{0}'".format(json.dumps(result)))
