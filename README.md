@@ -91,6 +91,18 @@ This will set your `$ANSIBLE_LIBRARY` variable to the repo location and the inst
 [jeremy@ansible-junos-stdlib]$ echo $ANSIBLE_LIBRARY
 /home/jeremy/Ansible/ansible-junos-stdlib/library:/usr/share/ansible
 ```
+An alternative to the above is installing the role from GitHub using ansible-galaxy. The first step is creating a yaml file for
+input data to ansible-galaxy. We'll use install_role.yml.
+
+```yaml
+---
+- src: https://github.com/Juniper/ansible-junos-stdlib
+  name: Juniper.junos
+```
+
+Now run `sudo ansible-galaxy install -r install_role.yml` to install the role.
+
+
 ### Docker
 To run this as a Docker container, which includes JSNAPy and PyEZ, simply pull it from the Docker hub and run it. The following will pull the latest image and run it in an interactive ash shell.
 ```
@@ -118,6 +130,7 @@ You may have noticed that the base command is almost always the same. We can als
 $ alias pb-ansible="docker run -it --rm -v $PWD:/playbooks juniper/pyez-ansible ansible-playbook"
 $ pb-ansible -i hosts playbook.yml
 ```
+
 ## Example Playbook
 This example outlines how to use Ansible to install or upgrade the software image on a device running Junos OS.
 
