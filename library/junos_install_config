@@ -51,7 +51,7 @@ description:
       NETCONF include ASCII text, Junos XML elements, and Junos OS B(set) commands.
       Configurations performed through the console must only use ASCII text formatting.
 requirements:
-    - junos-eznc >= 1.2.2
+    - junos-eznc >= 2.1.1
     - junos-netconify >= 1.0.1, when using the I(console) option
 options:
     host:
@@ -165,6 +165,16 @@ options:
             - Provide a confirm in minutes to the commit of the configuration
         required: false
         default: None
+    ignore_warning:
+        description:
+            - A boolean, string or list of string.
+          If the value is True, it will ignore all warnings regardless of the
+          warning message. If the value is a string, it will ignore
+          warning(s) if the message of each warning matches the string. If
+          the value is a list of strings, ignore warning(s) if the message of
+          each warning matches at least one of the strings in the list.
+        required: false
+        default: None
     check_commit_wait:
         description:
             - Set to number of seconds to wait between check and commit.
@@ -213,6 +223,10 @@ import logging
 from os.path import isfile
 import os
 from distutils.version import LooseVersion
+import re
+import ast
+
+from ansible.module_utils.basic import *
 
 
 def _load_via_netconf(module):
@@ -224,13 +238,10 @@ def _load_via_netconf(module):
             ConfigLoadError, CommitError
         from jnpr.junos.utils.config import Config
         from jnpr.junos.version import VERSION
-        if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
-            module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
+        if not LooseVersion(VERSION) >= LooseVersion('2.1.1'):
+            module.fail_json(msg='junos-eznc >= 2.1.1 is required for this module')
     except ImportError as ex:
         module.fail_json(msg='ImportError: %s' % ex.message)
-
-    if args['mode'] is not None and LooseVersion(VERSION) < LooseVersion('2.0.0'):
-        module.fail_json(msg='junos-eznc >= 2.0.0 is required for console connection')
 
     logfile = args['logfile']
     if logfile is not None:
@@ -250,11 +261,21 @@ def _load_via_netconf(module):
         logging.error(msg)
         module.fail_json(msg=msg)
 
-    logging.info("connecting to host: {0}@{1}:{2}".format(args['user'], args['host'], args['port']))
+    if str(args['ignore_warning']).lower() in BOOLEANS:
+        args['ignore_warning'] = module.boolean(module.params['ignore_warning'])
+    elif isinstance(args['ignore_warning'], str) and \
+            re.search('\[.*\]', args['ignore_warning']):
+        args['ignore_warning'] = ast.literal_eval(args['ignore_warning'])
+
+    logging.info("connecting to host: {0}@{1}:{2}".format(args['user'],
+                                                          args['host'],
+                                                          args['port']))
 
     try:
-        dev = Device(args['host'], user=args['user'], password=args['passwd'], port=args['port'],
-                     ssh_private_key_file=args['ssh_private_key_file'], mode=args['mode'],
+        dev = Device(args['host'], user=args['user'], password=args['passwd'],
+                     port=args['port'],
+                     ssh_private_key_file=args['ssh_private_key_file'],
+                     mode=args['mode'],
                      gather_facts=False)
         dev.open()
     except Exception as err:
@@ -287,12 +308,15 @@ def _load_via_netconf(module):
         logging.error(msg)
         module.fail_json(msg=msg)
 
+    logging.info("loading config")
+    load_args = {}
+    if args['ignore_warning'] is not None:
+        load_args = {'ignore_warning': args['ignore_warning']}
     try:
         # load the config.  the cu.load will raise
         # an exception if there is even a warning.
         # so we want to avoid that condition.
-        logging.info("loading config")
-        load_args = {'path': file_path}
+        load_args.update({'path': file_path})
         if replace is True:
             load_args['merge'] = False
         elif overwrite is True:
@@ -347,6 +371,8 @@ def _load_via_netconf(module):
             else:
                 logging.info("committing change, please be patient")
                 opts = {}
+                if args['ignore_warning'] is not None:
+                    opts = {'ignore_warning': args['ignore_warning']}
                 if args['comment'] is not None:
                     opts['comment'] = args['comment']
                 if args['confirm'] is not None:
@@ -462,6 +488,7 @@ def main():
             ssh_private_key_file=dict(required=False, default=None),
             mode=dict(required=False, default=None),
             confirm=dict(required=False, default=None),
+            ignore_warning=dict(required=False, default=None),
             check_commit_wait=dict(required=False, default=None)
         ),
         supports_check_mode=True)
@@ -478,8 +505,6 @@ def main():
 
     _ldr = _load_via_netconf if args['console'] is None else _load_via_console
     _ldr(module)
-
-from ansible.module_utils.basic import *
 
 if __name__ == '__main__':
     main()
