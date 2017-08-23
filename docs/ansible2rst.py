@@ -26,10 +26,11 @@ import re
 import sys
 import datetime
 import cgi
+from distutils.version import LooseVersion
 from jinja2 import Environment, FileSystemLoader
 
-import ansible.utils
 from ansible.utils import module_docs
+from ansible import __version__ as ansible_version
 
 #####################################################################################
 # constants and paths
@@ -131,7 +132,10 @@ def jinja2_environment(template_dir, typ):
 def process_module(fname, template, outputname):
 
     print MODULEDIR + fname
-    doc, examples, returndocs = module_docs.get_docstring(MODULEDIR + fname)
+    if LooseVersion(ansible_version) >= LooseVersion('2.3.0'):
+        doc, examples, returndocs, _metadata = module_docs.get_docstring(MODULEDIR + fname)
+    else:
+        doc, examples, returndocs = module_docs.get_docstring(MODULEDIR + fname)
 
     all_keys = []
 

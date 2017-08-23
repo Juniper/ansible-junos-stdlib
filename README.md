@@ -64,7 +64,8 @@ callback_whitelist = jsnapy
 This repo assumes you have the [DEPENDENCIES](#dependencies) installed on your system.  
 
 ### Ansible Galaxy Role
-To download the junos role to the Ansible server, execute the ansible-galaxy install command, and specify **Juniper.junos**.
+To download the latest released version of the junos role to the Ansible
+server, execute the ansible-galaxy install command, and specify **Juniper.junos**.
 
 ```
 [root@ansible-cm]# ansible-galaxy install Juniper.junos
@@ -72,6 +73,11 @@ To download the junos role to the Ansible server, execute the ansible-galaxy ins
 - downloading role from https://github.com/Juniper/ansible-junos-stdlib/archive/1.3.1.tar.gz
 - extracting Juniper.junos to /usr/local/etc/ansible/roles/Juniper.junos
 - Juniper.junos was installed successfully
+```
+You can also use the ansible-galaxy install command to install the latest
+development version of the junos role directly from GitHub.
+```
+sudo ansible-galaxy install git+https://github.com/Juniper/ansible-junos-stdlib.git,,Juniper.junos
 ```
 
 ### Git clone
@@ -85,7 +91,6 @@ This will set your `$ANSIBLE_LIBRARY` variable to the repo location and the inst
 [jeremy@ansible-junos-stdlib]$ echo $ANSIBLE_LIBRARY
 /home/jeremy/Ansible/ansible-junos-stdlib/library:/usr/share/ansible
 ```
-
 An alternative to the above is installing the role from GitHub using ansible-galaxy. The first step is creating a yaml file for
 input data to ansible-galaxy. We'll use install_role.yml.
 
@@ -97,6 +102,34 @@ input data to ansible-galaxy. We'll use install_role.yml.
 
 Now run `sudo ansible-galaxy install -r install_role.yml` to install the role.
 
+
+### Docker
+To run this as a Docker container, which includes JSNAPy and PyEZ, simply pull it from the Docker hub and run it. The following will pull the latest image and run it in an interactive ash shell.
+```
+$ docker run -it --rm juniper/pyez-ansible ash
+```
+Although, you'll probably want to bind mount a host directory (perhaps the directory containing your playbooks and associated files). The following will bind mount the current working directory and start the ash shell.
+```
+$ docker run -it --rm -v $PWD:/playbooks ash
+```
+You can also use the container as an executable to run your playbooks. Let's assume we have a typical playbook structure as below:
+```
+example
+|playbook.yml
+|hosts
+|-vars
+|-templates
+|-scripts
+```
+We can move to the example directory and run the playbook with the following command:
+```
+$ docker run -it --rm -v $PWD:/playbooks juniper/pyez-ansible ansible-playbook -i hosts playbook.yml
+```
+You may have noticed that the base command is almost always the same. We can also use an alias to save some keystrokes.
+```
+$ alias pb-ansible="docker run -it --rm -v $PWD:/playbooks juniper/pyez-ansible ansible-playbook"
+$ pb-ansible -i hosts playbook.yml
+```
 
 ## Example Playbook
 This example outlines how to use Ansible to install or upgrade the software image on a device running Junos OS.
@@ -142,7 +175,8 @@ Thes modules require the following to be installed on the Ansible server:
 
 * Python 2.6 or 2.7
 * [Ansible](http://www.ansible.com) 1.5 or later
-* Junos [py-junos-eznc](https://github.com/Juniper/py-junos-eznc) 1.2.2 or later (2.0.0 if you want to use the mode: telnet)
+* Junos [py-junos-eznc](https://github.com/Juniper/py-junos-eznc) 2.0.1 or
+later (2.1.1 is recommended and required for some features)
 
 ## LICENSE
 

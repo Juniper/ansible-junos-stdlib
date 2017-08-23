@@ -62,6 +62,14 @@ options:
             - port number to use when connecting to the device
         required: false
         default: 830
+    ssh_private_key_file:
+        description:
+            - This can be used if you need to provide a private key rather than
+              loading the key into the ssh-key-ring/environment.  if your
+              ssh-key requires a password, then you must provide it via
+              **passwd**
+        required: false
+        default: None
     mode:
         description:
             - mode of console connection (telnet/serial). If mode is not
@@ -84,9 +92,7 @@ options:
                 kwargs="interface_name=em0" or kwargs="interface_name=em0,media=True"
                 kwargs={interface_name:em0}
                 kwargs={interface_name:em0,media:True}
-                kwargs:
-                  interface_name: em0
-                  media: True
+                kwargs={interface_name:em0,media:True}
     filter_xml:
         description:
             - This options can be used with get-config rpc only,
@@ -266,6 +272,7 @@ def main():
             user=dict(required=False, default=os.getenv('USER')),
             passwd=dict(required=False, default=None, no_log=True),
             port=dict(required=False, default=830),
+            ssh_private_key_file=dict(required=False, default=None),
             mode=dict(required=False, default=None),
             timeout=dict(required=False, type='int', default=0),
             rpc=dict(required=True, default=None),
@@ -290,7 +297,8 @@ def main():
     # via NETCONF
     # -----------
     dev = Device(m_args['host'], user=m_args['user'], passwd=m_args['passwd'],
-                        port=m_args['port'], mode=m_args['mode'], gather_facts=False)
+                 port=m_args['port'], ssh_private_key_file=m_args['ssh_private_key_file'],
+                 mode=m_args['mode'], gather_facts=False)
     try:
         dev.open()
     except Exception as err:
@@ -308,4 +316,6 @@ def main():
     module.exit_json(**results)
 
 from ansible.module_utils.basic import *
-main()
+
+if __name__ == '__main__':
+    main()
