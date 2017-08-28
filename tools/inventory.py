@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # inventory.py
 # by Jason Pack for Juniper Networks 2015-2016
+# Forked and update by Adam Mills @ Roblox 2017
 # returns the list of devices managed by Junos Space as an inventory for Ansible.
 
 # To use this script, make sure that you place a file  containing Space credentials
@@ -48,6 +49,7 @@
 
 import optparse
 import requests
+from requests.packages.urllib3.exceptions import InsecureRequestWarning
 import json
 import sys
 import os
@@ -189,6 +191,7 @@ def loadConfig(filename):
   return config;
   
 if __name__ == "__main__":
+  requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
   args = parseArgs()
   config = loadConfig(args.config_file)
   [host, user, password] = [ config['SPACE_HOST'], config['SPACE_USER'], config['SPACE_PASSWORD'] ]
