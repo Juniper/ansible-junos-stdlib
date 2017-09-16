@@ -118,6 +118,11 @@ options:
         - Number of packet to send
     required: false
     default: 5
+  do_not_fragment:
+    description:
+        - Set Don't Fragment bit
+    required: false
+    default: false
 '''
 
 EXAMPLES = '''
@@ -152,6 +157,7 @@ EXAMPLES = '''
         passwd={{ ansible_ssh_pass }}
         dest_ip={{ item.peer_ip }}
         source_ip={{ item.local_ip }}
+        do_not_fragment=True
         ttl=1
       with_items: "{{underlay.neighbors}}"
 '''
@@ -179,7 +185,8 @@ def main():
             routing_instance=dict(required=False, default=None),
             ttl=dict(required=False, default=None),
             acceptable_packet_loss=dict(required=False, default=0),
-            count=dict(required=False, default='5')
+            count=dict(required=False, default='5'),
+            do_not_fragment=dict(required=False, default=False)
             ),
         supports_check_mode=False
     )
@@ -218,6 +225,7 @@ def main():
     results['dest_ip'] = m_args['dest_ip']
     results['count'] = m_args['count']
     results['rapid'] = m_args['rapid']
+    results['do_not_fragment'] = m_args['do_not_fragment']
 
     results['changed'] = False
 
@@ -228,6 +236,9 @@ def main():
 
     if  m_args['rapid'] is True:
         ping_params['rapid'] = m_args['rapid']
+
+    if m_args['do_not_fragment']:
+        ping_params['do_not_fragment'] = m_args['do_not_fragment']
 
     if m_args['source_ip'] is not None:
         ping_params['source'] = m_args['source_ip']
