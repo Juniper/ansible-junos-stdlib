@@ -17,6 +17,7 @@ In addition to these modules, Since 2.1, Ansible natively include some [core mod
 - **junos_zeroize** — Remove all configuration information on the Routing Engines and reset all key values on a device.
 - **junos_get_table** - Retrieve data from a Junos device using Tables/Views
 - **junos_ping** - execute ping on junos devices
+- **junos_pmtud** - execute path MTU discovery on junos devices
 - **junos_jsnapy** - Integrate JSNAPy to ansible which helps audit network devices
 - **junos_rpc** — To execute RPC on device and save output locally
 - **junos_cli** — To execute CLI on device and save output locally
