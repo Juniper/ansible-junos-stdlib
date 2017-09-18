@@ -105,6 +105,11 @@ options:
         - Max range of path MTU discovery. Must be 2^n.
     required: false
     default: 512
+
+returns:
+  inet_mtu:
+    description:
+        - IPv4 path MTU size to destination.
 '''
 
 EXAMPLES = '''
@@ -188,7 +193,7 @@ def main():
 
     results = dict(
         changed=False,
-        mtu=0,
+        inet_mtu=0,
         dest_ip=m_args['dest_ip']
     )
 
@@ -248,11 +253,11 @@ def main():
             loss = int(rpc_reply.findtext('probe-results-summary/packet-loss', default='100').strip())
             if loss < 100 and test_size == int(m_args['max_size']):
                 # ping success with max test_size, save and break
-                results["mtu"] = test_size
+                results["inet_mtu"] = test_size
                 break
             elif loss < 100:
                 # ping success, increase test_size
-                results["mtu"] = test_size
+                results["inet_mtu"] = test_size
                 test_size += step
             else:
                 # ping fail, lower size
@@ -266,10 +271,10 @@ def main():
         dev.close()
         raise err
 
-    if not results["mtu"]:
+    if not results["inet_mtu"]:
         module.fail_json(msg='MTU too low, increase max_range.', **results)
     else:
-        results["mtu"] += 28    # adjust for IPv4 and ICMP headers
+        results["inet_mtu"] += 28    # adjust for IPv4 and ICMP headers
 
     dev.close()
     results['warnings'] = warnings
