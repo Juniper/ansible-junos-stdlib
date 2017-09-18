@@ -57,3 +57,46 @@
       assert:
         that:
           - test3.packets_sent == '3'
+
+#################
+
+    - name: "TEST 4 - Ping with DF-bit set"
+      junos_ping:
+        host: "{{ ansible_ssh_host }}"
+        port: "{{ ansible_ssh_port }}"
+        user: "{{ ansible_ssh_user }}"
+        passwd: "{{ ansible_ssh_pass }}"
+        dest_ip: 8.8.8.8
+        count: 3
+        do_not_fragment: True
+        size: 64
+      register: test4
+      ignore_errors: True
+#    - debug: var=test4
+
+    - name: Check TEST 4
+      assert:
+        that:
+          - test4.packets_received == '3'
+
+#################
+
+    - name: "TEST 5 - Ping with DF-bit set and size that well exceeds jumbo sizes"
+      junos_ping:
+        host: "{{ ansible_ssh_host }}"
+        port: "{{ ansible_ssh_port }}"
+        user: "{{ ansible_ssh_user }}"
+        passwd: "{{ ansible_ssh_pass }}"
+        dest_ip: 8.8.8.8
+        count: 3
+        do_not_fragment: True
+        size: 9999
+      register: test5
+      ignore_errors: True
+#    - debug: var=test5
+
+    - name: Check TEST 5
+      assert:
+        that:
+          - test5.packets_received == '0'
+
