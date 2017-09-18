@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-# Copyright (c) 1999-2016, Juniper Networks Inc.
-#               2016, Damien Garros
+# Copyright (c) 1999-2017, Juniper Networks Inc.
+#               2017, Martin Komon
 #
 # All rights reserved.
 #
@@ -34,19 +34,15 @@
 
 DOCUMENTATION = '''
 ---
-module: junos_ping
-author: Damien Garros, Juniper Networks
-version_added: "1.3.1"
-short_description: execute ping on junos devices
+module: junos_pmtud
+author: Martin Komon
+version_added: "2.4"
+short_description: Perform path MTU discovery on junos devices
 description:
-    - execute ping on junos devices
+    - perform path MTU discovery on junos devices
 requirements:
     - junos-eznc >= 1.2.2
 options:
-  host:
-    description:
-        - Set to {{ inventory_hostname }}
-    required: true
   user:
     description:
         - Login username
@@ -78,20 +74,11 @@ options:
     default: None
   dest_ip:
     description:
-        - Destination ip
+        - Destination IPv4 address or hostname
     required: true
   source_ip:
     description:
-        - Source IP used to send the ping
-    required: false
-  rapid:
-    description:
-        - Execute ping at 100pps instead of 1pps
-    required: false
-    default: true
-  ttl:
-    description:
-        - Maximum number of IP routers (IP hops) allowed between source and destination
+        - Source IPv4 address used to send the ping
     required: false
   routing_instance:
     description:
@@ -108,90 +95,72 @@ options:
     description:
         - Interface used to send traffic out
     required: false
-  acceptable_packet_loss:
+  max_size:
     description:
-        - Number of packets lost that is acceptable to consider the test PASS
+        - Start and max size for path MTU discovery.
     required: false
-    default: "0"
-  count:
+    default: 1472
+  max_range:
     description:
-        - Number of packet to send
+        - Max range of path MTU discovery. Must be 2^n.
     required: false
-    default: 5
-  do_not_fragment:
+    default: 512
+
+returns:
+  inet_mtu:
     description:
-        - Set Don't Fragment bit
-    required: false
-    default: false
+        - IPv4 path MTU size to destination.
 '''
 
 EXAMPLES = '''
 # Simple example
   tasks:
-    - name: "Execute ping peer"
-      junos_ping:
+    - name: "Check MTU on backup circuit"
+      junos_pmtud:
         host={{ junos_host }}
         port={{ netconf_port }}
         user={{ ansible_ssh_user }}
         passwd={{ ansible_ssh_pass }}
         dest_ip=8.8.8.8
 
-# ping over console server connection using PyEZ >= 2.0
+# Using more parameters
   tasks:
-    - name: "Execute ping peer"
-      junos_ping:
-        host={{ inventory_hostname }}
-        port=2011
-        mode='telnet'
-        user={{ ansible_ssh_user }}
-        passwd={{ ansible_ssh_pass }}
-        dest_ip=8.8.8.8
-
-# Using loop and more parameters
-  tasks:
-    - name: "Execute ping peer"
-      junos_ping:
+    - name: "Check MTU on backup circuit"
+      junos_pmtud:
         host={{ junos_host }}
         port={{ netconf_port }}
         user={{ ansible_ssh_user }}
         passwd={{ ansible_ssh_pass }}
-        dest_ip={{ item.peer_ip }}
-        source_ip={{ item.local_ip }}
-        do_not_fragment=True
-        ttl=1
-      with_items: "{{underlay.neighbors}}"
+        dest_ip=8.8.8.8
+        routing_instance=internet
+        max_range=128
 '''
 
-import os
-import sys
-import re
-from lxml import etree
+import math
 from distutils.version import LooseVersion
 
 def main():
+    spec = dict(
+        host=dict(required=True),
+        user=dict(required=False, default=os.getenv('USER')),
+        passwd=dict(required=False, default=None, no_log=True),
+        port=dict(required=False, default=830),
+        ssh_private_key_file=dict(required=False, default=None),
+        mode=dict(required=False, default=None),
+        timeout=dict(required=False, default=0),
+        dest_ip=dict(required=True, default=None),
+        source_ip=dict(required=False, default=None),
+        interface=dict(required=False, default=None),
+        routing_instance=dict(required=False, default=None),
+        max_size=dict(type='int', required=False, default=1472),
+        max_range=dict(type='int', required=False, default=512),
+    )
+
     module = AnsibleModule(
-        argument_spec=dict(
-            host=dict(required=True),
-            user=dict(required=False, default=os.getenv('USER')),
-            passwd=dict(required=False, default=None, no_log=True),
-            port=dict(required=False, default=830),
-            ssh_private_key_file=dict(required=False, default=None),
-            mode=dict(required=False, default=None),
-            timeout=dict(required=False, default=0),
-            dest_ip=dict(required=True, default=None),
-            source_ip=dict(required=False, default=None),
-            interface=dict(required=False, default=None),
-            rapid=dict(required=False, default=True),
-            routing_instance=dict(required=False, default=None),
-            ttl=dict(required=False, default=None),
-            acceptable_packet_loss=dict(required=False, default=0),
-            count=dict(required=False, default='5'),
-            do_not_fragment=dict(required=False, default=False)
-            ),
+        argument_spec=spec,
         supports_check_mode=False
     )
 
-    results = {}
     m_args = module.params
 
     try:
@@ -222,23 +191,30 @@ def main():
         module.fail_json(msg=msg)
         return
 
-    results['dest_ip'] = m_args['dest_ip']
-    results['count'] = m_args['count']
-    results['rapid'] = m_args['rapid']
-    results['do_not_fragment'] = m_args['do_not_fragment']
+    results = dict(
+        changed=False,
+        inet_mtu=0,
+        dest_ip=m_args['dest_ip']
+    )
 
-    results['changed'] = False
+    warnings = list()
+
+    # check if max_range is a power of 2
+    log_max_range = math.log(m_args['max_range']) / math.log(2)
+    if math.floor(log_max_range) != log_max_range:
+        warnings.append('Max_range must be a power of 2 between 2 and 1024; '
+                        'ignoring value {0} and using default {1}.'
+                        ''.format(m_args['max_range'],
+                                  spec['max_range']['default']))
+        m_args['max_range'] = spec['max_range']['default']
 
     # Prepare parameters
     ping_params = dict(
             host=m_args['dest_ip'],
-            count=str(m_args['count']))
-
-    if  m_args['rapid'] is True:
-        ping_params['rapid'] = m_args['rapid']
-
-    if m_args['do_not_fragment']:
-        ping_params['do_not_fragment'] = m_args['do_not_fragment']
+            inet=True,
+            count='3',
+            do_not_fragment=True,
+    )
 
     if m_args['source_ip'] is not None:
         ping_params['source'] = m_args['source_ip']
@@ -252,19 +228,42 @@ def main():
         ping_params['interface'] = m_args['interface']
         results['interface'] = m_args['interface']
 
-    if m_args['ttl'] is not None:
-        ping_params['ttl'] = str(m_args['ttl'])
-        results['ttl'] = str(m_args['ttl'])
-
     ## Change default Timeout
     timeout = int(m_args['timeout'])
     if timeout > 0:
         dev.timeout = timeout
 
     try:
-
-        # Execute Ping
+        # Check if ICMP passes
+        ping_params['size'] = str(64)
         rpc_reply = dev.rpc.ping(**ping_params)
+        loss = int(rpc_reply.findtext('probe-results-summary/packet-loss', default='100').strip())
+
+        if loss == 100:
+            module.fail_json(
+                msg="Unknown error, PMTUD cannot run.")
+
+        test_size = int(m_args['max_size'])
+        step = int(m_args['max_range'])
+
+        while True:
+            step = step / 2 if step >= 2 else 0
+            ping_params['size'] = str(test_size)
+            rpc_reply = dev.rpc.ping(**ping_params)
+            loss = int(rpc_reply.findtext('probe-results-summary/packet-loss', default='100').strip())
+            if loss < 100 and test_size == int(m_args['max_size']):
+                # ping success with max test_size, save and break
+                results["inet_mtu"] = test_size
+                break
+            elif loss < 100:
+                # ping success, increase test_size
+                results["inet_mtu"] = test_size
+                test_size += step
+            else:
+                # ping fail, lower size
+                test_size -= step
+            if step < 1:
+                break
 
     except Exception as err:
         results['failed'] = True
@@ -272,46 +271,13 @@ def main():
         dev.close()
         raise err
 
-    try:
-        # Try to Find probe summary
-        probe_summary = rpc_reply.find('probe-results-summary')
-        if probe_summary is None:
-            results['failed'] = True
-            results['msg'] = rpc_reply.findtext('rpc-error/error-message').strip()
-            dev.close()
-            module.exit_json(**results)
-
-        # Extract packet loss
-        packet_loss = probe_summary.findtext("packet-loss")
-        packets_sent = probe_summary.findtext("probes-sent")
-        responses_received = probe_summary.findtext("responses-received")
-
-        if packet_loss is None:
-            results['msg'] = 'Unable to collect results from ping, response was not found or was empty'
-            results['failed'] = True
-            dev.close()
-            module.exit_json(**results)
-
-        packet_loss = packet_loss.strip()
-        packets_sent = packets_sent.strip()
-        responses_received = responses_received.strip()
-        results['msg'] = 'Loss {0}% packets, (Sent {1} | Received {2})'.format(str(packet_loss), str(packets_sent), str(responses_received))
-        results['packet_loss'] = packet_loss
-        results['packets_sent'] = packets_sent
-        results['packets_received'] = responses_received
-
-        if int(packet_loss) > int(m_args['acceptable_packet_loss']):
-            results['failed'] = True
-            dev.close()
-            module.exit_json(**results)
-
-    except Exception as err:
-        results['failed'] = True
-        results['msg'] = "unable to analyze ping results  due to:{0}".format(err.message)
-        dev.close()
-        raise err
+    if not results["inet_mtu"]:
+        module.fail_json(msg='MTU too low, increase max_range.', **results)
+    else:
+        results["inet_mtu"] += 28    # adjust for IPv4 and ICMP headers
 
     dev.close()
+    results['warnings'] = warnings
     module.exit_json(**results)
 
 from ansible.module_utils.basic import *
