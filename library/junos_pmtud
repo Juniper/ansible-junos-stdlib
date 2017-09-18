@@ -131,25 +131,28 @@ EXAMPLES = '''
         max_range=128
 '''
 
+import math
 from distutils.version import LooseVersion
 
 def main():
+    spec = dict(
+        host=dict(required=True),
+        user=dict(required=False, default=os.getenv('USER')),
+        passwd=dict(required=False, default=None, no_log=True),
+        port=dict(required=False, default=830),
+        ssh_private_key_file=dict(required=False, default=None),
+        mode=dict(required=False, default=None),
+        timeout=dict(required=False, default=0),
+        dest_ip=dict(required=True, default=None),
+        source_ip=dict(required=False, default=None),
+        interface=dict(required=False, default=None),
+        routing_instance=dict(required=False, default=None),
+        max_size=dict(type='int', required=False, default=1472),
+        max_range=dict(type='int', required=False, default=512),
+    )
+
     module = AnsibleModule(
-        argument_spec=dict(
-            host=dict(required=True),
-            user=dict(required=False, default=os.getenv('USER')),
-            passwd=dict(required=False, default=None, no_log=True),
-            port=dict(required=False, default=830),
-            ssh_private_key_file=dict(required=False, default=None),
-            mode=dict(required=False, default=None),
-            timeout=dict(required=False, default=0),
-            dest_ip=dict(required=True, default=None),
-            source_ip=dict(required=False, default=None),
-            interface=dict(required=False, default=None),
-            routing_instance=dict(required=False, default=None),
-            max_size=dict(required=False, default=1472),
-            max_range=dict(required=False, default=512),
-            ),
+        argument_spec=spec,
         supports_check_mode=False
     )
 
@@ -187,6 +190,17 @@ def main():
         mtu=0,
         dest_ip=m_args['dest_ip']
     )
+
+    warnings = list()
+
+    # check if max_range is a power of 2
+    log_max_range = math.log(m_args['max_range']) / math.log(2)
+    if math.floor(log_max_range) != log_max_range:
+        warnings.append('Max_range must be a power of 2 between 2 and 1024; '
+                        'ignoring value {0} and using default {1}.'
+                        ''.format(m_args['max_range'],
+                                  spec['max_range']['default']))
+        m_args['max_range'] = spec['max_range']['default']
 
     # Prepare parameters
     ping_params = dict(
@@ -255,6 +269,7 @@ def main():
         results["mtu"] += 28    # adjust for IP and ICMP headers
 
     dev.close()
+    results['warnings'] = warnings
     module.exit_json(**results)
 
 from ansible.module_utils.basic import *
