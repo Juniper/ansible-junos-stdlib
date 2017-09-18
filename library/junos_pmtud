@@ -1,0 +1,286 @@
+#!/usr/bin/env python
+
+# Copyright (c) 1999-2017, Juniper Networks Inc.
+#               2017, Martin Komon
+#
+# All rights reserved.
+#
+# License: Apache 2.0
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+#
+# * Redistributions of source code must retain the above copyright
+#   notice, this list of conditions and the following disclaimer.
+#
+# * Redistributions in binary form must reproduce the above copyright
+#   notice, this list of conditions and the following disclaimer in the
+#   documentation and/or other materials provided with the distribution.
+#
+# * Neither the name of the Juniper Networks nor the
+#   names of its contributors may be used to endorse or promote products
+#   derived from this software without specific prior written permission.
+#
+# THIS SOFTWARE IS PROVIDED BY Juniper Networks, Inc. ''AS IS'' AND ANY
+# EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL Juniper Networks, Inc. BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+DOCUMENTATION = '''
+---
+module: junos_pmtud
+author: Martin Komon
+version_added: "2.4"
+short_description: Perform path MTU discovery on junos devices
+description:
+    - perform path MTU discovery on junos devices
+requirements:
+    - junos-eznc >= 1.2.2
+options:
+  user:
+    description:
+        - Login username
+    required: false
+    default: $USER
+  passwd:
+    description:
+        - Login password
+    required: false
+    default: assumes ssh-key active
+  port:
+    description:
+        - port number to use when connecting to the device
+    required: false
+    default: 830
+  ssh_private_key_file:
+    description:
+        - This can be used if you need to provide a private key rather than
+          loading the key into the ssh-key-ring/environment.  if your
+          ssh-key requires a password, then you must provide it via
+          **passwd**
+    required: false
+    default: None
+  mode:
+    description:
+        - mode of console connection (telnet/serial). If mode is not
+          provided SSH connection is used.
+    required: false
+    default: None
+  dest_ip:
+    description:
+        - Destination IPv4 address or hostname
+    required: true
+  source_ip:
+    description:
+        - Source IPv4 address used to send the ping
+    required: false
+  routing_instance:
+    description:
+        - Name of the routing instance to use to send the ping
+    required: false
+  timeout:
+    description:
+        - Extend the NETCONF RPC timeout beyond the default value of
+          30 seconds. Set this value to accommodate pings
+          that might take longer than the default timeout interval.
+    required: false
+    default: "0"
+  interface:
+    description:
+        - Interface used to send traffic out
+    required: false
+  max_size:
+    description:
+        - Start and max size for path MTU discovery.
+    required: false
+    default: 1472
+  max_range:
+    description:
+        - Max range of path MTU discovery. Must be 2^n.
+    required: false
+    default: 512
+
+returns:
+  inet_mtu:
+    description:
+        - IPv4 path MTU size to destination.
+'''
+
+EXAMPLES = '''
+# Simple example
+  tasks:
+    - name: "Check MTU on backup circuit"
+      junos_pmtud:
+        host={{ junos_host }}
+        port={{ netconf_port }}
+        user={{ ansible_ssh_user }}
+        passwd={{ ansible_ssh_pass }}
+        dest_ip=8.8.8.8
+
+# Using more parameters
+  tasks:
+    - name: "Check MTU on backup circuit"
+      junos_pmtud:
+        host={{ junos_host }}
+        port={{ netconf_port }}
+        user={{ ansible_ssh_user }}
+        passwd={{ ansible_ssh_pass }}
+        dest_ip=8.8.8.8
+        routing_instance=internet
+        max_range=128
+'''
+
+import math
+from distutils.version import LooseVersion
+
+def main():
+    spec = dict(
+        host=dict(required=True),
+        user=dict(required=False, default=os.getenv('USER')),
+        passwd=dict(required=False, default=None, no_log=True),
+        port=dict(required=False, default=830),
+        ssh_private_key_file=dict(required=False, default=None),
+        mode=dict(required=False, default=None),
+        timeout=dict(required=False, default=0),
+        dest_ip=dict(required=True, default=None),
+        source_ip=dict(required=False, default=None),
+        interface=dict(required=False, default=None),
+        routing_instance=dict(required=False, default=None),
+        max_size=dict(type='int', required=False, default=1472),
+        max_range=dict(type='int', required=False, default=512),
+    )
+
+    module = AnsibleModule(
+        argument_spec=spec,
+        supports_check_mode=False
+    )
+
+    m_args = module.params
+
+    try:
+        from jnpr.junos import Device
+        from jnpr.junos.version import VERSION
+        if not LooseVersion(VERSION) >= LooseVersion('1.2.2'):
+            module.fail_json(msg='junos-eznc >= 1.2.2 is required for this module')
+    except ImportError as ex:
+        module.fail_json(msg='ImportError: %s' % ex.message)
+
+    if m_args['mode'] is not None and LooseVersion(VERSION) < LooseVersion('2.0.0'):
+        module.fail_json(msg='junos-eznc >= 2.0.0 is required for console connection')
+
+    # Open connection to device
+    dev = Device(
+            m_args['host'],
+            user=m_args['user'],
+            passwd=m_args['passwd'],
+            port=m_args['port'],
+            ssh_private_key_file=m_args['ssh_private_key_file'],
+            mode=m_args['mode'],
+            gather_facts=False)
+
+    try:
+        dev.open()
+    except Exception as err:
+        msg = 'Unable to connect to {0}: {1}'.format(m_args['host'], str(err))
+        module.fail_json(msg=msg)
+        return
+
+    results = dict(
+        changed=False,
+        inet_mtu=0,
+        dest_ip=m_args['dest_ip']
+    )
+
+    warnings = list()
+
+    # check if max_range is a power of 2
+    log_max_range = math.log(m_args['max_range']) / math.log(2)
+    if math.floor(log_max_range) != log_max_range:
+        warnings.append('Max_range must be a power of 2 between 2 and 1024; '
+                        'ignoring value {0} and using default {1}.'
+                        ''.format(m_args['max_range'],
+                                  spec['max_range']['default']))
+        m_args['max_range'] = spec['max_range']['default']
+
+    # Prepare parameters
+    ping_params = dict(
+            host=m_args['dest_ip'],
+            inet=True,
+            count='3',
+            do_not_fragment=True,
+    )
+
+    if m_args['source_ip'] is not None:
+        ping_params['source'] = m_args['source_ip']
+        results['source_ip'] = m_args['source_ip']
+
+    if m_args['routing_instance'] is not None:
+        ping_params['routing_instance'] = m_args['routing_instance']
+        results['routing_instance'] = m_args['routing_instance']
+
+    if m_args['interface'] is not None:
+        ping_params['interface'] = m_args['interface']
+        results['interface'] = m_args['interface']
+
+    ## Change default Timeout
+    timeout = int(m_args['timeout'])
+    if timeout > 0:
+        dev.timeout = timeout
+
+    try:
+        # Check if ICMP passes
+        ping_params['size'] = str(64)
+        rpc_reply = dev.rpc.ping(**ping_params)
+        loss = int(rpc_reply.findtext('probe-results-summary/packet-loss', default='100').strip())
+
+        if loss == 100:
+            module.fail_json(
+                msg="Unknown error, PMTUD cannot run.")
+
+        test_size = int(m_args['max_size'])
+        step = int(m_args['max_range'])
+
+        while True:
+            step = step / 2 if step >= 2 else 0
+            ping_params['size'] = str(test_size)
+            rpc_reply = dev.rpc.ping(**ping_params)
+            loss = int(rpc_reply.findtext('probe-results-summary/packet-loss', default='100').strip())
+            if loss < 100 and test_size == int(m_args['max_size']):
+                # ping success with max test_size, save and break
+                results["inet_mtu"] = test_size
+                break
+            elif loss < 100:
+                # ping success, increase test_size
+                results["inet_mtu"] = test_size
+                test_size += step
+            else:
+                # ping fail, lower size
+                test_size -= step
+            if step < 1:
+                break
+
+    except Exception as err:
+        results['failed'] = True
+        results['msg'] = "unable to execute ping due to:{0}".format(err.message)
+        dev.close()
+        raise err
+
+    if not results["inet_mtu"]:
+        module.fail_json(msg='MTU too low, increase max_range.', **results)
+    else:
+        results["inet_mtu"] += 28    # adjust for IPv4 and ICMP headers
+
+    dev.close()
+    results['warnings'] = warnings
+    module.exit_json(**results)
+
+from ansible.module_utils.basic import *
+
+if __name__ == '__main__':
+    main()
