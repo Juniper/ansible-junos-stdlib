@@ -74,11 +74,11 @@ options:
     default: None
   dest_ip:
     description:
-        - Destination ip
+        - Destination IPv4 address or hostname
     required: true
   source_ip:
     description:
-        - Source IP used to send the ping
+        - Source IPv4 address used to send the ping
     required: false
   routing_instance:
     description:
@@ -185,6 +185,7 @@ def main():
         msg = 'Unable to connect to {0}: {1}'.format(m_args['host'], str(err))
         module.fail_json(msg=msg)
         return
+
     results = dict(
         changed=False,
         mtu=0,
@@ -205,6 +206,7 @@ def main():
     # Prepare parameters
     ping_params = dict(
             host=m_args['dest_ip'],
+            inet=True,
             count='3',
             do_not_fragment=True,
     )
@@ -230,7 +232,8 @@ def main():
         # Check if ICMP passes
         ping_params['size'] = str(64)
         rpc_reply = dev.rpc.ping(**ping_params)
-        loss = int(rpc_reply.find('probe-results-summary').findtext("packet-loss").strip())
+        loss = int(rpc_reply.findtext('probe-results-summary/packet-loss', default='100').strip())
+
         if loss == 100:
             module.fail_json(
                 msg="Unknown error, PMTUD cannot run.")
@@ -242,7 +245,7 @@ def main():
             step = step / 2 if step >= 2 else 0
             ping_params['size'] = str(test_size)
             rpc_reply = dev.rpc.ping(**ping_params)
-            loss = int(rpc_reply.find('probe-results-summary').findtext("packet-loss").strip())
+            loss = int(rpc_reply.findtext('probe-results-summary/packet-loss', default='100').strip())
             if loss < 100 and test_size == int(m_args['max_size']):
                 # ping success with max test_size, save and break
                 results["mtu"] = test_size
@@ -266,7 +269,7 @@ def main():
     if not results["mtu"]:
         module.fail_json(msg='MTU too low, increase max_range.', **results)
     else:
-        results["mtu"] += 28    # adjust for IP and ICMP headers
+        results["mtu"] += 28    # adjust for IPv4 and ICMP headers
 
     dev.close()
     results['warnings'] = warnings
