@@ -20,4 +20,4 @@
     - name: Check TEST 1
       assert:
         that:
-          - 768 <= test1.mtu <= 1500
+          - 768 <= test1.inet_mtu <= 1500
