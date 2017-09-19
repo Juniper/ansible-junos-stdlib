@@ -118,6 +118,11 @@ options:
         - Number of packet to send
     required: false
     default: 5
+  size:
+    description:
+        - The size of the ICMP payload of the ping.
+    required: false
+    default: None (default size)
   do_not_fragment:
     description:
         - Set Don't Fragment bit
