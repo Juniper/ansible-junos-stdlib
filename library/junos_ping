@@ -181,12 +181,13 @@ def main():
             dest_ip=dict(required=True, default=None),
             source_ip=dict(required=False, default=None),
             interface=dict(required=False, default=None),
-            rapid=dict(required=False, default=True),
+            rapid=dict(required=False, type='bool', default=True),
             routing_instance=dict(required=False, default=None),
             ttl=dict(required=False, default=None),
             acceptable_packet_loss=dict(required=False, default=0),
             count=dict(required=False, default='5'),
-            do_not_fragment=dict(required=False, default=False)
+            size=(dict(required=False, default=None)),
+            do_not_fragment=dict(required=False, type='bool', default=False)
             ),
         supports_check_mode=False
     )
@@ -237,7 +238,7 @@ def main():
     if  m_args['rapid'] is True:
         ping_params['rapid'] = m_args['rapid']
 
-    if m_args['do_not_fragment']:
+    if m_args['do_not_fragment'] is True:
         ping_params['do_not_fragment'] = m_args['do_not_fragment']
 
     if m_args['source_ip'] is not None:
@@ -255,6 +256,10 @@ def main():
     if m_args['ttl'] is not None:
         ping_params['ttl'] = str(m_args['ttl'])
         results['ttl'] = str(m_args['ttl'])
+
+    if m_args['size'] is not None:
+        ping_params['size'] = str(m_args['size'])
+        results['size'] = str(m_args['size'])
 
     ## Change default Timeout
     timeout = int(m_args['timeout'])
