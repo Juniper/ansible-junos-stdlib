@@ -181,13 +181,13 @@ def main():
             dest_ip=dict(required=True, default=None),
             source_ip=dict(required=False, default=None),
             interface=dict(required=False, default=None),
-            rapid=dict(required=False, default=True),
+            rapid=dict(required=False, type='bool', default=True),
             routing_instance=dict(required=False, default=None),
             ttl=dict(required=False, default=None),
             acceptable_packet_loss=dict(required=False, default=0),
             count=dict(required=False, default='5'),
             size=(dict(required=False, default=None)),
-            do_not_fragment=dict(required=False, default=False)
+            do_not_fragment=dict(required=False, type='bool', default=False)
             ),
         supports_check_mode=False
     )
