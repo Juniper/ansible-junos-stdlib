@@ -237,7 +237,7 @@ def main():
     if  m_args['rapid'] is True:
         ping_params['rapid'] = m_args['rapid']
 
-    if m_args['do_not_fragment']:
+    if m_args['do_not_fragment'] is True:
         ping_params['do_not_fragment'] = m_args['do_not_fragment']
 
     if m_args['source_ip'] is not None:
