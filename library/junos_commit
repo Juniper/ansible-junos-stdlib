@@ -139,7 +139,8 @@ def main():
                            logfile=dict(required=False, default=None),
                            comment=dict(required=False, default=None),
                            confirm=dict(required=False, default=None),
-                           check=dict(required=False, choices=BOOLEANS, default=False)
+                           check=dict(required=False, type='bool',
+                                      choices=BOOLEANS, default=False)
                            ),
         supports_check_mode=True)
 
