@@ -100,6 +100,12 @@ options:
             - Provide a confirm in minutes to the commit of the configuration
         required: false
         default: None
+    check:
+        description:
+            - Do a commit check
+              Can be used to confirm a `commit confirmed` without performing an actual commit
+        required: false
+        default: None
 '''
 
 EXAMPLES = '''
@@ -132,7 +138,8 @@ def main():
                            timeout=dict(required=False, default=0),
                            logfile=dict(required=False, default=None),
                            comment=dict(required=False, default=None),
-                           confirm=dict(required=False, default=None)
+                           confirm=dict(required=False, default=None),
+                           check=dict(required=False, choices=BOOLEANS, default=False)
                            ),
         supports_check_mode=True)
 
@@ -180,8 +187,8 @@ def main():
 
         logging.info("taking lock")
         cu.lock()
-
-        if (in_check_mode):
+        check = args['check']
+        if (in_check_mode or check):
             logging.info("doing a commit-check, please be patient")
             cu.commit_check()
         else:
