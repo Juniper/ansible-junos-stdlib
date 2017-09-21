@@ -89,6 +89,7 @@ options:
     check:
         description:
             - Do a commit check
+              Can be used to confirm a `commit confirmed` without performing an actual commit
         required: false
         default: None
 '''
