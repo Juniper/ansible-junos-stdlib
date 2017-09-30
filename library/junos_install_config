@@ -47,7 +47,7 @@ description:
       either NETCONF or the CONSOLE port. Specify the I(console) option to use the
       CONSOLE port.
 
-      You provide the configuration data in a file. Supported formats when using
+    - You provide the configuration data in a file. Supported formats when using
       NETCONF include ASCII text, Junos XML elements, and Junos OS B(set) commands.
       Configurations performed through the console must only use ASCII text formatting.
 requirements:
@@ -175,12 +175,12 @@ options:
         choices: ['true','false','yes','no']
     ignore_warning:
         description:
-            - A boolean, string or list of string.
-          If the value is True, it will ignore all warnings regardless of the
-          warning message. If the value is a string, it will ignore
-          warning(s) if the message of each warning matches the string. If
-          the value is a list of strings, ignore warning(s) if the message of
-          each warning matches at least one of the strings in the list.
+            - A boolean, string or list of string. If the value is True, it
+              will ignore all warnings regardless of the warning message. If
+              the value is a string, it will ignore warning(s) if the message
+              of each warning matches the string. If the value is a list of
+              strings, ignore warning(s) if the message of each warning matches
+              at least one of the strings in the list.
         required: false
         default: None
     check_commit_wait:
