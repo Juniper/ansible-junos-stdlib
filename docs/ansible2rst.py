@@ -29,7 +29,10 @@ import cgi
 from distutils.version import LooseVersion
 from jinja2 import Environment, FileSystemLoader
 
-from ansible.utils import module_docs
+try:
+    from ansible.utils import module_docs
+except ImportError:
+    from ansible.utils import plugin_docs as module_docs
 from ansible import __version__ as ansible_version
 
 #####################################################################################
