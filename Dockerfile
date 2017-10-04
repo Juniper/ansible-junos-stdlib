@@ -20,7 +20,7 @@ RUN tar -czf Juniper.junos ansible-junos-stdlib &&\
     pip install jxmlease &&\
     pip install -q ansible==$ver_ansible &&\
     pip install -q jsnapy==$ver_jsnapy &&\
-    ansible-galaxy install Juniper.junos &&\
+    ansible-galaxy install --roles-path=/etc/ansible/roles Juniper.junos &&\
     apk del -r --purge gcc make g++ &&\
     rm -rf /source/* &&\
     rm -rf /var/cache/apk/* &&\
