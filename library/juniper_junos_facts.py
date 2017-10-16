@@ -71,6 +71,16 @@ options:
     required: false
     default: none
     type: path
+  logfile:
+    description:
+      - A path to a file, on the Ansible control machine, where debugging
+        information is logged. This option is deprecated. It is present only
+        for backwards compatibility. Logging is now handled using Ansible's
+        standard logging scheme which does something I haven't quite figured
+        out yet.
+    required: false
+    default: None
+    type: path
 requirements:
   - junos-eznc >= 2.1.7
 notes:
@@ -88,6 +98,23 @@ EXAMPLES = '''
   tasks:
     - name: Gather Junos facts with no configuration
       juniper_junos_facts:
+
+# Print a fact
+
+# Using config_format option
+
+# Print the config
+
+# Using savedir option
+
+# Print the JSON file
+
+# Using logile option
+
+# Print the logfile
+
+# Document connection arguments
+# extends_documentation_fragment: juniper_junos_common
 '''
 
 RETURN = '''
@@ -96,6 +123,18 @@ ansible_facts.junos:
   returned: success
   type: dict
   sample:
+
+facts:
+  description: Returned for backwards compatibility. Returns the same keys and
+               values which are returned under I(ansible_facts.junos).
+  returned: success
+  type: dict
+  sample:
+
+changed:
+
+failed:
+
 '''
 
 import os.path
@@ -103,12 +142,12 @@ import json
 
 
 def import_juniper_junos_common():
-    """Imports the juniper_junos_common module from module_utils_path.
+    """Imports the juniper_junos_common module from _module_utils_path.
 
     Ansible versions < 2.4 do not provide a way to package common code in a
     role. This function solves that problem for juniper_junos_* modules by
     reading the module arguments passed on stdin and interpreting the special
-    argument module_utils_path as a path to the the directory where the
+    option _module_utils_path as a path to the the directory where the
     juniper_junos_common module resides. It temporarily inserts this path at
     the head of sys.path, imports the juniper_junos_common module, and removes
     the path from sys.path. It then returns the imported juniper_junos_common
@@ -131,7 +170,8 @@ def import_juniper_junos_common():
     juniper_junos_common = None
     module = AnsibleModule(
         argument_spec={
-            'module_utils_path': dict(type='path', default=None),
+            '_module_utils_path': dict(type='path', default=None),
+            # Avoids a warning about not specifying no_log for passwd.
             'passwd': dict(no_log=True)
         },
         check_invalid_arguments=False,
@@ -225,7 +265,11 @@ def main():
                                required=False,
                                default=None),
             savedir=dict(type='path', required=False, default=None),
+            logfile=dict(type='path', required=False, default=None),
         ),
+        # Since this module doesn't change the device's configuration, there
+        # no additional work required to support check mode. It's inherently
+        # supported.
         supports_check_mode=True
     )
 
@@ -235,6 +279,8 @@ def main():
     facts = get_facts_dict(junos_module)
 
     # Add code to implement config_format option
+
+    # Add code to implement the logfile option
 
     junos_module.log("Facts gathered.")
 
@@ -248,7 +294,6 @@ def main():
         changed=False,
         failed=False,
         ansible_facts={'junos': facts},
-        logobject=str(junos_module.log),
         facts=facts)
 
 

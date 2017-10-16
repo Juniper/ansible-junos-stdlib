@@ -67,99 +67,184 @@ PYEZ_INSTALLATION_URL = "https://github.com/Juniper/py-junos-eznc#installation"
 
 
 class ModuleDocFragment(object):
-    DOCUMENTATION = '''
-options:
+    """Documentation fragment for connection-related parameters.
+
+    All juniper_junos_* modules share a common set of connection parameters
+    which are documented in this class.
+
+    Attributes:
+        DOCUMENTATION: The documentation string defining the connection-related
+                       parameters for juniper_junos_* modules.
+    """
+
+    # The connection-specific options. Defined here so it can be re-used as
+    # suboptions in provider.
+    CONNECTION_DOCUMENTATION = '''
   host:
     description:
-      - The hostname or IP address of the Junos device to which the connection 
-        should be established.
+      - The hostname or IP address of the Junos device to which the connection
+        should be established. This is normally the Junos device itself, but
+        is the hostname or IP address of a console server when connecting
+        to the console of the device by setting the I(mode) option to the value
+        C(telnet). This option is required, but does not have to be specified
+        explicitly by the user because it defaults to
+        C({{ inventory_hostname }}).
     required: True
     default: {{ inventory_hostname }}
+    type: str
     aliases:
       - hostname
       - ip
   user:
     description:
-      - The username which should be used to authenticate to the Junos device.
+      - The username used to authenticate with the Junos device. This option
+        is required, but does not have to be specified explicitly by the user
+        due to the below algorithm for determining the default value.
     required: True
     default: The first defined value from the following list:
              1) The ANSIBLE_NET_USERNAME environment variable.
                 (used by Ansible Tower)
-             2) 
-             
-             
+             2) The remote_user as defined by Ansible. Ansible sets this
+                value via several methods including:
+                a) -u or --user command line option.
+                b) ANSIBLE_REMOTE_USER environment variable.
+                c) remote_user configuration setting.
+                See the Ansible documentation for the precedence used to set
+                the remote_user value.
+            3) The USER environment variable.
+    type: str
     aliases:
       - username
   passwd:
     description:
-      - The password which should be used to authenticate. Defaults to
-        ANSIBLE_NET_PASSWORD environment variable if defined. If not, defaults
-        to None which means that SSH key-based authentication with an empty
-        passphrase is attempted.
+      - The password, or ssh key's passphrase, used to authenticate with the
+        Junos device. If this option is not specified, authentication is
+        attempted using an empty password, or ssh key passphrase. The below
+        algorithm is used to determine the default value.
     required: False
-    default: None
+    default: The first defined value from the following list:
+             1) The ANSIBLE_NET_PASSWORD environment variable.
+                (used by Ansible Tower)
+             2) The value specified using the -k or --ask-pass command line
+                argument.
+             3) none
+    type: str
     aliases:
       - password
   ssh_private_key_file:
     description:
-      - The path to the SSH private key file which should be used to
-        authenticate. Default to ANSIBLE_NET_SSH_KEYFILE environment variable
-        if defined. If not, defaults to None which means the default path to
-        the SSH private key file is tried.
-    required: False
-    default: None
+      - The path to the SSH private key file used to authenticate with the
+        Junos device. If this option is not specified, and no default value is
+        found using the algorithm below, then the SSH private key file
+        specified in the user's SSH configuration, or the
+        operating-system-specific default is used.
+    default: The first defined value from the following list:
+             1) The ANSIBLE_NET_SSH_KEYFILE environment variable.
+                (used by Ansible Tower)
+             2) The value specified using the --private-key or --key-file
+                command line argument.
+             3) none
+    type: path
     aliases:
       - ssh_keyfile
+  mode:
+    description:
+      - The PyEZ mode used to establish a NETCONF connection to the Junos
+        device. A value of C(none) uses the default NETCONF over SSH mode.
+        A value of C(telnet) results in either a direct NETCONF over Telnet
+        connection to the Junos device, or a NETCONF over serial console
+        connection to the Junos device using Telnet to a console server
+        depending on the values of the C(host) and C(port) options. Mutually
+        exclusive with C(console).
+    required: False
+    default: none
+    choices: [ none, "telnet" ]
+  console:
+    description:
+      - An alternate method of specifying a NETCONF over serial console
+        connection to the Junos device using Telnet to a console server.
+        Its value must be a string in the format
+        '--telnet <console_hostname>,<console_port_number>'.
+        This option is deprecated. It is present only for backwards
+        compatibility. The string value of this option is exactly equivalent to
+        specifying C(host) with a value of I(<console_hostname>), C(mode) with
+        a value of I(telnet), and C(port) with a value of
+        I(<console_port_number>). Mutually exclusive with C(mode) and C(port).
+    required: False
+    default: none
+    type: str
   port:
     description:
-      - The TCP port number to which the NETCONF connection should be 
-        established.
+      - The TCP port number used to establish the connection. Mutually
+        exclusive with C(console).
     required: False
     default: 830
+    type: int
   timeout:
     description:
-      - Number of seconds to wait for RPC responses from the Junos device.
+      - Maximum number of seconds to wait for RPC responses from the Junos
+        device. This option does NOT control the initial connection timeout
+        value.
     required: False
     default: 30
+'''
+
+    # SUB_CONNECTION_DOCUMENTATION is just CONNECTION_DOCUMENTATION with each
+    # line indented.
+    SUB_CONNECTION_DOCUMENTATION = ''
+    for line in CONNECTION_DOCUMENTATION.splitlines(True):
+        SUB_CONNECTION_DOCUMENTATION += '    ' + line
+
+    # Build actual DOCUMENTATION string by putting the pieces together.
+    DOCUMENTATION = '''
+options:''' + CONNECTION_DOCUMENTATION + '''
+  provider:
+    description:
+      - An alternative syntax for specifying the connection options. Rather
+        than specifying each connection-related top-level option, the
+        connection-related options may be specified as a dictionary of
+        suboptions using this option. All connection-related options must
+        either be specified as top-level options or as suboptions of the
+        C(provider) option. You can not combine the two methods of specifying
+        connection-related options.
+    required: False
+    default: None
+    type: dict
+    suboptions:''' + SUB_CONNECTION_DOCUMENTATION + '''
 requirements:
   - junos-eznc >= ''' + MIN_PYEZ_VERSION + '''
+  - Python >= 2.7
 '''
 
 
-# The common specification for connecting to Junos devices.
+# The common argument specification for connecting to Junos devices.
 connection_spec = {
     'host': dict(type='str',
                  # Required either in provider or at top-level.
                  required=False,
                  aliases=['hostname', 'ip'],
                  # See documentation for real default behavior.
-                 # Default behavior is coded in JuniperJunosActionModule.run()
+                 # Default behavior coded in JuniperJunosActionModule.run()
                  default=None),
-    'port': dict(type='int',
-                 required=False,
-                 default=830),
-    'timeout': dict(type='int',
-                    required=False,
-                    default=30),
     'user': dict(type='str',
                  # Required either in provider or at top-level.
                  required=False,
                  aliases=['username'],
                  # See documentation for real default behavior.
-                 # Default behavior is coded in JuniperJunosActionModule.run()
+                 # Default behavior coded in JuniperJunosActionModule.run()
                  default=None),
     'passwd': dict(type='str',
                    required=False,
                    aliases=['password'],
                    # See documentation for real default behavior.
-                   # Default behavior is coded in JuniperJunosActionModule.run()
+                   # Default behavior coded in JuniperJunosActionModule.run()
                    default=None,
                    no_log=True),
     'ssh_private_key_file': dict(type='path',
                                  required=False,
                                  aliases=['ssh_keyfile'],
                                  # See documentation for real default behavior.
-                                 # Default behavior is coded in
+                                 # Default behavior coded in
                                  # JuniperJunosActionModule.run()
                                  default=None),
     'mode': dict(choices=[None, 'telnet'],
@@ -167,10 +252,17 @@ connection_spec = {
     'console': dict(type='str',
                     required=False,
                     default=None),
+    'port': dict(type='int',
+                 required=False,
+                 default=830),
+    'timeout': dict(type='int',
+                    required=False,
+                    default=30),
 }
-
-connection_spec_mutually_exclusive = [['mode', 'console']]
-connection_spec_required_one_of = []
+# Connection arguments which are mutually exclusive.
+connection_spec_mutually_exclusive = [['mode', 'console'], ['port', 'console']]
+# Keys are connection options. Values are a list of task_vars to use as the
+# default value.
 connection_spec_fallbacks = {
     'host': ['inventory_hostname'],
     'user': ['ansible_connection_user', 'ansible_ssh_user', 'ansible_user'],
@@ -179,43 +271,74 @@ connection_spec_fallbacks = {
                              'ansible_private_key_file']
 }
 
+# Specify the provider spec with options matching connection_spec.
 provider_spec = {
     'provider': dict(type='dict',
                      options=connection_spec)
 }
 
+# The provider option is mutually exclusive with all top-level connection
+# options.
 provider_spec_mutually_exclusive = []
 for key in connection_spec:
-    provider_spec_mutually_exclusive.append(['provider',key])
+    provider_spec_mutually_exclusive.append(['provider', key])
 
-provider_spec_required_one_of = []
-
+# top_spec is connection_spec + provider_spec
 top_spec = connection_spec
 top_spec.update(provider_spec)
-
 top_spec_mutually_exclusive = connection_spec_mutually_exclusive
 top_spec_mutually_exclusive += provider_spec_mutually_exclusive
-
-top_spec_required_one_of = connection_spec_required_one_of
-top_spec_required_one_of += provider_spec_required_one_of
 
 # "Hidden" arguments which are passed between the action plugin and the
 # Junos module, but which should not be visible to users.
 internal_spec = {
-    'module_utils_path': dict(type='path',
-                              required=True,
-                              default=None),
+    '_module_utils_path': dict(type='path',
+                               required=True,
+                               default=None),
 }
 
 
 class JuniperJunosModule(AnsibleModule):
+    """A subclass of AnsibleModule used by all juniper_junos_* modules.
+
+    All juniper_junos_* modules share common behavior which is implemented in
+    this class.
+
+    Attributes:
+        dev: An instance of a PyEZ Device() object.
+
+    Methods:
+        exit_json: Close self.dev and call parent's exit_json().
+        fail_json: Close self.dev and call parent's fail_json().
+        check_pyez_version: Verify installed PyEZ version is >= minimum.
+        open: Open self.dev.
+        close: Close self.dev.
+    """
+
     # Method overrides
     def __init__(self,
                  argument_spec={},
                  mutually_exclusive=[],
-                 required_one_of=[],
                  min_pyez_version=MIN_PYEZ_VERSION,
                  **kwargs):
+        """Initialize a new JuniperJunosModule instance.
+
+        Combines module-specific parameters with the common parameters shared
+        by all juniper_junos_* modules. Performs additional checks on options.
+        Collapses any provider options to be top-level options. Checks the
+        minimum PyEZ version. Creates and opens the PyEZ Device instance.
+
+        Args:
+            agument_spec: Module-specific argument_spec added to top_spec.
+            mutually_exclusive: Module-specific mutually exclusive added to
+                                top_spec_mutually_exclusive.
+            min_pyez_version: The minimum PyEZ version required by the module.
+            **kwargs: All additional keyword arguments are passed to
+                      AnsibleModule.__init__().
+
+        Returns:
+            A JuniperJunosModule instance object.
+        """
         # Initialize the dev attribute
         self.dev = None
         # Update argument_spec with the internal_spec
@@ -224,12 +347,10 @@ class JuniperJunosModule(AnsibleModule):
         argument_spec.update(top_spec)
         # Extend mutually_exclusive with connection_mutually_exclusive
         mutually_exclusive += top_spec_mutually_exclusive
-        required_one_of += top_spec_required_one_of
         # Call parent's __init__()
         super(JuniperJunosModule, self).__init__(
             argument_spec=argument_spec,
             mutually_exclusive=mutually_exclusive,
-            required_one_of=required_one_of,
             **kwargs)
         # Remove any arguments in internal_spec
         for arg_name in internal_spec:
@@ -254,21 +375,37 @@ class JuniperJunosModule(AnsibleModule):
         self.open()
 
     def exit_json(self, **kwargs):
+        """Close self.dev and call parent's exit_json().
+
+        Args:
+            **kwargs: All keyword arguments are passed to
+                      AnsibleModule.exit_json().
+        """
         # Close the connection.
         self.close()
         # Call the parent's exit_json()
         super(JuniperJunosModule, self).exit_json(**kwargs)
 
     def fail_json(self, **kwargs):
+        """Close self.dev and call parent's fail_json().
+
+        Args:
+            **kwargs: All keyword arguments are passed to
+                      AnsibleModule.fail_json().
+        """
         # Close the connection.
         self.close()
         # Call the parent's fail_json()
         super(JuniperJunosModule, self).fail_json(**kwargs)
 
-
     # JuniperJunosModule-specific methods below this point.
 
     def _parse_console_options(self):
+        """Parse the console option value.
+
+        Parse the console option value and turn it into the equivalent:
+        host, mode, and port options.
+        """
         if self.params.get('console') is not None:
             try:
                 console_string = self.params.get('console')
@@ -295,6 +432,11 @@ class JuniperJunosModule(AnsibleModule):
                                    (console_string))
 
     def check_pyez_version(self, minimum):
+        """Check the minimum PyEZ version.
+
+        Args:
+            minimum: The minimum PyEZ version required.
+        """
         if HAS_PYEZ_VERSION is None:
             self.fail_json(msg='junos-eznc (aka PyEZ) >= %s is required for '
                                'this module. However junos-eznc does not '
@@ -313,14 +455,16 @@ class JuniperJunosModule(AnsibleModule):
                          PYEZ_INSTALLATION_URL))
 
     def open(self):
+        """Open the self.dev PyEZ Device instance.
+        """
         if HAS_PYEZ_DEVICE is False:
             self.fail_json(msg='junos-eznc (aka PyEZ) is installed, but the '
-                                 'jnpr.junos.device.Device class could not be '
-                                 'imported.')
+                               'jnpr.junos.device.Device class could not be '
+                               'imported.')
         if HAS_PYEZ_EXCEPTIONS is False:
             self.fail_json(msg='junos-eznc (aka PyEZ) is installed, but the '
-                                 'jnpr.junos.exception module could not be '
-                                 'imported.')
+                               'jnpr.junos.exception module could not be '
+                               'imported.')
 
         # Move all of the connection arguments into connect_args
         connect_args = {}
@@ -332,11 +476,16 @@ class JuniperJunosModule(AnsibleModule):
             self.close()
             self.dev = Device(**connect_args)
             self.dev.open()
+        # Exceptions raised by close() or open() are all sub-classes of
+        # ConnectError, so this should catch all connection-related exceptions
+        # raised from PyEZ.
         except pyez_exception.ConnectError as ex:
             self.fail_json(msg='Unable to make a PyEZ connection: %s' %
                                (str(ex)))
 
     def close(self):
+        """Close the self.dev PyEZ Device instance.
+        """
         if self.dev is not None:
             try:
                 # Because self.fail_json() calls self.close(), we must set
@@ -346,55 +495,82 @@ class JuniperJunosModule(AnsibleModule):
                 dev = self.dev
                 self.dev = None
                 dev.close()
+            # Exceptions raised by close() are all sub-classes of
+            # ConnectError, so this should catch all connection-related
+            # exceptions raised from PyEZ.
             except pyez_exception.ConnectError as ex:
                 self.fail_json(msg='Unable to close PyEZ connection: %s' %
                                    (str(ex)))
 
 
 class JuniperJunosActionModule(ActionNormal):
+    """A subclass of ActionNormal used by all juniper_junos_* modules.
+
+    All juniper_junos_* modules share common behavior which is implemented in
+    this class. This includes specific option fallback/default behavior and
+    passing the "hidden" _module_utils_path option to the module.
+    """
     def run(self, tmp=None, task_vars=None):
+        # The new connection arguments based on fallback/defaults.
         new_connection_args = dict()
+
+        # Get the current connection args from either provider or the top-level
         if 'provider' in self._task.args:
             connection_args = self._task.args['provider']
         else:
             connection_args = self._task.args
 
-        if not 'user' in connection_args:
+        # The environment variables used by Ansible Tower
+        if 'user' not in connection_args:
             net_user = os.getenv('ANSIBLE_NET_USERNAME')
             if net_user is not None:
                 new_connection_args['user'] = net_user
                 connection_args['user'] = net_user
-
-        if not 'passwd' in connection_args:
+        if 'passwd' not in connection_args:
             net_passwd = os.getenv('ANSIBLE_NET_PASSWORD')
             if net_passwd is not None:
                 new_connection_args['passwd'] = net_passwd
                 connection_args['passwd'] = net_passwd
-
-        if not 'ssh_private_key_file' in connection_args:
+        if 'ssh_private_key_file' not in connection_args:
             net_key = os.getenv('ANSIBLE_NET_SSH_KEYFILE')
             if net_key is not None:
                 new_connection_args['ssh_private_key_file'] = net_key
                 connection_args['ssh_private_key_file'] = net_key
 
+        # The values set by Ansible command line arguments, configuration
+        # settings, or environment variables.
         for key in connection_spec_fallbacks:
-            if not key in connection_args:
+            if key not in connection_args:
                 for task_var_key in connection_spec_fallbacks[key]:
                     if task_var_key in task_vars:
                         new_connection_args[key] = task_vars[task_var_key]
                         break
 
-        if not 'user' in new_connection_args:
+        # Backwards compatible behavior to fallback to USER env. variable.
+        if 'user' not in connection_args and 'user' not in new_connection_args:
             user = os.getenv('USER')
             if user is not None:
                 new_connection_args['user'] = user
 
+        # Copy the new connection arguments back into either top-level or
+        # the provider dictionary.
         if 'provider' in self._task.args:
             self._task.args['provider'].update(new_connection_args)
         else:
             self._task.args.update(new_connection_args)
 
+        # Pass the hidden _module_utils_path option
         module_utils_path = os.path.normpath(os.path.dirname(__file__))
-        self._task.args['module_utils_path'] = module_utils_path
+        self._task.args['_module_utils_path'] = module_utils_path
 
+        # Call the parent action module.
+        return super(JuniperJunosActionModule, self).run(tmp, task_vars)
+
+class JuniperJunosDeprecatedActionModule(JuniperJunosActionModule):
+    def run(self, tmp=None, task_vars=None):
+        print("I'm running, running, running...")
+        for key in task_vars:
+            if key == 'junos_get_facts':
+                print("Found it: %s" (key))
+        # Call the parent action module.
         return super(JuniperJunosActionModule, self).run(tmp, task_vars)
