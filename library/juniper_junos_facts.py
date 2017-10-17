@@ -177,7 +177,7 @@ def import_juniper_junos_common():
         check_invalid_arguments=False,
         bypass_checks=True
     )
-    import_path = module.params.get('module_utils_path')
+    import_path = module.params.get('_module_utils_path')
     if import_path is not None:
         sys.path.insert(0, import_path)
         import juniper_junos_common
