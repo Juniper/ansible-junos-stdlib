@@ -1,12 +1,15 @@
 ## ABOUT
 
-Juniper Networks provides support for using Ansible to deploy devices running the Junos operating system (Junos OS). The Juniper Networks Ansible library, which is hosted on the Ansible Galaxy website under the role [junos](https://galaxy.ansible.com/list#/roles/1116), enables you to use Ansible to perform specific operational and configuration tasks on devices running Junos OS, including installing and upgrading Junos OS, deploying specific devices in the network, loading configuration changes, retrieving information, and resetting, rebooting, or shutting down managed devices.  Please refer to [INSTALLATION](#installation) section for setup.
+Juniper Networks provides support for using Ansible to deploy devices running
+the Junos operating system (Junos OS). The Juniper Networks Ansible library,
+which is hosted on the Ansible Galaxy website under the role [Juniper.junos]
+(https://galaxy.ansible.com/list#/roles/1116), enables you to use Ansible to perform specific operational and configuration tasks on devices running Junos OS, including installing and upgrading Junos OS, deploying specific devices in the network, loading configuration changes, retrieving information, and resetting, rebooting, or shutting down managed devices.  Please refer to [INSTALLATION](#installation) section for setup.
 
 In addition to these modules, Since 2.1, Ansible natively include some [core modules for Junos](http://docs.ansible.com/ansible/list_of_network_modules.html#junos). Both Core and Galaxy modules can cohexist on the same platform.
 
 ## OVERVIEW OF MODULES
 
-- **junos_get_facts** — Retrieve device-specific information from the host.
+- **juniper_junos_facts** — Retrieve device-specific information from a Junos device.
 - **junos_commit** — Commit candidate configuration on device.
 - **junos_get_config** — Retrieve configuration of device.
 - **junos_install_config** — Modify the configuration of a device running Junos OS.
@@ -174,10 +177,9 @@ This example outlines how to use Ansible to install or upgrade the software imag
 
 Thes modules require the following to be installed on the Ansible server:
 
-* Python 2.6 or 2.7
-* [Ansible](http://www.ansible.com) 1.5 or later
-* Junos [py-junos-eznc](https://github.com/Juniper/py-junos-eznc) 2.0.1 or
-later (2.1.1 is recommended and required for some features)
+* Python 2.7
+* [Ansible](http://www.ansible.com) 2.1 or later
+* Junos [py-junos-eznc](https://github.com/Juniper/py-junos-eznc) 2.1.7 or later
 
 ## LICENSE
 
