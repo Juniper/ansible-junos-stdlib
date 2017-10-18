@@ -126,7 +126,6 @@ failed:
 # Standard library imports
 import os.path
 import json
-import logging
 
 
 def import_juniper_junos_common():
