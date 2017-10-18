@@ -71,20 +71,6 @@ options:
     required: false
     default: none
     type: path
-  logfile:
-    description:
-      - A path to a file, on the Ansible control machine, where debugging
-        information is logged. This option is deprecated. It is present only
-        for backwards compatibility. Logging is now handled using Ansible's
-        standard logging scheme which does something I haven't quite figured
-        out yet.
-    required: false
-    default: None
-    type: path
-requirements:
-  - junos-eznc >= 2.1.7
-notes:
-  - The NETCONF system service must be enabled on the target Junos device.
 '''
 
 EXAMPLES = '''
@@ -137,8 +123,10 @@ failed:
 
 '''
 
+# Standard library imports
 import os.path
 import json
+import logging
 
 
 def import_juniper_junos_common():
@@ -174,6 +162,9 @@ def import_juniper_junos_common():
             # Avoids a warning about not specifying no_log for passwd.
             'passwd': dict(no_log=True)
         },
+        # Doesn't really work due to Ansible bug. Keeping it here for when
+        # Ansible bug is fixed.
+        no_log=True,
         check_invalid_arguments=False,
         bypass_checks=True
     )
@@ -225,14 +216,12 @@ def get_facts_dict(junos_module):
 
 
 def save_facts(junos_module, facts):
-    """If the savedir argument was specified, save the facts into a JSON file.
+    """If the savedir option was specified, save the facts into a JSON file.
 
-    Ansible >= 2.0 doesn't like custom objects in a modules return value.
-    Because PyEZ facts are a custom object rather than a true dict they must be
-    converted to a standard dict. Since facts are read-only, we must begin by
-    copying facts into a dict. Since PyEZ facts are "on-demand", the
-    junos_module.dev instance must be an open PyEZ Device instance ojbect
-    before this function is called..
+    If the savedir option was specified, save the facts into a JSON file named
+    savedir/hostname-facts.json. The filename begins with the value of the
+    hostname fact returned from the Junos device, which might be different than
+    the value of the host option passed to the module.
 
     Args:
         junos_module: An instance of a JuniperJunosModule.
@@ -246,12 +235,44 @@ def save_facts(junos_module, facts):
         save_dir = junos_module.params.get('savedir')
         file_name = '%s-facts.json' % (facts['hostname'])
         file_path = os.path.normpath(os.path.join(save_dir, file_name))
+        junos_module.logger.debug("Saving facts to: %s.", file_path)
         try:
             with open(file_path, 'w') as fact_file:
                 json.dump(facts, fact_file)
+            junos_module.logger.debug("Facts saved to: %s.", file_path)
         except IOError:
-            junos_module.fail_json(msg="Unable to save facts. Faile to open "
+            junos_module.fail_json(msg="Unable to save facts. Failed to open "
                                        "the %s file." % (file_path))
+
+
+def save_inventory(junos_module, inventory):
+    """If the savedir option was specified, save the XML inventory.
+
+    If the savedir option was specified, save the inventory XML output into
+    an XML file named savedir/hostname-inventory.xml. The filename begins with
+    the value of the hostname fact returned from the Junos device, which might
+    be different than the value of the host option passed to the module.
+
+    Args:
+        junos_module: An instance of a JuniperJunosModule.
+        inventory: The XML string of inventory to save.
+
+    Raises:
+        IOError: Calls junos_module.fail_json if unable to open the inventory
+                 file for writing.
+    """
+    if junos_module.params.get('savedir') is not None:
+        save_dir = junos_module.params.get('savedir')
+        file_name = '%s-inventory.xml' % (junos_module.dev.facts['hostname'])
+        file_path = os.path.normpath(os.path.join(save_dir, file_name))
+        junos_module.logger.debug("Saving inventory to: %s.", file_path)
+        try:
+            with open(file_path, 'w') as fact_file:
+                fact_file.write(inventory)
+            junos_module.logger.debug("Inventory saved to: %s.", file_path)
+        except IOError:
+            junos_module.fail_json(msg="Unable to save inventory. Failed to "
+                                       "open the %s file." % (file_path))
 
 
 def main():
@@ -265,7 +286,6 @@ def main():
                                required=False,
                                default=None),
             savedir=dict(type='path', required=False, default=None),
-            logfile=dict(type='path', required=False, default=None),
         ),
         # Since this module doesn't change the device's configuration, there
         # no additional work required to support check mode. It's inherently
@@ -273,21 +293,28 @@ def main():
         supports_check_mode=True
     )
 
-    junos_module.log("Device opened. Gathering facts.")
-
+    junos_module.logger.debug("Gathering facts.")
     # Get the facts dictionary from the device.
     facts = get_facts_dict(junos_module)
+    junos_module.logger.debug("Facts gathered.")
 
-    # Add code to implement config_format option
+    if junos_module.params.get('savedir') is not None:
+        # Save the facts.
+        save_facts(junos_module, facts)
 
-    # Add code to implement the logfile option
+        # Get and save the inventory
+        try:
+            junos_module.logger.debug("Gathering inventory.")
+            inventory = junos_module.dev.rpc.get_chassis_inventory()
+            junos_module.logger.debug("Inventory gathered.")
+            save_inventory(junos_module,
+                           junos_module.etree.tostring(inventory,
+                                                       pretty_print=True))
+        except junos_module.pyez_exception.RpcError as ex:
+            junos_module.fail_json(msg='Unable to retrieve hardware '
+                                       'inventory: %s' % (str(ex)))
 
-    junos_module.log("Facts gathered.")
-
-    # Save the facts.
-    save_facts(junos_module, facts)
-
-    junos_module.log("Facts saved.")
+    # TODO: Add code to implement config_format option
 
     # Return response.
     junos_module.exit_json(

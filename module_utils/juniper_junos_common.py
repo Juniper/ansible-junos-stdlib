@@ -37,6 +37,7 @@ from ansible.plugins.action.normal import ActionModule as ActionNormal
 
 # Standard library imports
 from distutils.version import LooseVersion
+import logging
 import os
 
 # Non-standard library imports and checks
@@ -58,12 +59,19 @@ try:
 except ImportError:
     HAS_PYEZ_EXCEPTIONS = False
 
+try:
+    from lxml import etree
+    HAS_LXML_ETREE = True
+except ImportError:
+    HAS_LXML_ETREE = False
 
 # Constants
 # Minimum PyEZ version required by shared code.
 MIN_PYEZ_VERSION = "2.1.7"
 # Installation URL for PyEZ.
 PYEZ_INSTALLATION_URL = "https://github.com/Juniper/py-junos-eznc#installation"
+# Installation URL for LXML.
+LXML_INSTALLATION_URL = "http://lxml.de/installation.html"
 
 
 class ModuleDocFragment(object):
@@ -189,6 +197,62 @@ class ModuleDocFragment(object):
     default: 30
 '''
 
+    LOGGING_DOCUMENTATION = '''
+  logfile:
+    description:
+      - The path to a file, on the Ansible control machine, where debugging
+        information for the particular task is logged.
+      - The log file must be writeable. If the file already exists, it is
+        appended. It is the users responsibility to delete/rotate log files.
+      - The level of information logged in this file is controlled by Ansible's
+        verbosity and debug options:
+        1) By default, messages at level WARNING or higher are logged.
+        2) If the -v or --verbose command-line options to ansible-playbook are
+           specified, messages at level INFO or higher are logged.
+        3) If the -vv (or more verbose) command-line option to ansible-playbook
+           is specified, or the ANSIBLE_DEBUG environment variable is set,
+           then messages at level DEBUG or higher are logged.
+      - NOTE: When tasks are executed against more than one target host,
+        one process is forked for each target host. (Up to the maximum
+        specified by the forks configuration. See
+        U(http://docs.ansible.com/ansible/latest/intro_configuration.html#forks)
+        for details.) This means that the value of this option must be unique
+        per target host. This is usually accomplished by including
+        {{ inventory_hostname }} in the C(logfile) value. It is the user's
+        responsibility to ensure this value is unique per target host.
+      - For this reason, this option is deprecated. It is maintained for
+        backwards compatibility. Use the C(logdir) option in new playbooks. The
+        C(logfile) and C(logdir) options are mutually exclusive.
+    required: false
+    default: None
+    type: path
+    aliases:
+      - log_file
+  logdir:
+    description:
+      - The path to a directory, on the Ansible control machine, where
+        debugging information for the particular task is logged. Debugging
+        information will be logged to a file named {{ inventory_hostname }}.log
+        in the C(logdir) directory.
+      - The log file must be writeable. If the file already exists, it is
+        appended. It is the users responsibility to delete/rotate log files.
+      - The level of information logged in this file is controlled by Ansible's
+        verbosity and debug options:
+        1) By default, messages at level WARNING or higher are logged.
+        2) If the -v or --verbose command-line options to ansible-playbook are
+           specified, messages at level INFO or higher are logged.
+        3) If the -vv (or more verbose) command-line option to ansible-playbook
+           is specified, or the ANSIBLE_DEBUG environment variable is set,
+           then messages at level DEBUG or higher are logged.
+      - The C(logfile) and C(logdir) options are mutually exclusive. The
+        C(logdir) option is recommended for all new playbooks.
+    required: false
+    default: None
+    type: path
+    aliases:
+      - log_dir
+'''
+
     # SUB_CONNECTION_DOCUMENTATION is just CONNECTION_DOCUMENTATION with each
     # line indented.
     SUB_CONNECTION_DOCUMENTATION = ''
@@ -214,6 +278,8 @@ options:''' + CONNECTION_DOCUMENTATION + '''
 requirements:
   - junos-eznc >= ''' + MIN_PYEZ_VERSION + '''
   - Python >= 2.7
+notes:
+  - The NETCONF system service must be enabled on the target Junos device.
 '''
 
 
@@ -283,11 +349,25 @@ provider_spec_mutually_exclusive = []
 for key in connection_spec:
     provider_spec_mutually_exclusive.append(['provider', key])
 
-# top_spec is connection_spec + provider_spec
+# Specify the logging spec.
+logging_spec = {
+    'logfile': dict(type='path', required=False, default=None),
+    'logdir': dict(type='path', required=False, default=None)
+}
+
+# The logdir and logfile options are mutually exclusive.
+logging_spec_mutually_exclusive = ['logfile', 'logdir']
+
+# Other logging names which should be logged to the logfile
+additional_logger_names = ['ncclient', 'paramiko']
+
+# top_spec is connection_spec + provider_spec + logging_spec
 top_spec = connection_spec
 top_spec.update(provider_spec)
+top_spec.update(logging_spec)
 top_spec_mutually_exclusive = connection_spec_mutually_exclusive
 top_spec_mutually_exclusive += provider_spec_mutually_exclusive
+top_spec_mutually_exclusive += logging_spec_mutually_exclusive
 
 # "Hidden" arguments which are passed between the action plugin and the
 # Junos module, but which should not be visible to users.
@@ -295,6 +375,9 @@ internal_spec = {
     '_module_utils_path': dict(type='path',
                                required=True,
                                default=None),
+    '_module_name': dict(type='str',
+                         required=True,
+                         default=None),
 }
 
 
@@ -352,6 +435,7 @@ class JuniperJunosModule(AnsibleModule):
             argument_spec=argument_spec,
             mutually_exclusive=mutually_exclusive,
             **kwargs)
+        self.module_name = self.params.get('_module_name')
         # Remove any arguments in internal_spec
         for arg_name in internal_spec:
             self.params.pop(arg_name)
@@ -371,6 +455,16 @@ class JuniperJunosModule(AnsibleModule):
             self.fail_json(msg="missing required arguments: user")
         # Check PyEZ version
         self.check_pyez_version(min_pyez_version)
+        # Check LXML Etree
+        self.check_lxml_etree()
+        self.etree = etree
+        # Check PyEZ exceptions
+        if HAS_PYEZ_EXCEPTIONS is False:
+            self.fail_json(msg='junos-eznc (aka PyEZ) is installed, but the '
+                               'jnpr.junos.exception module could not be '
+                               'imported.')
+        self.pyez_exception = pyez_exception
+        self.logger = self._setup_logging()
         # Open the PyEZ connection
         self.open()
 
@@ -383,6 +477,7 @@ class JuniperJunosModule(AnsibleModule):
         """
         # Close the connection.
         self.close()
+        self.logger.debug("Exit JSON: %s", kwargs)
         # Call the parent's exit_json()
         super(JuniperJunosModule, self).exit_json(**kwargs)
 
@@ -395,6 +490,7 @@ class JuniperJunosModule(AnsibleModule):
         """
         # Close the connection.
         self.close()
+        self.logger.debug("Fail JSON: %s", kwargs)
         # Call the parent's fail_json()
         super(JuniperJunosModule, self).fail_json(**kwargs)
 
@@ -431,6 +527,80 @@ class JuniperJunosModule(AnsibleModule):
                                    "<console_port_number>'." %
                                    (console_string))
 
+    def _setup_logging(self):
+        """Setup logging for the module.
+
+        Performs several tasks to setup logging for the module. This includes:
+        1) Creating a Logger instance object for the name
+           jnpr.ansible_module.<mod_name>.
+        2) Sets the level for the Logger object depending on verbosity and
+           debug settings specified by the user.
+        3) Sets the level for other Logger objects specified in
+           additional_logger_names depending on verbosity and
+           debug settings specified by the user.
+        4) If the logfile or logdir option is specified, attach a FileHandler
+           instance which logs messages from jnpr.ansible_module.<mod_name> or
+           any of the names in additional_logger_names.
+
+        Returns:
+            Logger instance object for the name jnpr.ansible_module.<mod_name>.
+        """
+        class CustomAdapter(logging.LoggerAdapter):
+            """
+            Prepend the hostname, in brackets, to the log message.
+            """
+            def process(self, msg, kwargs):
+                return '[%s] %s' % (self.extra['host'], msg), kwargs
+
+        # Default level to log.
+        level = logging.WARNING
+        # Log more if ANSIBLE_DEBUG or -v[v] is set.
+        if self._debug is True:
+            level = logging.DEBUG
+        elif self._verbosity == 1:
+            level = logging.INFO
+        elif self._verbosity > 1:
+            level = logging.DEBUG
+        # Get the logger object to be used for our logging.
+        logger = logging.getLogger('jnpr.ansible_module.' + self.module_name)
+        # Attach the NullHandler to avoid any errors if no logging is needed.
+        logger.addHandler(logging.NullHandler())
+        # Set the logging level for the modules logging. This will also control
+        # the amount of logging which goes into Ansible's log file.
+        logger.setLevel(level)
+        # Set the logging level for additional names. This will also control
+        # the amount of logging which goes into Ansible's log file.
+        for name in additional_logger_names:
+            logging.getLogger(name).setLevel(level)
+        # Get the name of the logfile based on logfile or logdir options.
+        logfile = None
+        if self.params.get('logfile') is not None:
+            logfile = self.params.get('logfile')
+        elif self.params.get('logdir') is not None:
+            logfile = os.path.normpath(self.params.get('logdir') + '/' +
+                                       self.params.get('host') + '.log')
+        # Create the FileHandler and attach it.
+        if logfile is not None:
+            try:
+                handler = logging.FileHandler(logfile, mode='a')
+                handler.setLevel(level)
+                # Create a custom formatter.
+                formatter = logging.Formatter(
+                    '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+                # add formatter to handler
+                handler.setFormatter(formatter)
+                # Handler should log anything from the 'jnpr' namespace to
+                # catch PyEZ, JSNAPY, etc. logs.
+                jnpr_logger = logging.getLogger('jnpr')
+                jnpr_logger.addHandler(handler)
+                for name in additional_logger_names:
+                    logging.getLogger(name).addHandler(handler)
+            except IOError as ex:
+                self.fail_json(msg="Unable to open the log file %s. %s" %
+                                   (logfile, str(ex)))
+        # Use the CustomAdapter to add host information.
+        return CustomAdapter(logger, {'host': self.params.get('host')})
+
     def check_pyez_version(self, minimum):
         """Check the minimum PyEZ version.
 
@@ -439,7 +609,7 @@ class JuniperJunosModule(AnsibleModule):
         """
         if HAS_PYEZ_VERSION is None:
             self.fail_json(msg='junos-eznc (aka PyEZ) >= %s is required for '
-                               'this module. However junos-eznc does not '
+                               'this module. However, junos-eznc does not '
                                'appear to be currently installed. See %s for '
                                'details on installing junos-eznc.' %
                                (minimum, PYEZ_INSTALLATION_URL))
@@ -453,6 +623,15 @@ class JuniperJunosModule(AnsibleModule):
                         (minimum,
                          HAS_PYEZ_VERSION,
                          PYEZ_INSTALLATION_URL))
+
+    def check_lxml_etree(self):
+        """Check that lxml is available.
+        """
+        if HAS_LXML_ETREE is False:
+            self.fail_json(msg='lxml is required for this module. However, '
+                               'lxml does not appear to be currently '
+                               'installed. See %s for details on installing '
+                               'lxml.' % (LXML_INSTALLATION_URL))
 
     def open(self):
         """Open the self.dev PyEZ Device instance.
@@ -474,8 +653,14 @@ class JuniperJunosModule(AnsibleModule):
 
         try:
             self.close()
+            log_connect_args = dict(connect_args)
+            log_connect_args['passwd'] = 'NOT_LOGGING_PARAMETER'
+            self.logger.debug("Creating device parameters: %s",
+                              log_connect_args)
             self.dev = Device(**connect_args)
+            self.logger.debug("Opening device.")
             self.dev.open()
+            self.logger.debug("Device opened.")
         # Exceptions raised by close() or open() are all sub-classes of
         # ConnectError, so this should catch all connection-related exceptions
         # raised from PyEZ.
@@ -495,6 +680,7 @@ class JuniperJunosModule(AnsibleModule):
                 dev = self.dev
                 self.dev = None
                 dev.close()
+                self.logger.debug("Device closed.")
             # Exceptions raised by close() are all sub-classes of
             # ConnectError, so this should catch all connection-related
             # exceptions raised from PyEZ.
@@ -562,15 +748,8 @@ class JuniperJunosActionModule(ActionNormal):
         # Pass the hidden _module_utils_path option
         module_utils_path = os.path.normpath(os.path.dirname(__file__))
         self._task.args['_module_utils_path'] = module_utils_path
+        # Pass the hidden _module_name option
+        self._task.args['_module_name'] = self._task.action
 
-        # Call the parent action module.
-        return super(JuniperJunosActionModule, self).run(tmp, task_vars)
-
-class JuniperJunosDeprecatedActionModule(JuniperJunosActionModule):
-    def run(self, tmp=None, task_vars=None):
-        print("I'm running, running, running...")
-        for key in task_vars:
-            if key == 'junos_get_facts':
-                print("Found it: %s" (key))
         # Call the parent action module.
         return super(JuniperJunosActionModule, self).run(tmp, task_vars)
