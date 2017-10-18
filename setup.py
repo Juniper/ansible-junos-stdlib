@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 from setuptools import setup
-from setuptools.command.install import install
 from version import VERSION
 
 setup(
