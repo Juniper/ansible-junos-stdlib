@@ -37,6 +37,7 @@ from ansible.plugins.action.normal import ActionModule as ActionNormal
 
 # Standard library imports
 from distutils.version import LooseVersion
+import json
 import logging
 import os
 
@@ -61,18 +62,29 @@ except ImportError:
 
 try:
     from lxml import etree
-    HAS_LXML_ETREE = True
+    HAS_LXML_ETREE_VERSION = '.'.join(map(str,etree.LXML_VERSION))
 except ImportError:
-    HAS_LXML_ETREE = False
+    HAS_LXML_ETREE_VERSION = None
+
+try:
+    import jxmlease
+    HAS_JXMLEASE_VERSION = jxmlease.__version__
+except ImportError:
+    HAS_JXMLEASE_VERSION = None
 
 # Constants
 # Minimum PyEZ version required by shared code.
 MIN_PYEZ_VERSION = "2.1.7"
 # Installation URL for PyEZ.
 PYEZ_INSTALLATION_URL = "https://github.com/Juniper/py-junos-eznc#installation"
+# Minimum lxml version required by shared code.
+MIN_LXML_ETREE_VERSION = "3.2.4"
 # Installation URL for LXML.
-LXML_INSTALLATION_URL = "http://lxml.de/installation.html"
-
+LXML_ETREE_INSTALLATION_URL = "http://lxml.de/installation.html"
+# Minimum jxmlease version required by shared code.
+MIN_JXMLEASE_VERSION = "1.0.1"
+# Installation URL for jxmlease.
+JXMLEASE_INSTALLATION_URL = "http://jxmlease.readthedocs.io/en/stable/install.html"
 
 class ModuleDocFragment(object):
     """Documentation fragment for connection-related parameters.
@@ -380,6 +392,10 @@ internal_spec = {
                          default=None),
 }
 
+# Known configuration formats
+CONFIG_FORMAT_CHOICES = ['xml', 'set', 'text', 'json']
+# Known configuration databases
+CONFIG_DATABASE_CHOICES = ['candidate', 'committed']
 
 class JuniperJunosModule(AnsibleModule):
     """A subclass of AnsibleModule used by all juniper_junos_* modules.
@@ -393,7 +409,10 @@ class JuniperJunosModule(AnsibleModule):
     Methods:
         exit_json: Close self.dev and call parent's exit_json().
         fail_json: Close self.dev and call parent's fail_json().
-        check_pyez_version: Verify installed PyEZ version is >= minimum.
+        check_pyez: Verify the PyEZ library is present and functional.
+        check_lxml_etree: Verify the lxml Etree library is present and
+                          functional.
+        check_jxmlease: Verify the Jxmlease library is present and functional.
         open: Open self.dev.
         close: Close self.dev.
     """
@@ -403,6 +422,8 @@ class JuniperJunosModule(AnsibleModule):
                  argument_spec={},
                  mutually_exclusive=[],
                  min_pyez_version=MIN_PYEZ_VERSION,
+                 min_lxml_etree_version=MIN_LXML_ETREE_VERSION,
+                 min_jxmlease_version=MIN_JXMLEASE_VERSION,
                  **kwargs):
         """Initialize a new JuniperJunosModule instance.
 
@@ -416,6 +437,10 @@ class JuniperJunosModule(AnsibleModule):
             mutually_exclusive: Module-specific mutually exclusive added to
                                 top_spec_mutually_exclusive.
             min_pyez_version: The minimum PyEZ version required by the module.
+            min_lxml_etree_version: The minimum lxml Etree version required by
+                                    the module.
+            min_jxmlease_version: The minimum Jxmlease version required by the
+                                  module.
             **kwargs: All additional keyword arguments are passed to
                       AnsibleModule.__init__().
 
@@ -454,16 +479,17 @@ class JuniperJunosModule(AnsibleModule):
         if not self.params.get('user'):
             self.fail_json(msg="missing required arguments: user")
         # Check PyEZ version
-        self.check_pyez_version(min_pyez_version)
-        # Check LXML Etree
-        self.check_lxml_etree()
-        self.etree = etree
-        # Check PyEZ exceptions
-        if HAS_PYEZ_EXCEPTIONS is False:
-            self.fail_json(msg='junos-eznc (aka PyEZ) is installed, but the '
-                               'jnpr.junos.exception module could not be '
-                               'imported.')
+        self.check_pyez(min_pyez_version,
+                        check_device=True,
+                        check_exception=True)
         self.pyez_exception = pyez_exception
+        # Check LXML Etree
+        self.check_lxml_etree(min_lxml_etree_version)
+        self.etree = etree
+        # Check jxmlease
+        self.check_jxmlease(min_jxmlease_version)
+        self.jxmlease = jxmlease
+        # Setup logging.
         self.logger = self._setup_logging()
         # Open the PyEZ connection
         self.open()
@@ -490,7 +516,8 @@ class JuniperJunosModule(AnsibleModule):
         """
         # Close the connection.
         self.close()
-        self.logger.debug("Fail JSON: %s", kwargs)
+        if hasattr(self, 'logger'):
+            self.logger.debug("Fail JSON: %s", kwargs)
         # Call the parent's fail_json()
         super(JuniperJunosModule, self).fail_json(**kwargs)
 
@@ -601,40 +628,118 @@ class JuniperJunosModule(AnsibleModule):
         # Use the CustomAdapter to add host information.
         return CustomAdapter(logger, {'host': self.params.get('host')})
 
-    def check_pyez_version(self, minimum):
-        """Check the minimum PyEZ version.
+    def _check_library(self,
+                       library_name,
+                       installed_version,
+                       installation_url,
+                       minimum=None,
+                       library_nickname=None):
+        """Check if library_name is installed and version is >= minimum.
+
+        Args:
+            library_name: The name of the library to check.
+            installed_version: The currently installed version, or None if it's
+                               not installed.
+            installation_url: The URL with instructions on installing
+                              library_name
+            minimum: The minimum version required.
+                     Default = None which means no version check.
+            library_nickname: The library name with any nickname.
+                     Default = library_name.
+        Failures:
+            - library_name not installed (unable to import).
+            - library_name installed_version < minimum.
+        """
+        if library_nickname is None:
+            library_nickname = library_name
+        if installed_version is None:
+            if minimum is not None:
+                self.fail_json(msg='%s >= %s is required for this module. '
+                                   'However, %s does not appear to be '
+                                   'currently installed. See %s for '
+                                   'details on installing %s.' %
+                                   (library_nickname, minimum, library_name,
+                                    installation_url, library_name))
+            else:
+                self.fail_json(msg='%s is required for this module. However, '
+                                   '%s does not appear to be currently '
+                                   'installed. See %s for details on '
+                                   'installing %s.' %
+                                   (library_nickname, library_name,
+                                    installation_url, library_name))
+        elif installed_version is not None and minimum is not None:
+            if not LooseVersion(installed_version) >= LooseVersion(minimum):
+                self.fail_json(
+                    msg='%s >= %s is required for this module. Version %s of '
+                        '%s is currently installed. See %s for details on '
+                        'upgrading %s.' %
+                        (library_nickname, minimum, installed_version,
+                         library_name, installation_url, library_name))
+
+    def check_pyez(self, minimum=None,
+                   check_device=False,
+                   check_exception=False):
+        """Check PyEZ is available and version is >= minimum.
 
         Args:
             minimum: The minimum PyEZ version required.
-        """
-        if HAS_PYEZ_VERSION is None:
-            self.fail_json(msg='junos-eznc (aka PyEZ) >= %s is required for '
-                               'this module. However, junos-eznc does not '
-                               'appear to be currently installed. See %s for '
-                               'details on installing junos-eznc.' %
-                               (minimum, PYEZ_INSTALLATION_URL))
-        elif HAS_PYEZ_VERSION is not None:
-            if not LooseVersion(HAS_PYEZ_VERSION) >= LooseVersion(minimum):
-                self.fail_json(
-                    msg='junos-eznc (aka PyEZ) >= %s is required for '
-                        'this module. Version %s of junos-eznc is '
-                        'currently installed. See %s for details on '
-                        'upgrading junos-eznc.' %
-                        (minimum,
-                         HAS_PYEZ_VERSION,
-                         PYEZ_INSTALLATION_URL))
+                     Default = None which means no version check.
+            check_device: Indicates whether to check for PyEZ Device object.
+            check_exception: Indicates whether to check for PyEZ exceptions.
 
-    def check_lxml_etree(self):
-        """Check that lxml is available.
+        Failures:
+            - PyEZ not installed (unable to import).
+            - PyEZ version < minimum.
+            - check_device and PyEZ Device object can't be imported
+            - check_exception and PyEZ excepetions can't be imported
         """
-        if HAS_LXML_ETREE is False:
-            self.fail_json(msg='lxml is required for this module. However, '
-                               'lxml does not appear to be currently '
-                               'installed. See %s for details on installing '
-                               'lxml.' % (LXML_INSTALLATION_URL))
+        self._check_library('junos-eznc', HAS_PYEZ_VERSION,
+                            PYEZ_INSTALLATION_URL, minimum=minimum,
+                            library_nickname='junos-eznc (aka PyEZ)')
+        if check_device is True:
+            if HAS_PYEZ_DEVICE is False:
+                self.fail_json(msg='junos-eznc (aka PyEZ) is installed, but '
+                                   'the jnpr.junos.device.Device class could '
+                                   'not be imported.')
+        if check_exception is True:
+            if HAS_PYEZ_EXCEPTIONS is False:
+                self.fail_json(msg='junos-eznc (aka PyEZ) is installed, but '
+                                   'the jnpr.junos.exception module could not '
+                                   'be imported.')
+
+    def check_jxmlease(self, minimum=None):
+        """Check jxmlease is available and version is >= minimum.
+
+        Args:
+            minimum: The minimum jxmlease version required.
+                     Default = None which means no version check.
+
+        Failures:
+            - jxmlease not installed.
+            - jxmlease version < minimum.
+        """
+        self._check_library('jxmlease', HAS_JXMLEASE_VERSION,
+                            JXMLEASE_INSTALLATION_URL, minimum=minimum)
+
+    def check_lxml_etree(self, minimum=None):
+        """Check lxml etree is available and version is >= minimum.
+
+        Args:
+            minimum: The minimum lxml version required.
+                     Default = None which means no version check.
+
+        Failures:
+            - lxml not installed.
+            - lxml version < minimum.
+        """
+        self._check_library('lxml Etree', HAS_LXML_ETREE_VERSION,
+                            LXML_ETREE_INSTALLATION_URL, minimum=minimum)
 
     def open(self):
         """Open the self.dev PyEZ Device instance.
+
+        Failures:
+            - ConnectError: When unable to make a PyEZ connection.
         """
         if HAS_PYEZ_DEVICE is False:
             self.fail_json(msg='junos-eznc (aka PyEZ) is installed, but the '
@@ -687,6 +792,98 @@ class JuniperJunosModule(AnsibleModule):
             except pyez_exception.ConnectError as ex:
                 self.fail_json(msg='Unable to close PyEZ connection: %s' %
                                    (str(ex)))
+
+    def get_configuration(self, database='committed', format='text',
+                          options={}, filter=None):
+        """Return the device configuration in the specified format.
+
+        Return the datbase device configuration datbase in the format format.
+        Pass the options specified in the options dict and the filter specified
+        in the filter argument.
+
+        Args:
+            database: The configuration database to return. Choices are defined
+                      in CONFIG_DATABASE_CHOICES.
+            format: The format of the configuration to return. Choices are
+                    defined in CONFIG_FORMAT_CHOICES.
+        Returns:
+            A tuple containing:
+            - The configuration in the requested format as a single
+              multi-line string. Returned for all formats.
+            - The "parsed" configuration as a JSON string. Set when
+              format == 'xml' or format == 'json'. None when format == 'text'
+              or format == 'set'
+        Failures:
+            - Invalid database.
+            - Invalid format.
+            - Options not a dict.
+            - Invalid filter.
+            - Format not understood by device.
+        """
+        if database not in CONFIG_DATABASE_CHOICES:
+            self.fail_json(msg='The configuration database % is not in the '
+                               'list of recognized configuration databases: '
+                               '%s.' %
+                               (database, str(CONFIG_DATABASE_CHOICES)))
+
+        if format not in CONFIG_FORMAT_CHOICES:
+            self.fail_json(msg='The configuration format % is not in the list '
+                               'of recognized configuration formats: %s.' %
+                               (format, str(CONFIG_FORMAT_CHOICES)))
+
+        options.update({'database': database,
+                        'format': format})
+
+        if self.dev is None:
+            self.open()
+
+        self.logger.debug("Retrieving device configuration. Options: %s  "
+                          "Filter %s", str(options), str(filter))
+        config = None
+        try:
+            config = self.dev.rpc.get_config(options=options,
+                                             filter_xml=filter)
+            self.logger.debug("Configuration retrieved.")
+        except (self.pyez_exception.RPCError,
+                self.pyez_exception.ConnectError) as ex:
+            self.fail_json(msg='Unable to retrieve the configuration: %s' %
+                               (str(ex)))
+
+        return_val = (None,None)
+        if format == 'text':
+            if not isinstance(config, self.etree._Element):
+                self.fail_json(msg='Unexpected configuration type returned. '
+                                   'Configuration is: %s' % (str(config)))
+            if config.tag != 'configuration-text':
+                self.fail_json(msg='Unexpected XML tag returned. '
+                                   'Configuration is: %s' %
+                                   (etree.tostring(config, pretty_print=True)))
+            return_val = (config.text, None)
+        elif format == 'set':
+            if not isinstance(config, self.etree._Element):
+                self.fail_json(msg='Unexpected configuration type returned. '
+                                   'Configuration is: %s' % (str(config)))
+            if config.tag != 'configuration-set':
+                self.fail_json(msg='Unexpected XML tag returned. '
+                                   'Configuration is: %s' %
+                                   (etree.tostring(config, pretty_print=True)))
+            return_val = (config.text, config.text.splitlines())
+        elif format == 'xml':
+            if not isinstance(config, self.etree._Element):
+                self.fail_json(msg='Unexpected configuration type returned. '
+                                   'Configuration is: %s' % (str(config)))
+            if config.tag != 'configuration':
+                self.fail_json(msg='Unexpected XML tag returned. '
+                                   'Configuration is: %s' %
+                                   (etree.tostring(config, pretty_print=True)))
+            return_val = (etree.tostring(config, pretty_print=True),
+                          jxmlease.parse_etree(config))
+        elif format == 'json':
+            return_val = (json.dumps(config), config)
+        else:
+            self.fail_json(msg='Unable to return configuration in %s format.' %
+                               (format))
+        return return_val
 
 
 class JuniperJunosActionModule(ActionNormal):
