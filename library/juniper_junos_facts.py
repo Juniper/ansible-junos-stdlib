@@ -49,6 +49,8 @@ description:
     U(http://junos-pyez.readthedocs.io/en/latest/jnpr.junos.facts.html)
     Also returns the committed configuration of the Junos device if the
     I(config_format) option has a value other than C(none).
+# Document connection arguments
+# Document logging arguments
 extends_documentation_fragment: juniper_junos_common
 options:
   config_format:
@@ -93,34 +95,63 @@ EXAMPLES = '''
 
 # Using savedir option
 
-# Print the JSON file
+# Print the saved JSON file
 
-# Using logile option
-
-# Print the logfile
-
-# Document connection arguments
+# Document connection examples
+# Document authentication examples
+# Document logging examples
 # extends_documentation_fragment: juniper_junos_common
 '''
 
 RETURN = '''
 ansible_facts.junos:
-  description: The facts collected from the Junos device.
+  description: 
+    - Facts collected from the Junos device. This dictionary contains the
+      keys listed in the I(contains) section of this documentation PLUS all 
+      of the keys returned from PyEZ's fact gathering system. See
+      U(http://junos-pyez.readthedocs.io/en/stable/jnpr.junos.facts.html)
+      for a complete list of these keys and thier meaning.
   returned: success
-  type: dict
-  sample:
-
+  type: complex
+  contains:
+    config:
+      description:
+        - The device's committed configuration, in the format specified by
+          I(config_format), as a single multi-line string.
+      returned: when I(config_format) is not none.
+      type: str
+    has_2RE:
+      description:
+        - Indicates if the device has more than one Routing Engine installed.
+      returned: success
+      type: bool
+    re_name:
+      description:
+        - The name of the current Routing Engine to which Ansible is connected.
+      returned: success
+      type: str
+    master_state:
+      description:
+        - The mastership state of the Routing Engine to which Ansible is
+          connected. True if the RE is the master Routing Engine. False if
+                  the RE is not the master Routing Engine.
+      returned: success
+      type: bool
 facts:
   description: Returned for backwards compatibility. Returns the same keys and
                values which are returned under I(ansible_facts.junos).
   returned: success
   type: dict
-  sample:
-
 changed:
-
+  description: Indicates if the device's state has changed. Since this module
+               doesn't change the operational or configuration state of the
+               device, the value is always set to false.
+  returned: always
+  type: bool
 failed:
-
+  description: Indicates if the task failed.
+  returned: always
+  type: bool
 '''
 
 # Standard library imports
@@ -278,10 +309,13 @@ def main():
     # Import juniper_junos_common
     juniper_junos_common = import_juniper_junos_common()
 
+    config_format_choices = [None]
+    config_format_choices += juniper_junos_common.CONFIG_FORMAT_CHOICES
+
     # Create the module instance.
     junos_module = juniper_junos_common.JuniperJunosModule(
         argument_spec=dict(
-            config_format=dict(choices=[None, 'xml', 'set', 'text', 'json'],
+            config_format=dict(choices=config_format_choices,
                                required=False,
                                default=None),
             savedir=dict(type='path', required=False, default=None),
@@ -313,7 +347,16 @@ def main():
             junos_module.fail_json(msg='Unable to retrieve hardware '
                                        'inventory: %s' % (str(ex)))
 
-    # TODO: Add code to implement config_format option
+    config_format = junos_module.params.get('config_format')
+    if config_format is not None:
+        (config, config_parsed) = junos_module.get_configuration(
+                                      format=config_format)
+        if config is not None:
+            facts.update({'config': config})
+        # Need to wait until the ordering issues are figured out before
+        # using config_parsed.
+        # if config_parsed is not None:
+        #    facts.update({'config_parsed': config_parsed})
 
     # Return response.
     junos_module.exit_json(
