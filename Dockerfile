@@ -10,8 +10,15 @@ RUN mkdir /tmp/ansible-junos-stdlib &&\
     mkdir /tmp/ansible-junos-stdlib/meta &&\
     mkdir /project
 
+ADD action_plugins /tmp/ansible-junos-stdlib/action_plugins
+ADD callback_plugins /tmp/ansible-junos-stdlib/callback_plugins
 ADD library /tmp/ansible-junos-stdlib/library
+ADD LICENSE /tmp/ansible-junos-stdlib/LICENSE
 ADD meta /tmp/ansible-junos-stdlib/meta
+ADD module_utils /tmp/ansible-junos-stdlib/module_utils
+ADD version.py /tmp/ansible-junos-stdlib/version.py
+
+
 
 RUN tar -czf Juniper.junos ansible-junos-stdlib &&\
     apk update && apk add ca-certificates &&\

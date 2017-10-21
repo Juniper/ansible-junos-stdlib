@@ -62,7 +62,7 @@ except ImportError:
 
 try:
     from lxml import etree
-    HAS_LXML_ETREE_VERSION = '.'.join(map(str,etree.LXML_VERSION))
+    HAS_LXML_ETREE_VERSION = '.'.join(map(str, etree.LXML_VERSION))
 except ImportError:
     HAS_LXML_ETREE_VERSION = None
 
@@ -71,6 +71,7 @@ try:
     HAS_JXMLEASE_VERSION = jxmlease.__version__
 except ImportError:
     HAS_JXMLEASE_VERSION = None
+
 
 # Constants
 # Minimum PyEZ version required by shared code.
@@ -85,6 +86,7 @@ LXML_ETREE_INSTALLATION_URL = "http://lxml.de/installation.html"
 MIN_JXMLEASE_VERSION = "1.0.1"
 # Installation URL for jxmlease.
 JXMLEASE_INSTALLATION_URL = "http://jxmlease.readthedocs.io/en/stable/install.html"
+
 
 class ModuleDocFragment(object):
     """Documentation fragment for connection-related parameters.
@@ -396,6 +398,7 @@ internal_spec = {
 CONFIG_FORMAT_CHOICES = ['xml', 'set', 'text', 'json']
 # Known configuration databases
 CONFIG_DATABASE_CHOICES = ['candidate', 'committed']
+
 
 class JuniperJunosModule(AnsibleModule):
     """A subclass of AnsibleModule used by all juniper_junos_* modules.
@@ -741,15 +744,6 @@ class JuniperJunosModule(AnsibleModule):
         Failures:
             - ConnectError: When unable to make a PyEZ connection.
         """
-        if HAS_PYEZ_DEVICE is False:
-            self.fail_json(msg='junos-eznc (aka PyEZ) is installed, but the '
-                               'jnpr.junos.device.Device class could not be '
-                               'imported.')
-        if HAS_PYEZ_EXCEPTIONS is False:
-            self.fail_json(msg='junos-eznc (aka PyEZ) is installed, but the '
-                               'jnpr.junos.exception module could not be '
-                               'imported.')
-
         # Move all of the connection arguments into connect_args
         connect_args = {}
         for key in connection_spec:
@@ -762,10 +756,14 @@ class JuniperJunosModule(AnsibleModule):
             log_connect_args['passwd'] = 'NOT_LOGGING_PARAMETER'
             self.logger.debug("Creating device parameters: %s",
                               log_connect_args)
+            timeout = connect_args.pop('timeout')
             self.dev = Device(**connect_args)
             self.logger.debug("Opening device.")
             self.dev.open()
             self.logger.debug("Device opened.")
+            self.logger.debug("Setting default device timeout to %d.", timeout)
+            self.dev.timeout = timeout
+            self.logger.debug("Device timeout set.")
         # Exceptions raised by close() or open() are all sub-classes of
         # ConnectError, so this should catch all connection-related exceptions
         # raised from PyEZ.
@@ -787,11 +785,13 @@ class JuniperJunosModule(AnsibleModule):
                 dev.close()
                 self.logger.debug("Device closed.")
             # Exceptions raised by close() are all sub-classes of
-            # ConnectError, so this should catch all connection-related
+            # ConnectError or RpcError, so this should catch all
             # exceptions raised from PyEZ.
-            except pyez_exception.ConnectError as ex:
-                self.fail_json(msg='Unable to close PyEZ connection: %s' %
-                                   (str(ex)))
+            except (pyez_exception.ConnectError,
+                    pyez_exception.RpcError):
+                # Ignore exceptions from closing. We're about to exit anyway
+                # and they will just mask the real error that happened.
+                pass
 
     def get_configuration(self, database='committed', format='text',
                           options={}, filter=None):
@@ -844,12 +844,12 @@ class JuniperJunosModule(AnsibleModule):
             config = self.dev.rpc.get_config(options=options,
                                              filter_xml=filter)
             self.logger.debug("Configuration retrieved.")
-        except (self.pyez_exception.RPCError,
+        except (self.pyez_exception.RpcError,
                 self.pyez_exception.ConnectError) as ex:
             self.fail_json(msg='Unable to retrieve the configuration: %s' %
                                (str(ex)))
 
-        return_val = (None,None)
+        return_val = (None, None)
         if format == 'text':
             if not isinstance(config, self.etree._Element):
                 self.fail_json(msg='Unexpected configuration type returned. '
