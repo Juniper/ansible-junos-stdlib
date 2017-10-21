@@ -550,93 +550,10 @@ def main():
                     'source_ip': params.get('source')})
 
     # Execute the ping.
-    try:
-        junos_module.logger.debug("Executing ping with parameters: %s",
-                                  str(ping_params))
-        resp = junos_module.dev.rpc.ping(normalize=True,
-                                         **ping_params)
-        junos_module.logger.debug("Ping executed.")
-    except (junos_module.pyez_exception.RpcError,
-            junos_module.pyez_exception.ConnectError) as ex:
-        junos_module.fail_json(msg='Unable to execute ping: %s' % (str(ex)))
-
-    if not isinstance(resp, junos_module.etree._Element):
-        junos_module.fail_json(msg='Unexpected ping response: %s' %
-                                   (str(resp)))
-
-    resp_xml = junos_module.etree.tostring(resp, pretty_print=True)
-
-    # Fail if any errors in the results
-    errors = resp.findall("rpc-error[error-severity='error']/error-message")
-    if len(errors) != 0:
-        # Create a comma-plus-space-seperated string of the errors.
-        # Calls the text attribute of each element in the errors list.
-        err_msg = ', '.join(map(lambda err: err.text, errors))
-        results['msg'] = "Ping returned errors: %s" % (err_msg)
-        junos_module.exit_json(**results)
-
-    # Add any warnings into the results
-    warns = resp.findall("rpc-error[error-severity='warning']/error-message")
-    if len(warns) != 0:
-        # Create list of the text attributes of each element in the warn list.
-        results['warnings'] = list(map(lambda warn: warn.text, warns))
-
-    # Try to find probe summary
-    probe_summary = resp.find('probe-results-summary')
-    if probe_summary is None:
-        results['msg'] = "Probe-results-summary not found in response: " \
-                         "%s" % (resp_xml)
-        junos_module.exit_json(**results)
-
-    # Extract some required fields and some optional fields
-    r_fields = {}
-    r_fields['packet_loss'] = probe_summary.findtext('packet-loss')
-    r_fields['packets_sent'] = probe_summary.findtext('probes-sent')
-    r_fields['packets_received'] = probe_summary.findtext('responses-received')
-    o_fields = {}
-    o_fields['rtt_minimum'] = probe_summary.findtext('rtt-minimum')
-    o_fields['rtt_maximum'] = probe_summary.findtext('rtt-maximum')
-    o_fields['rtt_average'] = probe_summary.findtext('rtt-average')
-    o_fields['rtt_stddev'] = probe_summary.findtext('rtt-stddev')
-
-    # Make sure we got values for required fields.
-    for key in r_fields:
-        if r_fields[key] is None:
-            results['msg'] = 'Expected field %s not found in response: %s' % \
-                             (key, resp_xml)
-            junos_module.exit_json(**results)
-    # Add the required fields to the result.
-    results.update(r_fields)
-
-    # Extract integer packet loss
-    packet_loss = 100
-    if results['packet_loss'] is not None:
-        try:
-            packet_loss = int(results['packet_loss'])
-        except ValueError:
-            results['msg'] = 'Packet loss %s not an integer. Response: %s' % \
-                             (results['packet_loss'], resp_xml)
-            junos_module.exit_json(**results)
-
-    if packet_loss < 100:
-        # Optional fields are present if packet_loss < 100
-        for key in o_fields:
-            if o_fields[key] is None:
-                results['msg'] = 'Expected field %s not found in ' \
-                                 'response: %s' % (key, resp_xml)
-                junos_module.exit_json(**results)
-    # Add the o_fields to the result (even if they're None)
-    results.update(o_fields)
-
-    # Set the result message.
-    results['msg'] = 'Loss %s%%, (Sent %s | Received %s)' % \
-                     (results['packet_loss'],
-                      results['packets_sent'],
-                      results['packets_received'])
-
-    # Was packet loss within limits? If so, we didn't fail.
-    if packet_loss <= params['acceptable_percent_loss']:
-        results['failed'] = False
+    results = junos_module.ping(
+                  ping_params,
+                  acceptable_percent_loss=['acceptable_percent_loss'],
+                  results=results)
 
     # Return results.
     junos_module.exit_json(**results)
