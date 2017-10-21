@@ -2,6 +2,10 @@
 # -*- coding: utf-8 -*-
 
 # Copyright (c) 2017, Juniper Networks Inc. All rights reserved.
+# Copyright (c) 1999-2017, Juniper Networks Inc.
+#               2014, Jeremy Schulman
+#
+# All rights reserved.
 #
 # License: Apache 2.0
 #
@@ -146,7 +150,7 @@ changed:
   description: Indicates if the device's state has changed. Since this module
                doesn't change the operational or configuration state of the
                device, the value is always set to false.
-  returned: always
+  returned: success
   type: bool
 failed:
   description: Indicates if the task failed.
@@ -320,7 +324,7 @@ def main():
                                default=None),
             savedir=dict(type='path', required=False, default=None),
         ),
-        # Since this module doesn't change the device's configuration, there
+        # Since this module doesn't change the device's configuration, there is
         # no additional work required to support check mode. It's inherently
         # supported.
         supports_check_mode=True
