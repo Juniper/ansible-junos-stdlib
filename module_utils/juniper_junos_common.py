@@ -885,6 +885,141 @@ class JuniperJunosModule(AnsibleModule):
                                (format))
         return return_val
 
+    def ping(self, params, acceptable_percent_loss=0, results={}):
+        """Execute a ping command with the parameters specified in params.
+
+        Args:
+            params: dict of parameters passed directly to the ping RPC.
+            acceptable_percent_loss: integer specifying maximum percentage of
+                                     packets that may be lost and still
+                                     consider the ping not to have failed.
+            results: dict of results which should be included in the return
+                     value, or which should be included if fail_json() is
+                     called due to a failure.
+
+        Returns:
+            A dict of results. It contains all key/value pairs in the results
+            argument plus the keys below. (The keys below will overwrite
+            any corresponding key which exists in the results argument):
+
+            msg: (str) A human-readable message indicating the result.
+            packet_loss: (str) The percentage of packets lost.
+            packets_sent: (str) The number of packets sent.
+            packets_received: (str) The number of packets received.
+            rtt_minimum: (str) The minimum round-trip-time, in microseconds,
+                               of all ping responses received.
+            rtt_maximum: (str) The maximum round-trip-time, in microseconds,
+                               of all ping responses received.
+            rtt_average: (str) The average round-trip-time, in microseconds,
+                               of all ping responses received.
+            rtt_stddev: (str) The standard deviation of round-trip-time, in
+                              microseconds, of all ping responses received.
+            warnings: (list of str) A list of warning strings, if any, produced
+                                    from the ping.
+            failed: (bool) Indicates if the ping failed. The ping fails
+                           when packet_loss > acceptable_percent_loss.
+
+        Fails:
+            - If the ping RPC produces an exception.
+            - If there are errors present in the results.
+        """
+        # Assume failure until we know success.
+        results['failed'] = True
+
+        # Execute the ping.
+        try:
+            self.logger.debug("Executing ping with parameters: %s",
+                              str(params))
+            resp = self.dev.rpc.ping(normalize=True, **params)
+            self.logger.debug("Ping executed.")
+        except (self.pyez_exception.RpcError,
+                self.pyez_exception.ConnectError) as ex:
+            self.fail_json(msg='Unable to execute ping: %s' % (str(ex)))
+
+        if not isinstance(resp, self.etree._Element):
+            self.fail_json(msg='Unexpected ping response: %s' % (str(resp)))
+
+        resp_xml = self.etree.tostring(resp, pretty_print=True)
+
+        # Fail if any errors in the results
+        errors = resp.findall(
+                     "rpc-error[error-severity='error']/error-message")
+        if len(errors) != 0:
+            # Create a comma-plus-space-seperated string of the errors.
+            # Calls the text attribute of each element in the errors list.
+            err_msg = ', '.join(map(lambda err: err.text, errors))
+            results['msg'] = "Ping returned errors: %s" % (err_msg)
+            self.exit_json(**results)
+
+        # Add any warnings into the results
+        warnings = resp.findall(
+                       "rpc-error[error-severity='warning']/error-message")
+        if len(warnings) != 0:
+            # Create list of the text attributes of each element in the
+            # warnings list.
+            results['warnings'] = list(map(lambda warn: warn.text, warnings))
+
+        # Try to find probe summary
+        probe_summary = resp.find('probe-results-summary')
+        if probe_summary is None:
+            results['msg'] = "Probe-results-summary not found in response: " \
+                             "%s" % (resp_xml)
+            self.exit_json(**results)
+
+        # Extract some required fields and some optional fields
+        r_fields = {}
+        r_fields['packet_loss'] = probe_summary.findtext('packet-loss')
+        r_fields['packets_sent'] = probe_summary.findtext('probes-sent')
+        r_fields['packets_received'] = probe_summary.findtext(
+                                           'responses-received')
+        o_fields = {}
+        o_fields['rtt_minimum'] = probe_summary.findtext('rtt-minimum')
+        o_fields['rtt_maximum'] = probe_summary.findtext('rtt-maximum')
+        o_fields['rtt_average'] = probe_summary.findtext('rtt-average')
+        o_fields['rtt_stddev'] = probe_summary.findtext('rtt-stddev')
+
+        # Make sure we got values for required fields.
+        for key in r_fields:
+            if r_fields[key] is None:
+                results['msg'] = 'Expected field %s not found in ' \
+                                 'response: %s' % (key, resp_xml)
+                self.exit_json(**results)
+        # Add the required fields to the result.
+        results.update(r_fields)
+
+        # Extract integer packet loss
+        packet_loss = 100
+        if results['packet_loss'] is not None:
+            try:
+                packet_loss = int(results['packet_loss'])
+            except ValueError:
+                results['msg'] = 'Packet loss %s not an integer. ' \
+                                 'Response: %s' % \
+                                 (results['packet_loss'], resp_xml)
+                self.exit_json(**results)
+
+        if packet_loss < 100:
+            # Optional fields are present if packet_loss < 100
+            for key in o_fields:
+                if o_fields[key] is None:
+                    results['msg'] = 'Expected field %s not found in ' \
+                                     'response: %s' % (key, resp_xml)
+                    self.exit_json(**results)
+        # Add the o_fields to the result (even if they're None)
+        results.update(o_fields)
+
+        # Set the result message.
+        results['msg'] = 'Loss %s%%, (Sent %s | Received %s)' % \
+                         (results['packet_loss'],
+                          results['packets_sent'],
+                          results['packets_received'])
+
+        # Was packet loss within limits? If so, we didn't fail.
+        if packet_loss <= acceptable_percent_loss:
+            results['failed'] = False
+
+        return results
+
 
 class JuniperJunosActionModule(ActionNormal):
     """A subclass of ActionNormal used by all juniper_junos_* modules.
