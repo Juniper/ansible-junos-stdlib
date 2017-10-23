@@ -55,6 +55,18 @@ except ImportError:
     HAS_PYEZ_DEVICE = False
 
 try:
+    import jnpr.junos.utils.sw
+    HAS_PYEZ_SW = True
+except ImportError:
+    HAS_PYEZ_SW = False
+
+try:
+    import jnpr.junos.utils.config
+    HAS_PYEZ_CONFIG = True
+except ImportError:
+    HAS_PYEZ_CONFIG = False
+
+try:
     import jnpr.junos.exception as pyez_exception
     HAS_PYEZ_EXCEPTIONS = True
 except ImportError:
@@ -484,6 +496,8 @@ class JuniperJunosModule(AnsibleModule):
         # Check PyEZ version
         self.check_pyez(min_pyez_version,
                         check_device=True,
+                        check_sw=True,
+                        check_config=True,
                         check_exception=True)
         self.pyez_exception = pyez_exception
         # Check LXML Etree
@@ -681,6 +695,8 @@ class JuniperJunosModule(AnsibleModule):
 
     def check_pyez(self, minimum=None,
                    check_device=False,
+                   check_sw=False,
+                   check_config=False,
                    check_exception=False):
         """Check PyEZ is available and version is >= minimum.
 
@@ -703,6 +719,16 @@ class JuniperJunosModule(AnsibleModule):
             if HAS_PYEZ_DEVICE is False:
                 self.fail_json(msg='junos-eznc (aka PyEZ) is installed, but '
                                    'the jnpr.junos.device.Device class could '
+                                   'not be imported.')
+        if check_sw is True:
+            if HAS_PYEZ_SW is False:
+                self.fail_json(msg='junos-eznc (aka PyEZ) is installed, but '
+                                   'the jnpr.junos.utils.sw class could '
+                                   'not be imported.')
+        if check_config is True:
+            if HAS_PYEZ_CONFIG is False:
+                self.fail_json(msg='junos-eznc (aka PyEZ) is installed, but '
+                                   'the jnpr.junos.utils.config class could '
                                    'not be imported.')
         if check_exception is True:
             if HAS_PYEZ_EXCEPTIONS is False:
@@ -771,7 +797,12 @@ class JuniperJunosModule(AnsibleModule):
             self.fail_json(msg='Unable to make a PyEZ connection: %s' %
                                (str(ex)))
 
-    def close(self):
+    def add_sw(self):
+        """Add an instance of jnp.junos.utils.sw.SW() to self.
+        """
+        self.sw = jnpr.junos.utils.sw.SW(self.dev)
+
+    def close(self, raise_exceptions=False):
         """Close the self.dev PyEZ Device instance.
         """
         if self.dev is not None:
@@ -788,10 +819,14 @@ class JuniperJunosModule(AnsibleModule):
             # ConnectError or RpcError, so this should catch all
             # exceptions raised from PyEZ.
             except (pyez_exception.ConnectError,
-                    pyez_exception.RpcError):
-                # Ignore exceptions from closing. We're about to exit anyway
-                # and they will just mask the real error that happened.
-                pass
+                    pyez_exception.RpcError) as ex:
+                if raise_exceptions is True:
+                    raise ex
+                else:
+                    # Ignore exceptions from closing. We're about to exit
+                    # anyway and they will just mask the real error that
+                    # happened.
+                    pass
 
     def get_configuration(self, database='committed', format='text',
                           options={}, filter=None):
