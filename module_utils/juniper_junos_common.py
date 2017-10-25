@@ -31,6 +31,8 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
+from __future__ import absolute_import, division, print_function
+
 # Ansible imports
 from ansible.module_utils.basic import AnsibleModule
 from ansible.plugins.action.normal import ActionModule as ActionNormal
@@ -405,6 +407,9 @@ internal_spec = {
                          required=True,
                          default=None),
 }
+
+# Known RPC output formats
+RPC_OUTPUT_FORMAT_CHOICES = ['text', 'xml', 'json']
 
 # Known configuration formats
 CONFIG_FORMAT_CHOICES = ['xml', 'set', 'text', 'json']

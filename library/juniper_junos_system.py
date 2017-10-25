@@ -143,12 +143,12 @@ EXAMPLES = '''
 ---
 #
 # MODULE_EXAMPLES
-# This playbook demonstrate the parameters supported by the juniper_junos_ping
-# module. These examples use the default connection, authtentication and
-# logging parameters. See the examples labeled CONNECTION_EXAMPLES for details
-# on connection parameters. See the examples labeled AUTHENTICATION_EXAMPLES
-# for details on authentication parameters. See the examples labeled
-# LOGGING_EXAMPLES for details on logging parameters.
+# This playbook demonstrate the parameters supported by the
+# juniper_junos_system module. These examples use the default connection,
+# authtentication and logging parameters. See the examples labeled
+# CONNECTION_EXAMPLES for details on connection parameters. See the examples
+# labeled AUTHENTICATION_EXAMPLES for details on authentication parameters.
+# See the examples labeled LOGGING_EXAMPLES for details on logging parameters.
 #
 - name: Examples of juniper_junos_system
   hosts: junos-all
@@ -379,7 +379,7 @@ def main():
         params['all_re'] = False
 
     # Set initial results values. Assume failure until we know it's success.
-    # Assume we haven't changed the state until we do. (Might be in check mode)
+    # Assume we haven't changed the state until we do.
     results = {'changed': False,
                'msg': '',
                'reboot': bool(action == 'reboot'),
