@@ -49,7 +49,7 @@ short_description: Perform path MTU discovery from a Junos device to a dest
 description:
   - Determine the maximum IP MTU supported along a path from a Junos device to
     a user-specified destination by performing path MTU discovery (PMTUD) using
-    the ping command. The reported MTU will be between min_test_size and 
+    the ping command. The reported MTU will be between min_test_size and
     I(max_size) where min_test_size = (I(max_size) - I(max_range) + 1).
     If the actual path MTU is greater than I(max_size), then I(max_size) will
     be reported. If the actual path MTU is less than min_test_size, then a
@@ -73,16 +73,16 @@ options:
       - destination_host
   max_size:
     description:
-        - The maximum IPv4 MTU, in bytes, to attempt when performing path MTU 
-          discovery. The value returned for I(inet_mtu) will be no more 
-          than this value even if the path actually supports a higher MTU. This 
-          value must be between 68 and 65496. 
+        - The maximum IPv4 MTU, in bytes, to attempt when performing path MTU
+          discovery. The value returned for I(inet_mtu) will be no more
+          than this value even if the path actually supports a higher MTU. This
+          value must be between 68 and 65496.
     required: false
     default: 1500
     type: int
   max_range:
     description:
-        - The maximum range of MTU values, in bytes, which will be searched 
+        - The maximum range of MTU values, in bytes, which will be searched
           when performing path MTU discovery. This value must be 0 or
           a power of 2 (2^n) between 2 and 65536. The minimum IPv4 MTU value
           attempted when performing path MTU discovery is:
@@ -151,7 +151,7 @@ EXAMPLES = '''
     - name: Print the discovered MTU.
       debug:
         var: response.inet_mtu
-        
+
     - name: Perform PMTUD to 10.0.0.1. Search all possible MTU values.
       juniper_junos_pmtud:
         dest: "10.0.0.1"
@@ -169,7 +169,7 @@ EXAMPLES = '''
       register: response
     - name: Print the discovered MTU.
       debug:
-        var: response.inet_mtu        
+        var: response.inet_mtu
 
     - name: Perform PMTUD to 10.0.0.1. Source from 192.168.1.1.
       juniper_junos_pmtud:
@@ -178,7 +178,7 @@ EXAMPLES = '''
       register: response
     - name: Print the discovered MTU.
       debug:
-        var: response.inet_mtu   
+        var: response.inet_mtu
 
     - name: Perform PMTUD to 10.0.0.1. Source from the red routing-instance.
       juniper_junos_pmtud:
@@ -187,8 +187,8 @@ EXAMPLES = '''
       register: response
     - name: Print the discovered MTU.
       debug:
-        var: response.inet_mtu   
-     
+        var: response.inet_mtu
+
 #
 # CONNECTION_EXAMPLES
 #
@@ -427,8 +427,8 @@ def main():
         ping_params['size'] = str(test_size - INET_AND_ICMP_HEADER_SIZE)
         current_results = dict(results)
         current_results = junos_module.ping(ping_params,
-                                                acceptable_percent_loss=100,
-                                                results=current_results)
+                                            acceptable_percent_loss=100,
+                                            results=current_results)
         loss = int(current_results.get('packet_loss', 100))
         if loss < 100 and test_size == params['max_size']:
             # ping success with max test_size, save and break
@@ -451,9 +451,9 @@ def main():
                                    'the minimum tested size(%d). Try '
                                    'decreasing max_size(%d) or increasing '
                                    'max_range(%d).' % (results['host'],
-                                                        min_test_size,
-                                                        params['max_size'],
-                                                        params['max_range']),
+                                                       min_test_size,
+                                                       params['max_size'],
+                                                       params['max_range']),
                                **results)
 
     # Return results.
