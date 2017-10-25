@@ -1,7 +1,6 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 2017, Juniper Networks Inc. All rights reserved.
 # Copyright (c) 1999-2017, Juniper Networks Inc.
 #               2014, Jeremy Schulman
 #
