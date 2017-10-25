@@ -255,6 +255,8 @@ def junos_rpc(module, dev):
                         confile.write(str(rpc_reply))
                     else:
                         confile.write(rpc_reply)
+        else:
+            results['rpc_reply'] = rpc_reply.text
 
         results['changed'] = True
     except Exception as err:
