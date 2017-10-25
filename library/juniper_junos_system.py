@@ -47,16 +47,16 @@ version_added: "2.0.0" # of Juniper.junos role
 author: "Juniper Networks - Stacy Smith (@stacywsmith)"
 short_description: Initiate operational actions on the Junos system.
 description:
-  - Initiate an operational action (shutdown, reboot, halt or zeroize) on a 
+  - Initiate an operational action (shutdown, reboot, halt or zeroize) on a
     Junos system. The particular action to execute is defined by the mandatory
     I(action) option. This module only INITIATES the action. It does NOT wait
     for the action to complete.
   - NOTE: Some Junos devices are effected by a Junos bug which causes this
     Ansible module to hang indefinitely when connected to the Junos device via
-    the console. This problem is not seen when connecting to the Junos device 
+    the console. This problem is not seen when connecting to the Junos device
     using the normal NETCONF over SSH transport connection. Therefore, it is
     recommended to use this module only with a NETCONF over SSH transport
-    connection. However, this module does still permit connecting to Junos 
+    connection. However, this module does still permit connecting to Junos
     devices via the console port and this functionality may still be used for
     Junos devices running Junos versions less than 15.1.
 # Document connection arguments
@@ -66,14 +66,14 @@ options:
   action:
     description:
       - The action performed by the module. The choices include:
-        C(shutdown) - Power off the Junos devices. The values: C(off), 
+        C(shutdown) - Power off the Junos devices. The values: C(off),
                      C(power-off), and C(power_off) are aliases for this value.
                      This is the equivalent of the 'request system power-off'
                      CLI command.
         C(halt) - Stop the Junos OS running on the RE, but do not power off the
-                  system. Once the system is halted, it will reboot if a 
-                  keystroke is entered on the console. This is the equivalent of
-                  the 'request system halt' CLI command.
+                  system. Once the system is halted, it will reboot if a
+                  keystroke is entered on the console. This is the equivalent
+                  of the 'request system halt' CLI command.
         C(reboot) - Reboot the system. This is the equivalent of the
                    'request system reboot' CLI command.
         C(zeroize) - Restore the system (configuration, log files, etc.) to a
@@ -87,14 +87,14 @@ options:
   at:
     description:
       - The time at which to shutdown, halt, or reboot the system. The value
-        may be specified in one of the following ways: 
+        may be specified in one of the following ways:
         C(now) - The action takes effect immediately.
         C(+minutes) — The action takes effect in C(minutes) minutes from now.
-        C(yymmddhhmm) — The action takes effect at C(yymmddhhmm) absolute time, 
+        C(yymmddhhmm) — The action takes effect at C(yymmddhhmm) absolute time,
                      specified as year, month, day, hour, and minute.
-        C(hh:mm) — The action takes effect at C(hh:mm) absolute time on the 
+        C(hh:mm) — The action takes effect at C(hh:mm) absolute time on the
                 current day, specified in 24-hour time.
-        The I(at) option can not be used when the I(action) option has a 
+        The I(at) option can not be used when the I(action) option has a
         value of C(zeroize). The I(at) option is mutually exclusive with the
         I(in_min) option.
     required: false
@@ -103,7 +103,7 @@ options:
   in_min:
     description:
       - Specify a delay, in minutes, before the shutdown, halt, or reboot. The
-        I(in_min) option can not be used when the I(action) option has a 
+        I(in_min) option can not be used when the I(action) option has a
         value of C(zeroize). The I(in_min) option is mutually exclusive with
         the I(at) option.
     required: false
@@ -114,7 +114,7 @@ options:
       - If the system has multiple Routing Engines and this option is true,
         then the action is performed on all REs in the system. If the system
         does not have multiple Routing Engines, then this option has no effect.
-        This option applies to all I(action) values. The I(all_re) option is 
+        This option applies to all I(action) values. The I(all_re) option is
         mutually exclusive with the I(other_re) option.
     required: false
     default: true
@@ -122,10 +122,10 @@ options:
   other_re:
     description:
       - If the system has dual Routing Engines and this option is true,
-        then the action is performed on the other REs in the system. If the 
-        system does not have dual Routing Engines, then this option has no 
+        then the action is performed on the other REs in the system. If the
+        system does not have dual Routing Engines, then this option has no
         effect. The I(other_re) option can not be used when the I(action)
-        option has a value of C(zeroize).The I(other_re) option is mutually 
+        option has a value of C(zeroize).The I(other_re) option is mutually
         exclusive with the I(all_re) option.
     required: false
     default: false
@@ -172,7 +172,7 @@ EXAMPLES = '''
         action: "reboot"
         all_re: False
         at: "20:00"
-    
+
     - name: Halt the system on 25 January 2018 at 4pm.
       juniper_junos_system:
         action: "halt"
@@ -182,21 +182,21 @@ EXAMPLES = '''
       juniper_junos_system:
         action: "reboot"
         in_min: 30
-    
+
     - name: Reboot the system in 30 minutes.
       juniper_junos_system:
         action: "reboot"
         at: "+30m"
-    
+
     - name: Zeroize the local RE only.
       juniper_junos_system:
         action: "zeroize"
-        all_re: False    
+        all_re: False
 
     - name: Zeroize all REs and overwrite medea.
       juniper_junos_system:
         action: "zeroize"
-        media: True   
+        media: True
 
 #
 # CONNECTION_EXAMPLES

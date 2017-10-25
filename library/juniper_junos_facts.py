@@ -108,9 +108,9 @@ EXAMPLES = '''
 
 RETURN = '''
 ansible_facts.junos:
-  description: 
+  description:
     - Facts collected from the Junos device. This dictionary contains the
-      keys listed in the I(contains) section of this documentation PLUS all 
+      keys listed in the I(contains) section of this documentation PLUS all
       of the keys returned from PyEZ's fact gathering system. See
       U(http://junos-pyez.readthedocs.io/en/stable/jnpr.junos.facts.html)
       for a complete list of these keys and thier meaning.
