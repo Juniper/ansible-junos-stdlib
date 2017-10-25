@@ -242,20 +242,15 @@ def junos_rpc(module, dev):
             rpc_reply = getattr(dev.rpc, rpc.replace('-','_'))(filter_xml, options=values)
         else:
             rpc_reply = getattr(dev.rpc, rpc.replace('-','_'))({'format':args['format']}, **values)
+        if isinstance(rpc_reply, etree._Element):
+            if args.get('format') == 'text':
+                rpc_reply = rpc_reply.text
+            else:
+                rpc_reply = etree.tostring(rpc_reply)
+        results['rpc_reply'] = rpc_reply
         if module.params['dest'] is not None:
             with open(module.params['dest'], 'w') as confile:
-                if isinstance(rpc_reply, etree._Element):
-                    if args.get('format') == 'text':
-                        confile.write(rpc_reply.text)
-                    else:
-                        confile.write(etree.tostring(rpc_reply))
-                else:
-                    if args.get('format') == 'json':
-                        results['rpc_reply'] = rpc_reply
-                        confile.write(str(rpc_reply))
-                    else:
-                        confile.write(rpc_reply)
-
+                confile.write(str(rpc_reply))
         results['changed'] = True
     except Exception as err:
        results['failed'] = True
