@@ -35,6 +35,7 @@ from __future__ import absolute_import, division, print_function
 
 # Ansible imports
 from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils.basic import BOOLEANS_TRUE, BOOLEANS_FALSE
 from ansible.plugins.action.normal import ActionModule as ActionNormal
 
 # Standard library imports
@@ -85,6 +86,14 @@ try:
     HAS_JXMLEASE_VERSION = jxmlease.__version__
 except ImportError:
     HAS_JXMLEASE_VERSION = None
+
+
+try:
+    # Python 2
+    basestring
+except NameError:
+    # Python 3
+    basestring = str
 
 
 # Constants
@@ -769,6 +778,115 @@ class JuniperJunosModule(AnsibleModule):
         self._check_library('lxml Etree', HAS_LXML_ETREE_VERSION,
                             LXML_ETREE_INSTALLATION_URL, minimum=minimum)
 
+    def convert_to_bool(self, arg):
+        """Try converting arg to a bool value using Ansible's aliases for bool.
+
+        Args:
+            arg: The value to convert.
+
+        Returns:
+            A boolean value if successfully converted, or None if not.
+        """
+        if arg is None or type(arg) == bool:
+            return arg
+        if isinstance(arg, basestring):
+            arg = arg.lower()
+        if arg in BOOLEANS_TRUE:
+            return True
+        elif arg in BOOLEANS_FALSE:
+            return False
+        else:
+            return None
+
+    def parse_arg_to_list_of_dicts(self,
+                                   option_name,
+                                   string_val,
+                                   allow_bool_values=False):
+        """Parses string_val into a list of dicts with bool and/or str values.
+
+        In order to handle all of the different ways that list of dict type
+        options may be specified, the arg_spec must set the option type to
+        'str'. This requires us to parse the string_val ourselves into the
+        required list of dicts. Handles Ansible-style keyword=value format for
+        specifying dictionaries. Also handles Ansible aliases for boolean
+        values if allow_bool_values is True.
+
+        Args:
+            option_name - The name of the option being parsed.
+            string_val - The string to be parse.
+            allow_bool_values - Whether or not boolean values are allowed.
+
+        Returns:
+            The list of dicts
+
+        Fails:
+            If there is an error parsing
+        """
+        # Nothing to do if no string_val were specified.
+        if string_val is None:
+            return None
+
+        # Evaluate the string
+        kwargs = self.safe_eval(string_val)
+
+        if isinstance(kwargs, basestring):
+            # This might be a keyword1=value1 keyword2=value2 type string.
+            # The _check_type_dict method will parse this into a dict for us.
+            try:
+                kwargs = self._check_type_dict(kwargs)
+            except TypeError as exc:
+                self.fail_json(msg="The value of the %s option (%s) is "
+                                   "invalid. Unable to translate into "
+                                   "a list of dicts." %
+                                   (option_name, string_val, str(exc)))
+
+        # Now, if it's a dict, let's make it a list of one dict
+        if isinstance(kwargs, dict):
+            kwargs = [kwargs]
+        # Now, if it's not a list, we've got a problem.
+        if not isinstance(kwargs, list):
+            self.fail_json(msg="The value of the %s option (%s) is invalid. "
+                               "Unable to translate into a list of dicts." %
+                               (option_name, string_val))
+        # We've got a list, traverse each element to make sure it's a dict.
+        return_val = []
+        for kwarg in kwargs:
+            # If it's now a string, see if it can be parsed into a dictionary.
+            if isinstance(kwarg, basestring):
+                # This might be a keyword1=value1 keyword2=value2 type string.
+                # The _check_type_dict method will parse this into a dict.
+                try:
+                    kwarg = self._check_type_dict(kwarg)
+                except TypeError as exc:
+                    self.fail_json(msg="The value of the %s option (%s) is "
+                                       "invalid. Unable to translate into a "
+                                       "list of dicts." %
+                                       (option_name, string_val, str(exc)))
+            # Now if it's not a dict, there's a problem.
+            if not isinstance(kwarg, dict):
+                self.fail_json(msg="The value of the kwargs option (%s) is "
+                                   "invalid. Unable to translate into a list "
+                                   "of dicts." %
+                                   (option_name, string_val))
+            # Now we just need to make sure the key is a string and the value
+            # is a string or bool.
+            return_item = {}
+            for (k, v) in kwarg.items():
+                if not isinstance(k, basestring):
+                    self.fail_json(msg="The value of the %s option (%s) "
+                                       "is invalid. Unable to translate into "
+                                       "a list of dicts." %
+                                       (option_name, string_val))
+                if allow_bool_values is True:
+                    # Try to convert it to a boolean value. Will be None if it
+                    # can't be converted.
+                    bool_val = self.convert_to_bool(v)
+                    if bool_val is not None:
+                        v = bool_val
+                return_item[k] = v
+            return_val.append(return_item)
+        return return_val
+
     def open(self):
         """Open the self.dev PyEZ Device instance.
 
@@ -1059,6 +1177,58 @@ class JuniperJunosModule(AnsibleModule):
             results['failed'] = False
 
         return results
+
+    def save_text_output(self, name, format, text):
+        """Save text output into a file based on 'dest' and 'dest_dir' params.
+
+        The text provided in the text parameter is saved to a file on the
+        local Ansible control machine based on the 'dest' and 'dest_dir'
+        module parameters. If neither parameter is specified, then this method
+        is a no-op. If the 'dest' parameter is specified, the value of the
+        'dest' parameter is used as the path name for the destination file. In
+        this case, the name and format parameters are ignored.
+        If the 'dest_dir' parameter is specified, the path name for the
+        destination file is: <hostname>_<name>.<format>.  If the
+        destination file already exists, and the 'dest_dir' option is
+        specified, or the 'dest' parameter is specified and the self.destfile
+        attribute is not present, the file is overwritten. If the 'dest'
+        parameter is specified and the self.destfile attribute is present, then
+        the file is appended. This allows multiple text outputs to be written
+        to the same file.
+
+        Args:
+            name: The name portion of the destination filename when the
+                  'dest_dir' parameter is specified.
+            format: The format portion of the destination filename when the
+                  'dest_dir' parameter is specified.
+            text: The text to be written into the destination file.
+
+        Fails:
+            - If the destination file is not writable.
+        """
+        file_path = None
+        mode = 'w'
+        if self.params.get('dest') is not None:
+            file_path = os.path.normpath(self.params.get('dest'))
+            if getattr(self, 'destfile', None) is None:
+                self.destfile = self.params.get('dest')
+            else:
+                mode = 'a'
+        elif self.params.get('dest_dir') is not None:
+            dest_dir = self.params.get('dest_dir')
+            hostname = self.params.get('host')
+            # Substitute underscore for spaces.
+            name = name.replace(' ', '_')
+            file_name = '%s_%s.%s' % (hostname, name, format)
+            file_path = os.path.normpath(os.path.join(dest_dir, file_name))
+        if file_path is not None:
+            try:
+                with open(file_path, mode) as save_file:
+                    save_file.write(text)
+                self.logger.debug("Output saved to: %s.", file_path)
+            except IOError:
+                self.fail_json(msg="Unable to save output. Failed to "
+                                   "open the %s file." % (file_path))
 
 
 class JuniperJunosActionModule(ActionNormal):
