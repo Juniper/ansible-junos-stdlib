@@ -854,13 +854,13 @@ class JuniperJunosModule(AnsibleModule):
             # If it's now a string, see if it can be parsed into a dictionary.
             if isinstance(kwarg, basestring):
                 # This might be a keyword1=value1 keyword2=value2 type string.
-                # The _check_type_dict method will parse this into a dict for us.
+                # The _check_type_dict method will parse this into a dict.
                 try:
                     kwarg = self._check_type_dict(kwarg)
                 except TypeError as exc:
                     self.fail_json(msg="The value of the %s option (%s) is "
-                                       "invalid. Unable to translate into a list "
-                                       "of dicts." %
+                                       "invalid. Unable to translate into a "
+                                       "list of dicts." %
                                        (option_name, string_val, str(exc)))
             # Now if it's not a dict, there's a problem.
             if not isinstance(kwarg, dict):

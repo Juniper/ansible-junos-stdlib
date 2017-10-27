@@ -85,8 +85,8 @@ options:
     description:
       - The keyword arguments and values to the RPC(s) specified by the
         I(rpcs) option. The value of this option can either be a single
-        dictionary of keywords and values, or a list of dictionaries 
-        containing keywords and values. There is a one-to-one correspondence 
+        dictionary of keywords and values, or a list of dictionaries
+        containing keywords and values. There is a one-to-one correspondence
         between the elements in the I(kwargs) list and the RPCs in the I(rpcs)
         list. In other words, the two lists must always contain the same
         number of elements. For RPC arguments which do not require a value,
@@ -102,8 +102,8 @@ options:
     description:
       - The attributes and values to the RPC(s) specified by the
         I(rpcs) option. The value of this option can either be a single
-        dictionary of keywords and values, or a list of dictionaries 
-        containing keywords and values. There is a one-to-one correspondence 
+        dictionary of keywords and values, or a list of dictionaries
+        containing keywords and values. There is a one-to-one correspondence
         between the elements in the I(kwargs) list and the RPCs in the I(rpcs)
         list. In other words, the two lists must always contain the same
         number of elements.
@@ -122,7 +122,7 @@ options:
         for details on the value of this option.
     required: false
     default: none
-    type: 'str'    
+    type: 'str'
   dest:
     description:
       - The path to a file, on the Ansible control machine, where the output of
@@ -198,7 +198,6 @@ EXAMPLES = '''
       juniper_junos_rpc:
         rpcs: "get-software-information"
       register: response
-
     - name: Print the RPC's output as a single multi-line string.
       debug:
         var: response.stdout
@@ -297,7 +296,7 @@ format:
       option.
   returned: always
   type: str
-  choices: ['text', 'xml', 'json']    
+  choices: ['text', 'xml', 'json']
 kwargs:
   description:
     - The keyword arguments from the list of dictionaries in the I(kwargs)
@@ -432,9 +431,9 @@ def main():
     junos_module = juniper_junos_common.JuniperJunosModule(
         argument_spec=dict(
             rpcs=dict(required=True,
-                          type='list',
-                          aliases=['rpc'],
-                          default=None),
+                      type='list',
+                      aliases=['rpc'],
+                      default=None),
             formats=dict(required=False,
                          type='list',
                          aliases=['format', 'display', 'output'],
@@ -444,9 +443,9 @@ def main():
                         type='str',
                         default=None),
             attrs=dict(required=False,
-                        type='str',
-                        aliases=['attr'],
-                        default=None),
+                       type='str',
+                       aliases=['attr'],
+                       default=None),
             filter_xml=dict(required=False,
                             type='str',
                             default=None),
@@ -475,7 +474,6 @@ def main():
     # Ansible allows users to specify a rpcs argument with no value.
     if rpcs is None:
         junos_module.fail_json(msg="The rpcs option must have a value.")
-
 
     # Check over formats
     formats = junos_module.params.get('formats')
@@ -532,14 +530,14 @@ def main():
     if junos_module.params.get('filter_xml') is not None:
         if (len(rpcs) != 1 or (rpcs[0] != 'get-config' and
                                rpcs[0] != 'get_config')):
-            junos_module.fail_json(msg = "The filter_xml option is only valid "
-                                         "when the rpcs option value is a "
-                                         "single 'get-config' RPC.")
+            junos_module.fail_json(msg="The filter_xml option is only valid "
+                                       "when the rpcs option value is a "
+                                       "single 'get-config' RPC.")
 
     results = list()
     for (rpc_string, format, kwarg, attr) in zip(rpcs, formats, kwargs, attrs):
         # Replace underscores with dashes in RPC name.
-        rpc_string = rpc_string.replace('_','-')
+        rpc_string = rpc_string.replace('_', '-')
         # Set initial result values. Assume failure until we know it's success.
         result = {'msg': '',
                   'rpc': rpc_string,
@@ -586,7 +584,8 @@ def main():
                                           junos_module.etree.tostring(
                                               rpc,
                                               pretty_print=True))
-                resp = junos_module.dev.rpc(rpc, normalize=bool(format == 'xml'))
+                resp = junos_module.dev.rpc(rpc,
+                                            normalize=bool(format == 'xml'))
                 result['msg'] = 'The RPC executed successfully.'
                 junos_module.logger.debug('RPC "%s" executed successfully.',
                                           junos_module.etree.tostring(
