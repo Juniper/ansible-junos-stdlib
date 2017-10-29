@@ -52,7 +52,7 @@ except ImportError:
     HAS_PYEZ_VERSION = None
 
 try:
-    from jnpr.junos.device import Device
+    import jnpr.junos.device
     HAS_PYEZ_DEVICE = True
 except ImportError:
     HAS_PYEZ_DEVICE = False
@@ -424,6 +424,11 @@ RPC_OUTPUT_FORMAT_CHOICES = ['text', 'xml', 'json']
 CONFIG_FORMAT_CHOICES = ['xml', 'set', 'text', 'json']
 # Known configuration databases
 CONFIG_DATABASE_CHOICES = ['candidate', 'committed']
+# Known configuration actions
+CONFIG_ACTION_CHOICES = ['set', 'merge', 'update',
+                         'replace', 'override', 'overwrite']
+# Supported configuration modes
+CONFIG_MODE_CHOICES = ['exclusive', 'private']
 
 
 class JuniperJunosModule(AnsibleModule):
@@ -478,6 +483,8 @@ class JuniperJunosModule(AnsibleModule):
         """
         # Initialize the dev attribute
         self.dev = None
+        # Initialize the config attribute
+        self.config = None
         # Update argument_spec with the internal_spec
         argument_spec.update(internal_spec)
         # Update argument_spec with the top_spec
@@ -545,6 +552,8 @@ class JuniperJunosModule(AnsibleModule):
             **kwargs: All keyword arguments are passed to
                       AnsibleModule.fail_json().
         """
+        # Close the configuration
+        self.close_configuration()
         # Close the connection.
         self.close()
         if hasattr(self, 'logger'):
@@ -887,6 +896,81 @@ class JuniperJunosModule(AnsibleModule):
             return_val.append(return_item)
         return return_val
 
+    def parse_ignore_warning_option(self):
+        """Parses the ignore_warning option.
+
+        ignore_warning may be a bool, str, or list of str. The Ansible type
+        checking doesn't support the possibility of more than one type.
+
+        Returns:
+            The validated value of the ignore_warning option. None if
+            ignore_warning is not specified.
+
+        Fails:
+            If there is an error parsing ignore_warning.
+        """
+        # Nothing to do if ignore_warning wasn't specified.
+        ignore_warn_list = self.params.get('ignore_warning')
+        if ignore_warn_list is None:
+            return ignore_warn_list
+        if len(ignore_warn_list) == 1:
+            bool_val = self.convert_to_bool(ignore_warn_list[0])
+            if bool_val is not None:
+                return bool_val
+            elif isinstance(ignore_warn_list[0], basestring):
+                return ignore_warn_list[0]
+            else:
+                self.fail_json(msg="The value of the ignore_warning option "
+                                   "(%s) is invalid. Unexpected type (%s)." %
+                                   (ignore_warn_list[0],
+                                    type(ignore_warn_list[0])))
+        elif len(ignore_warn_list) > 1:
+            for ignore_warn in ignore_warn_list:
+                if not isinstance(ignore_warn, basestring):
+                    self.fail_json(msg="The value of the ignore_warning "
+                                       "option (%s) is invalid. "
+                                       "Element (%s) has unexpected "
+                                       "type (%s)." %
+                                       (str(ignore_warn_list),
+                                        ignore_warn,
+                                        type(ignore_warn)))
+            return ignore_warn_list
+        else:
+            self.fail_json(msg="The value of the ignore_warning option "
+                               "(%s) is invalid." %
+                               (ignore_warn_list))
+
+    def parse_rollback_option(self):
+        """Parses the rollback option.
+
+        rollback may be a str of 'rescue' or an int between 0 and 49. The
+        Ansible type checking doesn't support the possibility of more than
+        one type.
+
+        Returns:
+            The validate value of the rollback option. None if
+            rollback is not specified.
+
+        Fails:
+            If there is an error parsing rollback.
+        """
+        # Nothing to do if rollback wasn't specified or is 'rescue'.
+        rollback = self.params.get('rollback')
+        if rollback is None or 'rescue':
+            return rollback
+        if isinstance(rollback, basestring):
+            try:
+                # Is it an int between 0 and 49?
+                int_val = int(rollback)
+                if int_val >= 0 and int_val <= 49:
+                    return int_val
+            except ValueError:
+                # Fall through to fail_json()
+                pass
+        self.fail_json(msg="The value of the rollback option (%s) is invalid. "
+                           "Must be the string 'rescue' or an int between "
+                           "0 and 49." % (str(rollback)))
+
     def open(self):
         """Open the self.dev PyEZ Device instance.
 
@@ -906,7 +990,7 @@ class JuniperJunosModule(AnsibleModule):
             self.logger.debug("Creating device parameters: %s",
                               log_connect_args)
             timeout = connect_args.pop('timeout')
-            self.dev = Device(**connect_args)
+            self.dev = jnpr.junos.device.Device(**connect_args)
             self.logger.debug("Opening device.")
             self.dev.open()
             self.logger.debug("Device opened.")
@@ -919,6 +1003,45 @@ class JuniperJunosModule(AnsibleModule):
         except pyez_exception.ConnectError as ex:
             self.fail_json(msg='Unable to make a PyEZ connection: %s' %
                                (str(ex)))
+
+    def open_configuration(self, mode):
+        # Already have an open configuration?
+        if self.config is None:
+            if mode not in CONFIG_MODE_CHOICES:
+                self.fail_json(msg='Invalid configuration mode: %s' % (mode))
+            if self.dev is None:
+                self.open()
+            config = jnpr.junos.utils.config.Config(self.dev, mode=mode)
+            try:
+                if config.mode == 'exclusive':
+                    config.lock()
+                elif config.mode == 'private':
+                    self.dev.rpc.open_configuration(private=True)
+            except (pyez_exception.ConnectError,
+                    pyez_exception.RpcError) as ex:
+                self.fail_json(msg='Unable to open the configuration in %s '
+                                   'mode: %s' % (config.mode, str(ex)))
+            self.config = config
+            self.logger.debug("Configuration opened in %s mode.", config.mode)
+
+    def close_configuration(self):
+        if self.config is not None:
+            # Because self.fail_json() calls self.close_configuration(), we must
+            # set self.config = None BEFORE closing the config in order to
+            # avoid the infinite recursion which would occur if closing the
+            # configuration raised an exception.
+            config = self.config
+            self.config = None
+            try:
+                if config.mode == 'exclusive':
+                    config.unlock()
+                elif config.mode == 'private':
+                    self.dev.rpc.close_configuration()
+                self.logger.debug("Configuration closed.")
+            except (pyez_exception.ConnectError,
+                    pyez_exception.RpcError) as ex:
+                self.fail_json(msg='Unable to close the configuration: %s' %
+                                   (str(ex)))
 
     def add_sw(self):
         """Add an instance of jnp.junos.utils.sw.SW() to self.
@@ -1042,6 +1165,303 @@ class JuniperJunosModule(AnsibleModule):
             self.fail_json(msg='Unable to return configuration in %s format.' %
                                (format))
         return return_val
+
+
+    def rollback_configuration(self, id):
+        """Rolback the device configuration to the specified id.
+
+        Rolls back the configuration to the specified id. Assumes the
+        configuration is already opened. Does NOT commit the configuration.
+
+        Args:
+            id: The id to which the configuration should be rolled back. Either
+                an integer rollback value or the string 'rescue' to roll back
+                to the previously saved rescue configuration.
+
+        Failures:
+            - Unable to rollback the configuration due to an RpcError or
+              ConnectError.
+        """
+        if self.dev is None or self.config is None:
+            self.fail_json(msg='The device or configuration is not open.')
+
+        if id == 'rescue':
+            self.logger.debug("Rolling back to the rescue configuration.")
+            try:
+                self.config.rescue(action='reload')
+                self.logger.debug("Rescue configuration loaded.")
+            except (self.pyez_exception.RpcError,
+                    self.pyez_exception.ConnectError) as ex:
+                self.fail_json(msg='Unable to load the rescue configuraton: '
+                                   '%s' % (str(ex)))
+        elif id >= 0 and id <= 49:
+            self.logger.debug("Loading rollback %d configuration.", id)
+            try:
+                self.config.rollback(rb_id=id)
+                self.logger.debug("Rollback %d configuration loaded.", id)
+            except (self.pyez_exception.RpcError,
+                    self.pyez_exception.ConnectError) as ex:
+                self.fail_json(msg='Unable to load the rollback %d '
+                                   'configuraton: %s' % (id, str(ex)))
+        else:
+            self.fail_json(msg='Unrecognized rollback configuraton value: %s'
+                               % (id))
+
+    def check_configuration(self):
+        """Check the device configuration.
+
+        Check the configuration. Assumes the configuration is already opened.
+        Performs the equivalent of a "commit check", but does NOT commit the
+        configuration.
+
+        Failures:
+            - An error returned from checking the configuration.
+        """
+        if self.dev is None or self.config is None:
+            self.fail_json(msg='The device or configuration is not open.')
+
+        self.logger.debug("Checking the configuration.")
+        try:
+            self.config.commit_check()
+            self.logger.debug("Configuration checked.")
+        except (self.pyez_exception.RpcError,
+                self.pyez_exception.ConnectError) as ex:
+            self.fail_json(msg='Failure checking the configuraton: %s' %
+                               (str(ex)))
+
+    def diff_configuration(self):
+        """Diff the candidate and committed configurations.
+
+        Diff the candidate and committed configurations.
+
+        Returns:
+            A string with the configuration differences in text "diff" format.
+
+        Failures:
+            - An error returned from diffing the configuration.
+        """
+        if self.dev is None or self.config is None:
+            self.fail_json(msg='The device or configuration is not open.')
+
+        self.logger.debug("Diffing candidate and committed configurations.")
+        try:
+            diff = self.config.diff(rb_id=0)
+            self.logger.debug("Configuration diff completed.")
+            return diff
+        except (self.pyez_exception.RpcError,
+                self.pyez_exception.ConnectError) as ex:
+            self.fail_json(msg='Failure diffing the configuraton: %s' %
+                               (str(ex)))
+
+    def load_src_configuration(self, action, src,
+                               ignore_warning=None, format=None):
+        """Load the candidate configuration from a file on the control machine.
+
+        Load the candidate configuration from the specified src file using the
+        specified action.
+
+        Args:
+            action - The type of load to perform: 'merge', 'replace', 'set',
+                                                  'override', 'overwrite', and
+                                                  'update'
+            src - The file path on the local Ansible control machine to the
+                  configuration to be loaded.
+            ignore_warning - What warnings to ignore.
+            format - The format of the configuration being loaded.
+
+        Failures:
+            - An error returned from loading the configuration.
+        """
+        if self.dev is None or self.config is None:
+            self.fail_json(msg='The device or configuration is not open.')
+
+        action_spec = {}
+        if action == 'replace':
+            action_spec = {}
+        if action == 'merge':
+            action_spec = {'merge': True}
+        if action == 'override' or action = 'overwrite':
+            action_spec = {'overwrite': True}
+        if action == 'update':
+            action_spec = {'update': True}
+        if action == 'set':
+            format = 'set'
+
+        self.logger.debug("Loading the configuration from: %s.", src)
+        try:
+            self.config.load(path=src,
+                             ignore_warning=ignore_warning,
+                             format=format, **action_spec)
+            self.logger.debug("Configuration loaded.")
+        except (self.pyez_exception.RpcError,
+                self.pyez_exception.ConnectError) as ex:
+            self.fail_json(msg='Failure loading the configuraton: %s' %
+                               (str(ex)))
+
+    def load_lines_configuration(self, action, lines,
+                                 ignore_warning=None, format=None):
+        """Load the candidate configuration from a list of lines strings.
+
+        Load the candidate configuration from the lines argument using the
+        specified action.
+
+        Args:
+            action - The type of load to perform: 'merge', 'replace', 'set',
+                                                  'override', 'overwrite', and
+                                                  'update'
+            lines - A list of strings containing the configuration.
+            ignore_warning - What warnings to ignore.
+            format - The format of the configuration being loaded.
+
+        Failures:
+            - An error returned from loading the configuration.
+        """
+        if self.dev is None or self.config is None:
+            self.fail_json(msg='The device or configuration is not open.')
+
+        action_spec = {}
+        if action == 'replace':
+            action_spec = {}
+        if action == 'merge':
+            action_spec = {'merge': True}
+        if action == 'override' or action = 'overwrite':
+            action_spec = {'overwrite': True}
+        if action == 'update':
+            action_spec = {'update': True}
+        if action == 'set':
+            format = 'set'
+
+        config = '\n'.join(map(lambda line: line.rstrip('\n'), lines))
+
+        self.logger.debug("Loading the supplied configuration.")
+        try:
+            self.config.load(config,
+                             ignore_warning=ignore_warning,
+                             format=format, **action_spec)
+            self.logger.debug("Configuration loaded.")
+        except (self.pyez_exception.RpcError,
+                self.pyez_exception.ConnectError) as ex:
+            self.fail_json(msg='Failure loading the configuraton: %s' %
+                               (str(ex)))
+
+    def load_template_configuration(self, action, template=None, vars=None,
+                                    ignore_warning=None, format=None):
+        """Load the candidate configuration from a Jinja2 template.
+
+        Load the candidate configuration from a Jinja2 template.
+
+        Args:
+            action - The type of load to perform: 'merge', 'replace', 'set',
+                                                  'override', 'overwrite', and
+                                                  'update'
+            template - The path to the Jinja2 template to render the
+                       configuration.
+            vars = The variables used to render the template.
+            ignore_warning - What warnings to ignore.
+            format - The format of the configuration being loaded.
+
+        Failures:
+            - An error returned from loading the configuration.
+        """
+        if self.dev is None or self.config is None:
+            self.fail_json(msg='The device or configuration is not open.')
+
+        action_spec = {}
+        if action == 'replace':
+            action_spec = {}
+        if action == 'merge':
+            action_spec = {'merge': True}
+        if action == 'override' or action = 'overwrite':
+            action_spec = {'overwrite': True}
+        if action == 'update':
+            action_spec = {'update': True}
+        if action == 'set':
+            format = 'set'
+
+        self.logger.debug("Loading the configuration from the %s template.",
+                          template)
+        try:
+            self.config.load(template_path=template,
+                             template_vars=vars,
+                             ignore_warning=ignore_warning,
+                             format=format, **action_spec)
+            self.logger.debug("Templated configuration loaded.")
+        except (self.pyez_exception.RpcError,
+                self.pyez_exception.ConnectError) as ex:
+            self.fail_json(msg='Failure loading the configuraton: %s' %
+                               (str(ex)))
+
+    def load_url_configuration(self, action, url=None,
+                               ignore_warning=None, format=None):
+        """Load the candidate configuration from a URL.
+
+        Load the candidate configuration from a URL.
+
+        Args:
+            action - The type of load to perform: 'merge', 'replace', 'set',
+                                                  'override', 'overwrite', and
+                                                  'update'
+            url - The URL to the candidate configuration.
+            ignore_warning - What warnings to ignore.
+            format - The format of the configuration being loaded.
+
+        Failures:
+            - An error returned from loading the configuration.
+        """
+        if self.dev is None or self.config is None:
+            self.fail_json(msg='The device or configuration is not open.')
+
+        action_spec = {}
+        if action == 'replace':
+            action_spec = {}
+        if action == 'merge':
+            action_spec = {'merge': True}
+        if action == 'override' or action = 'overwrite':
+            action_spec = {'overwrite': True}
+        if action == 'update':
+            action_spec = {'update': True}
+        if action == 'set':
+            format = 'set'
+
+        self.logger.debug("Loading the configuration from %s.",
+                          url)
+        try:
+            self.config.load(url=url,
+                             ignore_warning=ignore_warning,
+                             format=format, **action_spec)
+            self.logger.debug("URL configuration loaded.")
+        except (self.pyez_exception.RpcError,
+                self.pyez_exception.ConnectError) as ex:
+            self.fail_json(msg='Failure loading the configuraton: %s' %
+                               (str(ex)))
+
+    def commit_configuration(self, ignore_warning=None, comment=None
+                             confirmed=None):
+        """Commit the candidate configuration.
+
+        Commit the configuration. Assumes the configuration is already opened.
+
+        Args:
+            ignore_warning - Which warnings to ignore.
+            comment - The commit comment
+            confirmed - Number of minutes for commit confirmed.
+
+        Failures:
+            - An error returned from committing the configuration.
+        """
+        if self.dev is None or self.config is None:
+            self.fail_json(msg='The device or configuration is not open.')
+
+        self.logger.debug("Committing the configuration.")
+        try:
+            self.config.commit(ignore_warning=ignore_warning,
+                               comment=comment,
+                               confirm=confirmed)
+            self.logger.debug("Configuration committed.")
+        except (self.pyez_exception.RpcError,
+                self.pyez_exception.ConnectError) as ex:
+            self.fail_json(msg='Failure committing the configuraton: %s' %
+                               (str(ex)))
 
     def ping(self, params, acceptable_percent_loss=0, results={}):
         """Execute a ping command with the parameters specified in params.
@@ -1182,19 +1602,19 @@ class JuniperJunosModule(AnsibleModule):
         """Save text output into a file based on 'dest' and 'dest_dir' params.
 
         The text provided in the text parameter is saved to a file on the
-        local Ansible control machine based on the 'dest' and 'dest_dir'
-        module parameters. If neither parameter is specified, then this method
-        is a no-op. If the 'dest' parameter is specified, the value of the
-        'dest' parameter is used as the path name for the destination file. In
-        this case, the name and format parameters are ignored.
-        If the 'dest_dir' parameter is specified, the path name for the
-        destination file is: <hostname>_<name>.<format>.  If the
-        destination file already exists, and the 'dest_dir' option is
-        specified, or the 'dest' parameter is specified and the self.destfile
-        attribute is not present, the file is overwritten. If the 'dest'
-        parameter is specified and the self.destfile attribute is present, then
-        the file is appended. This allows multiple text outputs to be written
-        to the same file.
+        local Ansible control machine based on the 'diffs_file', 'dest', and
+        'dest_dir' module parameters. If neither parameter is specified,
+        then this method is a no-op. If the 'dest' or 'diffs_file' parameter is
+        specified, the value of the 'dest' or 'diffs_file' parameter is used as
+        the path name for the destination file. In this case, the name and
+        format parameters are ignored. If the 'dest_dir' parameter is
+        specified, the path name for the destination file is:
+        <hostname>_<name>.<format>.  If the destination file already exists,
+        and the 'dest_dir' option is specified, or the 'dest' parameter is
+        specified and the self.destfile attribute is not present, the file is
+        overwritten. If the 'dest' parameter is specified and the
+        self.destfile attribute is present, then the file is appended. This
+        allows multiple text outputs to be written to the same file.
 
         Args:
             name: The name portion of the destination filename when the
@@ -1208,19 +1628,29 @@ class JuniperJunosModule(AnsibleModule):
         """
         file_path = None
         mode = 'w'
-        if self.params.get('dest') is not None:
-            file_path = os.path.normpath(self.params.get('dest'))
-            if getattr(self, 'destfile', None) is None:
-                self.destfile = self.params.get('dest')
-            else:
-                mode = 'a'
-        elif self.params.get('dest_dir') is not None:
-            dest_dir = self.params.get('dest_dir')
-            hostname = self.params.get('host')
-            # Substitute underscore for spaces.
-            name = name.replace(' ', '_')
-            file_name = '%s_%s.%s' % (hostname, name, format)
-            file_path = os.path.normpath(os.path.join(dest_dir, file_name))
+        if name = 'diff'
+            if self.params.get('diffs_file') is not None:
+                file_path = os.path.normpath(self.params.get('diffs_file'))
+            elif self.params.get('dest_dir') is not None:
+                dest_dir = self.params.get('dest_dir')
+                hostname = self.params.get('host')
+                file_name = '%s.diff' % (hostname)
+                file_path = os.path.normpath(os.path.join(dest_dir, file_name))
+        else:
+            if self.params.get('dest') is not None:
+                file_path = os.path.normpath(self.params.get('dest'))
+                if getattr(self, 'destfile', None) is None:
+                    self.destfile = self.params.get('dest')
+                else:
+                    mode = 'a'
+            elif self.params.get('dest_dir') is not None:
+                dest_dir = self.params.get('dest_dir')
+                hostname = self.params.get('host')
+                # Substitute underscore for spaces.
+                name = name.replace(' ', '_')
+                name = '' if name == 'config' else '_' + name
+                file_name = '%s%s.%s' % (hostname, name, format)
+                file_path = os.path.normpath(os.path.join(dest_dir, file_name))
         if file_path is not None:
             try:
                 with open(file_path, mode) as save_file:
@@ -1229,7 +1659,6 @@ class JuniperJunosModule(AnsibleModule):
             except IOError:
                 self.fail_json(msg="Unable to save output. Failed to "
                                    "open the %s file." % (file_path))
-
 
 class JuniperJunosActionModule(ActionNormal):
     """A subclass of ActionNormal used by all juniper_junos_* modules.
