@@ -801,7 +801,7 @@ def main():
                                        % (diffs_file))
 
     # commit_empty_changes is valid if commit is True
-    if commit_empty_changes is not True:
+    if commit_empty_changes is True:
         if commit is False:
             junos_module.fail_json(msg="The commit_empty_changes option "
                                        "is true, but 'commit' is false. "

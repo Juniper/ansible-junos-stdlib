@@ -49,10 +49,7 @@ if module_utils_path is not None:
 
 # Use the custom behavior of JuniperJunosActionModule as the superclass of
 # our ActionModule.
-from juniper_junos_common import JuniperJunosActionModule
-
-
-class ActionModule(JuniperJunosActionModule):
+class ActionModule(juniper_junos_common.JuniperJunosActionModule):
     """Translates junos_zeroize args to juniper_junos_system args.
 
     This class is a subclass of JuniperJunosActionModule. It exists solely
