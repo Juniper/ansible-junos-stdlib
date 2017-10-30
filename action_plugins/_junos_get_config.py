@@ -50,21 +50,20 @@ if module_utils_path is not None:
 # Use the custom behavior of JuniperJunosActionModule as the superclass of
 # our ActionModule.
 class ActionModule(juniper_junos_common.JuniperJunosActionModule):
-    """Translates junos_rollback args to juniper_junos_config args.
+    """Translates junos_get_config args to juniper_junos_config args.
 
     This class is a subclass of JuniperJunosActionModule. It exists solely
     for backwards compatibility. It translates the arguments from the old
-    junos_rollback module into the arguments on the new
+    junos_get_config module into the arguments on the new
     juniper_junos_config module.
     """
     def run(self, tmp=None, task_vars=None):
-        rollback = self._task.args.get('rollback')
-        if rollback is None:
-            # rollback is mandatory when called as junos_rollback.
-            # Mimic this behavior be setting rollback to 'value not specified'.
-            self._task.args['rollback'] = 'value not specified'
-        # Always commit changes to mimic the previous behavior
-        self._task.args['commit_empty_changes'] = True
+        # No diff, check, or commit
+        self._task.args['diff'] = False
+        self._task.args['check'] = False
+        self._task.args['commit'] = False
+        # Retrieve candidate
+        self._task.args['retrieve'] = 'candidate'
 
         # Remaining arguments can be passed through transparently.
 
