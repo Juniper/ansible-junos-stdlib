@@ -1253,9 +1253,16 @@ class JuniperJunosModule(AnsibleModule):
             self.fail_json(msg='Failure diffing the configuraton: %s' %
                                (str(ex)))
 
-    def load_src_configuration(self, action, src,
-                               ignore_warning=None, format=None):
-        """Load the candidate configuration from a file on the control machine.
+    def load_configuration(self,
+                           action,
+                           lines=None,
+                           src=None,
+                           template=None,
+                           vars=None,
+                           url=None,
+                           ignore_warning=None,
+                           format=None):
+        """Load the candidate configuration.
 
         Load the candidate configuration from the specified src file using the
         specified action.
@@ -1264,143 +1271,11 @@ class JuniperJunosModule(AnsibleModule):
             action - The type of load to perform: 'merge', 'replace', 'set',
                                                   'override', 'overwrite', and
                                                   'update'
+            lines - A list of strings containing the configuration.
             src - The file path on the local Ansible control machine to the
                   configuration to be loaded.
-            ignore_warning - What warnings to ignore.
-            format - The format of the configuration being loaded.
-
-        Failures:
-            - An error returned from loading the configuration.
-        """
-        if self.dev is None or self.config is None:
-            self.fail_json(msg='The device or configuration is not open.')
-
-        action_spec = {}
-        if action == 'replace':
-            action_spec = {}
-        if action == 'merge':
-            action_spec = {'merge': True}
-        if action == 'override' or action == 'overwrite':
-            action_spec = {'overwrite': True}
-        if action == 'update':
-            action_spec = {'update': True}
-        if action == 'set':
-            format = 'set'
-
-        self.logger.debug("Loading the configuration from: %s.", src)
-        try:
-            self.config.load(path=src,
-                             ignore_warning=ignore_warning,
-                             format=format, **action_spec)
-            self.logger.debug("Configuration loaded.")
-        except (self.pyez_exception.RpcError,
-                self.pyez_exception.ConnectError) as ex:
-            self.fail_json(msg='Failure loading the configuraton: %s' %
-                               (str(ex)))
-
-    def load_lines_configuration(self, action, lines,
-                                 ignore_warning=None, format=None):
-        """Load the candidate configuration from a list of lines strings.
-
-        Load the candidate configuration from the lines argument using the
-        specified action.
-
-        Args:
-            action - The type of load to perform: 'merge', 'replace', 'set',
-                                                  'override', 'overwrite', and
-                                                  'update'
-            lines - A list of strings containing the configuration.
-            ignore_warning - What warnings to ignore.
-            format - The format of the configuration being loaded.
-
-        Failures:
-            - An error returned from loading the configuration.
-        """
-        if self.dev is None or self.config is None:
-            self.fail_json(msg='The device or configuration is not open.')
-
-        action_spec = {}
-        if action == 'replace':
-            action_spec = {}
-        if action == 'merge':
-            action_spec = {'merge': True}
-        if action == 'override' or action == 'overwrite':
-            action_spec = {'overwrite': True}
-        if action == 'update':
-            action_spec = {'update': True}
-        if action == 'set':
-            format = 'set'
-
-        config = '\n'.join(map(lambda line: line.rstrip('\n'), lines))
-
-        self.logger.debug("Loading the supplied configuration.")
-        try:
-            self.config.load(config,
-                             ignore_warning=ignore_warning,
-                             format=format, **action_spec)
-            self.logger.debug("Configuration loaded.")
-        except (self.pyez_exception.RpcError,
-                self.pyez_exception.ConnectError) as ex:
-            self.fail_json(msg='Failure loading the configuraton: %s' %
-                               (str(ex)))
-
-    def load_template_configuration(self, action, template=None, vars=None,
-                                    ignore_warning=None, format=None):
-        """Load the candidate configuration from a Jinja2 template.
-
-        Load the candidate configuration from a Jinja2 template.
-
-        Args:
-            action - The type of load to perform: 'merge', 'replace', 'set',
-                                                  'override', 'overwrite', and
-                                                  'update'
-            template - The path to the Jinja2 template to render the
-                       configuration.
-            vars = The variables used to render the template.
-            ignore_warning - What warnings to ignore.
-            format - The format of the configuration being loaded.
-
-        Failures:
-            - An error returned from loading the configuration.
-        """
-        if self.dev is None or self.config is None:
-            self.fail_json(msg='The device or configuration is not open.')
-
-        action_spec = {}
-        if action == 'replace':
-            action_spec = {}
-        if action == 'merge':
-            action_spec = {'merge': True}
-        if action == 'override' or action == 'overwrite':
-            action_spec = {'overwrite': True}
-        if action == 'update':
-            action_spec = {'update': True}
-        if action == 'set':
-            format = 'set'
-
-        self.logger.debug("Loading the configuration from the %s template.",
-                          template)
-        try:
-            self.config.load(template_path=template,
-                             template_vars=vars,
-                             ignore_warning=ignore_warning,
-                             format=format, **action_spec)
-            self.logger.debug("Templated configuration loaded.")
-        except (self.pyez_exception.RpcError,
-                self.pyez_exception.ConnectError) as ex:
-            self.fail_json(msg='Failure loading the configuraton: %s' %
-                               (str(ex)))
-
-    def load_url_configuration(self, action, url=None,
-                               ignore_warning=None, format=None):
-        """Load the candidate configuration from a URL.
-
-        Load the candidate configuration from a URL.
-
-        Args:
-            action - The type of load to perform: 'merge', 'replace', 'set',
-                                                  'override', 'overwrite', and
-                                                  'update'
+            template - The Jinja2 template used to renter the configuration.
+            vars - The variables used to render the template.
             url - The URL to the candidate configuration.
             ignore_warning - What warnings to ignore.
             format - The format of the configuration being loaded.
@@ -1411,25 +1286,41 @@ class JuniperJunosModule(AnsibleModule):
         if self.dev is None or self.config is None:
             self.fail_json(msg='The device or configuration is not open.')
 
-        action_spec = {}
-        if action == 'replace':
-            action_spec = {}
-        if action == 'merge':
-            action_spec = {'merge': True}
-        if action == 'override' or action == 'overwrite':
-            action_spec = {'overwrite': True}
-        if action == 'update':
-            action_spec = {'update': True}
+        load_args = {}
+        config = None
+        if ignore_warning is not None:
+            load_args['ignore_warning'] = ignore_warning
         if action == 'set':
             format = 'set'
+        if format is not None:
+            load_args['format'] = None
+        if action == 'merge':
+            load_args['merge'] = True
+        if action == 'override' or action == 'overwrite':
+            load_args['overwrite'] = True
+        if action == 'update':
+            load_args['update'] = True
+        if lines is not None:
+            config = '\n'.join(map(lambda line: line.rstrip('\n'), lines))
+            self.logger.debug("Loading the supplied configuration.")
+        if src is not None:
+            load_args['path'] = src
+            self.logger.debug("Loading the configuration from: %s.", src)
+        if template is not None:
+            load_args['template_path'] = template
+            load_args['template_vars'] = vars
+            self.logger.debug("Loading the configuration from the %s "
+                              "template.", template)
+        if url is not None:
+            load_args['url'] = url
+            self.logger.debug("Loading the configuration from %s.", url)
 
-        self.logger.debug("Loading the configuration from %s.",
-                          url)
         try:
-            self.config.load(url=url,
-                             ignore_warning=ignore_warning,
-                             format=format, **action_spec)
-            self.logger.debug("URL configuration loaded.")
+            if config is not None:
+                self.config.load(config, **load_args)
+            else:
+                self.config.load(**load_args)
+            self.logger.debug("Configuration loaded.")
         except (self.pyez_exception.RpcError,
                 self.pyez_exception.ConnectError) as ex:
             self.fail_json(msg='Failure loading the configuraton: %s' %

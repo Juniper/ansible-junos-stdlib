@@ -75,7 +75,7 @@ class ActionModule(JuniperJunosActionModule):
         if not action:
             action = 'merge'
         # Set the load argument based on action
-        self._task.args['load'] = 'action'
+        self._task.args['load'] = action
 
         # Remaining arguments can be passed through transparently.
 

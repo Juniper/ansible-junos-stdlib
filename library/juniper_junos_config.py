@@ -690,6 +690,7 @@ def main():
                         default=True),
             confirmed=dict(required=False,
                            type='int',
+                           aliases=['confirm'],
                            default=None),
             comment=dict(required=False,
                          type='str',
@@ -842,28 +843,27 @@ def main():
         results['msg'] += ', rolled back'
     elif load is not None:
         if src is not None:
-            junos_module.load_src_configuration(action=load,
-                                                src=src,
-                                                ignore_warning=ignore_warning,
-                                                format=format)
+            junos_module.load_configuration(action=load,
+                                            src=src,
+                                            ignore_warning=ignore_warning,
+                                            format=format)
             results['file'] = src
         elif lines is not None:
-            junos_module.load_lines_configuration(action=load,
-                                                  lines=lines,
-                                                  ignore_warning=ignore_warning,
-                                                  format=format)
+            junos_module.load_configuration(action=load,
+                                            lines=lines,
+                                            ignore_warning=ignore_warning,
+                                            format=format)
         elif template is not None:
-            junos_module.load_template_configuration(
-                action=load,
-                template=template,
-                vars=vars,
-                ignore_warning=ignore_warning,
-                format=format)
+            junos_module.load_configuration(action=load,
+                                            template=template,
+                                            vars=vars,
+                                            ignore_warning=ignore_warning,
+                                            format=format)
         elif url is not None:
-            junos_module.load_url_configuration(action=load,
-                                                url=url,
-                                                ignore_warning=ignore_warning,
-                                                format=format)
+            junos_module.load_configuration(action=load,
+                                            url=url,
+                                            ignore_warning=ignore_warning,
+                                            format=format)
         else:
             junos_module.fail_json(msg="The load option was set to: %s, but "
                                        "no 'src', 'lines', 'template', or "
