@@ -956,7 +956,7 @@ class JuniperJunosModule(AnsibleModule):
         """
         # Nothing to do if rollback wasn't specified or is 'rescue'.
         rollback = self.params.get('rollback')
-        if rollback is None or 'rescue':
+        if rollback is None or rollback == 'rescue':
             return rollback
         if isinstance(rollback, basestring):
             try:
@@ -1280,7 +1280,7 @@ class JuniperJunosModule(AnsibleModule):
             action_spec = {}
         if action == 'merge':
             action_spec = {'merge': True}
-        if action == 'override' or action = 'overwrite':
+        if action == 'override' or action == 'overwrite':
             action_spec = {'overwrite': True}
         if action == 'update':
             action_spec = {'update': True}
@@ -1324,7 +1324,7 @@ class JuniperJunosModule(AnsibleModule):
             action_spec = {}
         if action == 'merge':
             action_spec = {'merge': True}
-        if action == 'override' or action = 'overwrite':
+        if action == 'override' or action == 'overwrite':
             action_spec = {'overwrite': True}
         if action == 'update':
             action_spec = {'update': True}
@@ -1371,7 +1371,7 @@ class JuniperJunosModule(AnsibleModule):
             action_spec = {}
         if action == 'merge':
             action_spec = {'merge': True}
-        if action == 'override' or action = 'overwrite':
+        if action == 'override' or action == 'overwrite':
             action_spec = {'overwrite': True}
         if action == 'update':
             action_spec = {'update': True}
@@ -1416,7 +1416,7 @@ class JuniperJunosModule(AnsibleModule):
             action_spec = {}
         if action == 'merge':
             action_spec = {'merge': True}
-        if action == 'override' or action = 'overwrite':
+        if action == 'override' or action == 'overwrite':
             action_spec = {'overwrite': True}
         if action == 'update':
             action_spec = {'update': True}
@@ -1435,7 +1435,7 @@ class JuniperJunosModule(AnsibleModule):
             self.fail_json(msg='Failure loading the configuraton: %s' %
                                (str(ex)))
 
-    def commit_configuration(self, ignore_warning=None, comment=None
+    def commit_configuration(self, ignore_warning=None, comment=None,
                              confirmed=None):
         """Commit the candidate configuration.
 
@@ -1628,7 +1628,7 @@ class JuniperJunosModule(AnsibleModule):
         """
         file_path = None
         mode = 'w'
-        if name = 'diff'
+        if name == 'diff':
             if self.params.get('diffs_file') is not None:
                 file_path = os.path.normpath(self.params.get('diffs_file'))
             elif self.params.get('dest_dir') is not None:

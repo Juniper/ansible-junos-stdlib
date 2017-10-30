@@ -501,6 +501,11 @@ msg:
     - A human-readable message indicating the result.
   returned: always
   type: str
+file:
+  description:
+    - The value of the I(src) option.
+  returned: when I(load) is not None and I(src) is not None
+  type: str
 config:
   description: The retrieved configuration. The value is a single multi-line
                string in the format specified by the I(format) option.
@@ -648,6 +653,7 @@ def main():
                         default=None),
             check=dict(required=False,
                        type='bool',
+                       aliases=['check_commit', 'commit_check'],
                        default=True),
             diff=dict(required=False,
                       type='bool',
@@ -698,7 +704,7 @@ def main():
                             ['diffs_file', 'dest_dir'],
                             ['dest', 'dest_dir']],
         # Required together options.
-        required_together[['template', 'vars']],
+        required_together=[['template', 'vars']],
         # Check mode is implemented.
         supports_check_mode=True
     )
@@ -707,11 +713,35 @@ def main():
     # Parse ignore_warning value
     ignore_warning = junos_module.parse_ignore_warning_option()
 
+    # Straight from params
+    config_mode = junos_module.params.get('config_mode')
+
     # Parse rollback value
     rollback = junos_module.parse_rollback_option()
 
-    # If load is not None, must have one of src, template, url, lines
+    # Straight from params
     load = junos_module.params.get('load')
+    src = junos_module.params.get('src')
+    lines = junos_module.params.get('lines')
+    template = junos_module.params.get('template')
+    vars = junos_module.params.get('vars')
+    url = junos_module.params.get('url')
+    format = junos_module.params.get('format')
+    check = junos_module.params.get('check')
+    diff = junos_module.params.get('diff')
+    diffs_file = junos_module.params.get('diffs_file')
+    dest_dir = junos_module.params.get('dest_dir')
+    return_output = junos_module.params.get('return_output')
+    retrieve = junos_module.params.get('retrieve')
+    options = junos_module.params.get('options')
+    filter = junos_module.params.get('filter')
+    dest = junos_module.params.get('dest')
+    commit = junos_module.params.get('commit')
+    confirmed = junos_module.params.get('confirmed')
+    comment = junos_module.params.get('comment')
+    check_commit_wait = junos_module.params.get('check_commit_wait')
+
+    # If load is not None, must have one of src, template, url, lines
     if load is not None:
         for option in ['src', 'lines', 'template', 'url']:
             if junos_module.params.get(option) is not None:
@@ -726,8 +756,6 @@ def main():
                                        % (load))
 
     # format is valid if retrieve is not None or load is not None.
-    format = junos_module.params.get('format')
-    retrieve = junos_module.params.get('retrive')
     if format is not None:
         if load is None and retrieve is None:
             junos_module.fail_json(msg="The format option (%s) is specified, "
@@ -737,7 +765,6 @@ def main():
                                        % (format))
 
     # dest_dir is valid if retrieve is not None or diff is True.
-    dest_dir = junos_module.params.get('dest_dir')
     if dest_dir is not None:
         if retrieve is None and diff is False:
             junos_module.fail_json(msg="The dest_dir option (%s) is specified,"
@@ -747,7 +774,6 @@ def main():
                                        % (dest_dir))
 
     # dest is valid if retrieve is not None
-    dest = junos_module.params.get('dest')
     if dest is not None:
         if retrieve is None:
             junos_module.fail_json(msg="The dest option (%s) is specified,"
@@ -756,7 +782,6 @@ def main():
                                        % (dest))
 
     # diffs_file is valid if diff is True
-    diffs_file = junos_module.params.get('diffs_file')
     if diffs_file is not None:
         if diff is False:
             junos_module.fail_json(msg="The diffs_file option (%s) is "
@@ -764,7 +789,6 @@ def main():
                                        % (diffs_file))
 
     # comment is valid if commit is True
-    comment = junos_module.params.get('comment')
     if comment is not None:
         if commit is False:
             junos_module.fail_json(msg="The comment option (%s) is "
@@ -772,7 +796,6 @@ def main():
                                        % (comment))
 
     # confirmed is valid if commit is True
-    confirmed = junos_module.params.get('confirmed')
     if confirmed is not None:
         if commit is False:
             junos_module.fail_json(msg="The confirmed option (%s) is "
@@ -784,7 +807,6 @@ def main():
                                        "positive integer value." % (confirmed))
 
     # check_commit_wait is valid if check is True and commit is True
-    check_commit_wait = junos_module.params.get('check_commit_wait')
     if check_commit_wait is not None:
         if commit is False:
             junos_module.fail_json(msg="The check_commit_wait option (%s) is "
@@ -807,7 +829,7 @@ def main():
 
     junos_module.logger.debug("Step 1 - Open a candidate configuration "
                               "database.")
-    junos_module.open_configuration()
+    junos_module.open_configuration(mode=config_mode)
     results['msg'] += 'opened'
 
     junos_module.logger.debug("Step 2 - Load configuration data into the "
@@ -824,6 +846,7 @@ def main():
                                                 src=src,
                                                 ignore_warning=ignore_warning,
                                                 format=format)
+            results['file'] = src
         elif lines is not None:
             junos_module.load_lines_configuration(action=load,
                                                   lines=lines,
@@ -895,13 +918,18 @@ def main():
         results['msg'] += ', retrieved'
 
     junos_module.logger.debug("Step 6 - Commit the configuration changes.")
-    if commit is True:
-        if check_commit_wait is not None:
-            time.sleep(check_commit_wait)
-        junos_module.commit_configuration(ignore_warning=ignore_warning,
-                                          comment=comment,
-                                          confirmed=confirmed)
-        results['msg'] += ', committed'
+    if commit is True and not junos_module.check_mode:
+        if ((rollback is None and load is None) or
+            ((rollback is not None or load is not None) and
+             results['changed'] is True)):
+            if check_commit_wait is not None:
+                time.sleep(check_commit_wait)
+            junos_module.commit_configuration(ignore_warning=ignore_warning,
+                                              comment=comment,
+                                              confirmed=confirmed)
+            results['msg'] += ', committed'
+        else:
+            junos_module.logger.debug("Skipping commit. Nothing changed.")
 
     junos_module.logger.debug("Step 7 - Close the candidate configuration "
                               "database.")
