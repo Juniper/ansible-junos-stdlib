@@ -436,6 +436,13 @@ options:
     required: false
     default: true
     type: bool
+  commit_empty_changes:
+    description:
+      - Perform a commit operation, even if there are no changes between the
+        candidate configuration and the committed configuration.
+    required: false
+    default: false
+    type: bool
   confirmed:
     description:
       - Provide a confirmed timeout, in minutes, to be used with the commit
@@ -688,6 +695,9 @@ def main():
             commit=dict(required=False,
                         type='bool',
                         default=True),
+            commit_empty_changes=dict(required=False,
+                                      type='bool',
+                                      default=False),
             confirmed=dict(required=False,
                            type='int',
                            aliases=['confirm'],
@@ -738,6 +748,7 @@ def main():
     filter = junos_module.params.get('filter')
     dest = junos_module.params.get('dest')
     commit = junos_module.params.get('commit')
+    commit_empty_changes = junos_module.params.get('commit_empty_changes')
     confirmed = junos_module.params.get('confirmed')
     comment = junos_module.params.get('comment')
     check_commit_wait = junos_module.params.get('check_commit_wait')
@@ -788,6 +799,15 @@ def main():
             junos_module.fail_json(msg="The diffs_file option (%s) is "
                                        "specified, but 'diff' is false."
                                        % (diffs_file))
+
+    # commit_empty_changes is valid if commit is True
+    if commit_empty_changes is not True:
+        if commit is False:
+            junos_module.fail_json(msg="The commit_empty_changes option "
+                                       "is true, but 'commit' is false. "
+                                       "The commit_empty_changes option "
+                                       "may only be specified when "
+                                       "'commit' is true.")
 
     # comment is valid if commit is True
     if comment is not None:
@@ -919,7 +939,12 @@ def main():
 
     junos_module.logger.debug("Step 6 - Commit the configuration changes.")
     if commit is True and not junos_module.check_mode:
-        if ((rollback is None and load is None) or
+        # Perform the commit if:
+        # 1) commit_empty_changes is True
+        # 2) Neither rollback or load is set. i.e. confirming a previous commit
+        # 3) rollback or load is set, and there were actual changes.
+        if (commit_empty_changes is True or
+            (rollback is None and load is None) or
             ((rollback is not None or load is not None) and
              results['changed'] is True)):
             if check_commit_wait is not None:

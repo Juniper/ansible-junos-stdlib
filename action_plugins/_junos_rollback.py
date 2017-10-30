@@ -61,22 +61,6 @@ class ActionModule(JuniperJunosActionModule):
     juniper_junos_config module.
     """
     def run(self, tmp=None, task_vars=None):
-        # Pop the action arguments
-        update = self._task.args.pop('update', False)
-        overwrite = self._task.args.pop('overwrite', False)
-        replace = self._task.args.pop('replace', False)
-        action = ''
-        if update is True:
-            action += 'update'
-        if overwrite is True:
-            action += 'overwrite'
-        if replace is True:
-            action += 'replace'
-        if not action:
-            action = 'merge'
-        # Set the load argument based on action
-        self._task.args['load'] = action
-
         # Always commit changes to mimic the previous behavior
         self._task.args['commit_empty_changes'] = True
 
