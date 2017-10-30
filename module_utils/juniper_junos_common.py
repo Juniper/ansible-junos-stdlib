@@ -108,7 +108,8 @@ LXML_ETREE_INSTALLATION_URL = "http://lxml.de/installation.html"
 # Minimum jxmlease version required by shared code.
 MIN_JXMLEASE_VERSION = "1.0.1"
 # Installation URL for jxmlease.
-JXMLEASE_INSTALLATION_URL = "http://jxmlease.readthedocs.io/en/stable/install.html"
+JXMLEASE_INSTALLATION_URL = \
+    "http://jxmlease.readthedocs.io/en/stable/install.html"
 
 
 class ModuleDocFragment(object):
@@ -1026,8 +1027,8 @@ class JuniperJunosModule(AnsibleModule):
 
     def close_configuration(self):
         if self.config is not None:
-            # Because self.fail_json() calls self.close_configuration(), we must
-            # set self.config = None BEFORE closing the config in order to
+            # Because self.fail_json() calls self.close_configuration(), we
+            # must set self.config = None BEFORE closing the config in order to
             # avoid the infinite recursion which would occur if closing the
             # configuration raised an exception.
             config = self.config
@@ -1165,7 +1166,6 @@ class JuniperJunosModule(AnsibleModule):
             self.fail_json(msg='Unable to return configuration in %s format.' %
                                (format))
         return return_val
-
 
     def rollback_configuration(self, id):
         """Rolback the device configuration to the specified id.
@@ -1550,6 +1550,7 @@ class JuniperJunosModule(AnsibleModule):
             except IOError:
                 self.fail_json(msg="Unable to save output. Failed to "
                                    "open the %s file." % (file_path))
+
 
 class JuniperJunosActionModule(ActionNormal):
     """A subclass of ActionNormal used by all juniper_junos_* modules.

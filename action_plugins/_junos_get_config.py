@@ -47,6 +47,7 @@ if module_utils_path is not None:
     import juniper_junos_common
     del sys.path[0]
 
+
 # Use the custom behavior of JuniperJunosActionModule as the superclass of
 # our ActionModule.
 class ActionModule(juniper_junos_common.JuniperJunosActionModule):
