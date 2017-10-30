@@ -1017,7 +1017,10 @@ class JuniperJunosModule(AnsibleModule):
                 if config.mode == 'exclusive':
                     config.lock()
                 elif config.mode == 'private':
-                    self.dev.rpc.open_configuration(private=True)
+                    self.dev.rpc.open_configuration(
+                        private=True,
+                        ignore_warning='uncommitted changes will be '
+                                       'discarded on exit')
             except (pyez_exception.ConnectError,
                     pyez_exception.RpcError) as ex:
                 self.fail_json(msg='Unable to open the configuration in %s '
@@ -1293,7 +1296,7 @@ class JuniperJunosModule(AnsibleModule):
         if action == 'set':
             format = 'set'
         if format is not None:
-            load_args['format'] = None
+            load_args['format'] = format
         if action == 'merge':
             load_args['merge'] = True
         if action == 'override' or action == 'overwrite':
@@ -1319,6 +1322,7 @@ class JuniperJunosModule(AnsibleModule):
             if config is not None:
                 self.config.load(config, **load_args)
             else:
+                self.logger.debug("Load args %s.", str(load_args))
                 self.config.load(**load_args)
             self.logger.debug("Configuration loaded.")
         except (self.pyez_exception.RpcError,
