@@ -67,9 +67,6 @@ class ActionModule(JuniperJunosActionModule):
             # In the new module, you can potentially do both.
             # If check is set on the old module, then we need to not commit.
             self._task.args['commit'] = False
-        else:
-            # Set commit changes to mimic the previous behavior
-            self._task.args['commit_empty_changes'] = True
 
         # Remaining arguments can be passed through transparently.
 
