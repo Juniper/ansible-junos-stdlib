@@ -61,6 +61,11 @@ class ActionModule(JuniperJunosActionModule):
     juniper_junos_config module.
     """
     def run(self, tmp=None, task_vars=None):
+        rollback = self._task.args.get('rollback')
+        if rollback is None:
+            # rollback is mandatory when called as junos_rollback.
+            # Mimic this behavior be setting rollback to 'value not specified'.
+            self._task.args['rollback'] = 'value not specified'
         # Always commit changes to mimic the previous behavior
         self._task.args['commit_empty_changes'] = True
 
