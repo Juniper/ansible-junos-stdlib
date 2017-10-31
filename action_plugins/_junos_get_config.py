@@ -51,23 +51,20 @@ if module_utils_path is not None:
 # Use the custom behavior of JuniperJunosActionModule as the superclass of
 # our ActionModule.
 class ActionModule(juniper_junos_common.JuniperJunosActionModule):
-    """Translates junos_zeroize args to juniper_junos_system args.
+    """Translates junos_get_config args to juniper_junos_config args.
 
     This class is a subclass of JuniperJunosActionModule. It exists solely
     for backwards compatibility. It translates the arguments from the old
-    junos_zeroize module into the arguments on the new juniper_junos_system
-    module.
+    junos_get_config module into the arguments on the new
+    juniper_junos_config module.
     """
     def run(self, tmp=None, task_vars=None):
-        # Check for the 'zeroize' option which was mandatory for
-        # the junos_zeroize module.
-        if 'zeroize' in self._task.args:
-            # Delete the zeroize option.
-            zeroize = self._task.args.pop('zeroize')
-            # Add the action option with the value from the zeroize option.
-            # This should normally be the value 'zeroize'. If it's not, then
-            # the juniper_junos_system module will throw an appropriate error.
-            self._task.args['action'] = zeroize
+        # No diff, check, or commit
+        self._task.args['diff'] = False
+        self._task.args['check'] = False
+        self._task.args['commit'] = False
+        # Retrieve candidate
+        self._task.args['retrieve'] = 'candidate'
 
         # Remaining arguments can be passed through transparently.
 

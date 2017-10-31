@@ -112,7 +112,7 @@ options:
     type: 'dict or list of dict'
     aliases:
       - attr
-  filter_xml:
+  filter:
     description:
       - This argument only applies if the I(rpcs) option contains a single
         RPC with the value 'get-config'. When used, this value specifies an
@@ -123,6 +123,8 @@ options:
     required: false
     default: none
     type: 'str'
+    aliases:
+      - filter_xml
   dest:
     description:
       - The path to a file, on the Ansible control machine, where the output of
@@ -446,9 +448,10 @@ def main():
                        type='str',
                        aliases=['attr'],
                        default=None),
-            filter_xml=dict(required=False,
-                            type='str',
-                            default=None),
+            filter=dict(required=False,
+                        type='str',
+                        aliases=['filter_xml'],
+                        default=None),
             dest=dict(required=False,
                       type='path',
                       aliases=['destination'],
@@ -526,11 +529,11 @@ def main():
     else:
         attrs = [None] * len(rpcs)
 
-    # Check filter_xml
-    if junos_module.params.get('filter_xml') is not None:
+    # Check filter
+    if junos_module.params.get('filter') is not None:
         if (len(rpcs) != 1 or (rpcs[0] != 'get-config' and
                                rpcs[0] != 'get_config')):
-            junos_module.fail_json(msg="The filter_xml option is only valid "
+            junos_module.fail_json(msg="The filter option is only valid "
                                        "when the rpcs option value is a "
                                        "single 'get-config' RPC.")
 
@@ -550,7 +553,7 @@ def main():
         # Execute the RPC
         try:
             if rpc_string == 'get-config':
-                filter_xml = junos_module.params.get('filter_xml')
+                filter = junos_module.params.get('filter')
                 if attr is None:
                     attr = {}
                 if kwarg is None:
@@ -558,8 +561,8 @@ def main():
                 junos_module.logger.debug('Executing "get-config" RPC. '
                                           'filter_xml=%s, options=%s, '
                                           'kwargs=%s',
-                                          filter_xml, str(attr), str(kwarg))
-                resp = junos_module.dev.rpc.get_config(filter_xml=filter_xml,
+                                          filter, str(attr), str(kwarg))
+                resp = junos_module.dev.rpc.get_config(filter_xml=filter,
                                                        options=attr, **kwarg)
                 result['msg'] = 'The "get-config" RPC executed successfully.'
                 junos_module.logger.debug('The "get-config" RPC executed '
