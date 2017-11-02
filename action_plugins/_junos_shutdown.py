@@ -70,12 +70,17 @@ class ActionModule(juniper_junos_common.JuniperJunosActionModule):
                 # argument for the junos_shutdown module.
                 if 'reboot' in self._task.args:
                     reboot = self._task.args.pop('reboot')
-                if reboot is True:
+                if reboot is not None and self.convert_to_bool(reboot) is True:
                     # Translate to action="reboot"
                     self._task.args['action'] = 'reboot'
-                else:
+                elif reboot is None or self.convert_to_bool(reboot) is False:
                     # Translate to action="shutdown"
                     self._task.args['action'] = 'shutdown'
+                else:
+                    # This isn't a valid value for action/reboot
+                    # We'll pass it through and the module will complain
+                    # appropriately.
+                    self._task.args['action'] = reboot
             else:
                 # This isn't a valid value for action/shutdown
                 # We'll pass it through and the module will complain

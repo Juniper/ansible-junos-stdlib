@@ -112,6 +112,27 @@ JXMLEASE_INSTALLATION_URL = \
     "http://jxmlease.readthedocs.io/en/stable/install.html"
 
 
+def convert_to_bool_func(arg):
+    """Try converting arg to a bool value using Ansible's aliases for bool.
+
+    Args:
+        arg: The value to convert.
+
+    Returns:
+        A boolean value if successfully converted, or None if not.
+    """
+    if arg is None or type(arg) == bool:
+        return arg
+    if isinstance(arg, basestring):
+        arg = arg.lower()
+    if arg in BOOLEANS_TRUE:
+        return True
+    elif arg in BOOLEANS_FALSE:
+        return False
+    else:
+        return None
+
+
 class ModuleDocFragment(object):
     """Documentation fragment for connection-related parameters.
 
@@ -797,16 +818,7 @@ class JuniperJunosModule(AnsibleModule):
         Returns:
             A boolean value if successfully converted, or None if not.
         """
-        if arg is None or type(arg) == bool:
-            return arg
-        if isinstance(arg, basestring):
-            arg = arg.lower()
-        if arg in BOOLEANS_TRUE:
-            return True
-        elif arg in BOOLEANS_FALSE:
-            return False
-        else:
-            return None
+        return convert_to_bool_func(arg)
 
     def parse_arg_to_list_of_dicts(self,
                                    option_name,
@@ -1620,3 +1632,14 @@ class JuniperJunosActionModule(ActionNormal):
 
         # Call the parent action module.
         return super(JuniperJunosActionModule, self).run(tmp, task_vars)
+
+    def convert_to_bool(self, arg):
+        """Try converting arg to a bool value using Ansible's aliases for bool.
+
+        Args:
+            arg: The value to convert.
+
+        Returns:
+            A boolean value if successfully converted, or None if not.
+        """
+        return convert_to_bool_func(arg)
