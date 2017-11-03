@@ -70,6 +70,14 @@ except ImportError:
     HAS_PYEZ_CONFIG = False
 
 try:
+    import jnpr.junos.op
+    import jnpr.junos.factory.factory_loader
+    import jnpr.junos.factory.table
+    HAS_PYEZ_OP_TABLE = True
+except ImportError:
+    HAS_PYEZ_OP_TABLE = False
+
+try:
     import jnpr.junos.exception as pyez_exception
     HAS_PYEZ_EXCEPTIONS = True
 except ImportError:
@@ -87,6 +95,11 @@ try:
 except ImportError:
     HAS_JXMLEASE_VERSION = None
 
+try:
+    import yaml
+    HAS_YAML_VERSION = yaml.__version__
+except ImportError:
+    HAS_YAML_VERSION = None
 
 try:
     # Python 2
@@ -110,7 +123,9 @@ MIN_JXMLEASE_VERSION = "1.0.1"
 # Installation URL for jxmlease.
 JXMLEASE_INSTALLATION_URL = \
     "http://jxmlease.readthedocs.io/en/stable/install.html"
-
+# Minimum yaml version required by shared code.
+MIN_YAML_VERSION = "3.08"
+YAML_INSTALLATION_URL = "http://pyyaml.org/wiki/PyYAMLDocumentation"
 
 def convert_to_bool_func(arg):
     """Try converting arg to a bool value using Ansible's aliases for bool.
@@ -453,6 +468,27 @@ CONFIG_ACTION_CHOICES = ['set', 'merge', 'update',
 CONFIG_MODE_CHOICES = ['exclusive', 'private']
 
 
+def convert_to_bool_func(arg):
+    """Try converting arg to a bool value using Ansible's aliases for bool.
+
+    Args:
+        arg: The value to convert.
+
+    Returns:
+        A boolean value if successfully converted, or None if not.
+    """
+    if arg is None or type(arg) == bool:
+        return arg
+    if isinstance(arg, basestring):
+        arg = arg.lower()
+    if arg in BOOLEANS_TRUE:
+        return True
+    elif arg in BOOLEANS_FALSE:
+        return False
+    else:
+        return None
+
+
 class JuniperJunosModule(AnsibleModule):
     """A subclass of AnsibleModule used by all juniper_junos_* modules.
 
@@ -480,6 +516,7 @@ class JuniperJunosModule(AnsibleModule):
                  min_pyez_version=MIN_PYEZ_VERSION,
                  min_lxml_etree_version=MIN_LXML_ETREE_VERSION,
                  min_jxmlease_version=MIN_JXMLEASE_VERSION,
+                 min_yaml_version=MIN_YAML_VERSION,
                  **kwargs):
         """Initialize a new JuniperJunosModule instance.
 
@@ -541,7 +578,11 @@ class JuniperJunosModule(AnsibleModule):
                         check_device=True,
                         check_sw=True,
                         check_config=True,
+                        check_op_table=True,
                         check_exception=True)
+        self.pyez_factory_loader = jnpr.junos.factory.factory_loader
+        self.pyez_factory_table = jnpr.junos.factory.table
+        self.pyez_op_table = jnpr.junos.op
         self.pyez_exception = pyez_exception
         # Check LXML Etree
         self.check_lxml_etree(min_lxml_etree_version)
@@ -549,6 +590,9 @@ class JuniperJunosModule(AnsibleModule):
         # Check jxmlease
         self.check_jxmlease(min_jxmlease_version)
         self.jxmlease = jxmlease
+        # Check yaml
+        self.check_yaml(min_yaml_version)
+        self.yaml = yaml
         # Setup logging.
         self.logger = self._setup_logging()
         # Open the PyEZ connection
@@ -742,6 +786,7 @@ class JuniperJunosModule(AnsibleModule):
                    check_device=False,
                    check_sw=False,
                    check_config=False,
+                   check_op_table=False,
                    check_exception=False):
         """Check PyEZ is available and version is >= minimum.
 
@@ -775,6 +820,11 @@ class JuniperJunosModule(AnsibleModule):
                 self.fail_json(msg='junos-eznc (aka PyEZ) is installed, but '
                                    'the jnpr.junos.utils.config class could '
                                    'not be imported.')
+        if check_op_table is True:
+            if HAS_PYEZ_OP_TABLE is False:
+                self.fail_json(msg='junos-eznc (aka PyEZ) is installed, but '
+                                   'the jnpr.junos.op class could not be '
+                                   'imported.')
         if check_exception is True:
             if HAS_PYEZ_EXCEPTIONS is False:
                 self.fail_json(msg='junos-eznc (aka PyEZ) is installed, but '
@@ -794,6 +844,20 @@ class JuniperJunosModule(AnsibleModule):
         """
         self._check_library('jxmlease', HAS_JXMLEASE_VERSION,
                             JXMLEASE_INSTALLATION_URL, minimum=minimum)
+
+    def check_yaml(self, minimum=None):
+        """Check yaml is available and version is >= minimum.
+
+        Args:
+            minimum: The minimum PyYAML version required.
+                     Default = None which means no version check.
+
+        Failures:
+            - yaml not installed.
+            - yaml version < minimum.
+        """
+        self._check_library('yaml', HAS_YAML_VERSION,
+                            YAML_INSTALLATION_URL, minimum=minimum)
 
     def check_lxml_etree(self, minimum=None):
         """Check lxml etree is available and version is >= minimum.
