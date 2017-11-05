@@ -845,7 +845,7 @@ def main():
                                    type='int',
                                    default=None)
         ),
-        # Mutually excluisive options.
+        # Mutually exclusive options.
         mutually_exclusive=[['load', 'rollback'],
                             ['src', 'lines', 'template', 'url'],
                             ['diffs_file', 'dest_dir'],
