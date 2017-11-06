@@ -2,7 +2,7 @@ FROM juniper/pyez:latest
 MAINTAINER Stephen Steiner <ssteiner@juniper.net>
 
 ARG ver_ansible=2.4.0.0
-ARG ver_jsnapy=1.2.0
+ARG ver_jsnapy=1.1.0
 
 WORKDIR /tmp
 RUN mkdir /tmp/ansible-junos-stdlib &&\
@@ -23,9 +23,10 @@ ADD version.py /tmp/ansible-junos-stdlib/version.py
 RUN tar -czf Juniper.junos ansible-junos-stdlib &&\
     apk update && apk add ca-certificates &&\
     apk add build-base gcc g++ make python-dev &&\
+    pip install --upgrade pip setuptools &&\
     pip install jxmlease &&\
-    pip install -q ansible==$ver_ansible &&\
-    pip install -q jsnapy==$ver_jsnapy &&\
+    pip install ansible==$ver_ansible &&\
+    pip install jsnapy==$ver_jsnapy &&\
     ansible-galaxy install --roles-path=/etc/ansible/roles Juniper.junos &&\
     apk del -r --purge gcc make g++ &&\
     rm -rf /source/* &&\

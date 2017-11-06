@@ -125,7 +125,7 @@ MIN_LXML_ETREE_VERSION = "3.2.4"
 # Installation URL for LXML.
 LXML_ETREE_INSTALLATION_URL = "http://lxml.de/installation.html"
 # Minimum JSNAPy version required by shared code.
-MIN_JSNAPY_VERSION = "1.2.0"
+MIN_JSNAPY_VERSION = "1.1.0"
 # Installation URL for JSNAPy.
 JSNAPY_INSTALLATION_URL = "https://github.com/Juniper/jsnapy#installation"
 # Minimum jxmlease version required by shared code.
