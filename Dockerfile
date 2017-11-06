@@ -2,7 +2,7 @@ FROM juniper/pyez:latest
 MAINTAINER Stephen Steiner <ssteiner@juniper.net>
 
 ARG ver_ansible=2.4.0.0
-ARG ver_jsnapy=1.1.0
+ARG ver_jsnapy=1.2.0
 
 WORKDIR /tmp
 RUN mkdir /tmp/ansible-junos-stdlib &&\
