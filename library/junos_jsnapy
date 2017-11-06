@@ -50,10 +50,13 @@ description:
       the returned value.
       An experimental Callback_Plugin for junos_jsnapy is available to provide
       additional information about tests that failed.
+      If the callback option is set to "error", the test definition err field 
+      will be printed; if set to "info", both the info and err will be printed.
       To enable it, you need to add "callback_whitelist = jsnapy" in your ansible
       configuration file.
 requirements:
     - junos-eznc >= 1.2.2
+    - JSNAPy >= 1.2.0
 options:
     host:
         description:
@@ -119,6 +122,13 @@ options:
             - The YAML configuration file for the JSNAPy tests
         required: false
         default: None
+    callback:
+        description:
+            - Controls behavior of jsnapy callback function, acceptable values are:
+            - Not set: Original behavior of the callback. Prints node_name, testoperation, and xpath.
+            - error: Prints the templated result of the err field in the JSNAPy test description.
+            - info: Prints the templated result of the err and info fields in the JSNAPy test description.
+
 '''
 
 EXAMPLES = '''
@@ -255,6 +265,8 @@ def jsnap_selection(dev, module):
         config_data = {'tests': test_files_validated}
 
     results = {'action': action}
+    if args['callback'] is not None:
+        results['callback'] = args['callback']
     js = SnapAdmin()
 
     if action == 'snapcheck':
@@ -298,7 +310,8 @@ def main():
                            test_files=dict(required=False, type='list', default=None),
                            config_file=dict(required=False, default=None),
                            dir=dict(required=False, default='/etc/jsnapy/testfiles'),
-                           action=dict(required=True, choices=['check', 'snapcheck', 'snap_pre', 'snap_post'], default=None)
+                           action=dict(required=True, choices=['check', 'snapcheck', 'snap_pre', 'snap_post'], default=None),
+                           callback=dict(required=False, choices=['error', 'info'], default=None)
                            ),
         mutually_exclusive=[['test_files', 'config_file']],
         required_one_of=[['test_files', 'config_file']],
