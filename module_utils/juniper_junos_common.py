@@ -84,6 +84,12 @@ except ImportError:
     HAS_PYEZ_EXCEPTIONS = False
 
 try:
+    import jnpr.jsnapy
+    HAS_JSNAPY_VERSION = jnpr.jsnapy.__version__
+except ImportError:
+    HAS_JSNAPY_VERSION = None
+
+try:
     from lxml import etree
     HAS_LXML_ETREE_VERSION = '.'.join(map(str, etree.LXML_VERSION))
 except ImportError:
@@ -118,6 +124,10 @@ PYEZ_INSTALLATION_URL = "https://github.com/Juniper/py-junos-eznc#installation"
 MIN_LXML_ETREE_VERSION = "3.2.4"
 # Installation URL for LXML.
 LXML_ETREE_INSTALLATION_URL = "http://lxml.de/installation.html"
+# Minimum JSNAPy version required by shared code.
+MIN_JSNAPY_VERSION = "1.2.0"
+# Installation URL for JSNAPy.
+JSNAPY_INSTALLATION_URL = "https://github.com/Juniper/jsnapy#installation"
 # Minimum jxmlease version required by shared code.
 MIN_JXMLEASE_VERSION = "1.0.1"
 # Installation URL for jxmlease.
@@ -515,6 +525,7 @@ class JuniperJunosModule(AnsibleModule):
                  mutually_exclusive=[],
                  min_pyez_version=MIN_PYEZ_VERSION,
                  min_lxml_etree_version=MIN_LXML_ETREE_VERSION,
+                 min_jsnapy_version=MIN_JSNAPY_VERSION,
                  min_jxmlease_version=MIN_JXMLEASE_VERSION,
                  min_yaml_version=MIN_YAML_VERSION,
                  **kwargs):
@@ -587,6 +598,9 @@ class JuniperJunosModule(AnsibleModule):
         # Check LXML Etree
         self.check_lxml_etree(min_lxml_etree_version)
         self.etree = etree
+        # Check jsnapy
+        self.check_jsnapy(min_jsnapy_version)
+        self.jsnapy = jnpr.jsnapy
         # Check jxmlease
         self.check_jxmlease(min_jxmlease_version)
         self.jxmlease = jxmlease
@@ -830,6 +844,20 @@ class JuniperJunosModule(AnsibleModule):
                 self.fail_json(msg='junos-eznc (aka PyEZ) is installed, but '
                                    'the jnpr.junos.exception module could not '
                                    'be imported.')
+
+    def check_jsnapy(self, minimum=None):
+        """Check jsnapy is available and version is >= minimum.
+
+        Args:
+            minimum: The minimum jsnapy version required.
+                     Default = None which means no version check.
+
+        Failures:
+            - jsnapy not installed.
+            - jsnapy version < minimum.
+        """
+        self._check_library('jsnapy', HAS_JSNAPY_VERSION,
+                            JSNAPY_INSTALLATION_URL, minimum=minimum)
 
     def check_jxmlease(self, minimum=None):
         """Check jxmlease is available and version is >= minimum.
