@@ -23,10 +23,10 @@ ADD version.py /tmp/ansible-junos-stdlib/version.py
 RUN tar -czf Juniper.junos ansible-junos-stdlib &&\
     apk update && apk add ca-certificates &&\
     apk add build-base gcc g++ make python-dev &&\
-    pip install junos-netconify &&\
+    pip install --upgrade pip setuptools &&\
     pip install jxmlease &&\
-    pip install -q ansible==$ver_ansible &&\
-    pip install -q jsnapy==$ver_jsnapy &&\
+    pip install ansible==$ver_ansible &&\
+    pip install jsnapy==$ver_jsnapy &&\
     ansible-galaxy install --roles-path=/etc/ansible/roles Juniper.junos &&\
     apk del -r --purge gcc make g++ &&\
     rm -rf /source/* &&\

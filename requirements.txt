@@ -1,4 +1,5 @@
 junos-eznc>=2.1.7
+jsnapy>=1.1.0
 jxmlease>=1.0.1
 lxml>3.2.4
 yaml>=3.08
