@@ -99,6 +99,11 @@ options:
             - Path for the JSNAPy yaml testfiles/configuration file
         required: false
         default: '/etc/jsnapy/testfiles'
+    folder:
+        description:
+            - Path for the JSNAPy folder
+        required: false
+        default: None
     action:
         description:
             Possible actions available
@@ -217,6 +222,7 @@ def jsnap_selection(dev, module):
 
     args = module.params
     action = args['action']
+    folder = args['folder']
     config_file = args.get('config_file')
     if config_file:
         config_dir = args['dir']
@@ -258,13 +264,13 @@ def jsnap_selection(dev, module):
     js = SnapAdmin()
 
     if action == 'snapcheck':
-        snapValue = js.snapcheck(data=config_data, dev=dev)
+        snapValue = js.snapcheck(data=config_data, dev=dev, folder=folder)
     elif action == 'snap_pre':
-        snapValue = js.snap(data=config_data, dev=dev, file_name='PRE')
+        snapValue = js.snap(data=config_data, dev=dev, file_name='PRE', folder=folder)
     elif action == 'snap_post':
-        snapValue = js.snap(data=config_data, dev=dev, file_name='POST')
+        snapValue = js.snap(data=config_data, dev=dev, file_name='POST', folder=folder)
     elif action == 'check':
-        snapValue = js.check(data=config_data, dev=dev, pre_file='PRE', post_file='POST')
+        snapValue = js.check(data=config_data, dev=dev, pre_file='PRE', post_file='POST', folder=folder)
 
     percentagePassed = 0
     if isinstance(snapValue, (list)):
@@ -298,6 +304,7 @@ def main():
                            test_files=dict(required=False, type='list', default=None),
                            config_file=dict(required=False, default=None),
                            dir=dict(required=False, default='/etc/jsnapy/testfiles'),
+                           folder=dict(required=False, default=None),
                            action=dict(required=True, choices=['check', 'snapcheck', 'snap_pre', 'snap_post'], default=None)
                            ),
         mutually_exclusive=[['test_files', 'config_file']],
