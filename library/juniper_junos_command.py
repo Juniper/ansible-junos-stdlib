@@ -315,7 +315,7 @@ results:
   type: list of dict
 '''
 
-import os.path
+import sys
 
 
 def import_juniper_junos_common():
@@ -410,6 +410,12 @@ def main():
         pipe_index = command.find('|')
         if (pipe_index != -1 and
            command[pipe_index:].strip() != 'display xml rpc'):
+            # Allow "show configuration | display set"
+            if ('show configuration' in command and
+                'display set' in command[pipe_index:] and
+                '|' not in command[pipe_index+1:]):
+                continue
+            # Any other "| display " should use the format option instead.
             for valid_format in juniper_junos_common.RPC_OUTPUT_FORMAT_CHOICES:
                 if 'display ' + valid_format in command[pipe_index:]:
                     junos_module.fail_json(
@@ -417,6 +423,8 @@ def main():
                             '(%s) is not supported. Use format: "%s" '
                             'instead.' %
                             (command[pipe_index:], command, valid_format))
+            # Any other "| " is going to produce an error anyway, so fail
+            # with a meaningful message.
             junos_module.fail_json(msg='The pipe modifier (%s) in the command '
                                        '(%s) is not supported.' %
                                        (command[pipe_index:], command))
@@ -480,11 +488,24 @@ def main():
         elif (resp, junos_module.etree._Element):
             # Handle the output based on format
             if format == 'text':
-                text_output = resp.text
-                junos_module.logger.debug('Text output set.')
+                if resp.tag in ['output', 'rpc-reply']:
+                    text_output = resp.text
+                    junos_module.logger.debug('Text output set.')
+                elif resp.tag == 'configuration-information':
+                    text_output = resp.findtext('configuration-output')
+                    junos_module.logger.debug('Text configuration output set.')
+                else:
+                    result['msg'] = 'Unexpected text response tag: %s.' % (
+                                    (resp.tag))
+                    results.append(result)
+                    junos_module.logger.debug('Unexpected text response tag '
+                                              '%s.', resp.tag)
+                    continue
             elif format == 'xml':
+                encode = None if sys.version < '3' else 'unicode'
                 text_output = junos_module.etree.tostring(resp,
-                                                          pretty_print=True)
+                                                          pretty_print=True,
+                                                          encoding=encode)
                 parsed_output = junos_module.jxmlease.parse_etree(resp)
                 junos_module.logger.debug('XML output set.')
             elif format == 'json':
