@@ -304,7 +304,7 @@ options:
   check:
       - Perform a commit check operation.
     required: false
-    default: true
+    default: true (false if retrieve is set and load and rollback are not set)
     type: bool
     aliases:
       - check_commit
@@ -312,7 +312,7 @@ options:
   diff:
       - Perform a configuration compare (diff) operation.
     required: false
-    default: true
+    default: true (false if retrieve is set and load and rollback are not set)
     type: bool
     aliases:
       - compare
@@ -434,7 +434,7 @@ options:
     description:
       - Perform a commit operation.
     required: false
-    default: true
+    default: true (false if retrieve is set and load and rollback are not set)
     type: bool
   commit_empty_changes:
     description:
@@ -797,11 +797,11 @@ def main():
             check=dict(required=False,
                        type='bool',
                        aliases=['check_commit', 'commit_check'],
-                       default=True),
+                       default=None),
             diff=dict(required=False,
                       type='bool',
                       aliases=['compare', 'diffs'],
-                      default=True),
+                      default=None),
             diffs_file=dict(type='path',
                             required=False,
                             default=None),
@@ -830,7 +830,7 @@ def main():
                       default=None),
             commit=dict(required=False,
                         type='bool',
-                        default=True),
+                        default=None),
             commit_empty_changes=dict(required=False,
                                       type='bool',
                                       default=False),
@@ -888,6 +888,24 @@ def main():
     confirmed = junos_module.params.get('confirmed')
     comment = junos_module.params.get('comment')
     check_commit_wait = junos_module.params.get('check_commit_wait')
+
+    # If retrieve is set and load and rollback are not set, then
+    # check, diff, and commit default to False.
+    if retrieve is not None and load is None and rollback is None:
+        if diff is None:
+            diff = False
+        if check is None:
+            check = False
+        if commit is None:
+            commit = False
+    # Otherwise, diff, check, and commit default to True.
+    else:
+        if diff is None:
+            diff = True
+        if check is None:
+            check = True
+        if commit is None:
+            commit = True
 
     # If load is not None, must have one of src, template, url, lines
     if load is not None:
