@@ -1,0 +1,5 @@
+{
+ "SPACE_USER"   : "user",
+ "SPACE_PASSWORD" : "password",
+ "SPACE_HOST"   : "ip or fqdn"
+} 
