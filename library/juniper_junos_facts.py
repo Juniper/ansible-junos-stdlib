@@ -326,7 +326,8 @@ def main():
         # Since this module doesn't change the device's configuration, there is
         # no additional work required to support check mode. It's inherently
         # supported.
-        supports_check_mode=True
+        supports_check_mode=True,
+        min_jxmlease_version=juniper_junos_common.MIN_JXMLEASE_VERSION,
     )
 
     junos_module.logger.debug("Gathering facts.")

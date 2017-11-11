@@ -125,7 +125,7 @@ MIN_LXML_ETREE_VERSION = "3.2.4"
 # Installation URL for LXML.
 LXML_ETREE_INSTALLATION_URL = "http://lxml.de/installation.html"
 # Minimum JSNAPy version required by shared code.
-MIN_JSNAPY_VERSION = "1.1.0"
+MIN_JSNAPY_VERSION = "1.2.1"
 # Installation URL for JSNAPy.
 JSNAPY_INSTALLATION_URL = "https://github.com/Juniper/jsnapy#installation"
 # Minimum jxmlease version required by shared code.
@@ -508,15 +508,32 @@ class JuniperJunosModule(AnsibleModule):
     Attributes:
         dev: An instance of a PyEZ Device() object.
 
-    Methods:
+    Public Methods:
         exit_json: Close self.dev and call parent's exit_json().
         fail_json: Close self.dev and call parent's fail_json().
         check_pyez: Verify the PyEZ library is present and functional.
+        check_jsnapy: Verify the JSNAPy library is present and functional.
+        check_jxmlease: Verify the Jxmlease library is present and functional.
         check_lxml_etree: Verify the lxml Etree library is present and
                           functional.
-        check_jxmlease: Verify the Jxmlease library is present and functional.
+        check_yaml: Verify the YAML library is present and functional.
+        convert_to_bool: Try converting to bool using aliases for bool.
+        parse_arg_to_list_of_dicts: Parses string_val into a list of dicts.
+        parse_ignore_warning_option: Parses the ignore_warning option.
+        parse_rollback_option: Parses the rollback option.
         open: Open self.dev.
         close: Close self.dev.
+        add_sw: Add an instance of jnp.junos.utils.sw.SW() to self.
+        open_configuration: Open cand. conf. db in exclusive or private mode.
+        close_configuration: Close candidate configuration database.
+        get_configuration: Return the device config. in the specified format.
+        rollback_configuration: Rollback device config. to the specified id.
+        check_configuration: Check the candidate configuration.
+        diff_configuration: Diff the candidate and committed configurations.
+        load_configuration: Load the candidate configuration.
+        commit_configuration: Commit the candidate configuration.
+        ping: Execute a ping command from a Junos device.
+        save_text_output: Save text output into a file.
     """
 
     # Method overrides
@@ -525,9 +542,9 @@ class JuniperJunosModule(AnsibleModule):
                  mutually_exclusive=[],
                  min_pyez_version=MIN_PYEZ_VERSION,
                  min_lxml_etree_version=MIN_LXML_ETREE_VERSION,
-                 min_jsnapy_version=MIN_JSNAPY_VERSION,
-                 min_jxmlease_version=MIN_JXMLEASE_VERSION,
-                 min_yaml_version=MIN_YAML_VERSION,
+                 min_jsnapy_version=None,
+                 min_jxmlease_version=None,
+                 min_yaml_version=None,
                  **kwargs):
         """Initialize a new JuniperJunosModule instance.
 
@@ -541,10 +558,24 @@ class JuniperJunosModule(AnsibleModule):
             mutually_exclusive: Module-specific mutually exclusive added to
                                 top_spec_mutually_exclusive.
             min_pyez_version: The minimum PyEZ version required by the module.
+                              Since all modules require PyEZ this defaults to
+                              MIN_PYEZ_VERSION.
             min_lxml_etree_version: The minimum lxml Etree version required by
-                                    the module.
+                                    the module. Since most modules require
+                                    lxml Etree this defaults to
+                                    MIN_LXML_ETREE_VERSION.
+            min_jsnapy_version: The minimum JSNAPy version required by the
+                                module. If this is None, the default, it
+                                means the module does not explicitly require
+                                jsnapy.
             min_jxmlease_version: The minimum Jxmlease version required by the
-                                  module.
+                                  module. If this is None, the default, it
+                                  means the module does not explicitly require
+                                  jxmlease.
+            min_yanml_version: The minimum YAML version required by the
+                               module. If this is None, the default, it
+                               means the module does not explicitly require
+                               yaml.
             **kwargs: All additional keyword arguments are passed to
                       AnsibleModule.__init__().
 
@@ -584,7 +615,7 @@ class JuniperJunosModule(AnsibleModule):
             self.fail_json(msg="missing required arguments: host")
         if not self.params.get('user'):
             self.fail_json(msg="missing required arguments: user")
-        # Check PyEZ version
+        # Check PyEZ version and add attributes to reach PyEZ components.
         self.check_pyez(min_pyez_version,
                         check_device=True,
                         check_sw=True,
@@ -595,18 +626,21 @@ class JuniperJunosModule(AnsibleModule):
         self.pyez_factory_table = jnpr.junos.factory.table
         self.pyez_op_table = jnpr.junos.op
         self.pyez_exception = pyez_exception
-        # Check LXML Etree
+        # Check LXML Etree.
         self.check_lxml_etree(min_lxml_etree_version)
         self.etree = etree
-        # Check jsnapy
-        self.check_jsnapy(min_jsnapy_version)
-        self.jsnapy = jnpr.jsnapy
-        # Check jxmlease
-        self.check_jxmlease(min_jxmlease_version)
-        self.jxmlease = jxmlease
-        # Check yaml
-        self.check_yaml(min_yaml_version)
-        self.yaml = yaml
+        # Check jsnapy if needed.
+        if min_jsnapy_version is not None:
+            self.check_jsnapy(min_jsnapy_version)
+            self.jsnapy = jnpr.jsnapy
+        # Check jxmlease if needed.
+        if min_jxmlease_version is not None:
+            self.check_jxmlease(min_jxmlease_version)
+            self.jxmlease = jxmlease
+        # Check yaml if needed.
+        if min_yaml_version is not None:
+            self.check_yaml(min_yaml_version)
+            self.yaml = yaml
         # Setup logging.
         self.logger = self._setup_logging()
         # Open the PyEZ connection
@@ -873,20 +907,6 @@ class JuniperJunosModule(AnsibleModule):
         self._check_library('jxmlease', HAS_JXMLEASE_VERSION,
                             JXMLEASE_INSTALLATION_URL, minimum=minimum)
 
-    def check_yaml(self, minimum=None):
-        """Check yaml is available and version is >= minimum.
-
-        Args:
-            minimum: The minimum PyYAML version required.
-                     Default = None which means no version check.
-
-        Failures:
-            - yaml not installed.
-            - yaml version < minimum.
-        """
-        self._check_library('yaml', HAS_YAML_VERSION,
-                            YAML_INSTALLATION_URL, minimum=minimum)
-
     def check_lxml_etree(self, minimum=None):
         """Check lxml etree is available and version is >= minimum.
 
@@ -900,6 +920,20 @@ class JuniperJunosModule(AnsibleModule):
         """
         self._check_library('lxml Etree', HAS_LXML_ETREE_VERSION,
                             LXML_ETREE_INSTALLATION_URL, minimum=minimum)
+
+    def check_yaml(self, minimum=None):
+        """Check yaml is available and version is >= minimum.
+
+        Args:
+            minimum: The minimum PyYAML version required.
+                     Default = None which means no version check.
+
+        Failures:
+            - yaml not installed.
+            - yaml version < minimum.
+        """
+        self._check_library('yaml', HAS_YAML_VERSION,
+                            YAML_INSTALLATION_URL, minimum=minimum)
 
     def convert_to_bool(self, arg):
         """Try converting arg to a bool value using Ansible's aliases for bool.
@@ -1109,53 +1143,6 @@ class JuniperJunosModule(AnsibleModule):
             self.fail_json(msg='Unable to make a PyEZ connection: %s' %
                                (str(ex)))
 
-    def open_configuration(self, mode):
-        # Already have an open configuration?
-        if self.config is None:
-            if mode not in CONFIG_MODE_CHOICES:
-                self.fail_json(msg='Invalid configuration mode: %s' % (mode))
-            if self.dev is None:
-                self.open()
-            config = jnpr.junos.utils.config.Config(self.dev, mode=mode)
-            try:
-                if config.mode == 'exclusive':
-                    config.lock()
-                elif config.mode == 'private':
-                    self.dev.rpc.open_configuration(
-                        private=True,
-                        ignore_warning='uncommitted changes will be '
-                                       'discarded on exit')
-            except (pyez_exception.ConnectError,
-                    pyez_exception.RpcError) as ex:
-                self.fail_json(msg='Unable to open the configuration in %s '
-                                   'mode: %s' % (config.mode, str(ex)))
-            self.config = config
-            self.logger.debug("Configuration opened in %s mode.", config.mode)
-
-    def close_configuration(self):
-        if self.config is not None:
-            # Because self.fail_json() calls self.close_configuration(), we
-            # must set self.config = None BEFORE closing the config in order to
-            # avoid the infinite recursion which would occur if closing the
-            # configuration raised an exception.
-            config = self.config
-            self.config = None
-            try:
-                if config.mode == 'exclusive':
-                    config.unlock()
-                elif config.mode == 'private':
-                    self.dev.rpc.close_configuration()
-                self.logger.debug("Configuration closed.")
-            except (pyez_exception.ConnectError,
-                    pyez_exception.RpcError) as ex:
-                self.fail_json(msg='Unable to close the configuration: %s' %
-                                   (str(ex)))
-
-    def add_sw(self):
-        """Add an instance of jnp.junos.utils.sw.SW() to self.
-        """
-        self.sw = jnpr.junos.utils.sw.SW(self.dev)
-
     def close(self, raise_exceptions=False):
         """Close the self.dev PyEZ Device instance.
         """
@@ -1181,6 +1168,66 @@ class JuniperJunosModule(AnsibleModule):
                     # anyway and they will just mask the real error that
                     # happened.
                     pass
+
+    def add_sw(self):
+        """Add an instance of jnp.junos.utils.sw.SW() to self.
+        """
+        self.sw = jnpr.junos.utils.sw.SW(self.dev)
+
+    def open_configuration(self, mode):
+        """Open candidate configuration database in exclusive or private mode.
+
+        Failures:
+            - ConnectError: When there's a problem with the PyEZ connection.
+            - RpcError: When there's a RPC problem including an already locked
+                        config or an already opened private config.
+        """
+        # Already have an open configuration?
+        if self.config is None:
+            if mode not in CONFIG_MODE_CHOICES:
+                self.fail_json(msg='Invalid configuration mode: %s' % (mode))
+            if self.dev is None:
+                self.open()
+            config = jnpr.junos.utils.config.Config(self.dev, mode=mode)
+            try:
+                if config.mode == 'exclusive':
+                    config.lock()
+                elif config.mode == 'private':
+                    self.dev.rpc.open_configuration(
+                        private=True,
+                        ignore_warning='uncommitted changes will be '
+                                       'discarded on exit')
+            except (pyez_exception.ConnectError,
+                    pyez_exception.RpcError) as ex:
+                self.fail_json(msg='Unable to open the configuration in %s '
+                                   'mode: %s' % (config.mode, str(ex)))
+            self.config = config
+            self.logger.debug("Configuration opened in %s mode.", config.mode)
+
+    def close_configuration(self):
+        """Close candidate configuration database.
+
+        Failures:
+            - ConnectError: When there's a problem with the PyEZ connection.
+            - RpcError: When there's a RPC problem closing the config.
+        """
+        if self.config is not None:
+            # Because self.fail_json() calls self.close_configuration(), we
+            # must set self.config = None BEFORE closing the config in order to
+            # avoid the infinite recursion which would occur if closing the
+            # configuration raised an exception.
+            config = self.config
+            self.config = None
+            try:
+                if config.mode == 'exclusive':
+                    config.unlock()
+                elif config.mode == 'private':
+                    self.dev.rpc.close_configuration()
+                self.logger.debug("Configuration closed.")
+            except (pyez_exception.ConnectError,
+                    pyez_exception.RpcError) as ex:
+                self.fail_json(msg='Unable to close the configuration: %s' %
+                                   (str(ex)))
 
     def get_configuration(self, database='committed', format='text',
                           options={}, filter=None):
@@ -1275,7 +1322,7 @@ class JuniperJunosModule(AnsibleModule):
         return return_val
 
     def rollback_configuration(self, id):
-        """Rolback the device configuration to the specified id.
+        """Rollback the device configuration to the specified id.
 
         Rolls back the configuration to the specified id. Assumes the
         configuration is already opened. Does NOT commit the configuration.
@@ -1315,7 +1362,7 @@ class JuniperJunosModule(AnsibleModule):
                                % (id))
 
     def check_configuration(self):
-        """Check the device configuration.
+        """Check the candidate configuration.
 
         Check the configuration. Assumes the configuration is already opened.
         Performs the equivalent of a "commit check", but does NOT commit the
@@ -1666,6 +1713,9 @@ class JuniperJunosActionModule(ActionNormal):
     All juniper_junos_* modules share common behavior which is implemented in
     this class. This includes specific option fallback/default behavior and
     passing the "hidden" _module_utils_path option to the module.
+
+    Public Methods:
+        convert_to_bool: Try converting to bool using aliases for bool.
     """
     def run(self, tmp=None, task_vars=None):
         # The new connection arguments based on fallback/defaults.

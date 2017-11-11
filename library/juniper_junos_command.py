@@ -397,7 +397,8 @@ def main():
         # supported. Well, that's not completely true. It does depend on the
         # command executed. See the I(changed) key in the RETURN documentation
         # for more details.
-        supports_check_mode=True
+        supports_check_mode=True,
+        min_jxmlease_version=juniper_junos_common.MIN_JXMLEASE_VERSION,
     )
 
     # Check over commands
