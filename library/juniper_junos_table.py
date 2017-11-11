@@ -399,7 +399,8 @@ def main():
                                default='list_of_dicts'),
         ),
         # Check mode is implemented.
-        supports_check_mode=True
+        supports_check_mode=True,
+        min_yaml_version=juniper_junos_common.MIN_YAML_VERSION,
     )
 
     # Straight from params

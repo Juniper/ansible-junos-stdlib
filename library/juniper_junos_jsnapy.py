@@ -293,7 +293,8 @@ def main():
         mutually_exclusive=[['test_files', 'config_file']],
         # One of test_files or config_file is required.
         required_one_of=[['test_files', 'config_file']],
-        supports_check_mode=True
+        supports_check_mode=True,
+        min_jsnapy_version=juniper_junos_common.MIN_JSNAPY_VERSION,
     )
 
     # Straight from params

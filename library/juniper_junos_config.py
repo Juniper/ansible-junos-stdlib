@@ -853,7 +853,8 @@ def main():
         # Required together options.
         required_together=[['template', 'vars']],
         # Check mode is implemented.
-        supports_check_mode=True
+        supports_check_mode=True,
+        min_jxmlease_version=juniper_junos_common.MIN_JXMLEASE_VERSION,
     )
     # Do additional argument verification.
 
