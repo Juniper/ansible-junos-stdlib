@@ -655,6 +655,14 @@ class JuniperJunosModule(AnsibleModule):
                 self.params['port'] = '/dev/ttyUSB0'
             else:
                 self.params['port'] = 830
+        else:
+            if self.params.get('mode') != 'serial':
+                try:
+                    self.params['port'] = int(self.params['port'])
+                except ValueError:
+                    self.fail_json(msg="The port option (%s) must be an "
+                                       "integer value." %
+                                       (self.params['port']))
         # Default baud if serial or telnet mode
         if self.params.get('baud') is None:
             if (self.params.get('mode') == 'telnet' or
