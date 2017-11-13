@@ -89,6 +89,9 @@ try:
     HAS_JSNAPY_VERSION = jnpr.jsnapy.__version__
 except ImportError:
     HAS_JSNAPY_VERSION = None
+# Most likely JSNAPy 1.2.0 with https://github.com/Juniper/jsnapy/issues/263
+except TypeError:
+    HAS_JSNAPY_VERSION = 'possibly 1.2.0'
 
 try:
     from lxml import etree
@@ -664,12 +667,12 @@ class JuniperJunosModule(AnsibleModule):
                 self.params['attempts'] = 10
         # baud and attempts are only valid if mode != None
         if (self.params.get('baud') is not None and
-           self.params.get('mode') is not None):
-            self.fail_json(msg="The baud option (%s) is not valide when "
+           self.params.get('mode') is None):
+            self.fail_json(msg="The baud option (%s) is not valid when "
                                "mode == none." % (self.params.get('baud')))
         if (self.params.get('attempts') is not None and
-           self.params.get('mode') is not None):
-            self.fail_json(msg="The attempts option (%s) is not valide when "
+           self.params.get('mode') is None):
+            self.fail_json(msg="The attempts option (%s) is not valid when "
                                "mode == none." % (self.params.get('attempts')))
         # Check that we have a user and host
         if not self.params.get('host'):
@@ -693,7 +696,10 @@ class JuniperJunosModule(AnsibleModule):
         # Check jsnapy if needed.
         if min_jsnapy_version is not None:
             self.check_jsnapy(min_jsnapy_version)
-            self.jsnapy = jnpr.jsnapy
+            if hasattr(jnpr, 'jsnapy'):
+                self.jsnapy = jnpr.jsnapy
+            else:
+                self.fail_json("JSNAPy not available.")
         # Check jxmlease if needed.
         if min_jxmlease_version is not None:
             self.check_jxmlease(min_jxmlease_version)
