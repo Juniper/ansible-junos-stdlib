@@ -39,6 +39,7 @@ from ansible.module_utils.basic import BOOLEANS_TRUE, BOOLEANS_FALSE
 from ansible.plugins.action.normal import ActionModule as ActionNormal
 
 # Standard library imports
+from argparse import ArgumentParser
 from distutils.version import LooseVersion
 import json
 import logging
@@ -88,6 +89,9 @@ try:
     HAS_JSNAPY_VERSION = jnpr.jsnapy.__version__
 except ImportError:
     HAS_JSNAPY_VERSION = None
+# Most likely JSNAPy 1.2.0 with https://github.com/Juniper/jsnapy/issues/263
+except TypeError:
+    HAS_JSNAPY_VERSION = 'possibly 1.2.0'
 
 try:
     from lxml import etree
@@ -246,11 +250,12 @@ class ModuleDocFragment(object):
         A value of C(telnet) results in either a direct NETCONF over Telnet
         connection to the Junos device, or a NETCONF over serial console
         connection to the Junos device using Telnet to a console server
-        depending on the values of the C(host) and C(port) options. Mutually
-        exclusive with C(console).
+        depending on the values of the C(host) and C(port) options. A 
+        value of C(serial) results in a NETCONF over serial console connection
+        to the Junos device. Mutually exclusive with C(console).
     required: False
     default: none
-    choices: [ none, "telnet" ]
+    choices: [ none, "telnet", "serial" ]
   console:
     description:
       - An alternate method of specifying a NETCONF over serial console
@@ -261,16 +266,33 @@ class ModuleDocFragment(object):
         compatibility. The string value of this option is exactly equivalent to
         specifying C(host) with a value of I(<console_hostname>), C(mode) with
         a value of I(telnet), and C(port) with a value of
-        I(<console_port_number>). Mutually exclusive with C(mode) and C(port).
+        I(<console_port_number>). Mutually exclusive with I(mode), I(port),
+        I(baud), and I(attempts).
     required: False
     default: none
     type: str
   port:
     description:
-      - The TCP port number used to establish the connection. Mutually
-        exclusive with C(console).
+      - The TCP port number or serial device port used to establish the 
+        connection. Mutually exclusive with C(console).
     required: False
-    default: 830
+    default: 830 if mode == none, 23 if mode == 'telnet', '/dev/ttyUSB0' if
+             mode == 'serial'
+    type: int or str
+  baud:
+    description:
+      - The serial baud rate used to connect to the Junos device when using
+        mode == 'serial'. Mutually exclusive with C(console).
+    required: False
+    default: 9600
+    type: int
+  attempts:
+    description:
+      - The number of attempts to connect and log in to the Junos device when
+        using mode == 'telnet' or mode == 'serial'. Mutually exclusive with
+        C(console).
+    required: False
+    default: 10
     type: int
   timeout:
     description:
@@ -397,20 +419,35 @@ connection_spec = {
                                  # Default behavior coded in
                                  # JuniperJunosActionModule.run()
                                  default=None),
-    'mode': dict(choices=[None, 'telnet'],
+    'mode': dict(choices=[None, 'telnet', 'serial'],
                  default=None),
     'console': dict(type='str',
                     required=False,
                     default=None),
-    'port': dict(type='int',
+    'port': dict(type='str',
                  required=False,
-                 default=830),
+                 # See documentation for real default behavior.
+                 # Default behavior coded in JuniperJunosModule.__init__()
+                 default=None),
+    'baud': dict(type='int',
+                 required=False,
+                 # See documentation for real default behavior.
+                 # Default behavior coded in JuniperJunosModule.__init__()
+                 default=None),
+    'attempts': dict(type='int',
+                     required=False,
+                     # See documentation for real default behavior.
+                     # Default behavior coded in JuniperJunosModule.__init__()
+                     default=None),
     'timeout': dict(type='int',
                     required=False,
                     default=30),
 }
 # Connection arguments which are mutually exclusive.
-connection_spec_mutually_exclusive = [['mode', 'console'], ['port', 'console']]
+connection_spec_mutually_exclusive = [['mode', 'console'],
+                                      ['port', 'console'],
+                                      ['baud', 'console'],
+                                      ['attempts','console']]
 # Keys are connection options. Values are a list of task_vars to use as the
 # default value.
 connection_spec_fallbacks = {
@@ -610,6 +647,41 @@ class JuniperJunosModule(AnsibleModule):
             self.params.pop('provider')
         # Parse the console option
         self._parse_console_options()
+        # Default port based on mode.
+        if self.params.get('port') is None:
+            if self.params.get('mode') == 'telnet':
+                self.params['port'] = 23
+            elif self.params.get('mode') == 'serial':
+                self.params['port'] = '/dev/ttyUSB0'
+            else:
+                self.params['port'] = 830
+        else:
+            if self.params.get('mode') != 'serial':
+                try:
+                    self.params['port'] = int(self.params['port'])
+                except ValueError:
+                    self.fail_json(msg="The port option (%s) must be an "
+                                       "integer value." %
+                                       (self.params['port']))
+        # Default baud if serial or telnet mode
+        if self.params.get('baud') is None:
+            if (self.params.get('mode') == 'telnet' or
+               self.params.get('mode') == 'serial'):
+               self.params['baud'] = 9600
+        # Default attempts if serial or telnet mode
+        if self.params.get('attemps') is None:
+            if (self.params.get('mode') == 'telnet' or
+               self.params.get('mode') == 'serial'):
+                self.params['attempts'] = 10
+        # baud and attempts are only valid if mode != None
+        if (self.params.get('baud') is not None and
+           self.params.get('mode') is None):
+            self.fail_json(msg="The baud option (%s) is not valid when "
+                               "mode == none." % (self.params.get('baud')))
+        if (self.params.get('attempts') is not None and
+           self.params.get('mode') is None):
+            self.fail_json(msg="The attempts option (%s) is not valid when "
+                               "mode == none." % (self.params.get('attempts')))
         # Check that we have a user and host
         if not self.params.get('host'):
             self.fail_json(msg="missing required arguments: host")
@@ -632,7 +704,10 @@ class JuniperJunosModule(AnsibleModule):
         # Check jsnapy if needed.
         if min_jsnapy_version is not None:
             self.check_jsnapy(min_jsnapy_version)
-            self.jsnapy = jnpr.jsnapy
+            if hasattr(jnpr, 'jsnapy'):
+                self.jsnapy = jnpr.jsnapy
+            else:
+                self.fail_json("JSNAPy not available.")
         # Check jxmlease if needed.
         if min_jxmlease_version is not None:
             self.check_jxmlease(min_jxmlease_version)
@@ -681,32 +756,65 @@ class JuniperJunosModule(AnsibleModule):
         """Parse the console option value.
 
         Parse the console option value and turn it into the equivalent:
-        host, mode, and port options.
+        host, mode, baud, attempts, and port options.
         """
         if self.params.get('console') is not None:
             try:
                 console_string = self.params.get('console')
-                # We only care about the value after --telnet
-                (_, _, after) = console_string.partition('--telnet')
-                # Split on ,
-                host_port = after.split(',', 1)
-                # Strip any leading/trailing whitespace or equal sign
-                # from host
-                host = host_port[0].strip('= ')
-                # Try to convert port to an int.
-                port = int(host_port[1])
-                # Successfully parsed. Set params values
-                self.params['mode'] = 'telnet'
-                self.params['host'] = host
-                self.params['port'] = port
+
+                # Subclass ArgumentParser to simply raise a ValueError
+                # rather than printing to stderr and calling sys.exit()
+                class QuiteArgumentParser(ArgumentParser):
+                    def error(self, message):
+                        raise ValueError(message)
+
+                # Parse the console_string.
+                parser = QuiteArgumentParser(add_help=False)
+                parser.add_argument('-t', '--telnet', default=None)
+                parser.add_argument('-p', '--port', default=None)
+                parser.add_argument('-b', '--baud', default=None)
+                parser.add_argument('-a', '--attempts', default=None)
+                parser.add_argument('--timeout', default=None)
+                con_params = vars(parser.parse_args(console_string.split()))
+
+                telnet_params = con_params.get('telnet', None)
+                # mode == 'telnet'
+                if telnet_params is not None:
+                    # Split on ,
+                    host_port = telnet_params.split(',', 1)
+                    # Strip any leading/trailing whitespace or equal sign
+                    # from host
+                    host = host_port[0].strip(' ')
+                    # Try to convert port to an int.
+                    port = int(host_port[1])
+                    # Successfully parsed. Set params values
+                    self.params['mode'] = 'telnet'
+                    self.params['host'] = host
+                    self.params['port'] = port
+                # mode == serial
+                else:
+                    port = con_params.get('port', None)
+                    baud = con_params.get('baud', None)
+                    attempts = con_params.get('attempts', None)
+                    timeout = con_params.get('timeout', None)
+                    self.params['mode'] = 'serial'
+                    if port is not None:
+                        self.params['port'] = port
+                    if baud is not None:
+                        self.params['baud'] = baud
+
+                # Remove the console option.
                 self.params.pop('console')
-            except Exception:
-                self.fail_json(msg="Unable to parse the console value: '%s'. "
-                                   "The value of the console argument should "
-                                   "be in the format '--telnet "
-                                   "<console_hostname>,"
-                                   "<console_port_number>'." %
-                                   (console_string))
+
+            except ValueError as ex:
+                self.fail_json(msg="Unable to parse the console value (%s). "
+                                   "Error: %s" % (console_string, str(ex)))
+            except Exception as ex:
+                self.fail_json(msg="Unable to parse the console value (%s). "
+                                   "The value of the console argument is "
+                                   "typically in the format '--telnet "
+                                   "<console_hostname>,<console_port_number>'."
+                                   % (console_string))
 
     def _setup_logging(self):
         """Setup logging for the module.
