@@ -114,7 +114,7 @@ $ docker run -it --rm juniper/pyez-ansible ash
 ```
 Although, you'll probably want to bind mount a host directory (perhaps the directory containing your playbooks and associated files). The following will bind mount the current working directory and start the ash shell.
 ```
-$ docker run -it --rm -v $PWD:/playbooks ash
+$ docker run -it --rm -v $PWD:/project ash
 ```
 You can also use the container as an executable to run your playbooks. Let's assume we have a typical playbook structure as below:
 ```
@@ -127,11 +127,11 @@ example
 ```
 We can move to the example directory and run the playbook with the following command:
 ```
-$ docker run -it --rm -v $PWD:/playbooks juniper/pyez-ansible ansible-playbook -i hosts playbook.yml
+$ docker run -it --rm -v $PWD:/project juniper/pyez-ansible ansible-playbook -i hosts playbook.yml
 ```
 You may have noticed that the base command is almost always the same. We can also use an alias to save some keystrokes.
 ```
-$ alias pb-ansible="docker run -it --rm -v $PWD:/playbooks juniper/pyez-ansible ansible-playbook"
+$ alias pb-ansible="docker run -it --rm -v $PWD:/project juniper/pyez-ansible ansible-playbook"
 $ pb-ansible -i hosts playbook.yml
 ```
 
