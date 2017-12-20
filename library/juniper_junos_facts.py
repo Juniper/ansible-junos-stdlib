@@ -46,7 +46,7 @@ extends_documentation_fragment:
   - juniper_junos_common.connection_documentation
   - juniper_junos_common.logging_documentation
 module: juniper_junos_facts
-version_added: "2.0.0"
+version_added: "2.0.0" # of Juniper.junos role
 author: "Juniper Networks - Stacy Smith (@stacywsmith)"
 short_description: Retrieve facts from a Junos device
 description:
@@ -145,7 +145,7 @@ ansible_facts.junos:
       type: bool
 changed:
   description: Indicates if the device's state has changed. Since this module
-               doesn't change the operational or configuration state of the
+               does not change the operational or configuration state of the
                device, the value is always set to C(false).
   returned: success
   type: bool

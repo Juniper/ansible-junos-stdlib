@@ -42,68 +42,48 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = '''
 ---
+extends_documentation_fragment: 
+  - juniper_junos_common.connection_documentation
+  - juniper_junos_common.logging_documentation
 module: juniper_junos_command
 version_added: "2.0.0" # of Juniper.junos role
 author: "Juniper Networks - Stacy Smith (@stacywsmith)"
 short_description: Execute one or more CLI commands on a Junos device
 description:
   - Execute one or more CLI commands on a Junos device.
-    NOTE: This module does NOT use the Junos CLI to execute the CLI command.
-    Instead, it uses the <command> RPC over a NETCONF channel. The <command>
-    RPC takes a CLI command as it's input and is very similar to executing the
-    command on the CLI, but you can NOT include any pipe modifies
-    (i.e. '| match', '| count', etc.) with the CLI commands executed by this
+  - This module does NOT use the Junos CLI to execute the CLI command.
+    Instead, it uses the C(<command>) RPC over a NETCONF channel. The
+    C(<command>) RPC takes a CLI command as it's input and is very similar to
+    executing the command on the CLI, but you can NOT include any pipe modifies
+    (i.e. C(| match), C(| count), etc.) with the CLI commands executed by this
     module.
-# Document connection arguments
-# Document logging arguments
-extends_documentation_fragment: juniper_junos_common
 options:
   commands:
     description:
       - A list of one or more CLI commands to execute on the Junos device.
     required: true
     default: none
-    type: 'list'
+    type: list
     aliases:
       - cli
       - command
       - cmd
       - cmds
-  formats:
-    description:
-      - The format of the reply for the CLI command(s) specified by the
-        I(commands) option. The specified format(s) must be supported by the
-        target Junos device. The value of this option can either be a single
-        format, or a list of formats. If a single format is specified, it
-        applies to all command(s) specified by the I(commands) option. If a
-        list of formats are specified, there must be one value in the list for
-        each command specified by the I(commands) option. Specifying the value
-        C(xml) for the I(formats) option is similar to appending
-        '| display xml' to a CLI command, and specifying the value C(json)
-        for the I(formats) option is similar to appending '| display json' to
-        a CLI command.
-    required: false
-    default: 'text'
-    type: 'str or list of str'
-    choices: ['text', 'xml', 'json']
-    aliases:
-      - format
-      - display
-      - output
   dest:
     description:
       - The path to a file, on the Ansible control machine, where the output of
         the cli command will be saved.
       - The file must be writeable. If the file already exists, it is
         overwritten.
-      - NOTE: When tasks are executed against more than one target host,
+      - When tasks are executed against more than one target host,
         one process is forked for each target host. (Up to the maximum
         specified by the forks configuration. See
-        U(http://docs.ansible.com/ansible/latest/intro_configuration.html#forks)
+        U(forks|http://docs.ansible.com/ansible/latest/intro_configuration.html#forks)
         for details.) This means that the value of this option must be unique
         per target host. This is usually accomplished by including
-        {{ inventory_hostname }} in the I(dest) value. It is the user's
-        responsibility to ensure this value is unique per target host.
+        C({{ inventory_hostname }}) in the value of the I(dest) option. It is
+        the user's responsibility to ensure this value is unique per target
+        host.
       - For this reason, this option is deprecated. It is maintained for
         backwards compatibility. Use the I(dest_dir) option in new playbooks.
         The I(dest) and I(dest_dir) options are mutually exclusive.
@@ -116,8 +96,8 @@ options:
     description:
       - The path to a directory, on the Ansible control machine, where
         the output of the cli command will be saved. The output will be logged
-        to a file named {{ inventory_hostname }}_C(cmd).C(format)
-        in the I(dest_dir) directory.
+        to a file named C({{ inventory_hostname }}_)I(command)C(.)I(format)
+        in the directory specified by the value of the I(dest_dir) option.
       - The destination file must be writeable. If the file already exists,
         it is overwritten. It is the users responsibility to ensure a unique
         I(dest_dir) value is provided for each execution of this module
@@ -130,6 +110,30 @@ options:
     aliases:
       - destination_dir
       - destdir
+  formats:
+    description:
+      - The format of the reply for the CLI command(s) specified by the
+        I(commands) option. The specified format(s) must be supported by the
+        target Junos device. The value of this option can either be a single
+        format, or a list of formats. If a single format is specified, it
+        applies to all command(s) specified by the I(commands) option. If a
+        list of formats are specified, there must be one value in the list for
+        each command specified by the I(commands) option. Specifying the value
+        C(xml) for the I(formats) option is similar to appending
+        C(| display xml) to a CLI command, and specifying the value C(json)
+        for the I(formats) option is similar to appending C(| display json) to
+        a CLI command.
+    required: false
+    default: text
+    type: str or list of str
+    choices:
+      - text
+      - xml
+      - json
+    aliases:
+      - format
+      - display
+      - output
   return_output:
     description:
       - Indicates if the output of the command should be returned in the
@@ -144,15 +148,6 @@ options:
 
 EXAMPLES = '''
 ---
-#
-# MODULE_EXAMPLES
-# This playbook demonstrate the parameters supported by the
-# juniper_junos_command module. These examples use the default connection,
-# authtentication and logging parameters. See the examples labeled
-# CONNECTION_EXAMPLES for details on connection parameters. See the examples
-# labeled AUTHENTICATION_EXAMPLES for details on authentication parameters.
-# See the examples labeled LOGGING_EXAMPLES for details on logging parameters.
-#
 - name: Examples of juniper_junos_command
   hosts: junos-all
   connection: local
@@ -228,84 +223,64 @@ EXAMPLES = '''
           - "json"
         dest_dir: "/tmp/outputs/"
         return_output: false
-
-#
-# CONNECTION_EXAMPLES
-#
-
-#
-# AUTHENTICATION_EXAMPLES
-#
-
-#
-# LOGGING_EXAMPLES
-#
 '''
 
 RETURN = '''
-msg:
+changed:
   description:
-    - A human-readable message indicating the result.
-  returned: always
-  type: str
+    - Indicates if the device's state has changed. Since this module does not
+      change the operational or configuration state of the device, the value
+      is always set to false.
+    - You could use this module to execute a command which
+      changes the operational state of the the device. For example,
+      C(clear ospf neighbors). Beware, this module is unable to detect
+      this situation, and will still return the value C(false) for I(changed)
+      in this case.
+  returned: success
+  type: bool
+  sample: false
 command:
   description:
     - The CLI command which was executed.
   returned: always
   type: str
+failed:
+  description:
+    - Indicates if the task failed. See the I(results) key for additional
+      details.
+  returned: always
+  type: bool
 format:
   description:
     - The format of the command response.
   returned: always
   type: str
-  choices: ['text', 'xml', 'json']
-stdout:
+msg:
   description:
-    - The command reply from the Junos device as a single multi-line string.
-  returned: when command executed successfully and I(return_output) is true.
+    - A human-readable message indicating the result.
+  returned: always
   type: str
-stdout_lines:
-  description:
-    - The command reply from the Junos device as a list of single-line strings.
-  returned: when command executed successfully and I(return_output) is true.
-  type: list of str
 parsed_output:
   description:
-    - The command reply from the Junos device parsed into a JSON datastructure.
-      For XML replies, the response is parsed into JSON using the jxmlease
-      library. For JSON the response is parsed using the Python json library.
-    - NOTE: When Ansible converts the jxmlease or native Python data structure
+    - The command reply from the Junos device parsed into a JSON data structure.
+      For XML replies, the response is parsed into JSON using the
+      U(jxmlease|https://github.com/Juniper/jxmlease)
+      library. For JSON the response is parsed using the Python
+      U(json|https://docs.python.org/2/library/json.html) library.
+    - When Ansible converts the jxmlease or native Python data structure
       into JSON, it does not guarantee that the order of dictionary/object keys
       are maintained.
   returned: when command executed successfully, I(return_output) is true,
-            and the command format is xml or json.
+            and the value of the I(formats) option is C(xml) or C(json).
   type: dict
-changed:
-  description:
-    - Indicates if the device's state has changed. Since this module doesn't
-      change the operational or configuration state of the device, the value
-      is always set to false.
-    - NOTE: You could use this module to execute a command which
-      changes the operational state of the the device. For example,
-      'clear ospf neighbors'. Beware, this module is unable to detect
-      this situation, and will still return a I(changed) value
-      C(False) in this case.
-  returned: success
-  type: bool
-failed:
-  description:
-    - Indicates if the task failed. See I(results) option below for additional
-      details.
-  returned: always
-  type: bool
 results:
   description:
-    - The above keys are returned when a single command is specified for the
+    - The other keys are returned when a single command is specified for the
       I(commands) option. When the value of the I(commands) option is a list
       of commands, this key is returned instead. The value of this key is a
       list of dictionaries. Each element in the list corresponds to the
       commands in the I(commands) option. The keys for each element in the list
-      include all of the keys listed above. The I(failed) key indicates if the
+      include all of the other keys listed. The I(failed) key indicates if the
       individual command failed. In this case, there is also a top-level
       I(failed) key. The top-level I(failed) key will have a value of C(false)
       if ANY of the commands ran successfully. In this case, check the value
@@ -313,6 +288,16 @@ results:
       results of individual commands.
   returned: when the I(commands) option is a list value.
   type: list of dict
+stdout:
+  description:
+    - The command reply from the Junos device as a single multi-line string.
+  returned: when command executed successfully and I(return_output) is C(true).
+  type: str
+stdout_lines:
+  description:
+    - The command reply from the Junos device as a list of single-line strings.
+  returned: when command executed successfully and I(return_output) is C(true).
+  type: list of str
 '''
 
 import sys
