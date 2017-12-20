@@ -28,49 +28,96 @@ import datetime
 import cgi
 from distutils.version import LooseVersion
 from jinja2 import Environment, FileSystemLoader
+import yaml
+
+from collections import MutableMapping, MutableSet, MutableSequence
+
+from ansible.module_utils.six import iteritems, string_types
+from ansible.parsing.plugin_docs import read_docstring
+from ansible.parsing.yaml.loader import AnsibleLoader
+from ansible.plugins.loader import fragment_loader
+from ansible.module_utils._text import to_bytes
 
 try:
-    from ansible.utils import module_docs
+    from html import escape as html_escape
 except ImportError:
-    from ansible.utils import plugin_docs as module_docs
+    # Python-3.2 or later
+    import cgi
+
+    def html_escape(text, quote=True):
+        return cgi.escape(text, quote)
+
 from ansible import __version__ as ansible_version
 
 #####################################################################################
 # constants and paths
 
+# if a module is added in a version of Ansible older than this, don't print the version added information
+# in the module documentation because everyone is assumed to be running something newer than this already.
+TO_OLD_TO_BE_NOTABLE = 1.3
+
 _ITALIC = re.compile(r"I\(([^)]+)\)")
 _BOLD = re.compile(r"B\(([^)]+)\)")
 _MODULE = re.compile(r"M\(([^)]+)\)")
-_URL = re.compile(r"U\(([^)]+)\)")
+_URL_W_TEXT = re.compile(r"U\(([^)^|]+)\|([^)]+)\)")
+_URL = re.compile(r"U\(([^)^|]+)\)")
 _CONST = re.compile(r"C\(([^)]+)\)")
+_UNDERSCORE = re.compile(r"_")
+DEPRECATED = b" (D)"
 
+MODULE_NAME_STARTS_WITH = "juniper_junos_facts"
 MODULEDIR = "../library/"
-OUTPUTDIR = "."
+OUTPUTDIR = "./_rst"
 
 #####################################################################################
 
+def too_old(added):
+    if not added:
+        return False
+    try:
+        added_tokens = str(added).split(".")
+        readded = added_tokens[0] + "." + added_tokens[1]
+        added_float = float(readded)
+    except ValueError as e:
+        warnings.warn("Could not parse %s: %s" % (added, str(e)))
+        return False
+    return added_float < TO_OLD_TO_BE_NOTABLE
+
+#####################################################################################
 
 def rst_ify(text):
     ''' convert symbols like I(this is in italics) to valid restructured text '''
 
-    t = _ITALIC.sub(r'*' + r"\1" + r"*", text)
-    t = _BOLD.sub(r'**' + r"\1" + r"**", t)
-    t = _MODULE.sub(r'``' + r"\1" + r"``", t)
-    t = _URL.sub(r"\1", t)
-    t = _CONST.sub(r'``' + r"\1" + r"``", t)
+    try:
+        t = _ITALIC.sub(r'*' + r"\1" + r"*", text)
+        t = _BOLD.sub(r'**' + r"\1" + r"**", t)
+        t = _MODULE.sub(r':ref:`' + r"\1 <\1>" + r"`", t)
+        t = _URL_W_TEXT.sub(r'`' + r"\1" + r" <" + r"\2" + r">`_", t)
+        t = _URL.sub(r'`' + r"\1" + r" <" + r"\1" + r">`_", t)
+        t = _CONST.sub(r'``' + r"\1" + r"``", t)
+    except Exception as e:
+        raise AnsibleError("Could not process (%s) : %s" % (str(text), str(e)))
 
     return t
 
 #####################################################################################
 
+def module_to_html(matchobj):
+    if matchobj.group(1) is not None:
+        module_name = matchobj.group(1)
+        module_href = _UNDERSCORE.sub('-', module_name)
+        return '<a class="reference internal" href="#' + module_href + '"><span class="std std-ref">' + \
+                    module_name + '</span></a>'
+    return ''
 
 def html_ify(text):
     ''' convert symbols like I(this is in italics) to valid HTML '''
 
-    t = cgi.escape(text)
+    t = html_escape(text)
     t = _ITALIC.sub("<em>" + r"\1" + "</em>", t)
     t = _BOLD.sub("<b>" + r"\1" + "</b>", t)
-    t = _MODULE.sub("<span class='module'>" + r"\1" + "</span>", t)
+    t = _MODULE.sub(module_to_html, t)
+    t = _URL_W_TEXT.sub("<a href='" + r"\2" + "'>" + r"\1" + "</a>", t)
     t = _URL.sub("<a href='" + r"\1" + "'>" + r"\1" + "</a>", t)
     t = _CONST.sub("<code>" + r"\1" + "</code>", t)
 
@@ -78,6 +125,7 @@ def html_ify(text):
 
 
 #####################################################################################
+
 
 def rst_fmt(text, fmt):
     ''' helper for Jinja2 to do format strings '''
@@ -99,16 +147,18 @@ def write_data(text, outputname, module, output_dir=None):
     ''' dumps module output to a file or the screen, as requested '''
 
     if output_dir is not None:
-        f = open(os.path.join(output_dir, outputname % module), 'w')
-        f.write(text.encode('utf-8'))
-        f.close()
+        if not os.path.exists(output_dir):
+            os.makedirs(output_dir)
+        fname = os.path.join(output_dir, outputname % (module))
+        with open(fname, 'wb') as f:
+            f.write(to_bytes(text))
     else:
-        print text
+        print(text)
 
 #####################################################################################
 
 
-def jinja2_environment(template_dir, typ):
+def jinja2_environment(template_dir, template_type):
 
     env = Environment(loader=FileSystemLoader(template_dir),
                       variable_start_string="@{",
@@ -117,7 +167,7 @@ def jinja2_environment(template_dir, typ):
                       )
     env.globals['xline'] = rst_xline
 
-    if typ == 'rst':
+    if template_type == 'rst':
         env.filters['convert_symbols_to_format'] = rst_ify
         env.filters['html_ify'] = html_ify
         env.filters['fmt'] = rst_fmt
@@ -125,53 +175,219 @@ def jinja2_environment(template_dir, typ):
         template = env.get_template('rst.j2')
         outputname = "%s.rst"
     else:
-        raise Exception("unknown module format type: %s" % typ)
+        raise Exception("unknown module format type: %s" % template_type)
 
     return env, template, outputname
 
 #####################################################################################
 
+def add_fragments(doc, filename):
 
-def process_module(fname, template, outputname):
+    fragments = doc.get('extends_documentation_fragment', [])
 
-    print MODULEDIR + fname
-    if LooseVersion(ansible_version) >= LooseVersion('2.3.0'):
-        doc, examples, returndocs, _metadata = module_docs.get_docstring(MODULEDIR + fname)
-    else:
-        doc, examples, returndocs = module_docs.get_docstring(MODULEDIR + fname)
+    if isinstance(fragments, string_types):
+        fragments = [fragments]
 
-    all_keys = []
+    # Allow the module to specify a var other than DOCUMENTATION
+    # to pull the fragment from, using dot notation as a separator
+    for fragment_slug in fragments:
+        fragment_slug = fragment_slug.lower()
+        if '.' in fragment_slug:
+            fragment_name, fragment_var = fragment_slug.split('.', 1)
+            fragment_var = fragment_var.upper()
+        else:
+            fragment_name, fragment_var = fragment_slug, 'DOCUMENTATION'
 
-    if 'version_added' not in doc:
-        sys.stderr.write("*** ERROR: missing version_added in: %s ***\n".format(fname))
-        sys.exit(1)
+        fragment_loader.add_directory('../module_utils/')
+        fragment_class = fragment_loader.get(fragment_name)
+        assert fragment_class is not None
 
+        fragment_yaml = getattr(fragment_class, fragment_var, '{}')
+        fragment = AnsibleLoader(fragment_yaml, file_name=filename).get_single_data()
+
+        if 'notes' in fragment:
+            notes = fragment.pop('notes')
+            if notes:
+                if 'notes' not in doc:
+                    doc['notes'] = []
+                doc['notes'].extend(notes)
+
+        if 'options' not in fragment and 'logging_options' not in fragment and 'connection_options' not in fragment:
+            raise Exception("missing options in fragment (%s), possibly misformatted?: %s" % (fragment_name, filename))
+
+        for key, value in fragment.items():
+            if key in doc:
+                # assumes both structures have same type
+                if isinstance(doc[key], MutableMapping):
+                    value.update(doc[key])
+                elif isinstance(doc[key], MutableSet):
+                    value.add(doc[key])
+                elif isinstance(doc[key], MutableSequence):
+                    value = sorted(frozenset(value + doc[key]))
+                else:
+                    raise Exception("Attempt to extend a documentation fragement (%s) of unknown type: %s" % (fragment_name, filename))
+            doc[key] = value
+
+
+
+def get_docstring(filename, verbose=False):
+    """
+    DOCUMENTATION can be extended using documentation fragments loaded by the PluginLoader from the module_docs_fragments directory.
+    """
+
+    data = read_docstring(filename, verbose=verbose)
+
+    # add fragments to documentation
+    if data.get('doc', False):
+        add_fragments(data['doc'], filename)
+
+    return data['doc'], data['plainexamples'], data['returndocs'], data['metadata']
+
+def process_module(fname, template, outputname, aliases=None):
+
+    module_name = fname.replace(".py", "")
+
+    print("Processing  module %s" % (MODULEDIR + fname))
+    doc, examples, returndocs, metadata = get_docstring(MODULEDIR + fname,
+                                                        verbose=True)
+
+    # add some defaults for plugins that dont have most of the info
+    doc['module'] = doc.get('module', module_name)
+    doc['version_added'] = doc.get('version_added', 'historical')
+    doc['plugin_type'] = 'module'
+
+    required_fields = ('short_description',)
+    for field in required_fields:
+        if field not in doc:
+            print("%s: WARNING: MODULE MISSING field '%s'" % (fname, field))
+
+    not_nullable_fields = ('short_description',)
+    for field in not_nullable_fields:
+        if field in doc and doc[field] in (None, ''):
+            print("%s: WARNING: MODULE field '%s' DOCUMENTATION is null/empty value=%s" % (fname, field, doc[field]))
+
+    #
+    # The present template gets everything from doc so we spend most of this
+    # function moving data into doc for the template to reference
+    #
+
+    if aliases:
+        doc['aliases'] = aliases
+
+    # don't show version added information if it's too old to be called out
     added = 0
     if doc['version_added'] == 'historical':
         del doc['version_added']
     else:
         added = doc['version_added']
 
-    # don't show version added information if it's too old to be called out
-    if added:
-        added_tokens = str(added).split(".")
-        added = added_tokens[0] + "." + added_tokens[1]
-        added_float = float(added)
+    # Strip old version_added for the module
+    if too_old(added):
+        del doc['version_added']
 
-    for (k, v) in doc['options'].iteritems():
-        all_keys.append(k)
-    all_keys = sorted(all_keys)
-    doc['option_keys'] = all_keys
+    option_names = []
+    if 'options' in doc and doc['options']:
+        for (k, v) in iteritems(doc['options']):
+            # Error out if there's no description
+            if 'description' not in doc['options'][k]:
+                raise AnsibleError("Missing required description for option %s in %s " % (k, module))
+
+            # Error out if required isn't a boolean (people have been putting
+            # information on when something is required in here.  Those need
+            # to go in the description instead).
+            required_value = doc['options'][k].get('required', False)
+            if not isinstance(required_value, bool):
+                raise AnsibleError("Invalid required value '%s' for option '%s' in '%s' (must be truthy)" % (
+                required_value, k, module))
+
+            # Strip old version_added information for options
+            if 'version_added' in doc['options'][k] and too_old(doc['options'][k]['version_added']):
+                del doc['options'][k]['version_added']
+
+            # Make sure description is a list of lines for later formatting
+            if not isinstance(doc['options'][k]['description'], list):
+                doc['options'][k]['description'] = [doc['options'][k]['description']]
+            option_names.append(k)
+    option_names.sort()
+    doc['option_keys'] = option_names
+
+    connection_option_names = []
+    if 'connection_options' in doc and doc['connection_options']:
+        for (k, v) in iteritems(doc['connection_options']):
+            # Error out if there's no description
+            if 'description' not in doc['connection_options'][k]:
+                raise AnsibleError("Missing required description for connection_option %s in %s " % (k, module))
+
+            # Error out if required isn't a boolean (people have been putting
+            # information on when something is required in here.  Those need
+            # to go in the description instead).
+            required_value = doc['connection_options'][k].get('required', False)
+            if not isinstance(required_value, bool):
+                raise AnsibleError("Invalid required value '%s' for connection_option '%s' in '%s' (must be truthy)" %
+                                   (required_value, k, module))
+
+            # Strip old version_added information for options
+            if ('version_added' in doc['connection_options'][k] and
+               too_old(doc['connection_options'][k]['version_added'])):
+                del doc['connection_options'][k]['version_added']
+
+            # Make sure description is a list of lines for later formatting
+            if not isinstance(doc['connection_options'][k]['description'], list):
+                doc['connection_options'][k]['description'] = [doc['connection_options'][k]['description']]
+            connection_option_names.append(k)
+    connection_option_names.sort()
+    doc['connection_option_keys'] = connection_option_names
+
+    logging_option_names = []
+    if 'logging_options' in doc and doc['logging_options']:
+        for (k, v) in iteritems(doc['logging_options']):
+            # Error out if there's no description
+            if 'description' not in doc['logging_options'][k]:
+                raise AnsibleError("Missing required description for logging_option %s in %s " % (k, module))
+
+            # Error out if required isn't a boolean (people have been putting
+            # information on when something is required in here.  Those need
+            # to go in the description instead).
+            required_value = doc['logging_options'][k].get('required', False)
+            if not isinstance(required_value, bool):
+                raise AnsibleError("Invalid required value '%s' for logging_option '%s' in '%s' (must be truthy)" %
+                                   (required_value, k, module))
+
+            # Strip old version_added information for options
+            if ('version_added' in doc['logging_options'][k] and
+                    too_old(doc['logging_options'][k]['version_added'])):
+                del doc['logging_options'][k]['version_added']
+
+            # Make sure description is a list of lines for later formatting
+            if not isinstance(doc['logging_options'][k]['description'], list):
+                doc['logging_options'][k]['description'] = [doc['logging_options'][k]['description']]
+            logging_option_names.append(k)
+    logging_option_names.sort()
+    doc['logging_option_keys'] = logging_option_names
 
     doc['filename'] = fname
     doc['docuri'] = doc['module'].replace('_', '-')
     doc['now_date'] = datetime.date.today().strftime('%Y-%m-%d')
+    doc['ansible_version'] = ansible_version
     doc['plainexamples'] = examples  # plain text
+    doc['metadata'] = metadata
+
+    if returndocs:
+        try:
+            doc['returndocs'] = yaml.safe_load(returndocs)
+        except Exception as e:
+            print("%s:%s:yaml error:%s:returndocs=%s" % (fname, module_name, e, returndocs))
+            doc['returndocs'] = None
+    else:
+        doc['returndocs'] = None
+
+    doc['author'] = doc.get('author', ['UNKNOWN'])
+    if isinstance(doc['author'], string_types):
+        doc['author'] = [doc['author']]
 
     # here is where we build the table of contents...
-
     text = template.render(doc)
-    write_data(text, outputname, fname, OUTPUTDIR)
+    write_data(text, outputname, module_name, OUTPUTDIR)
 
 #####################################################################################
 
@@ -179,12 +395,12 @@ def process_module(fname, template, outputname):
 def main():
 
     env, template, outputname = jinja2_environment('.', 'rst')
-    modules = []
+    module_names = []
 
     for module in os.listdir(MODULEDIR):
-        if module.startswith("junos_"):
+        if module.startswith(MODULE_NAME_STARTS_WITH):
             process_module(module, template, outputname)
-            modules.append(module)
+            module_names.append(module.replace(".py", ""))
 
     index_file_path = os.path.join(OUTPUTDIR, "index.rst")
     index_file = open(index_file_path, "w")
@@ -197,8 +413,8 @@ def main():
     index_file.write('   :maxdepth: 1\n')
     index_file.write('\n')
 
-    for module in modules:
-        index_file.write('   %s\n' % module)
+    for module_name in module_names:
+        index_file.write('   %s\n' % module_name)
 
 if __name__ == '__main__':
     main()

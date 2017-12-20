@@ -61,13 +61,15 @@ description:
     3) Check if the file exists at the I(remote_package) location on the target
        Junos device. If so, compute the MD5 checksum of the file on the target
        Junos device.
-    4) If the checksums computed in steps 2 and 3 differ, or if the
+    4) If the I(cleanfs) option is true, the default, then perform the
+       equivalent of the C(request system storage cleanup) CLI command.
+    5) If the checksums computed in steps 2 and 3 differ, or if the
        I(remote_package) file does not exist on the target Junos device, then
        copy the package from I(local_package) on the local Ansible control
        machine to I(remote_package) on the target Junos device.
-    5) Install the software pacakge from the I(remote_package) location on the
+    6) Install the software pacakge from the I(remote_package) location on the
        target Junos device using the specified options.
-    6) If the I(reboot) option is true, the default, initiate a reboot of the
+    7) If the I(reboot) option is true, the default, initiate a reboot of the
        target Junos device.
   - NOTE: This module does support connecting to the console of a Junos
           device, but does not support copying the software package from the

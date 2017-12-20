@@ -42,19 +42,18 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = '''
 ---
+extends_documentation_fragment: 
+  - juniper_junos_common.connection_documentation
+  - juniper_junos_common.logging_documentation
 module: juniper_junos_facts
-version_added: "2.0.0" # of Juniper.junos role
+version_added: "2.0.0"
 author: "Juniper Networks - Stacy Smith (@stacywsmith)"
 short_description: Retrieve facts from a Junos device
 description:
-  - Retrieve facts from a Junos device using the PyEZ fact gathering system.
-    The specific facts returned are documented at:
-    U(http://junos-pyez.readthedocs.io/en/latest/jnpr.junos.facts.html)
-    Also returns the committed configuration of the Junos device if the
+  - Retrieve facts from a Junos device using the
+    U(PyEZ fact gathering system|http://junos-pyez.readthedocs.io/en/stable/jnpr.junos.facts.html).
+  - Also returns the committed configuration of the Junos device if the
     I(config_format) option has a value other than C(none).
-# Document connection arguments
-# Document logging arguments
-extends_documentation_fragment: juniper_junos_common
 options:
   config_format:
     description:
@@ -62,17 +61,24 @@ options:
         supported by the target Junos device.
     required: false
     default: none
-    choices: [none, 'xml', 'set', 'text', 'json']
+    choices:
+      - none
+      - xml
+      - set
+      - text
+      - json
   savedir:
     description:
       - A path to a directory, on the Ansible control machine, where facts
-        will be stored in a JSON file. The resulting JSON file is saved in:
-        C(savedir/hostname-facts.json). The directory is the value of
-        I(savedir). The filename begins with the value of the hostname fact
-        returned from the Junos device, which might be different than the
-        value of the I(host) option passed to the module. If the value of the
-        I(savedir) option is C(none), the default, then facts are NOT saved to
-        a file.
+        will be stored in a JSON file.
+      - The resulting JSON file is saved in
+        I(savedir)C(/)I(hostname)C(-facts.json).
+      - The I(savedir) directory is the value of the I(savedir) option.
+      - The I(hostname)C(-facts.json) filename begins with the value of the 
+        C(hostname) fact returned from the Junos device, which might be
+        different than the value of the I(host) option passed to the module.
+      - If the value of the I(savedir) option is C(none), the default, then
+        facts are NOT saved to a file.
     required: false
     default: none
     type: path
@@ -99,11 +105,6 @@ EXAMPLES = '''
 # Using savedir option
 
 # Print the saved JSON file
-
-# Document connection examples
-# Document authentication examples
-# Document logging examples
-# extends_documentation_fragment: juniper_junos_common
 '''
 
 RETURN = '''
@@ -112,8 +113,8 @@ ansible_facts.junos:
     - Facts collected from the Junos device. This dictionary contains the
       keys listed in the I(contains) section of this documentation PLUS all
       of the keys returned from PyEZ's fact gathering system. See
-      U(http://junos-pyez.readthedocs.io/en/stable/jnpr.junos.facts.html)
-      for a complete list of these keys and thier meaning.
+      U(PyEZ facts|http://junos-pyez.readthedocs.io/en/stable/jnpr.junos.facts.html)
+      for a complete list of these keys and their meaning.
   returned: success
   type: complex
   contains:
@@ -121,11 +122,13 @@ ansible_facts.junos:
       description:
         - The device's committed configuration, in the format specified by
           I(config_format), as a single multi-line string.
-      returned: when I(config_format) is not none.
+      returned: when I(config_format) is not C(none).
       type: str
     has_2RE:
       description:
         - Indicates if the device has more than one Routing Engine installed.
+          Because Ansible does not allow keys to begin with a number, this fact
+          is returned in place of PyEZ's C(2RE) fact.
       returned: success
       type: bool
     re_name:
@@ -140,21 +143,23 @@ ansible_facts.junos:
                   the RE is not the master Routing Engine.
       returned: success
       type: bool
+changed:
+  description: Indicates if the device's state has changed. Since this module
+               doesn't change the operational or configuration state of the
+               device, the value is always set to C(false).
+  returned: success
+  type: bool
+  sample: false
 facts:
   description: Returned for backwards compatibility. Returns the same keys and
                values which are returned under I(ansible_facts.junos).
   returned: success
   type: dict
-changed:
-  description: Indicates if the device's state has changed. Since this module
-               doesn't change the operational or configuration state of the
-               device, the value is always set to false.
-  returned: success
-  type: bool
 failed:
   description: Indicates if the task failed.
   returned: always
   type: bool
+  sample: false
 '''
 
 # Standard library imports
