@@ -42,9 +42,14 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = '''
 ---
+extends_documentation_fragment: 
+  - juniper_junos_common.connection_documentation
+  - juniper_junos_common.logging_documentation
 module: juniper_junos_pmtud
 version_added: "2.0.0" # of Juniper.junos role
-author: "Martin Komon (@mkomon)"  # Updates to use common code by @stacywsmith
+author:
+  - Martin Komon (@mkomon)
+  - Juniper Networks - Stacy Smith (@stacywsmith)
 short_description: Perform path MTU discovery from a Junos device to a dest
 description:
   - Determine the maximum IP MTU supported along a path from a Junos device to
@@ -54,9 +59,6 @@ description:
     If the actual path MTU is greater than I(max_size), then I(max_size) will
     be reported. If the actual path MTU is less than min_test_size, then a
     failure will be reported.
-# connection arguments will be automatically added
-# logging arguments will be automatically added
-extends_documentation_fragment: juniper_junos_common
 options:
   dest:
     description:
@@ -71,54 +73,6 @@ options:
       - destination
       - destination_ip
       - destination_host
-  max_size:
-    description:
-        - The maximum IPv4 MTU, in bytes, to attempt when performing path MTU
-          discovery. The value returned for I(inet_mtu) will be no more
-          than this value even if the path actually supports a higher MTU. This
-          value must be between 68 and 65496.
-    required: false
-    default: 1500
-    type: int
-  max_range:
-    description:
-        - The maximum range of MTU values, in bytes, which will be searched
-          when performing path MTU discovery. This value must be 0 or
-          a power of 2 (2^n) between 2 and 65536. The minimum IPv4 MTU value
-          attempted when performing path MTU discovery is:
-          min_test_size = (I(max_size) - I(max_range) + 1)
-    required: false
-    default: 512
-    type: int
-  source:
-    description:
-      - The IPv4 address, or hostname if DNS is configured on the Junos device,
-        used as the source address of the PMTUD. If not specified, the Junos
-        default algorithm for determining the source address is used.
-    required: false
-    default: none
-    type: str
-    aliases:
-      - source_ip
-      - source_host
-      - src
-      - src_ip
-      - src_host
-  interface:
-    description:
-        - The source interface from which the the PMTUD is performed. If not
-          specified, the default Junos algorithm for determining the source
-          interface is used.
-    required: false
-    default: none
-    type: str
-  routing_instance:
-    description:
-        - Name of the source routing instance from which the ping is
-          originated. If not specified, the default routing instance is used.
-    required: false
-    default: none
-    type: str
 '''
 
 EXAMPLES = '''
@@ -188,18 +142,6 @@ EXAMPLES = '''
     - name: Print the discovered MTU.
       debug:
         var: response.inet_mtu
-
-#
-# CONNECTION_EXAMPLES
-#
-
-#
-# AUTHENTICATION_EXAMPLES
-#
-
-#
-# LOGGING_EXAMPLES
-#
 '''
 
 RETURN = '''
@@ -209,49 +151,6 @@ inet_mtu:
           I(max_size) and the actual path MTU to I(dest). If the actual path
           MTU is less than min_test_size, then a failure is reported. Where
           min_test_size = (I(max_size) - I(max_range) + 1)
-changed:
-  description:
-    - Indicates if the device's state has changed. Since this module
-      doesn't change the operational or configuration state of the
-      device, the value is always set to false.
-  returned: when PMTUD successfully executed.
-  type: bool
-failed:
-  description:
-    - Indicates if the task failed.
-  returned: always
-  type: bool
-warnings:
-  description:
-    - A list of warning strings, if any, produced from the ping.
-  returned: when warnings are present
-  type: list
-host:
-  description:
-    - The destination IP/host of the PMTUD as specified by the I(dest)
-      option. NOTE: Keys I(dest) and I(dest_ip) are also returned for backwards
-      compatibility.
-  returned: when PMTUD successfully executed.
-  type: str
-source:
-  description:
-    - The source IP/host of the PMTUD as specified by the I(source)
-      option.
-      NOTE: Key I(source_ip) is also returned for backwards compatibility.
-  returned: when the I(source) option was specified.
-  type: str
-interface:
-  description:
-    - The source interface of the PMTUD as specified by the I(interface)
-      option.
-  returned: when the I(interface) option was specified.
-  type: str
-routing_instance:
-  description:
-    - The routing-instance from which the PMTUD was performed as specified by
-      the I(routing_instance) option.
-  returned: when the I(routing_instance) option was specified.
-  type: str
 '''
 
 

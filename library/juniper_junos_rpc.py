@@ -42,7 +42,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = '''
 ---
-module: juniper_junos_command
+module: juniper_junos_rpc
 version_added: "2.0.0" # of Juniper.junos role
 author: "Juniper Networks - Stacy Smith (@stacywsmith)"
 short_description: Execute one or more NETCONF RPCs on a Junos device

@@ -240,6 +240,7 @@ class ModuleDocFragment(object):
             I(console) option.
         required: false
         default: none
+        type: str
         choices:
           - none
           - telnet

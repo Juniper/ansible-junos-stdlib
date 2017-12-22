@@ -416,7 +416,7 @@ In addition to the :ref:`module-specific-options-label`, the following logging-r
 
 {% endif %}
 {% if examples or plainexamples -%}
-
+.. _examples-label:
 
 Examples
 --------
@@ -452,7 +452,8 @@ Return Values
     <th class="head">type</th>
     <th class="head">sample</th>
     </tr>
-{% for entry in returndocs %}
+
+{% for entry in returndocs_keys %}
 
     <tr>
     <td>@{ entry }@</td>

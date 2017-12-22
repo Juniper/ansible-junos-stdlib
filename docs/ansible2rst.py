@@ -65,7 +65,7 @@ _CONST = re.compile(r"C\(([^)]+)\)")
 _UNDERSCORE = re.compile(r"_")
 DEPRECATED = b" (D)"
 
-MODULE_NAME_STARTS_WITH = "juniper_junos_facts"
+MODULE_NAME_STARTS_WITH = "juniper_junos_ping"
 MODULEDIR = "../library/"
 OUTPUTDIR = "./_rst"
 
@@ -375,11 +375,16 @@ def process_module(fname, template, outputname, aliases=None):
     if returndocs:
         try:
             doc['returndocs'] = yaml.safe_load(returndocs)
+            returndocs_keys = doc['returndocs'].keys()
+            returndocs_keys.sort()
+            doc['returndocs_keys'] = returndocs_keys
         except Exception as e:
             print("%s:%s:yaml error:%s:returndocs=%s" % (fname, module_name, e, returndocs))
             doc['returndocs'] = None
+            doc['returndocs_keys'] = None
     else:
         doc['returndocs'] = None
+        doc['returndocs_keys'] = None
 
     doc['author'] = doc.get('author', ['UNKNOWN'])
     if isinstance(doc['author'], string_types):

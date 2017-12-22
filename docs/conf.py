@@ -27,7 +27,7 @@ def setup(app):
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(1, os.path.abspath('..'))
 
-# Import ansible2rst so that RST files cam be generated.
+# Import ansible2rst so that RST files can be generated.
 import ansible2rst
 # Call ansible2rst.main() to generate RST files.
 ansible2rst.main()

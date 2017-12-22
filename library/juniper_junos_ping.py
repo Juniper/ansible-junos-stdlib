@@ -42,17 +42,32 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = '''
 ---
+extends_documentation_fragment: 
+  - juniper_junos_common.connection_documentation
+  - juniper_junos_common.logging_documentation
 module: juniper_junos_ping
 version_added: "2.0.0" # of Juniper.junos role
-author: "Juniper Networks - Stacy Smith (@stacywsmith)"
+author: Juniper Networks - Stacy Smith (@stacywsmith)
 short_description: Execute ping from a Junos device
 description:
-  - Execute the ping command from a Junos device in order to test network
-    reachability from the Junos device to a specified destination.
-# Document connection arguments
-# Document logging arguments
-extends_documentation_fragment: juniper_junos_common
+  - Execute the ping command from a Junos device to a specified destination in
+    order to test network reachability from the Junos device .
 options:
+  acceptable_percent_loss:
+    description:
+        - Maximum percentage of packets that may be lost and still consider the
+          task not to have failed.
+    required: false
+    default: 0
+    type: int
+    aliases:
+      - acceptable_packet_loss
+  count:
+    description:
+      - Number of packets to send.
+    required: false
+    default: 5
+    type: int
   dest:
     description:
       - The IP address, or hostname if DNS is configured on the Junos device,
@@ -66,48 +81,42 @@ options:
       - destination
       - destination_ip
       - destination_host
-  acceptable_percent_loss:
+  do_not_fragment:
     description:
-        - Maximum percentage of packets that may be lost and still consider the
-          task not to have failed.
+      - Set Do Not Fragment bit on ping packets.
     required: false
-    default: 0
-    type: int
-    aliases:
-      - acceptable_packet_loss
-  count:
+    default: false
+    type: bool
+  interface:
     description:
-        - Number of packets to send.
+      - The source interface from which the the ping is sent. If not
+        specified, the default Junos algorithm for determining the source
+        interface is used.
     required: false
-    default: 5
-    type: int
+    default: none
+    type: str
   rapid:
     description:
-        - Send ping requests rapidly
+      - Send ping requests rapidly
     required: false
     default: true
     type: bool
-  ttl:
+  routing_instance:
     description:
-        - Maximum number of IP routers (hops) allowed between source and
-          destination.
+      - Name of the source routing instance from which the ping is
+        originated. If not specified, the default routing instance is used.
     required: false
-    default: None (default ttl for device)
-    type: int
+    default: none
+    type: str
   size:
     description:
-        - The size of the ICMP payload of the ping. NOTE: Total size of the IP
-          packet is I(size) + the 20 byte IP header + the 8 byte ICMP header.
-          Therefore, I(size) of 1472 generates an IP packet of size 1500.
+      - The size of the ICMP payload of the ping.
+      - Total size of the IP packet is I(size) + the 20 byte IP header +
+        the 8 byte ICMP header. Therefore, I(size) of C(1472) generates an IP
+        packet of size 1500.
     required: false
-    default: None (default size for device)
+    default: none (default size for device)
     type: int
-  do_not_fragment:
-    description:
-        - Set Do Not Fragment bit on ping packets.
-    required: false
-    default: false
-    type:bool
   source:
     description:
       - The IP address, or hostname if DNS is configured on the Junos device,
@@ -122,34 +131,17 @@ options:
       - src
       - src_ip
       - src_host
-  interface:
+  ttl:
     description:
-        - The source interface from which the the ping is sent. If not
-          specified, the default Junos algorithm for determining the source
-          interface is used.
+      - Maximum number of IP routers (hops) allowed between source and
+        destination.
     required: false
-    default: none
-    type: str
-  routing_instance:
-    description:
-        - Name of the source routing instance from which the ping is
-          originated. If not specified, the default routing instance is used.
-    required: false
-    default: none
-    type: str
+    default: none (default ttl for device)
+    type: int
 '''
 
 EXAMPLES = '''
 ---
-#
-# MODULE_EXAMPLES
-# This playbook demonstrate the parameters supported by the juniper_junos_ping
-# module. These examples use the default connection, authtentication and
-# logging parameters. See the examples labeled CONNECTION_EXAMPLES for details
-# on connection parameters. See the examples labeled AUTHENTICATION_EXAMPLES
-# for details on authentication parameters. See the examples labeled
-# LOGGING_EXAMPLES for details on logging parameters.
-#
 - name: Examples of juniper_junos_ping
   hosts: junos-all
   connection: local
@@ -235,21 +227,58 @@ EXAMPLES = '''
       juniper_junos_ping:
         dest: "224.0.0.1"
         interface: "ge-0/0/0.0"
-
-#
-# CONNECTION_EXAMPLES
-#
-
-#
-# AUTHENTICATION_EXAMPLES
-#
-
-#
-# LOGGING_EXAMPLES
-#
 '''
 
 RETURN = '''
+acceptable_percent_loss:
+  description:
+    - The acceptable packet loss (as a percentage) for this task as specified
+      by the I(acceptable_percent_loss) option.
+  returned: when ping successfully executed, even if the
+            I(acceptable_percent_loss) was exceeded.
+  type: str
+changed:
+  description:
+    - Indicates if the device's state has changed. Since this module
+      doesn't change the operational or configuration state of the
+      device, the value is always set to C(false).
+  returned: when ping successfully executed, even if the
+            I(acceptable_percent_loss) was exceeded.
+  type: bool
+count:
+  description:
+    - The number of pings sent, as specified by the I(count) option.
+  returned: when ping successfully executed, even if the
+            I(acceptable_percent_loss) was exceeded.
+  type: str
+do_not_fragment:
+  description:
+    - Whether or not the do not fragment bit was set on the pings sent, as
+      specified by the I(do_not_fragment) option.
+  returned: when ping successfully executed, even if the
+            I(acceptable_percent_loss) was exceeded.
+  type: bool
+failed:
+  description:
+    - Indicates if the task failed.
+  returned: always
+  type: bool
+host:
+  description:
+    - The destination IP/host of the pings sent as specified by the I(dest)
+      option.
+    - Keys I(dest) and I(dest_ip) are also returned for backwards
+      compatibility.
+  returned: when ping successfully executed, even if the
+            I(acceptable_percent_loss) was exceeded.
+  type: str
+interface:
+  description:
+    - The source interface of the pings sent as specified by the
+      I(interface) option.
+  returned: when ping successfully executed and the I(interface) option was
+            specified, even if the I(acceptable_percent_loss) was exceeded.
+  type: str
 msg:
   description:
     - A human-readable message indicating the result.
@@ -273,75 +302,6 @@ packets_received:
   returned: when ping successfully executed, even if the
             I(acceptable_percent_loss) was exceeded.
   type: str
-rtt_minimum:
-  description:
-    - The minimum round-trip-time, in microseconds, of all ping responses
-      received.
-  returned: when ping successfully executed, and packet_loss < 100%.
-  type: str
-rtt_maximum:
-  description:
-    - The maximum round-trip-time, in microseconds, of all ping responses
-      received.
-  returned: when ping successfully executed, and packet_loss < 100%.
-  type: str
-rtt_average:
-  description:
-    - The average round-trip-time, in microseconds, of all ping responses
-      received.
-  returned: when ping successfully executed, and packet_loss < 100%.
-  type: str
-rtt_stddev:
-  description:
-    - The standard deviation of round-trip-time, in microseconds, of all ping
-      responses received.
-  returned: when ping successfully executed, and packet_loss < 100%.
-  type: str
-warnings:
-  description:
-    - A list of warning strings, if any, produced from the ping.
-  returned: when warnings are present
-  type: list
-changed:
-  description:
-    - Indicates if the device's state has changed. Since this module
-      doesn't change the operational or configuration state of the
-      device, the value is always set to false.
-  returned: when ping successfully executed, even if the
-            I(acceptable_percent_loss) was exceeded.
-  type: bool
-failed:
-  description:
-    - Indicates if the task failed.
-  returned: always
-  type: bool
-host:
-  description:
-    - The destination IP/host of the pings sent as specified by the I(dest)
-      option. NOTE: Key I(dest) and I(dest_ip) is also returned for backwards
-      compatibility.
-  returned: when ping successfully executed, even if the
-            I(acceptable_percent_loss) was exceeded.
-  type: str
-acceptable_percent_loss:
-  description:
-    - The acceptable packet loss (as a percentage) for this task as specified
-      by the I(acceptable_percent_loss) option.
-  returned: when ping successfully executed, even if the
-            I(acceptable_percent_loss) was exceeded.
-  type: str
-timeout:
-  description:
-    - The number of seconds to wait for a response from the ping RPC.
-  returned: when ping successfully executed, even if the
-            I(acceptable_percent_loss) was exceeded.
-  type: str
-count:
-  description:
-    - The number of pings sent, as specified by the I(count) option.
-  returned: when ping successfully executed, even if the
-            I(acceptable_percent_loss) was exceeded.
-  type: str
 rapid:
   description:
     - Whether or not the pings were sent rapidly, as specified by the
@@ -349,44 +309,6 @@ rapid:
   returned: when ping successfully executed, even if the
             I(acceptable_percent_loss) was exceeded.
   type: bool
-ttl:
-  description:
-    - The time-to-live set on the pings sent as specified by the
-      I(ttl) option.
-  returned: when ping successfully executed and the I(ttl) option was
-            specified, even if the I(acceptable_percent_loss) was exceeded.
-  type: str
-size:
-  description:
-    - The size in bytes of the ICMP payload on the pings sent as specified
-      by the I(size) option. NOTE: Total size of the IP packet is I(size) +
-      the 20 byte IP header + the 8 byte ICMP header. Therefore, I(size)
-      of 1472 generates an IP packet of size 1500.
-  returned: when ping successfully executed and the I(size) option was
-            specified, even if the I(acceptable_percent_loss) was exceeded.
-  type: str
-do_not_fragment:
-  description:
-    - Whether or not the do not fragment bit was set on the pings sent, as
-      specified by the I(do_not_fragment) option.
-  returned: when ping successfully executed, even if the
-            I(acceptable_percent_loss) was exceeded.
-  type: bool
-source:
-  description:
-    - The source IP/host of the pings sent as specified by the I(source)
-      option.
-      NOTE: Key I(source_ip) is also returned for backwards compatibility.
-  returned: when ping successfully executed and the I(source) option was
-            specified, even if the I(acceptable_percent_loss) was exceeded.
-  type: str
-interface:
-  description:
-    - The source interface of the pings sent as specified by the
-      I(interface) option.
-  returned: when ping successfully executed and the I(interface) option was
-            specified, even if the I(acceptable_percent_loss) was exceeded.
-  type: str
 routing_instance:
   description:
     - The routing-instance from which the pings were sent as specified by
@@ -395,6 +317,66 @@ routing_instance:
             option was specified, even if the I(acceptable_percent_loss) was
             exceeded.
   type: str
+rtt_average:
+  description:
+    - The average round-trip-time, in microseconds, of all ping responses
+      received.
+  returned: when ping successfully executed, and I(packet_loss) < 100%.
+  type: str
+rtt_maximum:
+  description:
+    - The maximum round-trip-time, in microseconds, of all ping responses
+      received.
+  returned: when ping successfully executed, and I(packet_loss) < 100%.
+  type: str
+rtt_minimum:
+  description:
+    - The minimum round-trip-time, in microseconds, of all ping responses
+      received.
+  returned: when ping successfully executed, and I(packet_loss) < 100%.
+  type: str
+rtt_stddev:
+  description:
+    - The standard deviation of round-trip-time, in microseconds, of all ping
+      responses received.
+  returned: when ping successfully executed, and I(packet_loss) < 100%.
+  type: str
+size:
+  description:
+    - The size in bytes of the ICMP payload on the pings sent as specified
+      by the I(size) option.
+    - Total size of the IP packet is I(size) + the 20 byte IP header + the 8
+      byte ICMP header. Therefore, I(size) of 1472 generates an IP packet of
+      size 1500.
+  returned: when ping successfully executed and the I(size) option was
+            specified, even if the I(acceptable_percent_loss) was exceeded.
+  type: str
+source:
+  description:
+    - The source IP/host of the pings sent as specified by the I(source)
+      option.
+    - Key I(source_ip) is also returned for backwards compatibility.
+  returned: when ping successfully executed and the I(source) option was
+            specified, even if the I(acceptable_percent_loss) was exceeded.
+  type: str
+timeout:
+  description:
+    - The number of seconds to wait for a response from the ping RPC.
+  returned: when ping successfully executed, even if the
+            I(acceptable_percent_loss) was exceeded.
+  type: str
+ttl:
+  description:
+    - The time-to-live set on the pings sent as specified by the
+      I(ttl) option.
+  returned: when ping successfully executed and the I(ttl) option was
+            specified, even if the I(acceptable_percent_loss) was exceeded.
+  type: str
+warnings:
+  description:
+    - A list of warning strings, if any, produced from the ping.
+  returned: when warnings are present
+  type: list
 '''
 
 

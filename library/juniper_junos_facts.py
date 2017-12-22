@@ -139,24 +139,27 @@ ansible_facts.junos:
     master_state:
       description:
         - The mastership state of the Routing Engine to which Ansible is
-          connected. True if the RE is the master Routing Engine. False if
-                  the RE is not the master Routing Engine.
+          connected. C(true) if the RE is the master Routing Engine. C(false)
+          if the RE is not the master Routing Engine.
       returned: success
       type: bool
 changed:
-  description: Indicates if the device's state has changed. Since this module
-               does not change the operational or configuration state of the
-               device, the value is always set to C(false).
+  description:
+    - Indicates if the device's state has changed. Since this module does not
+      change the operational or configuration state of the device, the value is
+      always set to C(false).
   returned: success
   type: bool
   sample: false
 facts:
-  description: Returned for backwards compatibility. Returns the same keys and
-               values which are returned under I(ansible_facts.junos).
+  description:
+    - Returned for backwards compatibility. Returns the same keys and values
+      which are returned under I(ansible_facts.junos).
   returned: success
   type: dict
 failed:
-  description: Indicates if the task failed.
+  description:
+    - Indicates if the task failed.
   returned: always
   type: bool
   sample: false
