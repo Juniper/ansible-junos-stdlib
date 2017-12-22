@@ -50,14 +50,15 @@ version_added: "2.0.0" # of Juniper.junos role
 author:
   - Martin Komon (@mkomon)
   - Juniper Networks - Stacy Smith (@stacywsmith)
-short_description: Perform path MTU discovery from a Junos device to a dest
+short_description: Perform path MTU discovery from a Junos device to a
+                   destination
 description:
   - Determine the maximum IP MTU supported along a path from a Junos device to
     a user-specified destination by performing path MTU discovery (PMTUD) using
     the ping command. The reported MTU will be between min_test_size and
-    I(max_size) where min_test_size = (I(max_size) - I(max_range) + 1).
+    I(max_size) where I(min_test_size) = (I(max_size) - I(max_range) + 1).
     If the actual path MTU is greater than I(max_size), then I(max_size) will
-    be reported. If the actual path MTU is less than min_test_size, then a
+    be reported. If the actual path MTU is less than I(min_test_size), then a
     failure will be reported.
 options:
   dest:
@@ -73,19 +74,60 @@ options:
       - destination
       - destination_ip
       - destination_host
+  interface:
+    description:
+      - The source interface from which the the PMTUD is performed. If not
+        specified, the default Junos algorithm for determining the source
+        interface is used.
+    required: false
+    default: none
+    type: str
+  max_range:
+    description:
+      - The maximum range of MTU values, in bytes, which will be searched
+        when performing path MTU discovery. This value must be C(0) or
+        a power of 2 (2^n) between C(2) and C(65536). The minimum IPv4 MTU
+        value attempted when performing path MTU discovery is
+        I(min_test_size) = (I(max_size) - I(max_range) + 1)
+    required: false
+    default: 512
+    type: int
+  max_size:
+    description:
+      - The maximum IPv4 MTU, in bytes, to attempt when performing path MTU
+        discovery.
+      - The value returned for I(inet_mtu) will be no more
+        than this value even if the path actually supports a higher MTU.
+      - This value must be between 68 and 65496.
+    required: false
+    default: 1500
+    type: int
+  routing_instance:
+    description:
+      - Name of the source routing instance from which the ping is
+        originated.
+      - If not specified, the default routing instance is used.
+    required: false
+    default: none
+    type: str
+  source:
+    description:
+      - The IPv4 address, or hostname if DNS is configured on the Junos device,
+        used as the source address of the PMTUD. If not specified, the Junos
+        default algorithm for determining the source address is used.
+    required: false
+    default: none
+    type: str
+    aliases:
+      - source_ip
+      - source_host
+      - src
+      - src_ip
+      - src_host
 '''
 
 EXAMPLES = '''
 ---
-#
-# MODULE_EXAMPLES
-# This playbook demonstrate the parameters supported by the juniper_junos_ping
-# module. These examples use the default connection, authtentication and
-# logging parameters. See the examples labeled CONNECTION_EXAMPLES for details
-# on connection parameters. See the examples labeled AUTHENTICATION_EXAMPLES
-# for details on authentication parameters. See the examples labeled
-# LOGGING_EXAMPLES for details on logging parameters.
-#
 - name: Examples of juniper_junos_mtud
   hosts: junos-all
   connection: local
@@ -145,12 +187,58 @@ EXAMPLES = '''
 '''
 
 RETURN = '''
+changed:
+  description:
+    - Indicates if the device's state has changed. Since this module
+      doesn't change the operational or configuration state of the
+      device, the value is always set to C(false).
+  returned: when PMTUD successfully executed.
+  type: bool
+failed:
+  description:
+    - Indicates if the task failed.
+  returned: always
+  type: bool
+host:
+  description:
+    - The destination IP/host of the PMTUD as specified by the I(dest)
+      option.
+    - Keys I(dest) and I(dest_ip) are also returned for backwards
+      compatibility.
+  returned: when PMTUD successfully executed.
+  type: str
 inet_mtu:
-    description:
-        - The IPv4 path MTU size in bytes to the I(dest). This is the lesser of
-          I(max_size) and the actual path MTU to I(dest). If the actual path
-          MTU is less than min_test_size, then a failure is reported. Where
-          min_test_size = (I(max_size) - I(max_range) + 1)
+  description:
+    - The IPv4 path MTU size in bytes to the I(dest). This is the lesser of
+      I(max_size) and the actual path MTU to I(dest). If the actual path
+      MTU is less than I(min_test_size), then a failure is reported. Where
+          I(min_test_size) = (I(max_size) - I(max_range) + 1)
+  returned: when PMTUD successfully executed.
+  type: str
+interface:
+  description:
+    - The source interface of the PMTUD as specified by the I(interface)
+      option.
+  returned: when the I(interface) option was specified.
+  type: str
+routing_instance:
+  description:
+    - The routing-instance from which the PMTUD was performed as specified by
+      the I(routing_instance) option.
+  returned: when the I(routing_instance) option was specified.
+  type: str
+source:
+  description:
+    - The source IP/host of the PMTUD as specified by the I(source)
+      option.
+    - Key I(source_ip) is also returned for backwards compatibility.
+  returned: when the I(source) option was specified.
+  type: str
+warnings:
+  description:
+    - A list of warning strings, if any, produced from the ping.
+  returned: when warnings are present
+  type: list
 '''
 
 

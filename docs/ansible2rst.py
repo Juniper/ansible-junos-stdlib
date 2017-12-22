@@ -65,7 +65,7 @@ _CONST = re.compile(r"C\(([^)]+)\)")
 _UNDERSCORE = re.compile(r"_")
 DEPRECATED = b" (D)"
 
-MODULE_NAME_STARTS_WITH = "juniper_junos_ping"
+MODULE_NAME_STARTS_WITH = "juniper_junos_software"
 MODULEDIR = "../library/"
 OUTPUTDIR = "./_rst"
 

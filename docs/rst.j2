@@ -97,7 +97,7 @@ The following options may be specified for this module:
     <td>@{ k }@<br/><div style="font-size: small;">{% if v['version_added'] -%} (added in @{v['version_added']}@){% endif -%}</div></td>
     <td>{% if v['type'] -%}@{ v['type'] }@{% endif -%}</td>
     <td>{% if v.get('required', False) -%}yes{% else %}no{% endif -%}</td>
-    <td>{% if v['default'] -%}@{ v['default'] | string | html_ify }@{% endif -%}</td>
+    <td>{% if v.get('default', None) is not none  -%}@{ v['default'] | string | html_ify }@{% endif -%}</td>
 {% if v.get('type', 'not_bool') == 'bool' %}
     <td><ul><li>yes</li><li>no</li></ul></td>
 {% else %}
@@ -151,7 +151,7 @@ The following options may be specified for this module:
         <td>@{ k2 }@<br/><div style="font-size: small;">{% if v2['version_added'] -%} (added in @{v2['version_added']}@){% endif -%}</div></td>
         <td>{% if v2['type'] -%}@{ v2['type'] }@{% endif -%}</td>
         <td>{% if v2.get('required', False) -%}yes{% else -%}no{% endif -%}</td>
-        <td>{% if v2['default'] -%}@{ v2['default'] | string | html_ify }@{% endif -%}</td>
+        <td>{% if v2.get('default', None) is not none  -%}@{ v2['default'] | string | html_ify }@{% endif -%}</td>
 {% if v2.get('type', 'not_bool') == 'bool' %}
         <td><ul><li>yes</li><li>no</li></ul></td>
 {% else %}
@@ -212,7 +212,7 @@ In addition to the :ref:`module-specific-options-label`, the following connectio
     <td>@{ k }@<br/><div style="font-size: small;">{% if v['version_added'] -%} (added in @{v['version_added']}@){% endif -%}</div></td>
     <td>{% if v['type'] -%}@{ v['type'] }@{% endif -%}</td>
     <td>{% if v.get('required', False) -%}yes{% else %}no{% endif -%}</td>
-    <td>{% if v['default'] -%}@{ v['default'] | string | html_ify }@{% endif -%}</td>
+    <td>{% if v.get('default', None) is not none  -%}@{ v['default'] | string | html_ify }@{% endif -%}</td>
 {% if v.get('type', 'not_bool') == 'bool' %}
     <td><ul><li>yes</li><li>no</li></ul></td>
 {% else %}
@@ -266,7 +266,7 @@ In addition to the :ref:`module-specific-options-label`, the following connectio
         <td>@{ k2 }@<br/><div style="font-size: small;">{% if v2['version_added'] -%} (added in @{v2['version_added']}@){% endif -%}</div></td>
         <td>{% if v2['type'] -%}@{ v2['type'] }@{% endif -%}</td>
         <td>{% if v2.get('required', False) -%}yes{% else -%}no{% endif -%}</td>
-        <td>{% if v2['default'] -%}@{ v2['default'] | string | html_ify }@{% endif -%}</td>
+        <td>{% if v2.get('default', None) is not none  -%}@{ v2['default'] | string | html_ify }@{% endif -%}</td>
 {% if v2.get('type', 'not_bool') == 'bool' %}
         <td><ul><li>yes</li><li>no</li></ul></td>
 {% else %}
@@ -327,7 +327,7 @@ In addition to the :ref:`module-specific-options-label`, the following logging-r
     <td>@{ k }@<br/><div style="font-size: small;">{% if v['version_added'] -%} (added in @{v['version_added']}@){% endif -%}</div></td>
     <td>{% if v['type'] -%}@{ v['type'] }@{% endif -%}</td>
     <td>{% if v.get('required', False) -%}yes{% else %}no{% endif -%}</td>
-    <td>{% if v['default'] -%}@{ v['default'] | string | html_ify }@{% endif -%}</td>
+    <td>{% if v.get('default', None) is not none  -%}@{ v['default'] | string | html_ify }@{% endif -%}</td>
 {% if v.get('type', 'not_bool') == 'bool' %}
     <td><ul><li>yes</li><li>no</li></ul></td>
 {% else %}
@@ -381,7 +381,7 @@ In addition to the :ref:`module-specific-options-label`, the following logging-r
         <td>@{ k2 }@<br/><div style="font-size: small;">{% if v2['version_added'] -%} (added in @{v2['version_added']}@){% endif -%}</div></td>
         <td>{% if v2['type'] -%}@{ v2['type'] }@{% endif -%}</td>
         <td>{% if v2.get('required', False) -%}yes{% else -%}no{% endif -%}</td>
-        <td>{% if v2['default'] -%}@{ v2['default'] | string | html_ify }@{% endif -%}</td>
+        <td>{% if v2.get('default', None) is not none  -%}@{ v2['default'] | string | html_ify }@{% endif -%}</td>
 {% if v2.get('type', 'not_bool') == 'bool' %}
         <td><ul><li>yes</li><li>no</li></ul></td>
 {% else %}

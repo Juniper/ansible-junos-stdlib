@@ -42,149 +42,106 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = '''
 ---
+extends_documentation_fragment: 
+  - juniper_junos_common.connection_documentation
+  - juniper_junos_common.logging_documentation
 module: juniper_junos_software
 version_added: "2.0.0" # of Juniper.junos role
-author: "Juniper Networks - Jeremy Schulman, Stacy Smith (@stacywsmith)"
+author:
+  - Jeremy Schulman
+  - "Juniper Networks - Stacy Smith (@stacywsmith)"
 short_description: Install software on a Junos device
 description:
-  - Install a Junos OS image, or other software package, on a Junos device.
+  - >
+    Install a Junos OS image, or other software package, on a Junos device.
     This action is generally equivalent to the C(request system software add)
-    operational-mode CLI command.
-  - The steps performed are:
-    1) Compare the currently installed Junos version to the desired version
-       specified by the I(version) option. If the current and desired versions
-       are the same, stop and return I(changed) with a value of C(false). If
-       running in check mode, and the current and desired versions differ,
-       stop and return I(changed) with a value of C(true). Otherwise, proceed.
-    2) If the I(local_package) option is specified, compute the MD5 checksum
+    operational-mode CLI command. It performs the following
+    steps in order:
+    
+    #. Compare the currently installed Junos version to the desired version
+       specified by the I(version) option.
+    
+       * If the current and desired versions are the same, stop and return
+         I(changed) with a value of C(false).
+       * If running in check mode, and the current and desired versions differ,
+         stop and return I(changed) with a value of C(true).
+       * Otherwise, proceed.
+    #. If the I(local_package) option is specified, compute the MD5 checksum
        of the I(local_package) file on the local Ansible control machine.
-    3) Check if the file exists at the I(remote_package) location on the target
+    #. Check if the file exists at the I(remote_package) location on the target
        Junos device. If so, compute the MD5 checksum of the file on the target
        Junos device.
-    4) If the I(cleanfs) option is true, the default, then perform the
+    #. If the I(cleanfs) option is C(true), the default, then perform the
        equivalent of the C(request system storage cleanup) CLI command.
-    5) If the checksums computed in steps 2 and 3 differ, or if the
+    #. If the checksums computed in steps 2 and 3 differ, or if the
        I(remote_package) file does not exist on the target Junos device, then
        copy the package from I(local_package) on the local Ansible control
        machine to I(remote_package) on the target Junos device.
-    6) Install the software pacakge from the I(remote_package) location on the
-       target Junos device using the specified options.
-    7) If the I(reboot) option is true, the default, initiate a reboot of the
-       target Junos device.
-  - NOTE: This module does support connecting to the console of a Junos
-          device, but does not support copying the software package from the
-          local Ansible control machine to the target Junos device while
-          connected via the console. In this situation, the I(remote_package)
-          option must be specified, and the specified software package must
-          already exist on the target Junos device.
-  - NOTE: This module returns after installing the software and, optionally,
-          initiating a reboot of the target Junos device. It does not wait for
-          the reboot to complete, and it does not verify that the desired
-          version of software specified by the I(version) option is actually
-          activated on the target Junos device. It is the user's responsibility
-          to confirm the software installation using additional follow on
-          tasks in their playbook.
-
-# Document connection arguments
-# Document logging arguments
-extends_documentation_fragment: juniper_junos_common
+    #. Install the software pacakge from the I(remote_package) location on the
+       target Junos device using the options specified.
+    #. If the I(reboot) option is C(true), the default, initiate a reboot of
+       the target Junos device.
 options:
-  local_package:
+  all_re:
     description:
-      - The path, on the local Ansible control machine, to the file
-        containing the software package to be installed on the target Junos
-        device. If this option is not specified, it is assumed that the
-        software package already exists on the target Junos device. In this
-        case, the I(remote_package) option must be specified. If this option
-        is specified, and a file with the same MD5 checksum doesn't already
-        exist at the I(remote_package) location on the target Junos device,
-        then the file is copied from the local Ansible control machine to the
-        target Junos device.
-    required: if I(remote_package) is not specified
-    default: none
-    type: 'path'
-    aliases:
-      - package
-  remote_package:
-    description:
-      - This option may take one of two formats. It is either:
-        1) A URL, from the perspective of the target Junos device, from which
-           the device retrieves the software package to be installed. The
-           acceptable formats for a URL value may be found at:
-           U(https://www.juniper.net/documentation/en_US/junos/topics/concept/junos-software-formats-filenames-urls.html)
-           - The I(local_package) and I(no_copy) options must not be specified.
-        2) A file path, on the taget Junos device, to the software package.
-           - If the I(local_package) option is also specified, and the
-             I(no_copy) option is C(false), the software package will be copied
-             from I(local_package) to I(remote_package), if necessary.
-           - If the I(no_copy) option is C(true) or the I(local_package) option
-             is not specified, then the file specified by this option must
-             already exist on the target Junos device.
-           - If this option is not specified, it is assumed that the software
-             package will be copied into the C(/var/tmp) directory on the
-             target Junos device using the filename portion of the
-             I(local_package) option. In this case, the I(local_package) option
-             must be specified.
-           - Specifying the I(remote_package) option and not specifying the
-             I(local_package) option is equivalent to specifying the
-             I(local_package) option and the I(no_copy) option. In this case,
-             you no longer have to explicitly specify the I(no_copy) option.
-           - If the I(remote_package) value is a directory (ends with /), then
-             the filename portion of I(local_package) will be appended to the
-             I(remote_package) value.
-           - If the I(remote_package) value is a file (does not end with /),
-             then the filename portion of I(remote_package) must be the same as
-             the filename portion of I(local_package).
-    required: if I(local_package) is not specified
-    default: '/var/tmp/' + filename portion of I(local_package)
-    type: 'path'
-  version:
-    description:
-      - The version of software contained in the file specified by the
-        I(local_package) and/or I(remote_package) options. This value should
-        match the Junos version which will be reported by the device once the
-        new software is installed. If the device is already running a version
-        of software which matches the I(version) option value, the software
-        install is not necessary. In this case the module returns a I(changed)
-        value of C(false) and an I(failed) value of C(false) and does not
-        attempt to perform the software install.
-    required: false
-    default: Attempt to extract the version from the file name specified by
-             the I(local_package) or I(remote_package) option values IF the
-             package appears to be a Junos software package. Otherwise, None.
-    type: 'str'
-    aliases:
-      - target_version
-      - new_version
-      - desired_version
-  no_copy:
-    description:
-      - Indicates if the file containing the software package should be copied
-        from the I(local_package) location on the local Ansible control
-        machine to the I(remote_package) location on the target Junos device.
-        If the value is C(true), or if the I(local_package) option is not
-        specified, then the copy is skipped and the file must already exist
-        at the I(remote_package) location on the target Junos device.
-    required: false
-    default: false
-    type: 'bool'
-  reboot:
-    description:
-      - Indicates if the target Junos device should be rebooted after
-        performing the software install.
+      - Whether or not to install the software on all Routing Engines of the
+        target Junos device. If C(true), and the device has multiple Routing
+        Engines, the software is installed on all Routing Engines. If C(false),
+        the software is only installed on the current Routing Engine.
     required: false
     default: true
-    type: 'bool'
-  reboot_pause:
+    type: bool
+  checksum:
     description:
-      - The amount of time, in seconds, to wait after the reboot is issued
-        before the module returns. This gives time for the reboot to begin. The
-        default value of 10 seconds is designed to ensure the device is no
-        longer reachable (because the reboot has begun) when the next task
-        begins. The value must be an integer greater than or equal to 0.
+      - The pre-calculated checksum, using the I(checksum_algorithm) of the
+        file specified by the I(local_package) option. Specifying this option
+        is simply an optimization to avoid repeatedly computing the checksum of
+        the I(local_package) file once for each target Junos host.
     required: false
-    default: 10
-    type: 'int'
+    default: none
+    type: str
+  checksum_algorithm:
+    description:
+      - The algorithm to use when calculating the checksum of the local and
+        remote software packages.
+    required: false
+    default: md5
+    type: str
+  checksum_timeout:
+    description:
+      - The number of seconds to wait for the calculation of the checksum to
+        complete on the target Junos device.
+    required: false
+    default: 300 (5 minutes)
+    type: int
+  cleanfs:
+    description:
+      - Whether or not to perform a C(request system storage cleanup) prior to
+        copying or installing the software.
+    required: false
+    default: true (unless I(no_copy) is C(true), then C(false))
+    type: bool
+  cleanfs_timeout:
+    description:
+      -  The number of seconds to wait for the
+         C(request system storage cleanup) to complete on the target Junos
+         device.
+    required: false
+    default: 300 (5 minutes)
+    type: int
+  force_host:
+    description:
+      - Forces the upgrade of the Host Software package on QFX-series devices.
+    required: false
+    default: false
+    type: bool
+  install_timeout:
+    description:
+      - The number of seconds to wait for the software installation to
+        complete on the target Junos device.
+    required: false
+    default: 1800 (30 minutes)
+    type: int
   issu:
     description:
       - Indicates if a unified in-service software upgrade (ISSU) should be
@@ -198,7 +155,47 @@ options:
       - The I(issu) and I(nssu) options are mutually exclusive.
     required: false
     default: false
-    type: 'bool'
+    type: bool
+  kwargs:
+    description:
+      - Additional keyword arguments and values which are passed to the
+        C(<request-package-add>) RPC used to install the software package. The
+        value of this option is a dictionary of keywords and values.
+    required: false
+    default: none
+    type: dict
+    aliases:
+      - kwarg
+      - args
+      - arg
+  local_package:
+    description:
+      - The path, on the local Ansible control machine, of a Junos software
+        package. This Junos software package will be installed on the target
+        Junos device.
+      - If this option is specified, and a file with the same MD5 checksum
+        doesn't already exist at the I(remote_package) location on the target
+        Junos device, then the file is copied from the local Ansible control
+        machine to the target Junos device.
+      - If this option is not specified, it is assumed that the
+        software package already exists on the target Junos device. In this
+        case, the I(remote_package) option must be specified.
+    required: false
+    default: none
+    type: path
+    aliases:
+      - package
+  no_copy:
+    description:
+      - Indicates if the file containing the software package should be copied
+        from the I(local_package) location on the local Ansible control
+        machine to the I(remote_package) location on the target Junos device.
+      - If the value is C(true), or if the I(local_package) option is not
+        specified, then the copy is skipped and the file must already exist
+        at the I(remote_package) location on the target Junos device.
+    required: false
+    default: false
+    type: bool
   nssu:
     description:
       - Indicates if a non-stop software upgrade (NSSU) should be
@@ -213,104 +210,106 @@ options:
       - The I(nssu) and I(issu) options are mutually exclusive.
     required: false
     default: false
-    type: 'bool'
-  force_host:
+    type: bool
+  reboot:
     description:
-      - Forces the upgrade of the Host Software package on QFX-series devices.
-    required: false
-    default: false
-    type: 'bool'
-  validate:
-    description:
-      - Whether or not to have the target Junos device valide the current
-        configuration against the new software package.
-    required: false
-    default: false
-    type: 'bool'
-  cleanfs:
-    description:
-      - Whether or not to perform a "request system storage cleanup" prior to
-        copying or installing the software.
-    required: false
-    default: true (unless no_copy is true, then false)
-    type: 'bool'
-  all_re:
-    description:
-      - Whether or not to install the software on all Routing Engines of the
-        target Junos device. If true, and the device has multiple Routing
-        Engines, the software is installed on all Routing Engines. If false,
-        the software is only installed on the current Routing Engine.
+      - Indicates if the target Junos device should be rebooted after
+        performing the software install.
     required: false
     default: true
-    type: 'bool'
+    type: bool
+  reboot_pause:
+    description:
+      - The amount of time, in seconds, to wait after the reboot is issued
+        before the module returns. This gives time for the reboot to begin. The
+        default value of 10 seconds is designed to ensure the device is no
+        longer reachable (because the reboot has begun) when the next task
+        begins. The value must be an integer greater than or equal to 0.
+    required: false
+    default: 10
+    type: int
+  remote_package:
+    description:
+      - This option may take one of two formats.
+      - The first format is a URL, from the perspective of the target Junos
+        device, from which the device retrieves the software package to be
+        installed. The acceptable formats for the URL value may be found
+         U(here|https://www.juniper.net/documentation/en_US/junos/topics/concept/junos-software-formats-filenames-urls.html).
+      -  When using the URL format, the I(local_package) and I(no_copy) options
+         must not be specified.
+      - The second format is a file path, on the taget Junos device, to the
+        software package.
+      - If the I(local_package) option is also specified, and the
+        I(no_copy) option is C(false), the software package will be copied
+        from I(local_package) to I(remote_package), if necessary.
+      - If the I(no_copy) option is C(true) or the I(local_package) option
+        is not specified, then the file specified by this option must already
+        exist on the target Junos device.
+      - If this option is not specified, it is assumed that the software
+        package will be copied into the C(/var/tmp) directory on the target
+        Junos device using the filename portion of the I(local_package) option.
+        In this case, the I(local_package) option must be specified.
+      - Specifying the I(remote_package) option and not specifying the
+        I(local_package) option is equivalent to specifying the
+        I(local_package) option and the I(no_copy) option. In this case,
+        you no longer have to explicitly specify the I(no_copy) option.
+      - If the I(remote_package) value is a directory (ends with /), then
+        the filename portion of I(local_package) will be appended to the
+        I(remote_package) value.
+      - If the I(remote_package) value is a file (does not end with /),
+        then the filename portion of I(remote_package) must be the same as
+        the filename portion of I(local_package).
+    required: false
+    default: C(/var/tmp/) + filename portion of I(local_package)
+    type: path
+  validate:
+    description:
+      - Whether or not to have the target Junos device should validate the
+        current configuration against the new software package.
+    required: false
+    default: false
+    type: bool
+  version:
+    description:
+      - The version of software contained in the file specified by the
+        I(local_package) and/or I(remote_package) options. This value should
+        match the Junos version which will be reported by the device once the
+        new software is installed. If the device is already running a version
+        of software which matches the I(version) option value, the software
+        install is not necessary. In this case the module returns a I(changed)
+        value of C(false) and an I(failed) value of C(false) and does not
+        attempt to perform the software install.
+    required: false
+    default: Attempt to extract the version from the file name specified by
+             the I(local_package) or I(remote_package) option values IF the
+             package appears to be a Junos software package. Otherwise, C(none).
+    type: str
+    aliases:
+      - target_version
+      - new_version
+      - desired_version
   vmhost:
     description:
       - Whether or not this is a vmhost software installation.
     required: false
     default: false
-    type: 'bool'
-  checksum:
-    description:
-      - The pre-calculated checksum, using the I(checksum_algorithm) of the
-        file specified by the I(local_package) option. Specifying this option
-        is simply an optimization to avoid repeatedly computing the checksum of
-        the I(local_package) file once for each target Junos host.
-    required: false
-    default: none
-    type: 'str'
-  checksum_algorithm:
-    description:
-      - The algorithm to use when calculating the checksum of the local and
-        remote software packages.
-    required: false
-    default: 'md5'
-    type: 'str'
-  checksum_timeout:
-    description:
-      -  The number of seconds to wait for the calculation of the checksum to
-         complete on the target Junos device.
-    required: false
-    default: 300 (5 minutes)
-    type: 'int'
-  cleanfs_timeout:
-    description:
-      -  The number of seconds to wait for the "request system storage cleanup"
-         to complete on the target Junos device.
-    required: false
-    default: 300 (5 minutes)
-    type: 'int'
-  install_timeout:
-    description:
-      -  The number of seconds to wait for the software installation to
-         complete on the target Junos device.
-    required: false
-    default: 1800 (30 minutes)
-    type: 'int'
-  kwargs:
-    description:
-      - Additional keyword arguments and values which are passed to the
-        <request-package-add> RPC used to install the software package. The
-        value of this option is a dictionary of keywords and values.
-    required: false
-    default: none
-    type: 'dict'
-    aliases:
-      - kwarg
-      - args
-      - arg
+    type: bool
+notes:
+  - This module does support connecting to the console of a Junos device, but
+    does not support copying the software package from the local Ansible
+    control machine to the target Junos device while connected via the console.
+    In this situation, the I(remote_package) option must be specified, and the
+    specified software package must already exist on the target Junos device.
+  - This module returns after installing the software and, optionally,
+    initiating a reboot of the target Junos device. It does not wait for
+    the reboot to complete, and it does not verify that the desired version of
+    software specified by the I(version) option is actually activated on the
+    target Junos device. It is the user's responsibility to confirm the
+    software installation using additional follow on tasks in their playbook.
 '''
 
 EXAMPLES = '''
 ---
-#
-# MODULE_EXAMPLES
-# This playbook demonstrate the parameters supported by the
-# juniper_junos_software module. These examples use the default connection,
-# authentication and logging parameters. See the examples labeled
-# CONNECTION_EXAMPLES for details on connection parameters. See the examples
-# labeled AUTHENTICATION_EXAMPLES for details on authentication parameters.
-# See the examples labeled LOGGING_EXAMPLES for details on logging parameters.
-#
 - name: Examples of juniper_junos_software
   hosts: junos-all
   connection: local
@@ -334,27 +333,10 @@ EXAMPLES = '''
         package=/usr/local/junos/images/junos-vsrx-12.1X46-D10.2-domestic.tgz
         logfile=/usr/local/junos/log/software.log
 ###### OLD EXAMPLES ##########
-
-#
-# CONNECTION_EXAMPLES
-#
-
-#
-# AUTHENTICATION_EXAMPLES
-#
-
-#
-# LOGGING_EXAMPLES
-#
 '''
 
+
 RETURN = '''
-msg:
-  description:
-    - A human-readable message indicating the result of the software
-      installation.
-  returned: always
-  type: str
 changed:
   description:
     - Indicates if the device's state has changed, or if the state would have
@@ -375,6 +357,12 @@ failed:
     - Indicates if the task failed.
   returned: always
   type: bool
+msg:
+  description:
+    - A human-readable message indicating the result of the software
+      installation.
+  returned: always
+  type: str
 '''
 
 # Standard Library imports
