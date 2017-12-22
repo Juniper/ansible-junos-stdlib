@@ -44,51 +44,28 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = '''
 ---
+extends_documentation_fragment: 
+  - juniper_junos_common.connection_documentation
+  - juniper_junos_common.logging_documentation
 module: juniper_junos_table
 version_added: "2.0.0" # of Juniper.junos role
-author: "Jason Edelman (@jedelman8) updated by Juniper Networks - Stacy Smith (@stacywsmith)"
+author:
+  - Jason Edelman (@jedelman8)
+  - Updated by Juniper Networks - Stacy Smith (@stacywsmith)
 short_description: Retrieve data from a Junos device using table/views.
 description:
   - Retrieve data from a Junos device using PyEZ's operational table/views.
     This module may be used with the tables/views which are included in the
     PyEZ distribution or it may be used with user-defined tables/views.
-    NOTE: The module only works with operational tables/views; it does not
-    work with configuration tables/views.
-
-# Document connection arguments
-# Document logging arguments
-extends_documentation_fragment: juniper_junos_common
+options:
   file:
     description:
       - Name of the YAML file, relative to the I(path) option, that contains
-        the table/view definition. The file name must end with the '.yml' or
-        '.yaml' extension.
+        the table/view definition. The file name must end with the C(.yml) or
+        C(.yaml) extension.
     required: true
     default: none
-    type: 'path'
-  table:
-    description:
-      - Name of the PyEZ table used to retrieve data. If not specified,
-        defaults to the name of the table defined in the I(file) option. Any
-        table names in I(file) which begin with '_' are ignored. If more than
-        one table is defined in I(file), the module fails with an error
-        message. In this case, you must manually specify the name of the table
-        by setting this option.
-    required: false
-    default: The name of the table defined in the I(file) option.
-    type: 'str'
-  path:
-    description:
-      - The directory containing the YAML table/view definition file as
-        specified by the I(file) option. The default value is the op directory
-        in jnpr.junos.op. This is the directory containing the table/view
-        definitions which are included in the PyEZ distribution.
-    required: false
-    default: op directory in jnpr.junos.op
-    type: 'path'
-    aliases:
-      - directory
-      - dir
+    type: path
   kwargs:
     description:
       - Optional keyword arguments and values to the table's get() method. The
@@ -98,11 +75,23 @@ extends_documentation_fragment: juniper_junos_common
         table's definition and the underlying RPC which the table invokes.
     required: false
     default: none
-    type: 'dict'
+    type: dict
     aliases:
       - kwarg
       - args
       - arg
+  path:
+    description:
+      - The directory containing the YAML table/view definition file as
+        specified by the I(file) option. The default value is the C(op)
+        directory in C(jnpr.junos.op). This is the directory containing the
+        table/view definitions which are included in the PyEZ distribution.
+    required: false
+    default: C(op) directory in C(jnpr.junos.op)
+    type: path
+    aliases:
+      - directory
+      - dir
   response_type:
     description:
       - Defines the format of data returned by the module. See RETURN.
@@ -112,9 +101,25 @@ extends_documentation_fragment: juniper_junos_common
         data, PyEZ's native return format C(juniper_items) is translated into
         a list of lists.
     required: false
-    default: 'list_of_dicts'
-    choices: ['list_of_dicts', 'juniper_items']
-    type: 'str'
+    default: list_of_dicts
+    choices:
+      - list_of_dicts
+      - juniper_items
+    type: str
+  table:
+    description:
+      - Name of the PyEZ table used to retrieve data. If not specified,
+        defaults to the name of the table defined in the I(file) option. Any
+        table names in I(file) which begin with C(_) are ignored. If more than
+        one table is defined in I(file), the module fails with an error
+        message. In this case, you must manually specify the name of the table
+        by setting this option.
+    required: false
+    default: The name of the table defined in the I(file) option.
+    type: str
+notes:
+  - This module only works with operational tables/views; it does not work with
+    configuration tables/views.
 '''
 
 EXAMPLES = '''
@@ -155,14 +160,21 @@ EXAMPLES = '''
     - name: Print response
       debug:
         var: response
-
-# Document connection examples
-# Document authentication examples
-# Document logging examples
-# extends_documentation_fragment: juniper_junos_common
 '''
 
 RETURN = '''
+changed:
+  description: 
+    - Indicates if the device's configuration has changed. Since this
+      module does not change the operational or configuration state of the
+      device, the value is always set to C(false).
+  returned: success
+  type: bool
+failed:
+  description:
+    - Indicates if the task failed.
+  returned: always
+  type: bool
 msg:
   description:
     - A human-readable message indicating a summary of the result.
@@ -171,110 +183,100 @@ msg:
 resource:
   description:
     - The items retrieved by the table/view.
-    returned: success
-    type: list of dicts if I(response_type) is C(list_of_dicts) or list of
-          lists if I(respsonse_type) is C(juniper_items).
-    sample:
-      # when response_type == 'list_of_dicts'
+  returned: success
+  type: list of dicts if I(response_type) is C(list_of_dicts) or list of
+        lists if I(respsonse_type) is C(juniper_items).
+  sample: |
+    # when response_type == 'list_of_dicts'
+    [
+      {
+         "local_int": "ge-0/0/3", 
+         "local_parent": "-", 
+         "remote_chassis_id": "00:05:86:08:d4:c0", 
+         "remote_port_desc": null, 
+         "remote_port_id": "ge-0/0/0", 
+         "remote_sysname": "r5", 
+         "remote_type": "Mac address"
+      }, 
+      {
+         "local_int": "ge-0/0/0", 
+         "local_parent": "-", 
+         "remote_chassis_id": "00:05:86:18:f3:c0", 
+         "remote_port_desc": null, 
+         "remote_port_id": "ge-0/0/2", 
+         "remote_sysname": "r4", 
+         "remote_type": "Mac address"
+      }
+    ]
+    # when response_type == 'juniper_items'
+    [
       [
-        {
-           "local_int": "ge-0/0/3", 
-           "local_parent": "-", 
-           "remote_chassis_id": "00:05:86:08:d4:c0", 
-           "remote_port_desc": null, 
-           "remote_port_id": "ge-0/0/0", 
-           "remote_sysname": "r5", 
-           "remote_type": "Mac address"
-        }, 
-        {
-           "local_int": "ge-0/0/0", 
-           "local_parent": "-", 
-           "remote_chassis_id": "00:05:86:18:f3:c0", 
-           "remote_port_desc": null, 
-           "remote_port_id": "ge-0/0/2", 
-           "remote_sysname": "r4", 
-           "remote_type": "Mac address"
-        }
-      ]
-      # when response_type == 'juniper_items'
-      [
+        "ge-0/0/3", 
         [
-          "ge-0/0/3", 
           [
-            [
-              "local_parent", 
-              "-"
-            ], 
-            [
-              "remote_port_id", 
-              "ge-0/0/0"
-            ], 
-            [
-              "remote_chassis_id", 
-              "00:05:86:08:d4:c0"
-            ], 
-            [
-              "remote_port_desc", 
-              null
-            ], 
-            [
-              "remote_type", 
-              "Mac address"
-            ], 
-            [
-              "local_int", 
-              "ge-0/0/3"
-            ], 
-            [
-              "remote_sysname", 
-              "r5"
-            ]
+            "local_parent", 
+            "-"
+          ], 
+          [
+            "remote_port_id", 
+            "ge-0/0/0"
+          ], 
+          [
+            "remote_chassis_id", 
+            "00:05:86:08:d4:c0"
+          ], 
+          [
+            "remote_port_desc", 
+            null
+          ], 
+          [
+            "remote_type", 
+            "Mac address"
+          ], 
+          [
+            "local_int", 
+            "ge-0/0/3"
+          ], 
+          [
+            "remote_sysname", 
+            "r5"
           ]
-        ], 
+        ]
+      ], 
+      [
+        "ge-0/0/0", 
         [
-          "ge-0/0/0", 
           [
-            [
-              "local_parent", 
-              "-"
-            ], 
-            [
-              "remote_port_id", 
-              "ge-0/0/2"
-            ], 
-            [
-              "remote_chassis_id", 
-              "00:05:86:18:f3:c0"
-            ], 
-            [
-              "remote_port_desc", 
-              null
-            ], 
-            [
-              "remote_type", 
-              "Mac address"
-            ], 
-            [
-              "local_int", 
-              "ge-0/0/0"
-            ], 
-            [
-              "remote_sysname", 
-              "r4"
-            ]
+            "local_parent", 
+            "-"
+          ], 
+          [
+            "remote_port_id", 
+            "ge-0/0/2"
+          ], 
+          [
+            "remote_chassis_id", 
+            "00:05:86:18:f3:c0"
+          ], 
+          [
+            "remote_port_desc", 
+            null
+          ], 
+          [
+            "remote_type", 
+            "Mac address"
+          ], 
+          [
+            "local_int", 
+            "ge-0/0/0"
+          ], 
+          [
+            "remote_sysname", 
+            "r4"
           ]
         ]
       ]
-changed:
-  description: Indicates if the device's configuration has changed. Since this
-               module doesn't change the operational or configuration state 
-               of the device, the value is always set to false.
-  returned: success
-  type: bool
-failed:
-  description: Indicates if the task failed.
-  returned: always
-  type: bool
+    ]
 '''
 
 # Standard library imports

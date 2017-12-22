@@ -467,7 +467,7 @@ Return Values
 {% endif %}
     </td>
     <td align=center>@{ returndocs[entry].returned | html_ify }@</td>
-    <td align=center>@{ returndocs[entry].type }@</td>
+    <td align=center>@{ returndocs[entry].type | html_ify }@</td>
     <td align=center>@{ returndocs[entry].sample | replace('\n', '\n    ') | html_ify }@</td>
     </tr>
 {% if returndocs[entry].type == 'complex' %}
@@ -498,7 +498,7 @@ Return Values
 {% endif %}
         </td>
         <td align=center>@{ returndocs[entry].contains[sub].returned | html_ify }@</td>
-        <td align=center>@{ returndocs[entry].contains[sub].type }@</td>
+        <td align=center>@{ returndocs[entry].contains[sub].type | html_ify }@</td>
         <td align=center>@{ returndocs[entry].contains[sub].sample }@</td>
         </tr>
 {% endfor %}
