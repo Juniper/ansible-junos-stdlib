@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 1999-2017, Juniper Networks Inc.
+# Copyright (c) 1999-2018, Juniper Networks Inc.
 #               2014, Patrik Bok
 #               2015, Rick Sherman
 #
@@ -49,7 +49,7 @@ extends_documentation_fragment:
 module: juniper_junos_srx_cluster
 version_added: "2.0.0" # of Juniper.junos role
 author: "Juniper Networks - Stacy Smith (@stacywsmith)"
-short_description: Add or remove SRX chassis cluster configuration.
+short_description: Add or remove SRX chassis cluster configuration
 description:
   - Add an SRX chassis cluster configuration and reboot the device. Assuming
     the device is capable of forming an SRX cluster and has the correct

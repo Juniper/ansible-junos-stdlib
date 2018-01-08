@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 1999-2017, Juniper Networks Inc.
+# Copyright (c) 1999-2018, Juniper Networks Inc.
 #               2014, Jeremy Schulman
 #
 # All rights reserved.
@@ -48,7 +48,7 @@ extends_documentation_fragment:
 module: juniper_junos_system
 version_added: "2.0.0" # of Juniper.junos role
 author: "Juniper Networks - Stacy Smith (@stacywsmith)"
-short_description: Initiate operational actions on the Junos system.
+short_description: Initiate operational actions on the Junos system
 description:
   - Initiate an operational action (shutdown, reboot, halt or zeroize) on a
     Junos system. The particular action to execute is defined by the mandatory

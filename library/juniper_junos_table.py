@@ -4,7 +4,7 @@
 # Copyright 2016 Jason Edelman <jason@networktocode.com>
 # Network to Code, LLC
 #
-# Copyright (c) 2017, Juniper Networks Inc.
+# Copyright (c) 2017-2018, Juniper Networks Inc.
 #
 # All rights reserved.
 #
@@ -52,7 +52,7 @@ version_added: "2.0.0" # of Juniper.junos role
 author:
   - Jason Edelman (@jedelman8)
   - Updated by Juniper Networks - Stacy Smith (@stacywsmith)
-short_description: Retrieve data from a Junos device using table/views.
+short_description: Retrieve data from a Junos device using a PyEZ table/view
 description:
   - Retrieve data from a Junos device using PyEZ's operational table/views.
     This module may be used with the tables/views which are included in the

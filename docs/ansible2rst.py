@@ -4,7 +4,7 @@
 # This file is part of Ansible
 #
 # Modified to support stand-alone Galaxy documentation
-# Copyright (c) 2014, Juniper Networks Inc.
+# Copyright (c) 2014, 2017-2018 Juniper Networks Inc.
 #               2014, Rick Sherman
 #
 # Ansible is free software: you can redistribute it and/or modify

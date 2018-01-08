@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 1999-2017, Juniper Networks Inc.
+# Copyright (c) 1999-2018, Juniper Networks Inc.
 #               2014, Jeremy Schulman
 #               2015, Rick Sherman
 #
@@ -49,7 +49,7 @@ extends_documentation_fragment:
 module: juniper_junos_config
 version_added: "2.0.0" # of Juniper.junos role
 author: "Juniper Networks - Stacy Smith (@stacywsmith)"
-short_description: Manipulate the configuration of a Junos device.
+short_description: Manipulate the configuration of a Junos device
 description:
   - >
     Manipulate the configuration of a Junos device. This module allows a

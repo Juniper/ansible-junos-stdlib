@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 1999-2017, Juniper Networks Inc.
+# Copyright (c) 1999-2018, Juniper Networks Inc.
 #               2017, Martin Komon
 #
 # All rights reserved.
