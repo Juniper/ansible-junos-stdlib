@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 1999-2017, Juniper Networks Inc.
+# Copyright (c) 1999-2018, Juniper Networks Inc.
 #               2016, Nitin Kumar
 #
 # All rights reserved.
@@ -42,102 +42,47 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = '''
 ---
-module: juniper_junos_command
+extends_documentation_fragment: 
+  - juniper_junos_common.connection_documentation
+  - juniper_junos_common.logging_documentation
+module: juniper_junos_rpc
 version_added: "2.0.0" # of Juniper.junos role
 author: "Juniper Networks - Stacy Smith (@stacywsmith)"
 short_description: Execute one or more NETCONF RPCs on a Junos device
 description:
   - Execute one or more NETCONF RPCs on a Junos device.
-    NOTE: Use the '| display xml rpc' modifier to determine the equivalent RPC
+  - Use the C(| display xml rpc) modifier to determine the equivalent RPC
     name for a Junos CLI command.  For example,
-    'show version | display xml rpc' reveals the equivalent RPC name is
-    'get-software-information'.
-# Document connection arguments
-# Document logging arguments
-extends_documentation_fragment: juniper_junos_common
+    C(show version | display xml rpc) reveals the equivalent RPC name is
+    C(get-software-information).
 options:
-  rpcs:
-    description:
-      - A list of one or more NETCONF RPCs to execute on the Junos device.
-    required: true
-    default: none
-    type: 'list'
-    aliases:
-      - rpc
-  formats:
-    description:
-      - The format of the reply for the RPC(s) specified by the
-        I(rpcs) option. The specified format(s) must be supported by the
-        target Junos device. The value of this option can either be a single
-        format, or a list of formats. If a single format is specified, it
-        applies to all RPC(s) specified by the I(rpcs) option. If a
-        list of formats are specified, there must be one value in the list for
-        each RPC specified by the I(rpcs) option.
-    required: false
-    default: 'xml'
-    type: 'str or list of str'
-    choices: ['text', 'xml', 'json']
-    aliases:
-      - format
-      - display
-      - output
-  kwargs:
-    description:
-      - The keyword arguments and values to the RPC(s) specified by the
-        I(rpcs) option. The value of this option can either be a single
-        dictionary of keywords and values, or a list of dictionaries
-        containing keywords and values. There is a one-to-one correspondence
-        between the elements in the I(kwargs) list and the RPCs in the I(rpcs)
-        list. In other words, the two lists must always contain the same
-        number of elements. For RPC arguments which do not require a value,
-        specify the value of True as shown in the EXAMPLES.
-    required: false
-    default: none
-    type: 'dict or list of dict'
-    aliases:
-      - kwarg
-      - args
-      - arg
   attrs:
     description:
-      - The attributes and values to the RPC(s) specified by the
+      - The attributes and values to the RPCs specified by the
         I(rpcs) option. The value of this option can either be a single
         dictionary of keywords and values, or a list of dictionaries
-        containing keywords and values. There is a one-to-one correspondence
-        between the elements in the I(kwargs) list and the RPCs in the I(rpcs)
-        list. In other words, the two lists must always contain the same
-        number of elements.
+        containing keywords and values.
+      - There is a one-to-one correspondence between the elements in the
+        I(kwargs) list and the RPCs in the I(rpcs) list. In other words, the
+        two lists must always contain the same number of elements.
     required: false
     default: none
-    type: 'dict or list of dict'
+    type: dict or list of dict
     aliases:
       - attr
-  filter:
-    description:
-      - This argument only applies if the I(rpcs) option contains a single
-        RPC with the value 'get-config'. When used, this value specifies an
-        XML filter used to restrict the portions of the configuration which are
-        retrieved. See
-        U(http://junos-pyez.readthedocs.io/en/stable/jnpr.junos.html#jnpr.junos.rpcmeta._RpcMetaExec.get_config)
-        for details on the value of this option.
-    required: false
-    default: none
-    type: 'str'
-    aliases:
-      - filter_xml
   dest:
     description:
       - The path to a file, on the Ansible control machine, where the output of
         the RPC will be saved.
       - The file must be writeable. If the file already exists, it is
         overwritten.
-      - NOTE: When tasks are executed against more than one target host,
+      - When tasks are executed against more than one target host,
         one process is forked for each target host. (Up to the maximum
         specified by the forks configuration. See
-        U(http://docs.ansible.com/ansible/latest/intro_configuration.html#forks)
+        U(forks|http://docs.ansible.com/ansible/latest/intro_configuration.html#forks)
         for details.) This means that the value of this option must be unique
         per target host. This is usually accomplished by including
-        {{ inventory_hostname }} in the I(dest) value. It is the user's
+        C({{ inventory_hostname }}) in the I(dest) value. It is the user's
         responsibility to ensure this value is unique per target host.
       - For this reason, this option is deprecated. It is maintained for
         backwards compatibility. Use the I(dest_dir) option in new playbooks.
@@ -151,7 +96,7 @@ options:
     description:
       - The path to a directory, on the Ansible control machine, where
         the output of the RPC will be saved. The output will be logged
-        to a file named {{ inventory_hostname }}_C(rpc).C(format)
+        to a file named C({{ inventory_hostname }}_)I(rpc).I(format)
         in the I(dest_dir) directory.
       - The destination file must be writeable. If the file already exists,
         it is overwritten. It is the users responsibility to ensure a unique
@@ -165,6 +110,59 @@ options:
     aliases:
       - destination_dir
       - destdir
+  filter:
+    description:
+      - This argument only applies if the I(rpcs) option contains a single
+        RPC with the value C(get-config). When used, this value specifies an
+        XML filter used to restrict the portions of the configuration which are
+        retrieved. See the PyEZ
+        U(get_config method|http://junos-pyez.readthedocs.io/en/stable/jnpr.junos.html#jnpr.junos.rpcmeta._RpcMetaExec.get_config)
+        for details on the value of this option.
+    required: false
+    default: none
+    type: str
+    aliases:
+      - filter_xml
+  formats:
+    description:
+      - The format of the reply for the RPCs specified by the
+        I(rpcs) option.
+      - The specified format(s) must be supported by the
+        target Junos device.
+      - The value of this option can either be a single
+        format, or a list of formats. If a single format is specified, it
+        applies to all RPCs specified by the I(rpcs) option. If a
+        list of formats are specified, there must be one value in the list for
+        each RPC specified by the I(rpcs) option.
+    required: false
+    default: xml
+    type: str or list of str
+    choices:
+      - text
+      - xml
+      - json
+    aliases:
+      - format
+      - display
+      - output
+  kwargs:
+    description:
+      - The keyword arguments and values to the RPCs specified by the
+        I(rpcs) option. The value of this option can either be a single
+        dictionary of keywords and values, or a list of dictionaries
+        containing keywords and values.
+      - There must be a one-to-one correspondence between the elements in the
+        I(kwargs) list and the RPCs in the I(rpcs) list. In other words, the
+        two lists must always contain the same number of elements. For RPC
+        arguments which do not require a value, specify the value of True as
+        shown in the :ref:`examples-label`.
+    required: false
+    default: none
+    type: dict or list of dict
+    aliases:
+      - kwarg
+      - args
+      - arg
   return_output:
     description:
       - Indicates if the output of the RPC should be returned in the
@@ -175,19 +173,18 @@ options:
     required: false
     default: true
     type: bool
+  rpcs:
+    description:
+      - A list of one or more NETCONF RPCs to execute on the Junos device.
+    required: true
+    default: none
+    type: list
+    aliases:
+      - rpc
 '''
 
 EXAMPLES = '''
 ---
-#
-# MODULE_EXAMPLES
-# This playbook demonstrate the parameters supported by the
-# juniper_junos_rpc module. These examples use the default connection,
-# authtentication and logging parameters. See the examples labeled
-# CONNECTION_EXAMPLES for details on connection parameters. See the examples
-# labeled AUTHENTICATION_EXAMPLES for details on authentication parameters.
-# See the examples labeled LOGGING_EXAMPLES for details on logging parameters.
-#
 - name: Examples of juniper_junos_rpc
   hosts: junos-all
   connection: local
@@ -267,97 +264,76 @@ EXAMPLES = '''
     - name: Print configuration
       debug: msg="{{ junos.rpc_reply }}"
 ###### OLD EXAMPLES ##########
-
-#
-# CONNECTION_EXAMPLES
-#
-
-#
-# AUTHENTICATION_EXAMPLES
-#
-
-#
-# LOGGING_EXAMPLES
-#
 '''
 
 RETURN = '''
-msg:
+attrs:
   description:
-    - A human-readable message indicating the result.
+    - The RPC attributes and values from the list of dictionaries in the
+      I(attrs) option. This will be none if no attributes are applied to the
+      RPC.
   returned: always
-  type: str
-rpc:
+  type: dict
+changed:
   description:
-    - The RPC which was executed from the list of RPCs in the I(rpcs) option.
+    - Indicates if the device's state has changed. Since this module doesn't
+      change the operational or configuration state of the device, the value
+      is always set to C(false).
+    - You could use this module to execute an RPC which
+      changes the operational state of the the device. For example,
+      C(clear-ospf-neighbor-information). Beware, this module is unable to
+      detect this situation, and will still return a I(changed) value of
+      C(false) in this case.
+  returned: success
+  type: bool
+failed:
+  description:
+    - Indicates if the task failed. See the I(results) key for additional
+      details.
   returned: always
-  type: str
+  type: bool
 format:
   description:
     - The format of the RPC response from the list of formats in the I(formats)
       option.
   returned: always
   type: str
-  choices: ['text', 'xml', 'json']
+  choices:
+    - text
+    - xml
+    - json
 kwargs:
   description:
     - The keyword arguments from the list of dictionaries in the I(kwargs)
-      option. This will be none if no kwargs are applied to the RPC.
+      option. This will be C(none) if no kwargs are applied to the RPC.
   returned: always
   type: dict
-attrs:
+msg:
   description:
-    - The RPC attributes and values from the list of dictionaries in the
-    I(attrs) option. This will be none if no attributes are applied to the RPC.
+    - A human-readable message indicating the result.
   returned: always
-  type: dict
-stdout:
-  description:
-    - The RPC reply from the Junos device as a single multi-line string.
-  returned: when RPC executed successfully and I(return_output) is true.
   type: str
-stdout_lines:
-  description:
-    - The RPC reply from the Junos device as a list of single-line strings.
-  returned: when RPC executed successfully and I(return_output) is true.
-  type: list of str
 parsed_output:
   description:
     - The RPC reply from the Junos device parsed into a JSON datastructure.
-      For XML replies, the response is parsed into JSON using the jxmlease
-      library. For JSON the response is parsed using the Python json library.
-    - NOTE: When Ansible converts the jxmlease or native Python data structure
+      For XML replies, the response is parsed into JSON using the
+      U(jxmlease|https://github.com/Juniper/jxmlease)
+      library. For JSON the response is parsed using the Python
+      U(json|https://docs.python.org/2/library/json.html) library.
+    - When Ansible converts the jxmlease or native Python data structure
       into JSON, it does not guarantee that the order of dictionary/object keys
       are maintained.
-  returned: when RPC executed successfully, I(return_output) is true,
-            and the RPC format is xml or json.
+  returned: when RPC executed successfully, I(return_output) is C(true),
+            and the RPC format is C(xml) or C(json).
   type: dict
-changed:
-  description:
-    - Indicates if the device's state has changed. Since this module doesn't
-      change the operational or configuration state of the device, the value
-      is always set to false.
-    - NOTE: You could use this module to execute a RPC which
-      changes the operational state of the the device. For example,
-      'clear-ospf-neighbor-information'. Beware, this module is unable to
-      detect this situation, and will still return a I(changed) value
-      C(False) in this case.
-  returned: success
-  type: bool
-failed:
-  description:
-    - Indicates if the task failed. See I(results) option below for additional
-      details.
-  returned: always
-  type: bool
 results:
   description:
-    - The above keys are returned when a single RPC is specified for the
+    - The other keys are returned when a single RPC is specified for the
       I(rpcs) option. When the value of the I(rpcs) option is a list
       of RPCs, this key is returned instead. The value of this key is a
       list of dictionaries. Each element in the list corresponds to the
       RPCs in the I(rpcs) option. The keys for each element in the list
-      include all of the keys listed above. The I(failed) key indicates if the
+      include all of the other keys listed. The I(failed) key indicates if the
       individual RPC failed. In this case, there is also a top-level
       I(failed) key. The top-level I(failed) key will have a value of C(false)
       if ANY of the RPCs ran successfully. In this case, check the value
@@ -365,6 +341,21 @@ results:
       results of individual RPCs.
   returned: when the I(rpcs) option is a list value.
   type: list of dict
+rpc:
+  description:
+    - The RPC which was executed from the list of RPCs in the I(rpcs) option.
+  returned: always
+  type: str
+stdout:
+  description:
+    - The RPC reply from the Junos device as a single multi-line string.
+  returned: when RPC executed successfully and I(return_output) is C(true).
+  type: str
+stdout_lines:
+  description:
+    - The RPC reply from the Junos device as a list of single-line strings.
+  returned: when RPC executed successfully and I(return_output) is C(true).
+  type: list of str
 '''
 
 import os.path

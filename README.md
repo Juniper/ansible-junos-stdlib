@@ -1,39 +1,51 @@
-## ABOUT
+## About
 
-Juniper Networks provides support for using Ansible to deploy devices running
-the Junos operating system (Junos OS). The Juniper Networks Ansible library,
-which is hosted on the Ansible Galaxy website under the role [Juniper.junos]
-(https://galaxy.ansible.com/list#/roles/1116), enables you to use Ansible to perform specific operational and configuration tasks on devices running Junos OS, including installing and upgrading Junos OS, deploying specific devices in the network, loading configuration changes, retrieving information, and resetting, rebooting, or shutting down managed devices.  Please refer to [INSTALLATION](#installation) section for setup.
+Juniper Networks supports Ansible for managing devices running
+the Junos operating system (Junos OS). This role is hosted on the Ansible Galaxy website under
+the role [Juniper.junos](https://galaxy.ansible.com/Juniper/junos/). The Juniper.junos role includes a set of Ansible
+modules that perform specific operational and configuration tasks on devices running Junos OS. These tasks include:
+installing and upgrading Junos OS, provisioning new Junos devices in the network, loading configuration changes,
+retrieving information, and resetting, rebooting, or shutting down managed devices.  Please refer to the
+[INSTALLATION](#installation) section for instructions on installing this role.
 
-In addition to these modules, Since 2.1, Ansible natively include some [core modules for Junos](http://docs.ansible.com/ansible/list_of_network_modules.html#junos). Both Core and Galaxy modules can cohexist on the same platform.
+## Two Sets of Ansible Modules for Junos devices
+Since Ansible version >= 2.1, Ansible also natively includes
+[core modules for Junos](http://docs.ansible.com/ansible/list_of_network_modules.html#junos). The Junos modules included
+in Ansible core have names which begin with the prefix `junos_`. The Junos modules included in this Juniper.junos role
+have names which begin with the prefix `juniper_junos_`. These two sets of Junos modules can coexist on the same
+Ansible control machine, and an Ansible play may invoke a module from either (or both) sets. Juniper Networks recommends
+using the modules in this role when writing new playbooks that manage Junos devices.
 
-## OVERVIEW OF MODULES
+## Overview of Modules
+This Juniper.junos role includes the following modules:
+- **juniper_junos_command** — Execute one or more CLI commands on a Junos device.
+- **juniper_junos_config** — Manipulate the configuration of a Junos device.
+- **juniper_junos_facts** — Retrieve facts from a Junos device.
+- **juniper_junos_jsnapy** — Execute JSNAPy tests on a Junos device.
+- **juniper_junos_ping** — Execute ping from a Junos device.
+- **juniper_junos_pmtud** — Perform path MTU discovery from a Junos device to a destination.
+- **juniper_junos_rpc** — Execute one or more NETCONF RPCs on a Junos device.
+- **juniper_junos_software** — Install software on a Junos device.
+- **juniper_junos_srx_cluster** — Add or remove SRX chassis cluster configuration.
+- **juniper_junos_system** — Initiate operational actions on the Junos system.
+- **juniper_junos_table** — Retrieve data from a Junos device using a PyEZ table/view.
 
-- **juniper_junos_facts** — Retrieve device-specific information from a Junos device.
-- **junos_commit** — Commit candidate configuration on device.
-- **junos_get_config** — Retrieve configuration of device.
-- **junos_install_config** — Modify the configuration of a device running Junos OS.
-- **junos_install_os** — Install a Junos OS software package.
-- **junos_rollback** — Rollback configuration of device.
-- **junos_shutdown** — Shut down or reboot a device running Junos OS.
-- **junos_srx_cluster** — Enable/Disable cluster mode for SRX devices
-- **junos_zeroize** — Remove all configuration information on the Routing Engines and reset all key values on a device.
-- **junos_get_table** - Retrieve data from a Junos device using Tables/Views
-- **junos_ping** - execute ping on junos devices
-- **junos_pmtud** - execute path MTU discovery on junos devices
-- **junos_jsnapy** - Integrate JSNAPy to ansible which helps audit network devices
-- **junos_rpc** — To execute RPC on device and save output locally
-- **junos_cli** — To execute CLI on device and save output locally
+### Important Changes
+Significant changes to the modules in the Juniper.junos role were made between versions 1.4.3 and 2.0.0.
+In versions <= 1.4.3 of the Juniper.junos role, the modules used different module and argument names. Versions >= 2.0.0
+of the Juniper.junos role provide backwards compatibility with playbooks written to prior versions of the Juniper.junos
+role. If a playbook worked with a prior version of the Juniper.junos role, it should
+continue to work on the current version without requiring modifications to the playbook. However, these older module and
+argument names are no longer present in the current documentation. You may reference previous module and argument names
+by referring directly to the
+[1.4.3 version of the Juniper.junos role documentation](http://junos-ansible-modules.readthedocs.io/en/1.4.3/).
 
-### OVERVIEW OF PLUGINS
+### Overview of Plugins
 
-In addition to the modules listed above, a callback_plugin `jsnapy` is available for the module `junos_jsnapy`.
+In addition to the modules listed above, a callback_plugin `jsnapy` is available for the module `juniper_junos_jsnapy`.
 
-The callback_plugin `jsnapy` helps to print on the screen additional information regarding
- jsnapy failed tests.
-For each failed test, a log will be printed after the RECAP of the playbook.  
-
-> The plugin `jsnapy` is currently in **Experimental** stage, please provide feedback.
+The callback_plugin `jsnapy` helps to print on the screen additional information regarding jsnapy failed tests.
+For each failed test, a log will be printed after the RECAP of the playbook as shown in this example:
 
 ```
 PLAY RECAP *********************************************************************
@@ -50,22 +62,25 @@ JSNAPy Results for: qfx10002-02 ************************************************
 Value of 'peer-state' not 'is-equal' at '//bgp-information/bgp-peer' with {"peer-as": "65200", "peer-state": "Active", "peer-address": "100.0.0.21"}
 ```
 
-Callback plugins are not activated by default and needs to be manually added to the
-configuration file under `[defaults]` with the variable `callback_whitelist`
+The `jsnapy` plugin is currently in **Experimental** stage, please provide feedback.
+
+Callback plugins are not activated by default. They must be manually added to the Ansible
+configuration file under the `[defaults]` section using the variable `callback_whitelist`. Specifically, these lines
+should be added to the Ansible configuration file in order to allow the jsnapy callback plugin:
 ```
 [defaults]
 callback_whitelist = jsnapy
 ```
+
 ## DOCUMENTATION
 
-[Official documentation](http://www.juniper.net/techpubs/en_US/release-independent/junos-ansible/information-products/pathway-pages/index.html) (detailed information, includes examples)
+[Official Juniper documentation](http://www.juniper.net/techpubs/en_US/release-independent/junos-ansible/information-products/pathway-pages/index.html) (detailed information, including examples)
 
 [Ansible style documentation](http://junos-ansible-modules.readthedocs.org)
 
 
 ## INSTALLATION
-
-This repo assumes you have the [DEPENDENCIES](#dependencies) installed on your system.  
+You must have the [DEPENDENCIES](#dependencies) installed on your system.  
 
 ### Ansible Galaxy Role
 To download the latest released version of the junos role to the Ansible
@@ -78,6 +93,7 @@ server, execute the ansible-galaxy install command, and specify **Juniper.junos*
 - extracting Juniper.junos to /usr/local/etc/ansible/roles/Juniper.junos
 - Juniper.junos was installed successfully
 ```
+
 You can also use the ansible-galaxy install command to install the latest
 development version of the junos role directly from GitHub.
 ```
@@ -89,30 +105,20 @@ For testing you can `git clone` this repo and run the `env-setup` script in the 
 ```
 user@ansible-junos-stdlib> source env-setup
 ```
-This will set your `$ANSIBLE_LIBRARY` variable to the repo location and the installed Ansible library path.  For example:
-
+This will set your `$ANSIBLE_LIBRARY` variable to the repo location and the installed Ansible library path. For example:
 ```
 [jeremy@ansible-junos-stdlib]$ echo $ANSIBLE_LIBRARY
 /home/jeremy/Ansible/ansible-junos-stdlib/library:/usr/share/ansible
 ```
-An alternative to the above is installing the role from GitHub using ansible-galaxy. The first step is creating a yaml file for
-input data to ansible-galaxy. We'll use install_role.yml.
-
-```yaml
----
-- src: https://github.com/Juniper/ansible-junos-stdlib
-  name: Juniper.junos
-```
-
-Now run `sudo ansible-galaxy install -r install_role.yml` to install the role.
-
 
 ### Docker
-To run this as a Docker container, which includes JSNAPy and PyEZ, simply pull it from the Docker hub and run it. The following will pull the latest image and run it in an interactive ash shell.
+To run this as a Docker container, which includes JSNAPy and PyEZ, simply pull it from the Docker hub and run it.
+The following will pull the latest image and run it in an interactive ash shell.
 ```
 $ docker run -it --rm juniper/pyez-ansible ash
 ```
-Although, you'll probably want to bind mount a host directory (perhaps the directory containing your playbooks and associated files). The following will bind mount the current working directory and start the ash shell.
+Although, you'll probably want to bind mount a host directory (perhaps the directory containing your playbooks and
+associated files). The following will bind mount the current working directory and start the ash shell.
 ```
 $ docker run -it --rm -v $PWD:/project ash
 ```
@@ -157,8 +163,7 @@ This example outlines how to use Ansible to install or upgrade the software imag
     - name: Checking NETCONF connectivity
       wait_for: host={{ inventory_hostname }} port=830 timeout=5
     - name: Install Junos OS package
-      junos_install_os:
-        host: "{{ inventory_hostname }}"
+      juniper_junos_software:
         reboot: yes
         version: "{{ OS_version }}"
         package: "{{ pkg_dir }}/{{ OS_package }}"
@@ -174,25 +179,34 @@ This example outlines how to use Ansible to install or upgrade the software imag
 ```      
 
 ## DEPENDENCIES
-
-Thes modules require the following to be installed on the Ansible server:
-
+This modules requires the following to be installed on the Ansible control machine:
 * Python 2.7
 * [Ansible](http://www.ansible.com) 2.1 or later
 * Junos [py-junos-eznc](https://github.com/Juniper/py-junos-eznc) 2.1.7 or later
+* [jxmlease](https://github.com/Juniper/jxmlease) 1.0.1 or later
 
 ## LICENSE
-
 Apache 2.0
 
-## CONTRIBUTORS
+## SUPPORT
+Support for this Juniper.junos role is provided by the community and Juniper Networks. If you have an
+issue with a module in the Juniper.junos role, you may:
+- Open a [GitHub issue](https://github.com/Juniper/ansible-junos-stdlib/issues).
+- Post a question on our [Google Group](https://groups.google.com/forum/#!forum/junos-python-ez)
+- Email [jnpr-community-netdev@juniper.net](jnpr-community-netdev@juniper.net)
+- Open a [JTAC Case](https://www.juniper.net/casemanager/#/create)
 
-Juniper Networks is actively contributing to and maintaining this repo. Please contact jnpr-community-netdev@juniper.net for any queries.
+Support for the Junos modules included in Ansible core is provided by Ansible. If you have an issue with an Ansible
+core module you should open a [Github issue against the Ansible project](https://github.com/ansible/ansible/issues).
+
+## CONTRIBUTORS
+Juniper Networks is actively contributing to and maintaining this repo. Please contact
+[jnpr-community-netdev@juniper.net](jnpr-community-netdev@juniper.net) for any queries.
 
 *Contributors:*
-
-[Nitin Kumar](https://github.com/vnitinv), [Stacy W Smith](https://github.com/stacywsmith), [David Gethings](https://github.com/dgjnpr), [Damien Garros](https://github.com/dgarros)
+[Nitin Kumar](https://github.com/vnitinv), [Stacy W Smith](https://github.com/stacywsmith),
+[David Gethings](https://github.com/dgjnpr)
 
 *Former Contributors:*
-
-[Jeremy Schulman](https://github.com/jeremyschulman), [Rick Sherman](https://github.com/shermdog)
+[Jeremy Schulman](https://github.com/jeremyschulman), [Rick Sherman](https://github.com/shermdog),
+[Damien Garros](https://github.com/dgarros)

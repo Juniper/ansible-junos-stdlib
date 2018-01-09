@@ -16,14 +16,20 @@ import sys
 import os
 import sphinx_bootstrap_theme
 
+
+def setup(app):
+    app.add_stylesheet("juniper-junos-modules.css")
+
+
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 sys.path.insert(0, os.path.abspath('.'))
 sys.path.insert(1, os.path.abspath('..'))
 
-# Import ansible2rst so that RST files are generated.
+# Import ansible2rst so that RST files can be generated.
 import ansible2rst
+# Call ansible2rst.main() to generate RST files.
 ansible2rst.main()
 
 # -- General configuration ------------------------------------------------
@@ -37,7 +43,7 @@ ansible2rst.main()
 extensions = []
 
 # Add any paths that contain templates here, relative to this directory.
-templates_path = ['_templates']
+#templates_path = ['_templates']
 
 # The suffix of source filenames.
 source_suffix = '.rst'
@@ -133,7 +139,7 @@ html_theme_path = sphinx_bootstrap_theme.get_html_theme_path()
 
 # The name of an image file (relative to this directory) to place at the top
 # of the sidebar.
-html_logo = 'juniper.png'
+html_logo = '_static/juniper.png'
 
 # The name of an image file (within the static path) to use as favicon of the
 # docs.  This file should be a Windows icon file (.ico) being 16x16 or 32x32
@@ -217,7 +223,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
   ('index', 'JunosAnsibleModules.tex', u'Junos Ansible Modules Documentation',
-   u'Jeremy Schulman - Juniper Networks, Inc.', 'manual'),
+   u'Juniper Networks, Inc.', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -247,7 +253,7 @@ latex_documents = [
 # (source start file, name, description, authors, manual section).
 man_pages = [
     ('index', 'junosansiblemodules', u'Junos Ansible Modules Documentation',
-     [u'Jeremy Schulman - Juniper Networks, Inc.'], 1)
+     [u'Juniper Networks, Inc.'], 1)
 ]
 
 # If true, show URL addresses after external links.
@@ -261,7 +267,8 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   ('index', 'JunosAnsibleModules', u'Junos Ansible Modules Documentation',
-   u'Jeremy Schulman - Juniper Networks, Inc.', 'JunosAnsibleModules', 'One line description of project.',
+   u'Juniper Networks, Inc.', 'JunosAnsibleModules', 'Ansible Modules for '
+                                                     'Junos',
    'Miscellaneous'),
 ]
 

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 1999-2017, Juniper Networks Inc.
+# Copyright (c) 1999-2018, Juniper Networks Inc.
 #               2014, Patrik Bok
 #               2015, Rick Sherman
 #
@@ -43,22 +43,22 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = '''
 ---
+extends_documentation_fragment: 
+  - juniper_junos_common.connection_documentation
+  - juniper_junos_common.logging_documentation
 module: juniper_junos_srx_cluster
 version_added: "2.0.0" # of Juniper.junos role
 author: "Juniper Networks - Stacy Smith (@stacywsmith)"
-short_description: Add or remove SRX chassis cluster configuration.
+short_description: Add or remove SRX chassis cluster configuration
 description:
   - Add an SRX chassis cluster configuration and reboot the device. Assuming
     the device is capable of forming an SRX cluster and has the correct
     cables connected, this will form an SRX cluster.
-    If an SRX chassis cluster is already present, setting I(cluster_enable) to
+  - If an SRX chassis cluster is already present, setting I(cluster_enable) to
     C(false) will remove the SRX chassis cluster configuration and reboot
     the device causing the SRX cluster to be broken and the device to return
     to stand-alone mode.
-
-# Document connection arguments
-# Document logging arguments
-extends_documentation_fragment: juniper_junos_common
+options:
   enable:
     description:
       - Enable or disable cluster mode. When C(true) cluster mode is enabled
@@ -66,23 +66,25 @@ extends_documentation_fragment: juniper_junos_common
         cluster mode is disabled and the device returns to stand-alone mode.
     required: true
     default: none
-    type: 'bool'
+    type: bool
     aliases:
       - cluster_enable
   cluster_id:
     description:
       - The cluster ID to configure.
-    required: when I(enable)=C(true)
+      - Required when I(enable) is C(true).
+    required: false
     default: none
-    type: 'int'
+    type: int
     aliases:
       - cluster
   node_id:
     description:
-      - The node ID to configure. (0 or 1)
-    required: when I(enable)=C(true)
+      - The node ID to configure. (C(0) or C(1))
+      - Required when I(enable) is C(true).
+    required: false
     default: none
-    type: 'int'
+    type: int
     aliases:
       - node
 '''
@@ -113,31 +115,29 @@ EXAMPLES = '''
     - name: Print the response.
       debug:
         var: response.config_lines
-
-# Document connection examples
-# Document authentication examples
-# Document logging examples
-# extends_documentation_fragment: juniper_junos_common
 '''
 
 RETURN = '''
+changed:
+  description:
+    - Indicates if the device's configuration has changed, or would have
+      changed when in check mode.
+  returned: success
+  type: bool
+failed:
+  description:
+    - Indicates if the task failed.
+  returned: always
+  type: bool
 msg:
   description:
     - A human-readable message indicating the result.
   returned: always
   type: str
 reboot:
-  description: Indicates if a reboot of the device has been initiated.
+  description:
+    - Indicates if a reboot of the device has been initiated.
   returned: success
-  type: bool
-changed:
-  description: Indicates if the device's configuration has changed, or would
-               have changed when in check mode.
-  returned: success
-  type: bool
-failed:
-  description: Indicates if the task failed.
-  returned: always
   type: bool
 '''
 

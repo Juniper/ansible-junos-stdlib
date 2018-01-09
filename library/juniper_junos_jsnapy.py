@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 1999-2017, Juniper Networks Inc.
+# Copyright (c) 1999-2018, Juniper Networks Inc.
 #               2016, Roslan Zaki
 #
 # All rights reserved.
@@ -42,43 +42,42 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = '''
 ---
+extends_documentation_fragment: 
+  - juniper_junos_common.connection_documentation
+  - juniper_junos_common.logging_documentation
 module: juniper_junos_jsnapy
 version_added: "2.0.0" # of Juniper.junos role
-author: "Juniper Networks - Roslan Zaki, Damien Garros, & Stacy Smith (@stacywsmith)"
+author:
+  - Juniper Networks
+  - Roslan Zaki
+  - Damien Garros
+  - Stacy Smith (@stacywsmith)"
 short_description: Execute JSNAPy tests on a Junos device
 description:
   - Execute Junos SNAPshot Adminsitrator (JSNAPy) tests against a Junos device.
-    JSNAPy is documented at: U(https://github.com/Juniper/jsnapy) and
-    U(https://www.juniper.net/uk/en/training/jnbooks/day-one/automation-series/jsnapy/)
-  - This module only reports "failed" if the module encounters an error and
-    fails to execute the JSNAPy tests. If does NOT report "failed" if one or
+    JSNAPy is documented on U(Github|https://github.com/Juniper/jsnapy) and
+    this
+    U(Day One Book|https://www.juniper.net/uk/en/training/jnbooks/day-one/automation-series/jsnapy/)
+  - This module only reports C(failed) if the module encounters an error and
+    fails to execute the JSNAPy tests. If does NOT report C(failed) if one or
     more of the JSNAPy tests fail. To check the test results, register the
     module's response and use the assert module to verify the expected result
-    in the response. (See MODULE_EXAMPLES.)
+    in the response. (See :ref:`examples-label`.)
   - A callback plugin which formats and prints JSNAPy test results for human
     consumption is also available. This callback plugin is enabled by adding
-    "callback_whitelist = jsnapy" to the Ansible configuration file.
-
-# Document connection arguments
-# Document logging arguments
-extends_documentation_fragment: juniper_junos_common
+    C(callback_whitelist = jsnapy) to the Ansible configuration file.
 options:
   action:
     description:
       - The JSNAPy action to perform.
     required: true
     default: none
-    type: 'str'
-    choices: ['check', 'snapcheck', 'snap_pre', 'snap_post']
-  test_files:
-    description:
-      - The filename of file(s) in the I(dir) directory. Each file contains
-        JSNAPy test case definitions. The I(test_files) option and the
-        I(config_file) option are mutually exclusive. Either the I(test_files)
-        option or the I(config_file) option is required.
-    required: false
-    type: 'list of path'
-    default: none
+    type: str
+    choices:
+      - check
+      - snapcheck
+      - snap_pre
+      - snap_post
   config_file:
     description:
       - The filename of a JSNAPy configuration file (in YAML format). The
@@ -86,7 +85,7 @@ options:
         exclusive. Either the I(test_files) option or the I(config_file)
         option is required.
     required: false
-    type: 'path'
+    type: path
     default: none
   dir:
     description:
@@ -94,23 +93,24 @@ options:
         by the I(test_files) option or the JSNAPy configuration file specified
         by the I(config_file) option.
     required: false
-    type: 'path'
-    default: '/etc/jsnapy/testfiles'
+    type: path
+    default: /etc/jsnapy/testfiles
     aliases:
       - directory
+  test_files:
+    description:
+      - The filename of file(s) in the I(dir) directory. Each file contains
+        JSNAPy test case definitions. The I(test_files) option and the
+        I(config_file) option are mutually exclusive. Either the I(test_files)
+        option or the I(config_file) option is required.
+    required: false
+    type: list of path
+    default: none
 '''
+
 
 EXAMPLES = '''
 ---
-#
-# MODULE_EXAMPLES
-# This playbook demonstrate the parameters supported by the
-# juniper_junos_jsnapy module. These examples use the default connection,
-# authentication and logging parameters. See the examples labeled
-# CONNECTION_EXAMPLES for details on connection parameters. See the examples
-# labeled AUTHENTICATION_EXAMPLES for details on authentication parameters.
-# See the examples labeled LOGGING_EXAMPLES for details on logging parameters.
-#
 - name: Examples of juniper_junos_jsnapy
   hosts: junos-all
   connection: local
@@ -169,43 +169,19 @@ EXAMPLES = '''
     - name: Print the full test response
       debug:
         var: test3
-
-#
-# CONNECTION_EXAMPLES
-#
-
-#
-# AUTHENTICATION_EXAMPLES
-#
-
-#
-# LOGGING_EXAMPLES
-#
 '''
 
 RETURN = '''
-msg:
-  description:
-    - A human-readable message indicating the result of the JSNAPy tests.
-  returned: always
-  type: str
 action:
   description:
     - The JSNAPy action performed as specified by the I(action) option.
   returned: success
   type: str
-
-
-final_result:
-total_passed:
-total_failed:
-
-
 changed:
   description:
     - Indicates if the device's state has changed. Since this module doesn't
       change the operational or configuration state of the device, the value
-      is always set to false.
+      is always set to C(false).
   returned: success
   type: bool
 failed:
@@ -213,6 +189,14 @@ failed:
     - Indicates if the task failed.
   returned: always
   type: bool
+# final_result:
+msg:
+  description:
+    - A human-readable message indicating the result of the JSNAPy tests.
+  returned: always
+  type: str
+# total_passed:
+# total_failed:
 '''
 
 # Standard Library imports

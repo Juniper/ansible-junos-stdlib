@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 1999-2017, Juniper Networks Inc.
+# Copyright (c) 1999-2018, Juniper Networks Inc.
 #               2014, Jeremy Schulman
 #               2015, Rick Sherman
 #
@@ -43,99 +43,289 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = '''
 ---
+extends_documentation_fragment: 
+  - juniper_junos_common.connection_documentation
+  - juniper_junos_common.logging_documentation
 module: juniper_junos_config
 version_added: "2.0.0" # of Juniper.junos role
 author: "Juniper Networks - Stacy Smith (@stacywsmith)"
-short_description: Manipulate the configuration of a Junos device.
+short_description: Manipulate the configuration of a Junos device
 description:
-  - Manipulate the configuration of a Junos device. This module allows a
+  - >
+    Manipulate the configuration of a Junos device. This module allows a
     combination of loading or rolling back, checking, diffing, retrieving, and
     committing the configuration of a Junos device. It performs the following
     steps in order:
-    1) Open a candidate configuration database.
-       - If the I(config_mode) option has a value of C(exclusive), the default,
+
+    #. Open a candidate configuration database.
+    
+       * If the I(config_mode) option has a value of C(exclusive), the default,
          take a lock on the candidate configuration database. If the lock fails
          the module fails and reports an error.
-       - If the I(config_mode) option has a value of C(private), open a private
+       * If the I(config_mode) option has a value of C(private), open a private
          candidate configuration database. If opening the private configuration
          database fails the module fails and reports an error.
-    2) Load configuration data into the candidate configuration database.
-       - Configuration data may be loaded using the I(load) or I(rollback)
+    #. Load configuration data into the candidate configuration database.
+       
+       * Configuration data may be loaded using the I(load) or I(rollback)
          options. If either of these options are specified, new configuration
          data is loaded. If neither option is specified, this step is skipped.
-       - If the I(rollback) option is specified, replace the candidate
+       * If the I(rollback) option is specified, replace the candidate
          configuration with the previous configuration specified by the value
          of the I(rollback) option.
-       - If the I(load) option is specified, load new configuration data.
-         - The value of the I(load) option defines the type of load which is
-           performed.
-         - The source of the new configuration data is one of the following:
-           - I(src)      - A file path on the local Ansible control machine.
-           - I(lines)    - A list of strings containing the configuration data.
-           - I(template) - A file path to a Jinja2 template on the local
-                           Ansible control machine. This template is rendered
-                           with the variables specified by the I(vars) option.
-                           If the I(template) option is specified, the I(vars)
-                           option must also be specified.
-           - I(url)      - A URL reachable from the target Junos device.
-       - If the I(format) option is specified, the configuration file being
-         loaded is in the specified format, rather than the format being
-         determined from the file name.
-    3) Check the validity of the candidate configuration database.
-       - If the I(check) option is C(true), the default, check the validity
+       * If the I(load) option is specified, load new configuration data.
+       * The value of the I(load) option defines the type of load which is
+         performed.
+       * The source of the new configuration data is one of the following:
+       
+         * I(src)      - A file path on the local Ansible control machine.
+         * I(lines)    - A list of strings containing the configuration data.
+         * I(template) - A file path to a Jinja2 template on the local
+           Ansible control machine. This template is rendered with the variables
+           specified by the I(vars) option. If the I(template) option is
+           specified, the I(vars) option must also be specified.
+         * I(url)      - A URL reachable from the target Junos device.
+       * If the I(format) option is specified, the configuration file being
+         loaded is in the specified format, rather than the format determined
+         from the file name.
+    #. Check the validity of the candidate configuration database.
+    
+       * If the I(check) option is C(true), the default, check the validity
          of the configuration by performing a "commit check" operation.
-       - This option may be specified with I(diff) C(false) and I(commit)
+       * This option may be specified with I(diff) C(false) and I(commit)
          C(false) to confirm a previous "commit confirmed <min>" operation
          without actually performing an additional commit.
-       - If the configuration check fails, further processing stops, the module
+       * If the configuration check fails, further processing stops, the module
          fails, and an error is reported.
-    4) Determine differences between the candidate and committed configuration
+    #. Determine differences between the candidate and committed configuration
        databases.
-       - If step 2 was not skipped, and the I(diff) option is C(true),
+       
+       * If step 2 was not skipped, and the I(diff) option is C(true),
          the default, perform a diff between the candidate and committed
          configuration databases.
-       - If the I(diffs_file) or I(dest_dir) option is specified, save the
+       * If the I(diffs_file) or I(dest_dir) option is specified, save the
          generated configuration differences.
-       - If the I(return_output) option is C(true), the default, include the
+       * If the I(return_output) option is C(true), the default, include the
          generated configuration difference in the I(diff) and I(diff_lines)
          keys of the module's response.
-    5) Retrieve the configuration database from the Junos device.
-       - If the I(retrieve) option is specified, retrieve the configuration
+    #. Retrieve the configuration database from the Junos device.
+       
+       * If the I(retrieve) option is specified, retrieve the configuration
          database specified by the I(retrieve) value from the target Junos
          device to the local Ansible control machine.
-       - The format in which the configuration is retrieved is specified by the
+       * The format in which the configuration is retrieved is specified by the
          value of the I(format) option.
-       - The optional I(filter) controls which portions of the configuration
+       * The optional I(filter) controls which portions of the configuration
          are retrieved.
-       - If I(options) are specified, they control the content of the
+       * If I(options) are specified, they control the content of the
          configuration retrieved.
-       - If the I(dest) or I(dest_dir) option is specified, save the
+       * If the I(dest) or I(dest_dir) option is specified, save the
          retrieved configuration to a file on the local Ansible control
          machine.
-       - If the I(return_output) option is C(true), the default, include the
+       * If the I(return_output) option is C(true), the default, include the
          retrieved configuration in the I(config), I(config_lines), and
          I(config_parsed) keys of the module's response.
-    6) Commit the configuration changes.
-       - If the I(commit) option is C(true), the default, commit the
+    #. Commit the configuration changes.
+    
+       * If the I(commit) option is C(true), the default, commit the
          configuration changes.
-       - This option may be specified with I(diff) C(false) and I(check)
+       * This option may be specified with I(diff) C(false) and I(check)
          C(false) to confirm a previous "commit confirmed <min>" operation.
-       - If the I(comment) option is specified, add the comment to the commit.
-       - If the I(confirmed) option is specified, perform a
-         "commit confirmed <min>" operation where <min> is the value of the
+       * If the I(comment) option is specified, add the comment to the commit.
+       * If the I(confirmed) option is specified, perform a
+         C(commit confirmed) I(min) operation where I(min) is the value of the
          I(confirmed) option.
-       - If the I(check) option is C(true) and the I(check_commit_wait)
+       * If the I(check) option is C(true) and the I(check_commit_wait)
          option is specified, wait I(check_commit_wait) seconds before
          performing the commit.
-    7) Close the candidate configuration database.
-       - Close and discard the candidate configuration database.
-       - If the I(config_mode) option has a value of C(exclusive), the default,
+    #. Close the candidate configuration database.
+       
+       * Close and discard the candidate configuration database.
+       * If the I(config_mode) option has a value of C(exclusive), the default,
          unlock the candidate configuration database.
-
-# Document connection arguments
-# Document logging arguments
-extends_documentation_fragment: juniper_junos_common
 options:
+  check:
+    description:
+      - Perform a commit check operation.
+    required: false
+    default: true (false if retrieve is set and load and rollback are not set)
+    type: bool
+    aliases:
+      - check_commit
+      - commit_check
+  check_commit_wait:
+    description:
+      - The number of seconds to wait between check and commit operations.
+      - This option is only valid if I(check) is C(true) and I(commit) is
+        C(true).
+      - This option should not normally be needed. It works around an issue in
+        some versions of Junos.
+    required: false
+    default: none
+    type: int
+  comment:
+    description:
+      - Provide a comment to be used with the commit operation.
+      - This option is only valid if the I(commit) option is true.
+    required: false
+    default: none
+    type: str
+  commit:
+    description:
+      - Perform a commit operation.
+    required: false
+    default: true (false if retrieve is set and load and rollback are not set)
+    type: bool
+  commit_empty_changes:
+    description:
+      - Perform a commit operation, even if there are no changes between the
+        candidate configuration and the committed configuration.
+    required: false
+    default: false
+    type: bool
+  config_mode:
+    description:
+      - The mode used to access the candidate configuration database.
+    required: false
+    default: exclusive
+    type: str
+    choices:
+      - exclusive
+      - private
+    aliases:
+      - config_access
+      - edit_mode
+      - edit_access
+  confirmed:
+    description:
+      - Provide a confirmed timeout, in minutes, to be used with the commit
+        operation.
+      - This option is only valid if the I(commit) option is C(true).
+      - The value of this option is the number of minutes to wait for another
+        commit operation before automatically rolling back the configuration
+        change performed by this task. In other words, this option causes the
+        module to perform a C(commit confirmed )I(min) where I(min) is the
+        value of the I(confirmed) option. This option DOES NOT confirm a
+        previous C(commit confirmed )I(min) operation. To confirm a previous
+        commit operation, invoke this module with the I(check) or I(commit)
+        option set to C(true).
+    required: false
+    default: none
+    type: int
+    aliases:
+      - confirm
+  dest:
+    description:
+      - The path to a file, on the local Ansible control machine, where the
+        configuration will be saved if the I(retrieve) option is specified.
+      - The file must be writeable. If the file already exists, it is
+        overwritten.
+      - This option is only valid if the I(retrieve) option is not C(none).
+      - When tasks are executed against more than one target host,
+        one process is forked for each target host. (Up to the maximum
+        specified by the forks configuration. See
+        U(forks|http://docs.ansible.com/ansible/latest/intro_configuration.html#forks)
+        for details.) This means that the value of this option must be unique
+        per target host. This is usually accomplished by including
+        C({{ inventory_hostname }}) in the I(dest) value. It is the user's
+        responsibility to ensure this value is unique per target host.
+      - For this reason, this option is deprecated. It is maintained for
+        backwards compatibility. Use the I(dest_dir) option in new playbooks.
+        The I(dest) and I(dest_dir) options are mutually exclusive.
+    required: false
+    default: none
+    type: path
+    aliases:
+      - destination
+  dest_dir:
+    description:
+      - The path to a directory, on the Ansible control machine. This is the
+        directory where the configuration will be saved if the I(retrieve)
+        option is specified. It is also the directory where the configuration
+        diff will be specified if the I(diff) option is C(true).
+      - This option is only valid if the I(retrieve) option is not C(none) or
+        the I(diff) option is C(true).
+      - The retrieved configuration will be saved to a file named
+        C({{ inventory_hostname }}.)I(format_extension) in the I(dest_dir)
+        directory. Where I(format_extension) is C(conf) for text format, C(xml)
+        for XML format, C(json) for JSON format, and C(set) for set format.
+      - If the I(diff) option is C(true), the configuration diff will be saved
+        to a file named C({{ inventory_hostname }}.diff) in the I(dest_dir)
+        directory.
+      - The destination file must be writeable. If the file already exists,
+        it is overwritten. It is the users responsibility to ensure a unique
+        I(dest_dir) value is provided for each execution of this module
+        within a playbook.
+      - The I(dest_dir) and I(dest) options are mutually exclusive. The
+        I(dest_dir) option is recommended for all new playbooks.
+      - The I(dest_dir) and I(diff_file) options are mutually exclusive. The
+        I(dest_dir) option is recommended for all new playbooks.
+    required: false
+    default: none
+    type: path
+    aliases:
+      - destination_dir
+      - destdir
+      - savedir
+      - save_dir
+  diff:
+    description:
+      - Perform a configuration compare (aka diff) operation.
+    required: false
+    default: true (false if retrieve is set and load and rollback are not set)
+    type: bool
+    aliases:
+      - compare
+      - diffs
+  diffs_file:
+    description:
+      - The path to a file, on the Ansible control machine, where the
+        configuration differences will be saved if the I(diff) option is
+        specified.
+      - The file must be writeable. If the file already exists, it is
+        overwritten.
+      - This option is only valid if the I(diff) option is C(true).
+      - When tasks are executed against more than one target host,
+        one process is forked for each target host. (Up to the maximum
+        specified by the forks configuration. See
+        U(forks|http://docs.ansible.com/ansible/latest/intro_configuration.html#forks)
+        for details.) This means that the value of this option must be unique
+        per target host. This is usually accomplished by including
+        C({{ inventory_hostname }}) in the I(diffs_file) value. It is the
+        user's responsibility to ensure this value is unique per target host.
+      - For this reason, this option is deprecated. It is maintained for
+        backwards compatibility. Use the I(dest_dir) option in new playbooks.
+      - The I(diffs_file) and I(dest_dir) options are mutually exclusive.
+    required: false
+    default: None
+    type: path
+  format:
+    description:
+      - Specifies the format of the configuration retrieved, if I(retrieve)
+        is not C(none).
+      - Specifies the format of the configuration to be loaded, if I(load) is
+        not C(none).
+      - The specified format must be supported by the target Junos device.
+    required: false
+    default: none (auto-detect on load, text on retrieve)
+    type: str
+    choices:
+      - xml
+      - set
+      - text
+      - json
+  filter:
+    description:
+      - A string of XML, or '/'-separated configuration hierarchies,
+        which specifies a filter used to restrict the portions of the
+        configuration which are retrieved. See
+        U(PyEZ's get_config method documentation|http://junos-pyez.readthedocs.io/en/stable/jnpr.junos.html#jnpr.junos.rpcmeta._RpcMetaExec.get_config)
+        for details on the value of this option.
+    required: false
+    default: none
+    type: 'str'
+    aliases:
+      - filter_xml
   ignore_warning:
     description:
       - A boolean, string or list of strings. If the value is C(true),
@@ -143,28 +333,112 @@ options:
         is a string, it will ignore warning(s) if the message of each warning
         matches the string. If the value is a list of strings, ignore
         warning(s) if the message of each warning matches at least one of the
-        strings in the list. The C(ignore_warning) value is applied to the
-        load and commit operations performed by this module.
-        load and commit operations performed by this module.
+        strings in the list. The value of the I(ignore_warning) option is
+        applied to the load and commit operations performed by this module.
     required: false
     default: none
     type: bool, str, or list of str
-  config_mode:
-    description
-      - The mode used to access the candidate configuration database.
+  lines:
+    description:
+      - Used with the I(load) option. Specifies a list of list of
+        configuration strings containing the configuration to be loaded.
+      - The I(src), I(lines), I(template), and I(url) options are mutually
+        exclusive.
+      - By default, the format of the configuration data is auto-dectected by
+        the content of the first line in the I(lines) list.
+      - If the I(format) option is specified, the I(format) value overrides the
+        format auto-detection.
     required: false
-    default: 'exclusive'
-    choices: ['exclusive', 'private']
-    type: 'str'
-    aliases:
-      - config_access
-      - edit_mode
-      - edit_access
+    default: none
+    type: list
+  load:
+    description:
+      - Specifies the type of load operation to be performed.
+      - The I(load) and I(rollback) options are mutually exclusive.
+      - >
+        The choices have the following meanings:
+      - B(none) - Do not perform a load operation.
+      - B(merge) - Combine the new configuration with the existing
+        configuration. If statements in the new configuration conflict with
+        statements in the existing configuration, the statements in
+        the new configuration replace those in the existing
+        configuration.
+      - B(replace) - This option is a superset of the B(merge) option. It
+        combines the new configuration with the existing configuration. If the
+        new configuration is in text format and a hierarchy level in the new
+        configuartion is prefixed with the string C(replace:), then the
+        hierarchy level in the new configuration replaces the entire
+        corresponding hierarchy level in the existing configuration, regardles
+        of the existence or content of that hierarchy level in the existing
+        configuration. If the configuration is in XML format, the XML attribute
+        C(replace = "replace") is equivalent to the text format's C(replace:)
+        prefix. If a configuration hierarchy in the new configuration is not
+        prefixed with C(replace:), then the B(merge) behavior is used.
+        Specifically, for any statements in the new configuration which
+        conflict with statements in the existing configuration, the statements
+        in the new configuration replace those in the existing configuration.
+      - B(override) - Discard the entire existing configuration and replace it
+        with the new configuration. When the configuration is later committed,
+        all system processes are notified and the entire new configuration is
+        marked as 'changed' even if some statements previously existed in the
+        configuration. The value B(overwrite) is a synonym for B(override).
+      - B(update) - This option is similar to the B(override) option. The new
+        configuration completely replaces the existing configuration. The
+        difference comes when the configuration is later committed. This option
+        performs a 'diff' between the new candidate configuration and the
+        existing committed configuration. It then only notifies system
+        processes repsonsible for the changed portions of the configuration,
+        and only marks the actual configuration changes as 'changed'.
+      - B(set) - This option is used when the new configuration data is in set
+        format (a series of configuration mode commands). The new configuration
+        data is loaded line by line and may contain any configuration mode
+        commands, such as set, delete, edit, or deactivate. This value must be
+        specified if the new configuration is in set format.  
+    required: false
+    default: none
+    choices:
+      - none
+      - set
+      - merge
+      - update
+      - replace
+      - override
+      - overwrite
+    type: str
+  options:
+    description:
+      - Additional options, specified as a dictionary of key/value pairs, used
+        when retrieving the configuration. See the
+        U(<get-configuration> RPC documentation|https://www.juniper.net/documentation/en_US/junos/topics/reference/tag-summary/junos-xml-protocol-get-configuration.html)
+        for information on available options.
+    required: false
+    default: None
+    type: dict
+  retrieve:
+    description:
+      - The configuration database to be retrieved.
+    required: false
+    default: none
+    choices: 
+      - none
+      - candidate
+      - committed
+    type: str
+  return_output:
+    description:
+      - Indicates if the output of the I(diff) and I(retreive) options should
+        be returned in the module's response. You might want to set this option
+        to C(false), and set the I(dest_dir) option, if the configuration or
+        diff output is very large and you only need to save the output rather
+        than using it's content in subsequent tasks/plays of your playbook.
+    required: false
+    default: true
+    type: bool
   rollback:
     description:
       - Populate the candidate configuration from a previously committed
-        configuration. This value be a configuration number between 0 and 49,
-        or the keyword C(rescue) to load the previously saved rescue
+        configuration. This value can be a configuration number between 0 and
+        49, or the keyword C(rescue) to load the previously saved rescue
         configuration.
       - By default, some Junos platforms store fewer than 50 previous
         configurations. Specifying a value greater than the number
@@ -174,60 +448,10 @@ options:
       - The I(rollback) and I(load) options are mutually exclusive.
     required: false
     default: none
-    choices: [0-49, 'rescue']
-    type: 'int' or 'str'
-  load:
-    description:
-      - Specifies the type of load operation to be performed.
-      - The I(load) and I(rollback) options are mutually exclusive.
-      - The choices have the following meanings:
-        none - Do not perform a load operation.
-        merge - Combine the new configuration with the existing configuration.
-                If statements in the new configuration conflict with statements
-                in the existing configuration, the statements in the new
-                configuration replace those in the existing configuration.
-        replace - This option is a superset of the 'merge' option. It combines
-                  the new configuration with the existing configuration. If the
-                  new configuration is in text format and a hierarchy level in
-                  the new configuration is prefixed with the string
-                  'replace:', then the hierarchy level in the new configuration
-                  replaces the entire correpsonding hierarhcy level in the
-                  existing configuration, regardless of the existence or
-                  content of that hierarchy level in the existing
-                  configuration. If the configuration is in XML format, the
-                  XML attribute replace="replace" is equivalent to the text
-                  format's 'replace:' prefix. If a configuration hierarhcy in
-                  the new configuration is not prefixed with 'replace:', then
-                  the 'merge' behavior is used. Specifically, for any
-                  statements in the new configuration which conflict with
-                  statements in the existing configuration, the statements in
-                  the new configuration replace those in the existing
-                  configuration.
-        override - Discard the entire existing configuration and replace it
-                   with the new configuration. When the configuration is
-                   later committed, all system processes are notified and the
-                   entire new configuration is marked as 'changed' even if
-                   some statements previously existing in the configuration.
-                   The value 'overwrite' is a synonym for 'override'.
-        update - This option is similar to the 'override' option. The new
-                 configuration completely replaces the existing configuration.
-                 The difference comes when the configuration is later
-                 committed. This option performs a 'diff' between the new
-                 candidate configuration and the existing committed
-                 configuration. It then only notifies system processes
-                 responsible for the changed portions of the configuration, and
-                 only marks the actual configuration changes as 'changed'.
-        set - This option is used when the new configuraiton data is in set
-              format (a series of configuration mode commands). The new
-              configuration data is loaded line by line and may contain any
-              configuration mode commands, such as set, delete, edit,
-              or deactivate. This value must be specified if the new
-              configuration is in set format.
-    required: false
-    default: none
-    choices: [none, 'set', 'merge', 'update',
-              'replace', 'override', 'overwrite']
-    type: str
+    choices:
+      - 0-49
+      - rescue
+    type: int or str
   src:
     description:
       - Used with the I(load) option. Specifies the path to a file, on the
@@ -249,31 +473,34 @@ options:
     aliases:
       - source
       - file
-  lines:
-    description:
-      - Used with the I(load) option. Specifies a list of list of
-        configuration strings containing the configuration to be loaded.
-      - The I(src), I(lines), I(template), and I(url) options are mutually
-        exclusive.
-      - By default, the format of the configuration data is auto-dectected by
-        the content of the first line in the I(lines) list.
-      - If the I(format) option is specified, the I(format) value overrides the
-        format auto-detection.
-    required: false
-    default: none
-    type: 'list'
   template:
     description:
       - The path to a Jinja2 template file, on the local Ansible control
-        machine, used to generate, along with the I(vars) option, the
-        configuration to be loaded on the target Junos device.
+        machine. This template file, along with the I(vars) option, is used to
+        generate the configuration to be loaded on the target Junos device.
+      - The I(src), I(lines), I(template), and I(url) options are mutually
+        exclusive.
       - The I(template) and I(vars) options are required together. If one is
         specified, the other must be specified.
     required: false
     default: none
-    type: 'path'
+    type: path
     aliases:
       - template_path
+  url:
+    description:
+      - A URL which specifies the configuration data to load on the target
+        Junos device.
+      - The Junos device uses this URL to load the configuration, therefore
+        this URL must be reachable by the target Junos device.
+      - The possible formats of this value are documented in the 'url' section
+        of the 
+        U(<load-configuration> RPC documentation|https://www.juniper.net/documentation/en_US/junos/topics/reference/tag-summary/junos-xml-protocol-load-configuration.html).
+      - The I(src), I(lines), I(template), and I(url) options are mutually
+        exclusive.
+    required: false
+    default: none
+    type: str
   vars:
     description:
       - A dictionary of keys and values used to render the Jinja2 template
@@ -282,205 +509,9 @@ options:
         specified, the other must be specified.
     required: false
     default: none
-    type: 'dict'
+    type: dict
     aliases:
       - template_vars
-  url:
-    description:
-      - A URL, as documented at the 'url' section of:
-        U(https://www.juniper.net/documentation/en_US/junos/topics/reference/tag-summary/junos-xml-protocol-load-configuration.html)
-      - Specifies the configuration data to load on the target Junos device.
-    required: false
-    default: none
-    type: 'str'
-  format:
-    description:
-      - The format of the configuration retrieved, if I(retrieve) is not none,
-        and/or loaded, if I(load) is not none. The specified format must be
-        supported by the target Junos device.
-    required: false
-    default: none (auto-detect on load, 'text' on retrieve)
-    choices: ['xml', 'set', 'text', 'json']
-  check:
-      - Perform a commit check operation.
-    required: false
-    default: true (false if retrieve is set and load and rollback are not set)
-    type: bool
-    aliases:
-      - check_commit
-      - commit_check
-  diff:
-      - Perform a configuration compare (diff) operation.
-    required: false
-    default: true (false if retrieve is set and load and rollback are not set)
-    type: bool
-    aliases:
-      - compare
-      - diffs
-  diffs_file:
-    description:
-      - The path to a file, on the Ansible control machine, where the
-        configuration differences will be saved if the I(diff) option is
-        specified.
-      - The file must be writeable. If the file already exists, it is
-        overwritten.
-      - This option is only valid if the I(diff) option is C(true).
-      - NOTE: When tasks are executed against more than one target host,
-        one process is forked for each target host. (Up to the maximum
-        specified by the forks configuration. See
-        U(http://docs.ansible.com/ansible/latest/intro_configuration.html#forks)
-        for details.) This means that the value of this option must be unique
-        per target host. This is usually accomplished by including
-        {{ inventory_hostname }} in the I(diffs_file) value. It is the user's
-        responsibility to ensure this value is unique per target host.
-      - For this reason, this option is deprecated. It is maintained for
-        backwards compatibility. Use the I(dest_dir) option in new playbooks.
-        The I(diffs_file) and I(dest_dir) options are mutually exclusive.
-    required: false
-    default: None
-    type: path
-  dest_dir:
-    description:
-      - The path to a directory, on the Ansible control machine. This is the
-        directory where the configuration will be saved if the I(retrieve)
-        option is specified. It is also the directory where the configuration
-        diff will be specified if the I(diff) option is C(true).
-      - This option is only valid if the I(retrieve) option is not none or the
-        I(diff) option is I(true).
-      - The retrieved configuration will be saved to a file named
-        {{ inventory_hostname }}.C(format_extension) in the I(dest_dir)
-        directory. Where C(format_extension) is C(conf) for text format, C(xml)
-        for XML format, C(json) for JSON format, and C(set) for set format.
-      - If the I(diff) option is true, the configuration diff will be save to
-        a file named {{ inventory_hostname }}.diff in the I(dest_dir)
-        directory.
-      - The destination file must be writeable. If the file already exists,
-        it is overwritten. It is the users responsibility to ensure a unique
-        I(dest_dir) value is provided for each execution of this module
-        within a playbook.
-      - The I(dest_dir) and I(dest) options are mutually exclusive. The
-        I(dest_dir) option is recommended for all new playbooks.
-      - The I(dest_dir) and I(diff_file) options are mutually exclusive. The
-        I(dest_dir) option is recommended for all new playbooks.
-    required: false
-    default: none
-    type: path
-    aliases:
-      - destination_dir
-      - destdir
-      - savedir
-      - save_dir
-  return_output:
-    description:
-      - Indicates if the output of the I(diff) and I(retreive) options should
-        be returned in the module's response. You might want to set this option
-        to C(false), and set the I(dest_dir) option, if the configuration or
-        diff output is very large and you only need to save the output rather
-        than using it's content in subsequent tasks/plays of your playbook.
-    required: false
-    default: true
-    type: bool
-  retrieve:
-    description:
-      - The configuration database to be retrieved.
-    required: false
-    default: none
-    choices: [none, 'candidate', 'committed']
-  options:
-    description:
-      - Additional options, specified as a dictionary of key/value pairs, used
-        when retrieving the configuration. See
-        U(https://www.juniper.net/documentation/en_US/junos/topics/reference/tag-summary/junos-xml-protocol-get-configuration.html)
-        for information on available options.
-    required: false
-    default: None
-    type: dict
-  filter:
-    description:
-      - A string of XML, or '/'-separated configuration hierarchies,
-        which specifies a filter used to restrict the portions of the
-        configuration which are retrieved. See
-        U(http://junos-pyez.readthedocs.io/en/stable/jnpr.junos.html#jnpr.junos.rpcmeta._RpcMetaExec.get_config)
-        for details on the value of this option.
-    required: false
-    default: none
-    type: 'str'
-    aliases:
-      - filter_xml
-  dest:
-    description:
-      - The path to a file, on the local Ansible control machine, where the
-        configuration will be saved if the I(retrieve) option is specified.
-      - The file must be writeable. If the file already exists, it is
-        overwritten.
-      - This option is only valid if the I(retrieve) option is not none.
-      - NOTE: When tasks are executed against more than one target host,
-        one process is forked for each target host. (Up to the maximum
-        specified by the forks configuration. See
-        U(http://docs.ansible.com/ansible/latest/intro_configuration.html#forks)
-        for details.) This means that the value of this option must be unique
-        per target host. This is usually accomplished by including
-        {{ inventory_hostname }} in the I(dest) value. It is the user's
-        responsibility to ensure this value is unique per target host.
-      - For this reason, this option is deprecated. It is maintained for
-        backwards compatibility. Use the I(dest_dir) option in new playbooks.
-        The I(dest) and I(dest_dir) options are mutually exclusive.
-    required: false
-    default: None
-    type: path
-    aliases:
-      - destination
-  commit:
-    description:
-      - Perform a commit operation.
-    required: false
-    default: true (false if retrieve is set and load and rollback are not set)
-    type: bool
-  commit_empty_changes:
-    description:
-      - Perform a commit operation, even if there are no changes between the
-        candidate configuration and the committed configuration.
-    required: false
-    default: false
-    type: bool
-  confirmed:
-    description:
-      - Provide a confirmed timeout, in minutes, to be used with the commit
-        operation. This option is only valid if the I(commit) option is true.
-        The value of this option is the number of minutes to wait for another
-        commit operation before automatically rolling back the configuration
-        change performed by this task. In other words, this option causes the
-        module to perform a "commit confirmed <min>" where <min> is the value
-        of the I(confirmed) option. This option DOES NOT confirm a previous
-        "commit confirmed <min>" operation. To confirm a previous commit
-        operation, invoke this module with the I(check) or I(commit)
-        option set to true.
-    required: false
-    default: none
-    type: int
-    aliases:
-      - confirm
-  comment:
-    description:
-      - Provide a comment to be used with the commit operation. This option is
-        only valid if the I(commit) option is true.
-    required: false
-    default: none
-    type: str
-  check_commit_wait:
-    description:
-      - The number of seconds to wait between check and commit operations.
-      - This option is only valid if I(check) is C(true) and I(commit) is
-        C(true).
-      - This option should not normally be needed. It works around an issue in
-        some versions of Junos.
-    required: false
-    default: none
-    type: int
-
-# Options to load from other sources
-# Templates, url, variable, argument
-#
 '''
 
 EXAMPLES = '''
@@ -630,66 +661,71 @@ EXAMPLES = '''
     - name: Print the complete response
       debug:
         var: response
-
-# Document connection examples
-# Document authentication examples
-# Document logging examples
-# extends_documentation_fragment: juniper_junos_common
 '''
 
 RETURN = '''
+changed:
+  description:
+    - Indicates if the device's configuration has changed, or would have
+      changed when in check mode.
+  returned: success
+  type: bool
+config:
+  description:
+    - The retrieved configuration. The value is a single multi-line
+      string in the format specified by the I(format) option.
+  returned: when I(retrieved) is not C(none) and I(return_output) is C(true).
+  type: str
+config_lines:
+  description:
+    - The retrieved configuration. The value is a list of single-line
+      strings in the format specified by the I(format) option.
+  returned: when I(retrieved) is not C(none) and I(return_output) is C(true).
+  type: list
+config_parsed:
+  description:
+    - The retrieved configuration parsed into a JSON datastructure.
+      For XML replies, the response is parsed into JSON using the
+      jxmlease library. For JSON the response is parsed using the
+      Python json library.
+    - When Ansible converts the jxmlease or native Python data
+      structure into JSON, it does not guarantee that the order of
+      dictionary/object keys are maintained.
+  returned: when I(retrieved) is not C(none), the I(format) option is C(xml) or
+            C(json) and I(return_output) is C(true).
+  type: dict
+diff:
+  description: 
+    - The configuration differences between the previous and new
+      configurations. The value is a single multi-line string in "diff" format.
+  returned: when I(load)  or I(rollback) is specified, I(diff) is C(true), and
+            I(return_output) is C(true).
+  type: str
+diff_lines:
+  description:
+    - The configuration differences between the previous and new
+      configurations. The value is a list of single-line strings in "diff"
+      format.
+  returned: when I(load)  or I(rollback) is specified, I(diff) is C(true), and
+            I(return_output) is C(true).
+  type: list
+failed:
+  description: 
+    - Indicates if the task failed.
+  returned: always
+  type: bool
+file:
+  description:
+    - The value of the I(src) option.
+  returned: when I(load) is not C(none) and I(src) is not C(none)
+  type: str
 msg:
   description:
     - A human-readable message indicating the result.
   returned: always
   type: str
-file:
-  description:
-    - The value of the I(src) option.
-  returned: when I(load) is not None and I(src) is not None
-  type: str
-config:
-  description: The retrieved configuration. The value is a single multi-line
-               string in the format specified by the I(format) option.
-  returned: when I(retrieved) is not None and I(return_output) is true.
-  type: str
-config_lines: The retrieved configuration. The value is a list of single-line
-              strings in the format specified by the I(format) option.
-  returned: when I(retrieved) is not None and I(return_output) is true.
-  type: list
-config_parsed: The retrieved configuration parsed into a JSON datastructure.
-               For XML replies, the response is parsed into JSON using the
-               jxmlease library. For JSON the response is parsed using the
-               Python json library.
-               NOTE: When Ansible converts the jxmlease or native Python data
-               structure into JSON, it does not guarantee that the order of
-               dictionary/object keys are maintained.
-  returned: when I(retrieved) is not None, the I(format) option is 'xml' or
-            'json' and I(return_output) is true.
-  type: complex
-diff:
-  description: The configuration differences between the previous and new
-               configurations. The value is a single multi-line string in
-               "diff" format.
-  returned: when I(load)  or I(rollback) is specified, I(diff) is true, and
-            I(return_output) is true.
-  type: str
-diff_lines: The configuration differences between the previous and new
-               configurations. The value is a list of single-line strings in
-               "diff" format.
-  returned: when I(load)  or I(rollback) is specified, I(diff) is true, and
-            I(return_output) is true.
-  type: list
-changed:
-  description: Indicates if the device's configuration has changed, or would
-               have changed when in check mode.
-  returned: success
-  type: bool
-failed:
-  description: Indicates if the task failed.
-  returned: always
-  type: bool
 '''
+
 
 # Standard library imports
 import time

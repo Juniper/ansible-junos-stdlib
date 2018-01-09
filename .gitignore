@@ -41,6 +41,8 @@ nosetests.xml
 docs/build
 docs/*.rst
 docs/_build/
+docs/_rst/
+docs/sphinx.log
 
 tests/.vagrant/*
 

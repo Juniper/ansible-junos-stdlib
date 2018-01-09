@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 1999-2017, Juniper Networks Inc.
+# Copyright (c) 1999-2018, Juniper Networks Inc.
 #               2014, Jeremy Schulman
 #
 # All rights reserved.
@@ -42,59 +42,59 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = '''
 ---
+extends_documentation_fragment: 
+  - juniper_junos_common.connection_documentation
+  - juniper_junos_common.logging_documentation
 module: juniper_junos_system
 version_added: "2.0.0" # of Juniper.junos role
 author: "Juniper Networks - Stacy Smith (@stacywsmith)"
-short_description: Initiate operational actions on the Junos system.
+short_description: Initiate operational actions on the Junos system
 description:
   - Initiate an operational action (shutdown, reboot, halt or zeroize) on a
     Junos system. The particular action to execute is defined by the mandatory
-    I(action) option. This module only INITIATES the action. It does NOT wait
-    for the action to complete.
-  - NOTE: Some Junos devices are effected by a Junos bug which causes this
-    Ansible module to hang indefinitely when connected to the Junos device via
-    the console. This problem is not seen when connecting to the Junos device
-    using the normal NETCONF over SSH transport connection. Therefore, it is
-    recommended to use this module only with a NETCONF over SSH transport
-    connection. However, this module does still permit connecting to Junos
-    devices via the console port and this functionality may still be used for
-    Junos devices running Junos versions less than 15.1.
-# Document connection arguments
-# Document logging arguments
-extends_documentation_fragment: juniper_junos_common
+    I(action) option.
 options:
   action:
     description:
-      - The action performed by the module. The choices include:
-        C(shutdown) - Power off the Junos devices. The values: C(off),
-                     C(power-off), and C(power_off) are aliases for this value.
-                     This is the equivalent of the 'request system power-off'
-                     CLI command.
-        C(halt) - Stop the Junos OS running on the RE, but do not power off the
-                  system. Once the system is halted, it will reboot if a
-                  keystroke is entered on the console. This is the equivalent
-                  of the 'request system halt' CLI command.
-        C(reboot) - Reboot the system. This is the equivalent of the
-                   'request system reboot' CLI command.
-        C(zeroize) - Restore the system (configuration, log files, etc.) to a
-                     factory default state. This is the equivalent of
-                     the 'request system zeroize' CLI command.
+      - The action performed by the module.
+      - >
+        The following actions are supported:
+      - B(shutdown) - Power off the Junos devices. The values C(off),
+        C(power-off), and C(power_off) are aliases for this value.
+        This is the equivalent of the C(request system power-off) CLI
+        command.
+      - B(halt) - Stop the Junos OS running on the RE, but do not power off
+        the system. Once the system is halted, it will reboot if a
+        keystroke is entered on the console. This is the equivalent
+        of the C(request system halt) CLI command.
+      - B(reboot) - Reboot the system. This is the equivalent of the
+        C(request system reboot) CLI command.
+      - B(zeroize) - Restore the system (configuration, log files, etc.) to a
+        factory default state. This is the equivalent of the
+        C(request system zeroize) CLI command.
     required: true
     default: none
     type: str
-    choices: ['shutdown', 'halt', 'reboot', 'zeroize,
-              'off', 'power-off', 'power_off']
+    choices:
+      - shutdown
+      - halt
+      - reboot
+      - zeroize
+      - 'off'
+      - power-off
+      - power_off
   at:
     description:
-      - The time at which to shutdown, halt, or reboot the system. The value
-        may be specified in one of the following ways:
-        C(now) - The action takes effect immediately.
-        C(+minutes) — The action takes effect in C(minutes) minutes from now.
-        C(yymmddhhmm) — The action takes effect at C(yymmddhhmm) absolute time,
-                     specified as year, month, day, hour, and minute.
-        C(hh:mm) — The action takes effect at C(hh:mm) absolute time on the
-                current day, specified in 24-hour time.
-        The I(at) option can not be used when the I(action) option has a
+      - The time at which to shutdown, halt, or reboot the system. 
+      - >
+        The value may be specified in one of the following ways:
+      - B(now) - The action takes effect immediately.
+      - B(+minutes) — The action takes effect in C(minutes) minutes from now.
+      - B(yymmddhhmm) — The action takes effect at C(yymmddhhmm) absolute
+        time, specified as year, month, day, hour, and minute.
+      - B(hh:mm) — The action takes effect at C(hh:mm) absolute time on the
+        current day, specified in 24-hour time.
+      - The I(at) option can not be used when the I(action) option has a
         value of C(zeroize). The I(at) option is mutually exclusive with the
         I(in_min) option.
     required: false
@@ -102,8 +102,8 @@ options:
     type: str
   in_min:
     description:
-      - Specify a delay, in minutes, before the shutdown, halt, or reboot. The
-        I(in_min) option can not be used when the I(action) option has a
+      - Specify a delay, in minutes, before the shutdown, halt, or reboot.
+      - The I(in_min) option can not be used when the I(action) option has a
         value of C(zeroize). The I(in_min) option is mutually exclusive with
         the I(at) option.
     required: false
@@ -111,22 +111,23 @@ options:
     type: int
   all_re:
     description:
-      - If the system has multiple Routing Engines and this option is true,
+      - If the system has multiple Routing Engines and this option is C(true),
         then the action is performed on all REs in the system. If the system
         does not have multiple Routing Engines, then this option has no effect.
-        This option applies to all I(action) values. The I(all_re) option is
-        mutually exclusive with the I(other_re) option.
+      - This option applies to all I(action) values.
+      - The I(all_re) option is mutually exclusive with the I(other_re) option.
     required: false
     default: true
     type: bool
   other_re:
     description:
-      - If the system has dual Routing Engines and this option is true,
+      - If the system has dual Routing Engines and this option is C(true),
         then the action is performed on the other REs in the system. If the
         system does not have dual Routing Engines, then this option has no
-        effect. The I(other_re) option can not be used when the I(action)
-        option has a value of C(zeroize).The I(other_re) option is mutually
-        exclusive with the I(all_re) option.
+        effect.
+      - The I(other_re) option can not be used when the I(action) option has a
+        value of C(zeroize).
+      - The I(other_re) option is mutually exclusive with the I(all_re) option.
     required: false
     default: false
     type: bool
@@ -137,19 +138,21 @@ options:
     required: false
     default: false
     type: bool
+notes:
+  - This module only B(INITIATES) the action. It does B(NOT) wait for the
+    action to complete.
+  - Some Junos devices are effected by a Junos defect which causes this Ansible
+    module to hang indefinitely when connected to the Junos device via
+    the console. This problem is not seen when connecting to the Junos device
+    using the normal NETCONF over SSH transport connection. Therefore, it is
+    recommended to use this module only with a NETCONF over SSH transport
+    connection. However, this module does still permit connecting to Junos
+    devices via the console port and this functionality may still be used for
+    Junos devices running Junos versions less than 15.1.
 '''
 
 EXAMPLES = '''
 ---
-#
-# MODULE_EXAMPLES
-# This playbook demonstrate the parameters supported by the
-# juniper_junos_system module. These examples use the default connection,
-# authtentication and logging parameters. See the examples labeled
-# CONNECTION_EXAMPLES for details on connection parameters. See the examples
-# labeled AUTHENTICATION_EXAMPLES for details on authentication parameters.
-# See the examples labeled LOGGING_EXAMPLES for details on logging parameters.
-#
 - name: Examples of juniper_junos_system
   hosts: junos-all
   connection: local
@@ -197,39 +200,9 @@ EXAMPLES = '''
       juniper_junos_system:
         action: "zeroize"
         media: True
-
-#
-# CONNECTION_EXAMPLES
-#
-
-#
-# AUTHENTICATION_EXAMPLES
-#
-
-#
-# LOGGING_EXAMPLES
-#
 '''
 
 RETURN = '''
-msg:
-  description:
-    - A human-readable message indicating the result.
-  returned: always
-  type: str
-changed:
-  description:
-    - Indicates if the device's state has changed. If the action is performed
-      (or if it would have been performed when in check mode) then the value
-      will be true. If there was an error before the action, then the value
-      will be false.
-  returned: always
-  type: bool
-failed:
-  description:
-    - Indicates if the task failed.
-  returned: always
-  type: bool
 action:
   description:
     - The value of the I(action) option.
@@ -240,14 +213,32 @@ all_re:
     - The value of the I(all_re) option.
   returned: always
   type: str
-other_re:
+changed:
   description:
-    - The value of the I(other_re) option.
+    - Indicates if the device's state has changed. If the action is performed
+      (or if it would have been performed when in check mode) then the value
+      will be C(true). If there was an error before the action, then the value
+      will be C(false).
   returned: always
-  type: str
+  type: bool
+failed:
+  description:
+    - Indicates if the task failed.
+  returned: always
+  type: bool
 media:
   description:
     - The value of the I(media) option.
+  returned: always
+  type: str
+msg:
+  description:
+    - A human-readable message indicating the result.
+  returned: always
+  type: str
+other_re:
+  description:
+    - The value of the I(other_re) option.
   returned: always
   type: str
 '''
