@@ -57,7 +57,8 @@ description:
     This action is generally equivalent to the C(request system software add)
     operational-mode CLI command. It performs the following
     steps in order:
-    
+
+
     #. Compare the currently installed Junos version to the desired version
        specified by the I(version) option.
     

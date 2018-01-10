@@ -155,7 +155,7 @@ options:
         I(kwargs) list and the RPCs in the I(rpcs) list. In other words, the
         two lists must always contain the same number of elements. For RPC
         arguments which do not require a value, specify the value of True as
-        shown in the :ref:`examples-label`.
+        shown in the :ref:`juniper_junos_rpc-examples-label`.
     required: false
     default: none
     type: dict or list of dict

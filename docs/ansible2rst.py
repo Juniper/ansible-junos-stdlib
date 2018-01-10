@@ -67,7 +67,7 @@ DEPRECATED = b" (D)"
 
 MODULE_NAME_STARTS_WITH = "juniper_junos_"
 MODULEDIR = "../library/"
-OUTPUTDIR = "./_rst"
+OUTPUTDIR = "./"
 
 #####################################################################################
 

@@ -62,7 +62,7 @@ description:
     fails to execute the JSNAPy tests. If does NOT report C(failed) if one or
     more of the JSNAPy tests fail. To check the test results, register the
     module's response and use the assert module to verify the expected result
-    in the response. (See :ref:`examples-label`.)
+    in the response. (See :ref:`juniper_junos_jsnapy-examples-label`.)
   - A callback plugin which formats and prints JSNAPy test results for human
     consumption is also available. This callback plugin is enabled by adding
     C(callback_whitelist = jsnapy) to the Ansible configuration file.
