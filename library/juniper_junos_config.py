@@ -57,6 +57,7 @@ description:
     committing the configuration of a Junos device. It performs the following
     steps in order:
 
+
     #. Open a candidate configuration database.
     
        * If the I(config_mode) option has a value of C(exclusive), the default,
