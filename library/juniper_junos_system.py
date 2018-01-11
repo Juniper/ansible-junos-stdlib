@@ -407,10 +407,11 @@ def main():
             junos_module.etree.SubElement(rpc, 'media')
     else:
         if params['in_min'] is not None:
-            junos_module.etree.SubElement(rpc, 'in',
-                                          text=str(params['in_min']))
+            junos_module.etree.SubElement(rpc,
+                                          'in').text = str(params['in_min'])
         elif params['at'] is not None:
-            junos_module.etree.SubElement(rpc, 'at', text=params['at'])
+            junos_module.etree.SubElement(rpc,
+                                          'at').text = params['at']
         if params['other_re'] is True:
             if junos_module.dev.facts['2RE']:
                 junos_module.etree.SubElement(rpc, 'other-routing-engine')
