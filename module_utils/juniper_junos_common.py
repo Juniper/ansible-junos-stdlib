@@ -41,6 +41,8 @@ from ansible.plugins.action.normal import ActionModule as ActionNormal
 # Standard library imports
 from argparse import ArgumentParser
 from distutils.version import LooseVersion
+# Python 2.x and 3.x portable open
+from io import open
 import json
 import logging
 import os
@@ -1804,7 +1806,7 @@ class JuniperJunosModule(AnsibleModule):
             - If the destination file is not writable.
         """
         file_path = None
-        mode = 'w'
+        mode = 'wt'
         if name == 'diff':
             if self.params.get('diffs_file') is not None:
                 file_path = os.path.normpath(self.params.get('diffs_file'))
@@ -1830,7 +1832,7 @@ class JuniperJunosModule(AnsibleModule):
                 file_path = os.path.normpath(os.path.join(dest_dir, file_name))
         if file_path is not None:
             try:
-                with open(file_path, mode) as save_file:
+                with open(file_path, mode, encoding='utf-8') as save_file:
                     save_file.write(text)
                 self.logger.debug("Output saved to: %s.", file_path)
             except IOError:
