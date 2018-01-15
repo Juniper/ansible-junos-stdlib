@@ -166,8 +166,6 @@ failed:
 '''
 
 # Standard library imports
-# Python 2.x and 3.x portable open
-from io import open
 import json
 import os.path
 
@@ -311,8 +309,8 @@ def save_inventory(junos_module, inventory):
         file_path = os.path.normpath(os.path.join(save_dir, file_name))
         junos_module.logger.debug("Saving inventory to: %s.", file_path)
         try:
-            with open(file_path, 'wt', encoding='utf-8') as fact_file:
-                fact_file.write(inventory)
+            with open(file_path, 'wb') as fact_file:
+                fact_file.write(inventory.encode(encoding='utf-8'))
             junos_module.logger.debug("Inventory saved to: %s.", file_path)
         except IOError:
             junos_module.fail_json(msg="Unable to save inventory. Failed to "
