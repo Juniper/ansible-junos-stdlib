@@ -1825,6 +1825,8 @@ class JuniperJunosModule(AnsibleModule):
                 hostname = self.params.get('host')
                 # Substitute underscore for spaces.
                 name = name.replace(' ', '_')
+                # Substitute underscore for pipe
+                name = name.replace('|', '_')
                 name = '' if name == 'config' else '_' + name
                 file_name = '%s%s.%s' % (hostname, name, format)
                 file_path = os.path.normpath(os.path.join(dest_dir, file_name))
