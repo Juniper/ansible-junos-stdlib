@@ -78,6 +78,19 @@ class ActionModule(juniper_junos_common.JuniperJunosActionModule):
         # Always commit changes to mimic the previous behavior
         self._task.args['commit_empty_changes'] = True
 
+        # If check_commit is False, then also bypass the commit.
+        check = True
+        # Check for the 'check_commit' option which was an optional boolean
+        # argument for the junos_install_config module.
+        if 'check_commit' in self._task.args:
+            check = self._task.args.pop('check_commit')
+        if check is not None and self.convert_to_bool(check) is False:
+            # Translate to check_commit = False, commit = False, and
+            # commit_empty_changes = False
+            self._task.args['check_commit'] = False
+            self._task.args['commit'] = False
+            self._task.args['commit_empty_changes'] = False
+
         # Remaining arguments can be passed through transparently.
 
         # Call the parent action module.
