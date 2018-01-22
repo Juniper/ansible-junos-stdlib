@@ -521,7 +521,7 @@ def main():
     # Results should include all the ping params in argument_spec_keys.
     for key in argument_spec_keys:
         results[key] = params.get(key)
-    # Overrite to be a string in the results
+    # Overwrite to be a string in the results
     results['acceptable_percent_loss'] = str(
         params.get('acceptable_percent_loss'))
     # Add timeout to the response even though it's a connect parameter.
@@ -534,7 +534,7 @@ def main():
     # Execute the ping.
     results = junos_module.ping(
                   ping_params,
-                  acceptable_percent_loss=['acceptable_percent_loss'],
+                  acceptable_percent_loss=params['acceptable_percent_loss'],
                   results=results)
 
     # Return results.
