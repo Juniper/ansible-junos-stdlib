@@ -901,10 +901,9 @@ class JuniperJunosModule(AnsibleModule):
                     '%(asctime)s - %(name)s - %(levelname)s - %(message)s')
                 # add formatter to handler
                 handler.setFormatter(formatter)
-                # Handler should log anything from the 'jnpr' namespace to
+                # Handler should log anything from the 'jnpr.ansible_module.' namespace to
                 # catch PyEZ, JSNAPY, etc. logs.
-                jnpr_logger = logging.getLogger('jnpr')
-                jnpr_logger.addHandler(handler)
+                logger.addHandler(handler)
                 for name in additional_logger_names:
                     logging.getLogger(name).addHandler(handler)
             except IOError as ex:
