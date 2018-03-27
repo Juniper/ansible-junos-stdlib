@@ -550,7 +550,7 @@ def main():
     )
     # Save keys for later. Must do because software_argument_spec gets
     # modified.
-    option_keys = software_argument_spec.keys()
+    option_keys = list(software_argument_spec.keys())
 
     # Create the module instance.
     junos_module = juniper_junos_common.JuniperJunosModule(

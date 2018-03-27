@@ -35,6 +35,7 @@
 #
 
 from __future__ import absolute_import, division, print_function
+from six import iteritems
 
 ANSIBLE_METADATA = {'metadata_version': '1.1',
                     'supported_by': 'community',
@@ -563,7 +564,7 @@ def main():
                 rpc = junos_module.etree.Element(rpc_string, format=format)
                 if kwarg is not None:
                     # Add kwarg
-                    for (key, value) in kwarg.items():
+                    for (key, value) in iteritems(kwarg):
                         # Replace underscores with dashes in key name.
                         key = key.replace('_', '-')
                         sub_element = junos_module.etree.SubElement(rpc, key)
@@ -571,7 +572,7 @@ def main():
                             sub_element.text = value
                 if attr is not None:
                     # Add attr
-                    for (key, value) in attr.items():
+                    for (key, value) in iteritems(attr):
                         # Replace underscores with dashes in key name.
                         key = key.replace('_', '-')
                         rpc.set(key, value)
