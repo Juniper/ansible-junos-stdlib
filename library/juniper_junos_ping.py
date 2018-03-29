@@ -478,7 +478,7 @@ def main():
     # Add the ping RPC parameter argument spec fo the full argument_spec.
     argument_spec.update(ping_argument_spec)
 
-    argument_spec_keys = argument_spec.keys()
+    argument_spec_keys = list(argument_spec.keys())
 
     # Create the module instance.
     junos_module = juniper_junos_common.JuniperJunosModule(

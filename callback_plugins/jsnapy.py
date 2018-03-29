@@ -7,6 +7,7 @@ import os
 import time
 import pprint
 import json
+from six import iteritems
 
 from ansible.plugins.callback import CallbackBase
 from ansible import constants as C
@@ -44,7 +45,7 @@ class CallbackModule(CallbackBase):
     ## Check if dic return has all valid information
     if module_name == '' or module_args == {}:
         return None
-    elif not module_args.has_key('action'):
+    elif 'action' not in module_args:
         return None
 
     if module_name == 'junos_jsnapy' and \
@@ -52,7 +53,7 @@ class CallbackModule(CallbackBase):
 
       ## Check if dict entry already exist for this host
       host = result._host.name
-      if not host in self._results.keys():
+      if not host in list(self._results.keys()):
         self._results[host] = []
 
       self._results[host].append(result)
@@ -60,13 +61,13 @@ class CallbackModule(CallbackBase):
   def v2_playbook_on_stats(self, stats):
 
     ## Go over all results for all hosts
-    for host, results in self._results.iteritems():
+    for host, results in iteritems(self._results):
       has_printed_banner = False
       for result in results:
         # self._pp.pprint(result.__dict__)
         res = result._result
         if res['final_result'] == "Failed":
-          for test_name, test_results in res['test_results'].iteritems():
+          for test_name, test_results in iteritems(res['test_results']):
             for testlet in test_results:
               if testlet['count']['fail'] != 0:
 
@@ -78,7 +79,7 @@ class CallbackModule(CallbackBase):
 
                   # Check if POST exist in the response
                   data = ''
-                  if test.has_key('post'):
+                  if 'post' in test:
                       data = test['post']
                   else:
                       data = test

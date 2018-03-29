@@ -29,6 +29,7 @@ import cgi
 from distutils.version import LooseVersion
 from jinja2 import Environment, FileSystemLoader
 import yaml
+from six import print_
 
 from collections import MutableMapping, MutableSet, MutableSequence
 
@@ -215,7 +216,7 @@ def add_fragments(doc, filename):
         if 'options' not in fragment and 'logging_options' not in fragment and 'connection_options' not in fragment:
             raise Exception("missing options in fragment (%s), possibly misformatted?: %s" % (fragment_name, filename))
 
-        for key, value in fragment.items():
+        for key, value in iteritems(fragment.items()):
             if key in doc:
                 # assumes both structures have same type
                 if isinstance(doc[key], MutableMapping):
@@ -247,7 +248,7 @@ def process_module(fname, template, outputname, aliases=None):
 
     module_name = fname.replace(".py", "")
 
-    print("Processing  module %s" % (MODULEDIR + fname))
+    print_("Processing  module %s" % (MODULEDIR + fname))
     doc, examples, returndocs, metadata = get_docstring(MODULEDIR + fname,
                                                         verbose=True)
 
@@ -259,12 +260,12 @@ def process_module(fname, template, outputname, aliases=None):
     required_fields = ('short_description',)
     for field in required_fields:
         if field not in doc:
-            print("%s: WARNING: MODULE MISSING field '%s'" % (fname, field))
+            print_("%s: WARNING: MODULE MISSING field '%s'" % (fname, field))
 
     not_nullable_fields = ('short_description',)
     for field in not_nullable_fields:
         if field in doc and doc[field] in (None, ''):
-            print("%s: WARNING: MODULE field '%s' DOCUMENTATION is null/empty value=%s" % (fname, field, doc[field]))
+            print_("%s: WARNING: MODULE field '%s' DOCUMENTATION is null/empty value=%s" % (fname, field, doc[field]))
 
     #
     # The present template gets everything from doc so we spend most of this
@@ -375,11 +376,11 @@ def process_module(fname, template, outputname, aliases=None):
     if returndocs:
         try:
             doc['returndocs'] = yaml.safe_load(returndocs)
-            returndocs_keys = doc['returndocs'].keys()
+            returndocs_keys = list(doc['returndocs'].keys())
             returndocs_keys.sort()
             doc['returndocs_keys'] = returndocs_keys
         except Exception as e:
-            print("%s:%s:yaml error:%s:returndocs=%s" % (fname, module_name, e, returndocs))
+            print_("%s:%s:yaml error:%s:returndocs=%s" % (fname, module_name, e, returndocs))
             doc['returndocs'] = None
             doc['returndocs_keys'] = None
     else:
