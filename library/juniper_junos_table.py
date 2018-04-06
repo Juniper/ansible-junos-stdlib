@@ -339,7 +339,7 @@ def expand_items(module, data):
     """
     resources = []
     # data.items() is a list of tuples
-    for table_key, table_fields in iteritems(data):
+    for table_key, table_fields in data.items():
         # sample:
         # ('fxp0', [('neighbor_interface', '1'), ('local_interface', 'fxp0'),
         # ('neighbor', 'vmx2')]
@@ -360,7 +360,7 @@ def juniper_items_to_list_of_dicts(module, data):
     """
     resources = []
     # data.items() is a list of tuples
-    for table_key, table_fields in iteritems(data):
+    for table_key, table_fields in data.items():
         # sample:
         # ('fxp0', [('neighbor_interface', '1'), ('local_interface', 'fxp0'),
         # ('neighbor', 'vmx2')]
