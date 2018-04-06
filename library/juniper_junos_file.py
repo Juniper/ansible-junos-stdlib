@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Copyright (c) 1999-2018, Juniper Networks Inc.
-#               2016, Damien Garros
+#               2018, Damien Garros
 #
 # All rights reserved.
 #
@@ -47,338 +47,84 @@ DOCUMENTATION = '''
 extends_documentation_fragment: 
   - juniper_junos_common.connection_documentation
   - juniper_junos_common.logging_documentation
-module: juniper_junos_ping
-version_added: "2.0.0" # of Juniper.junos role
-author: Juniper Networks - Stacy Smith (@stacywsmith)
-short_description: Execute ping from a Junos device
+module: juniper_junos_file
+version_added: "2.0.3" # of Juniper.junos role
+author: Damien Garros / Boris Renet
+short_description: Copy file to and from device
 description:
-  - Execute the ping command from a Junos device to a specified destination in
-    order to test network reachability from the Junos device .
+  - Copy file over SCP to and from a Juniper device
 options:
-  acceptable_percent_loss:
+        local_dir=dict(type='str',
+                  required=True,
+                  default=None),
+        remote_dir=dict(type='str',
+                  required=True,
+                  default=None),
+        file=dict(type='str',
+                  required=True,
+                  default=None), 
+        action=dict(type='str',
+                  choices=['put', 'get'], 
+                  required=True,
+                  default=None)
+  local_dir:
     description:
-        - Maximum percentage of packets that may be lost and still consider the
-          task not to have failed.
-    required: false
-    default: 0
-    type: int
-    aliases:
-      - acceptable_packet_loss
-  count:
+        - path of the local directory where the file is located 
+          or needs to be copied to
+    required: True
+    type: str
+  remote_dir:
     description:
-      - Number of packets to send.
-    required: false
-    default: 5
-    type: int
-  dest:
+        - path of the directory on the remote device where the file is located 
+          or needs to be copied to
+    required: True
+    type: str
+  file:
     description:
-      - The IP address, or hostname if DNS is configured on the Junos device,
-        used as the destination of the ping.
+      - Name of the file to copy to/from the remote device.
     required: true
-    default: none
     type: str
-    aliases:
-      - dest_ip
-      - dest_host
-      - destination
-      - destination_ip
-      - destination_host
-  do_not_fragment:
+  Action:
     description:
-      - Set Do Not Fragment bit on ping packets.
-    required: false
-    default: false
-    type: bool
-  interface:
-    description:
-      - The source interface from which the the ping is sent. If not
-        specified, the default Junos algorithm for determining the source
-        interface is used.
-    required: false
-    default: none
+      - Type of operation to execute, currently only support get and put
+    required: True
     type: str
-  rapid:
-    description:
-      - Send ping requests rapidly
-    required: false
-    default: true
-    type: bool
-  routing_instance:
-    description:
-      - Name of the source routing instance from which the ping is
-        originated. If not specified, the default routing instance is used.
-    required: false
-    default: none
-    type: str
-  size:
-    description:
-      - The size of the ICMP payload of the ping.
-      - Total size of the IP packet is I(size) + the 20 byte IP header +
-        the 8 byte ICMP header. Therefore, I(size) of C(1472) generates an IP
-        packet of size 1500.
-    required: false
-    default: none (default size for device)
-    type: int
-  source:
-    description:
-      - The IP address, or hostname if DNS is configured on the Junos device,
-        used as the source address of the ping. If not specified, the Junos
-        default algorithm for determining the source address is used.
-    required: false
-    default: none
-    type: str
-    aliases:
-      - source_ip
-      - source_host
-      - src
-      - src_ip
-      - src_host
-  ttl:
-    description:
-      - Maximum number of IP routers (hops) allowed between source and
-        destination.
-    required: false
-    default: none (default ttl for device)
-    type: int
 '''
 
 EXAMPLES = '''
 ---
-- name: Examples of juniper_junos_ping
-  hosts: junos-all
+- name: Examples of juniper_junos_file
+  hosts: all
   connection: local
   gather_facts: no
   roles:
     - Juniper.junos
 
   tasks:
-    - name: Ping 10.0.0.1 with default parameters. Fails if any packets lost.
-      juniper_junos_ping:
-        dest: "10.0.0.1"
+    - name: Copy a log file on a remote device locally
+      juniper_junos_file:
+        remote_dir: /var/log
+        local_dir: /tmp
+        action: get
+        file: log.txt
 
-    - name: Ping 10.0.0.1. Allow 50% packet loss. Register response.
-      juniper_junos_ping:
-        dest: "10.0.0.1"
-        acceptable_percent_loss: 50
-      register: response
-    - name: Print all keys in the response.
-      debug:
-        var: response
+    - name: Copy a local file into /var/tmp on the remote device
+      juniper_junos_file:
+        remote_dir: /var/tmp
+        local_dir: /tmp
+        action: put
+        file: license.txt
 
-    - name: Ping 10.0.0.1. Send 20 packets. Register response.
-      juniper_junos_ping:
-        dest: "10.0.0.1"
-        count: 20
-      register: response
-    - name: Print packet sent from the response.
-      debug:
-        var: response.packets_sent
-
-    - name: Ping 10.0.0.1. Send 10 packets wihtout rapid. Register response.
-      juniper_junos_ping:
-        dest: "10.0.0.1"
-        count: 10
-        rapid: false
-      register: response
-    - name: Print the average round-trip-time from the response.
-      debug:
-        var: response.rtt_average
-
-    - name: Ping www.juniper.net with ttl 15. Register response.
-      juniper_junos_ping:
-        dest: "www.juniper.net"
-        ttl: 15
-      register: response
-    - name: Print the packet_loss percentage from the response.
-      debug:
-        var: response.packet_loss
-
-    - name: Ping 10.0.0.1 with IP packet size of 1500. Register response.
-      juniper_junos_ping:
-        dest: "10.0.0.1"
-        size: 1472
-      register: response
-    - name: Print the packets_received from the response.
-      debug:
-        var: response.packets_received
-
-    - name: Ping 10.0.0.1 with do-not-fragment bit set. Register response.
-      juniper_junos_ping:
-        dest: "10.0.0.1"
-        do_not_fragment: true
-      register: response
-    - name: Print the maximum round-trip-time from the response.
-      debug:
-        var: response.rtt_maximum
-
-    - name: Ping 10.0.0.1 with source set to 10.0.0.2. Register response.
-      juniper_junos_ping:
-        dest: "10.0.0.1"
-        source: "10.0.0.2"
-      register: response
-    - name: Print the source from the response.
-      debug:
-        var: response.source
-
-    - name: Ping 192.168.1.1 from the red routing-instance.
-      juniper_junos_ping:
-        dest: "192.168.1.1"
-        routing_instance: "red"
-
-    - name: Ping the all-hosts multicast address from the ge-0/0/0.0 interface
-      juniper_junos_ping:
-        dest: "224.0.0.1"
-        interface: "ge-0/0/0.0"
 '''
 
 RETURN = '''
-acceptable_percent_loss:
-  description:
-    - The acceptable packet loss (as a percentage) for this task as specified
-      by the I(acceptable_percent_loss) option.
-  returned: when ping successfully executed, even if the
-            I(acceptable_percent_loss) was exceeded.
-  type: str
+
 changed:
   description:
-    - Indicates if the device's state has changed. Since this module
-      doesn't change the operational or configuration state of the
-      device, the value is always set to C(false).
-  returned: when ping successfully executed, even if the
-            I(acceptable_percent_loss) was exceeded.
+    - Indicates if the device's state has changed.
+  returned: when the file has been successfully copied.
   type: bool
-count:
-  description:
-    - The number of pings sent, as specified by the I(count) option.
-  returned: when ping successfully executed, even if the
-            I(acceptable_percent_loss) was exceeded.
-  type: str
-do_not_fragment:
-  description:
-    - Whether or not the do not fragment bit was set on the pings sent, as
-      specified by the I(do_not_fragment) option.
-  returned: when ping successfully executed, even if the
-            I(acceptable_percent_loss) was exceeded.
-  type: bool
-failed:
-  description:
-    - Indicates if the task failed.
-  returned: always
-  type: bool
-host:
-  description:
-    - The destination IP/host of the pings sent as specified by the I(dest)
-      option.
-    - Keys I(dest) and I(dest_ip) are also returned for backwards
-      compatibility.
-  returned: when ping successfully executed, even if the
-            I(acceptable_percent_loss) was exceeded.
-  type: str
-interface:
-  description:
-    - The source interface of the pings sent as specified by the
-      I(interface) option.
-  returned: when ping successfully executed and the I(interface) option was
-            specified, even if the I(acceptable_percent_loss) was exceeded.
-  type: str
-msg:
-  description:
-    - A human-readable message indicating the result.
-  returned: always
-  type: str
-packet_loss:
-  description:
-    - The percentage of packets lost.
-  returned: when ping successfully executed, even if the
-            I(acceptable_percent_loss) was exceeded.
-  type: str
-packets_sent:
-  description:
-    - The number of packets sent.
-  returned: when ping successfully executed, even if the
-            I(acceptable_percent_loss) was exceeded.
-  type: str
-packets_received:
-  description:
-    - The number of packets received.
-  returned: when ping successfully executed, even if the
-            I(acceptable_percent_loss) was exceeded.
-  type: str
-rapid:
-  description:
-    - Whether or not the pings were sent rapidly, as specified by the
-      I(rapid) option.
-  returned: when ping successfully executed, even if the
-            I(acceptable_percent_loss) was exceeded.
-  type: bool
-routing_instance:
-  description:
-    - The routing-instance from which the pings were sent as specified by
-      the I(routing_instance) option.
-  returned: when ping successfully executed and the I(routing_instance)
-            option was specified, even if the I(acceptable_percent_loss) was
-            exceeded.
-  type: str
-rtt_average:
-  description:
-    - The average round-trip-time, in microseconds, of all ping responses
-      received.
-  returned: when ping successfully executed, and I(packet_loss) < 100%.
-  type: str
-rtt_maximum:
-  description:
-    - The maximum round-trip-time, in microseconds, of all ping responses
-      received.
-  returned: when ping successfully executed, and I(packet_loss) < 100%.
-  type: str
-rtt_minimum:
-  description:
-    - The minimum round-trip-time, in microseconds, of all ping responses
-      received.
-  returned: when ping successfully executed, and I(packet_loss) < 100%.
-  type: str
-rtt_stddev:
-  description:
-    - The standard deviation of round-trip-time, in microseconds, of all ping
-      responses received.
-  returned: when ping successfully executed, and I(packet_loss) < 100%.
-  type: str
-size:
-  description:
-    - The size in bytes of the ICMP payload on the pings sent as specified
-      by the I(size) option.
-    - Total size of the IP packet is I(size) + the 20 byte IP header + the 8
-      byte ICMP header. Therefore, I(size) of 1472 generates an IP packet of
-      size 1500.
-  returned: when ping successfully executed and the I(size) option was
-            specified, even if the I(acceptable_percent_loss) was exceeded.
-  type: str
-source:
-  description:
-    - The source IP/host of the pings sent as specified by the I(source)
-      option.
-    - Key I(source_ip) is also returned for backwards compatibility.
-  returned: when ping successfully executed and the I(source) option was
-            specified, even if the I(acceptable_percent_loss) was exceeded.
-  type: str
-timeout:
-  description:
-    - The number of seconds to wait for a response from the ping RPC.
-  returned: when ping successfully executed, even if the
-            I(acceptable_percent_loss) was exceeded.
-  type: str
-ttl:
-  description:
-    - The time-to-live set on the pings sent as specified by the
-      I(ttl) option.
-  returned: when ping successfully executed and the I(ttl) option was
-            specified, even if the I(acceptable_percent_loss) was exceeded.
-  type: str
-warnings:
-  description:
-    - A list of warning strings, if any, produced from the ping.
-  returned: when warnings are present
-  type: list
+
 '''
 
 
@@ -451,7 +197,7 @@ def local_md5(junos_module, package):
         checksum=_hashfile(open(package, 'rb'), hashlib.md5())
     except Exception as err:
         junos_module.logger.error("unable to get the hash due to:{0}".format(err))
-        if (("No such file" in format(err)) and (junos_module.params['type']=="get")):
+        if (("No such file" in format(err)) and (junos_module.params['action']=="get")):
             checksum="no_file"
         else:
             raise err
@@ -467,7 +213,7 @@ def remote_md5(junos_module, remote_file):
         checksum=rpc_reply.findtext('.//checksum').strip() 
     except Exception as err:
        junos_module.logger.error("unable to get rpc due to:{0}".format(err.message))
-       if (("No such file or directory" in err.message) and (junos_module.params['type']=="put")):
+       if (("No such file or directory" in err.message) and (junos_module.params['action']=="put")):
            checksum="no_file" 
        else:
            raise err
@@ -491,7 +237,7 @@ def main():
         file=dict(type='str',
                   required=True,
                   default=None), 
-        type=dict(type='str',
+        action=dict(type='str',
                   choices=['put', 'get'], 
                   required=True,
                   default=None)
@@ -515,7 +261,7 @@ def main():
     
     local_file=params['local_dir']+"/"+params['file']
     remote_file=params['remote_dir']+"/"+params['file']
-    if (params['type'] == "put"):
+    if (params['action'] == "put"):
         junos_module.logger.info('computing local MD5 checksum on: %s' % local_file)
         local_checksum = local_md5(junos_module, local_file)
         junos_module.logger.info('Local checksum: %s' % local_checksum) 
@@ -547,7 +293,7 @@ def main():
             status="File already present, skipping the scp" 
             junos_module.logger.info(status)
 
-    if (params['type'] == "get"): 
+    elif (params['action'] == "get"): 
         junos_module.logger.info('computing remote MD5 checksum on: %s' % remote_file)
         remote_checksum = remote_md5(junos_module, remote_file)
         junos_module.logger.info('Remote checksum: %s' % remote_checksum)
