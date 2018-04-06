@@ -216,7 +216,7 @@ def add_fragments(doc, filename):
         if 'options' not in fragment and 'logging_options' not in fragment and 'connection_options' not in fragment:
             raise Exception("missing options in fragment (%s), possibly misformatted?: %s" % (fragment_name, filename))
 
-        for key, value in iteritems(fragment.items()):
+        for key, value in iteritems(fragment):
             if key in doc:
                 # assumes both structures have same type
                 if isinstance(doc[key], MutableMapping):

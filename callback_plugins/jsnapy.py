@@ -53,7 +53,7 @@ class CallbackModule(CallbackBase):
 
       ## Check if dict entry already exist for this host
       host = result._host.name
-      if not host in list(self._results.keys()):
+      if not host in self._results.keys():
         self._results[host] = []
 
       self._results[host].append(result)
