@@ -664,7 +664,7 @@ class JuniperJunosModule(AnsibleModule):
             self.params.pop(arg_name)
         # Promote any provider arg_name into params
         if 'provider' in self.params and self.params['provider'] is not None:
-            for arg_name, arg_value in iteritems(self.params['provider']):
+            for arg_name, arg_value in self.params['provider'].items():
                 if arg_name in self.aliases:
                     arg_name = self.aliases[arg_name]
                 self.params[arg_name] = arg_value
