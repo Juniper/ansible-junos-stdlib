@@ -443,6 +443,9 @@ connection_spec = {
                                  # Default behavior coded in
                                  # JuniperJunosActionModule.run()
                                  default=None),
+    'ssh_config': dict(type='path',
+                                 required=False,
+                                 default=None),
     'mode': dict(choices=[None, 'telnet', 'serial'],
                  default=None),
     'console': dict(type='str',
