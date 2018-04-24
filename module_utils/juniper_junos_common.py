@@ -381,6 +381,20 @@ class ModuleDocFragment(object):
         type: path
         aliases:
           - log_file
+      level:
+        description:
+          - The level of information to be logged can be modified using this option
+          - 1) By default, messages at level C(WARNING) or higher are logged.
+          - 2) If the C(-v) or C(--verbose) command-line options to the
+               C(ansible-playbook) command are specified, messages at level
+               C(INFO) or higher are logged.
+          - 3) If the C(-vv) (or more verbose) command-line option to the
+               C(ansible-playbook) command is specified, or the C(ANSIBLE_DEBUG)
+               environment variable is set, then messages at level C(DEBUG) or
+               higher are logged.
+          - 4) If I(level) is mentioned then messages at level I(level) or more are
+               logged.
+
 '''
 
     # _SUB_CONNECT_DOCUMENTATION is just _CONNECT_DOCUMENTATION with each
@@ -497,11 +511,14 @@ for key in connection_spec:
 # Specify the logging spec.
 logging_spec = {
     'logfile': dict(type='path', required=False, default=None),
-    'logdir': dict(type='path', required=False, default=None)
+    'logdir': dict(type='path', required=False, default=None),
+    'level': dict(choices=[None, 'INFO', 'DEBUG'], required=False, default=None)
 }
 
 # The logdir and logfile options are mutually exclusive.
 logging_spec_mutually_exclusive = ['logfile', 'logdir']
+
+
 
 # Other logging names which should be logged to the logfile
 additional_logger_names = ['ncclient', 'paramiko']
@@ -652,7 +669,7 @@ class JuniperJunosModule(AnsibleModule):
         # Update argument_spec with the top_spec
         argument_spec.update(top_spec)
         # Extend mutually_exclusive with connection_mutually_exclusive
-        mutually_exclusive += top_spec_mutually_exclusive
+        mutually_exclusive = top_spec_mutually_exclusive
         # Call parent's __init__()
         super(JuniperJunosModule, self).__init__(
             argument_spec=argument_spec,
@@ -874,6 +891,9 @@ class JuniperJunosModule(AnsibleModule):
             level = logging.INFO
         elif self._verbosity > 1:
             level = logging.DEBUG
+        # Set level as mentioned in task
+        elif self.params.get('level') is not None:
+            level = self.params.get('level')
         # Get the logger object to be used for our logging.
         logger = logging.getLogger('jnpr.ansible_module.' + self.module_name)
         # Attach the NullHandler to avoid any errors if no logging is needed.
