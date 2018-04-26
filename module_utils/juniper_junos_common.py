@@ -501,7 +501,7 @@ logging_spec = {
 }
 
 # The logdir and logfile options are mutually exclusive.
-logging_spec_mutually_exclusive = ['logfile', 'logdir']
+logging_spec_mutually_exclusive = [['logfile', 'logdir']]
 
 # Other logging names which should be logged to the logfile
 additional_logger_names = ['ncclient', 'paramiko']
@@ -653,6 +653,8 @@ class JuniperJunosModule(AnsibleModule):
         argument_spec.update(top_spec)
         # Extend mutually_exclusive with connection_mutually_exclusive
         mutually_exclusive += top_spec_mutually_exclusive
+        from ansible.errors import AnsibleError
+        #raise AnsibleError(mutually_exclusive)
         # Call parent's __init__()
         super(JuniperJunosModule, self).__init__(
             argument_spec=argument_spec,
