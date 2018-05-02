@@ -181,8 +181,7 @@ def import_juniper_junos_common():
         # Ansible bug is fixed.
         no_log=True,
         check_invalid_arguments=False,
-        bypass_checks=True,
-        supports_check_mode=True
+        bypass_checks=True
     )
     import_path = module.params.get('_module_utils_path')
     if import_path is not None:
