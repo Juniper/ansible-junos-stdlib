@@ -289,6 +289,13 @@ class ModuleDocFragment(object):
         type: path
         aliases:
           - ssh_keyfile
+      ssh_config:
+        description:
+          - The path to the SSH client configuration file. If this option is not
+            specified, then the PyEZ Device instance by default queries file
+            ~/.ssh/config.
+        required: false
+        type: path
       timeout:
         description:
           - The maximum number of seconds to wait for RPC responses from the
@@ -442,6 +449,9 @@ connection_spec = {
                                  # See documentation for real default behavior.
                                  # Default behavior coded in
                                  # JuniperJunosActionModule.run()
+                                 default=None),
+    'ssh_config': dict(type='path',
+                                 required=False,
                                  default=None),
     'mode': dict(choices=[None, 'telnet', 'serial'],
                  default=None),
