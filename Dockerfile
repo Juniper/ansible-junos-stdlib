@@ -21,6 +21,7 @@ ADD version.py /tmp/ansible-junos-stdlib/version.py
 
 
 RUN tar -czf Juniper.junos ansible-junos-stdlib &&\
+    apk add python2-dev &&\
     apk update && apk add ca-certificates &&\
     apk add openssh-client &&\
     apk add build-base gcc g++ make python-dev &&\
