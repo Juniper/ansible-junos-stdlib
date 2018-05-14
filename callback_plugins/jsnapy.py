@@ -31,25 +31,20 @@ class CallbackModule(CallbackBase):
 
   def v2_runner_on_ok(self, result):
     """
-    Collect test results for all tests executed if module is junos_jsnapy
+    Collect test results for all tests executed if action is snapcheck or check
     """
 
     ## Extract module name
-    module_name = ''
     module_args = {}
     if 'invocation' in result._result:
-      if 'module_name' in result._result['invocation']:
-        module_name = result._result['invocation']['module_name']
+      if 'module_args' in result._result['invocation']:
         module_args = result._result['invocation']['module_args']
 
     ## Check if dic return has all valid information
-    if module_name == '' or module_args == {}:
-        return None
-    elif 'action' not in module_args:
+    if 'action' not in module_args:
         return None
 
-    if module_name == 'junos_jsnapy' and \
-    ( module_args['action'] == 'snapcheck' or module_args['action'] == 'check' ):
+    if module_args['action'] == 'snapcheck' or module_args['action'] == 'check':
 
       ## Check if dict entry already exist for this host
       host = result._host.name
