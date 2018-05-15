@@ -211,6 +211,7 @@ Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils import juniper_junos_common
 
+
 def main():
     JSNAPY_ACTION_CHOICES = ['check', 'snapcheck', 'snap_pre', 'snap_post']
 

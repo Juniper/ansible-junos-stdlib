@@ -208,11 +208,11 @@ def get_facts_dict(junos_module):
         del facts['2RE']
     # The value of the 'version_info' key is a custom junos.version_info
     # object. Convert this value to a dict.
-    if 'version_info' in facts:
+    if 'version_info' in facts and facts['version_info'] is not None:
         facts['version_info'] = dict(facts['version_info'])
     # The values of the ['junos_info'][re_name]['object'] keys are
     # custom junos.version_info objects. Convert all of these to dicts.
-    if 'junos_info' in facts:
+    if 'junos_info' in facts and facts['junos_info'] is not None:
         for key in facts['junos_info']:
             facts['junos_info'][key]['object'] = dict(
                 facts['junos_info'][key]['object'])
