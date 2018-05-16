@@ -732,57 +732,16 @@ msg:
 import time
 
 
-def import_juniper_junos_common():
-    """Imports the juniper_junos_common module from _module_utils_path.
+"""From Ansible 2.1, Ansible uses Ansiballz framework for assembling modules
+But custom module_utils directory is supported from Ansible 2.3
+Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project/J8FL7Z1J1Mw """
 
-    Ansible versions < 2.4 do not provide a way to package common code in a
-    role. This function solves that problem for juniper_junos_* modules by
-    reading the module arguments passed on stdin and interpreting the special
-    option _module_utils_path as a path to the the directory where the
-    juniper_junos_common module resides. It temporarily inserts this path at
-    the head of sys.path, imports the juniper_junos_common module, and removes
-    the path from sys.path. It then returns the imported juniper_junos_common
-    module object. All juniper_junos_* modules must include this boilerplate
-    function in order to import the shared juniper_junos_common module.
-
-    Args:
-        None.
-
-    Returns:
-        The juniper_junos_common module object.
-
-    Raises:
-        ImportError: If the juniper_junos_common object can not be imported
-                     from the path specified by the module_utils_path argument.
-    """
-    from ansible.module_utils.basic import AnsibleModule
-    import sys
-
-    juniper_junos_common = None
-    module = AnsibleModule(
-        argument_spec={
-            '_module_utils_path': dict(type='path', default=None),
-            # Avoids a warning about not specifying no_log for passwd.
-            'passwd': dict(no_log=True)
-        },
-        # Doesn't really work due to Ansible bug. Keeping it here for when
-        # Ansible bug is fixed.
-        no_log=True,
-        check_invalid_arguments=False,
-        bypass_checks=True
-    )
-    import_path = module.params.get('_module_utils_path')
-    if import_path is not None:
-        sys.path.insert(0, import_path)
-        import juniper_junos_common
-        del sys.path[0]
-    return juniper_junos_common
+# Ansiballz packages module_utils into ansible.module_utils
+from ansible.module_utils.basic import AnsibleModule
+from ansible.module_utils import juniper_junos_common
 
 
 def main():
-    # Import juniper_junos_common
-    juniper_junos_common = import_juniper_junos_common()
-
     # Choices which are defined in the common module.
     config_format_choices = juniper_junos_common.CONFIG_FORMAT_CHOICES
     config_database_choices = [None] + \
