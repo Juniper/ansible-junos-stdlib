@@ -57,7 +57,7 @@
 
 #################
 
-    - name: "Get Device Configuration in xml"
+    - name: "Get Device Configuration in text"
       juniper_junos_rpc:
         host: "{{ ansible_ssh_host }}"
         port: "{{ ansible_ssh_port }}"
@@ -164,7 +164,6 @@
         port: "{{ ansible_ssh_port }}"
         user: "{{ ansible_ssh_user }}"
         passwd: "{{ ansible_ssh_pass }}"
-        host: "{{ inventory_hostname }}"
         rpc: get-config
         filter_xml: "<configuration><interfaces/></configuration>"
       register: test7
