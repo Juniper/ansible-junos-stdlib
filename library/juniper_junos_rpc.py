@@ -569,7 +569,7 @@ def main():
                 text_output = resp.text
                 junos_module.logger.debug('Text output set.')
             elif format == 'xml':
-                text_output = junos_module.etree.tostring(resp,
+                text_output = junos_module.etree.tostring(resp, encoding="unicode",
                                                           pretty_print=True)
                 parsed_output = junos_module.jxmlease.parse_etree(resp)
                 junos_module.logger.debug('XML output set.')
