@@ -1,0 +1,150 @@
+---
+- name: Test junos_rpc module
+  hosts: VMX
+  connection: local
+  gather_facts: no
+  roles:
+    - Juniper.junos
+
+  tasks:
+##################################################
+####    TEST 1                                  ##
+##################################################
+    - name: "Execute single RPC get-software-information without any kwargs"
+      juniper_junos_rpc:
+        rpcs:
+          - "get-software-information"
+      register: test1
+      ignore_errors: True
+      tags: [ test1 ]
+
+    - name: Check TEST 1
+      assert:
+        that:
+          - test1|succeeded
+      tags: [ test1 ]
+
+##################################################
+####    TEST 2                                  ##
+##################################################
+    - name: "Get Device Configuration with dest"
+      juniper_junos_rpc:
+        host: "{{ inventory_hostname }}"
+        rpc: get-config
+        dest: get_config.conf
+      register: test2
+      ignore_errors: True
+      tags: [ test2 ]
+
+    - name: Check that the get_config.conf exists
+      stat:
+        path: get_config.conf
+      register: stat_result
+
+    - name: Check TEST 2
+      assert:
+        that:
+          - test2|succeeded
+          - stat_result.stat.exists == True
+      tags: [ test2 ]
+
+#################
+
+    - name: "Get Device Configuration in xml"
+      juniper_junos_rpc:
+        host: "{{ inventory_hostname }}"
+        rpc: get-interface-information
+        kwargs: "interface_name=em0"
+        format: text
+      register: test3
+      ignore_errors: True
+      tags: [ test3 ]
+
+    - name: Check TEST 3
+      assert:
+        that:
+          - test3|succeeded
+      tags: [ test3 ]
+
+#################
+
+    - name: "Execute multiple RPCs without any kwargs"
+      juniper_junos_rpc:
+        rpcs:
+          - "get-software-information"
+          - "get-interface-information"
+      register: test4
+      ignore_errors: True
+      tags: [ test4 ]
+
+    - name: Check TEST 4
+      assert:
+        that:
+          - test4|succeeded
+      tags: [ test4 ]
+
+#################
+
+    - name: "Execute multiple RPCs with multiple kwargs"
+      juniper_junos_rpc:
+        rpcs:
+          - "get-software-information"
+          - "get-interface-information"
+        kwargs:
+          - {}
+          - "interface_name=em0"
+      register: test5
+      ignore_errors: True
+      tags: [ test5 ]
+
+    - name: Check TEST 5
+      assert:
+        that:
+          - test5|succeeded
+      tags: [ test5 ]
+
+#################
+
+    - name: "Execute multiple RPCs with multiple kwargs and dest-dir"
+      juniper_junos_rpc:
+        rpcs:
+          - "get-software-information"
+          - "get-interface-information"
+        kwargs:
+          - {}
+          - "interface_name=em0"
+        dest_dir: "out"
+      register: test6
+      ignore_errors: True
+      tags: [ test6 ]
+
+    - name: Check that the get_config.conf exists
+      stat:
+        path: out
+      register: stat_result_1
+
+    - name: Check TEST 6
+      assert:
+        that:
+          - test6|succeeded
+          - stat_result_1.stat.exists == True
+      tags: [ test6 ]
+
+#################
+
+    - name: Get Device Configuration for interface
+      juniper_junos_rpc:
+        host: "{{ inventory_hostname }}"
+        rpc: get-config
+        filter_xml: "<configuration><interfaces/></configuration>"
+      register: test7
+      ignore_errors: True
+      tags: [ test7 ]
+
+    - name: Check TEST 7
+      assert:
+        that:
+          - test7|succeeded
+      tags: [ test7 ]
+
+#################

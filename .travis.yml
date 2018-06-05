@@ -28,3 +28,4 @@ script:
   - docker run -t -i -v $(pwd):/project juniper/pyez-ansible:travis ansible-playbook -i ravello.ini pb.junos_ping.yaml
   - docker run -t -i -v $(pwd):/project juniper/pyez-ansible:travis ansible-playbook -i ravello.ini pb.junos_pmtud.yaml
   - docker run -t -i -v $(pwd):/project juniper/pyez-ansible:travis ansible-playbook -i ravello.ini pb.junos_jsnapy.yaml
+  - docker run -t -i -v $(pwd):/project juniper/pyez-ansible:travis ansible-playbook -i ravello.ini pb.junos_rpc.yaml
