@@ -122,6 +122,10 @@
       tags: [ test5 ]
 
 #################
+    - name: Creates directory
+      file:
+        path: out
+        state: directory
 
     - name: "Execute multiple RPCs with multiple kwargs and dest-dir"
       juniper_junos_rpc:
