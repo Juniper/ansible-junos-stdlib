@@ -510,9 +510,10 @@ connection_spec_mutually_exclusive = [['mode', 'console'],
 # Keys are connection options. Values are a list of task_vars to use as the
 # default value.
 connection_spec_fallbacks = {
-    'host': ['inventory_hostname'],
+    'host': ['inventory_hostname', 'ansible_host'],
     'user': ['ansible_connection_user', 'ansible_ssh_user', 'ansible_user'],
     'passwd': ['ansible_ssh_pass', 'ansible_pass'],
+    'port': ['ansible_ssh_port', 'ansible_port'],
     'ssh_private_key_file': ['ansible_ssh_private_key_file',
                              'ansible_private_key_file']
 }
