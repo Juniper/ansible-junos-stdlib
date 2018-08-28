@@ -136,21 +136,21 @@ EXAMPLES = '''
     - Juniper.junos
 
   tasks:
-    - name: Perform PMTUD to 10.0.0.1 with default parameters.
+    - name: Perform PMTUD to 192.68.1.1 with default parameters.
       juniper_junos_pmtud:
-        dest: "10.0.0.1"
+        dest: "192.68.1.1"
 
-    - name: Perform PMTUD to 10.0.0.1. Register response.
+    - name: Perform PMTUD to 192.68.1.1. Register response.
       juniper_junos_pmtud:
-        dest: "10.0.0.1"
+        dest: "192.68.1.1"
       register: response
     - name: Print the discovered MTU.
       debug:
         var: response.inet_mtu
 
-    - name: Perform PMTUD to 10.0.0.1. Search all possible MTU values.
+    - name: Perform PMTUD to 192.68.1.1. Search all possible MTU values.
       juniper_junos_pmtud:
-        dest: "10.0.0.1"
+        dest: "192.68.1.1"
         max_size: 65496
         max_range: 65536
       register: response
@@ -158,27 +158,27 @@ EXAMPLES = '''
       debug:
         var: response.inet_mtu
 
-    - name: Perform PMTUD to 10.0.0.1. Source from ge-0/0/0.0 interface.
+    - name: Perform PMTUD to 192.68.1.1. Source from ge-0/0/0.0 interface.
       juniper_junos_pmtud:
-        dest: "10.0.0.1"
+        dest: "192.68.1.1"
         interface: "ge-0/0/0.0"
       register: response
     - name: Print the discovered MTU.
       debug:
         var: response.inet_mtu
 
-    - name: Perform PMTUD to 10.0.0.1. Source from 192.168.1.1.
+    - name: Perform PMTUD to 192.68.1.1. Source from 192.168.1.2.
       juniper_junos_pmtud:
-        dest: "10.0.0.1"
-        source: "192.168.1.1"
+        dest: "192.68.1.1"
+        source: "192.168.1.2"
       register: response
     - name: Print the discovered MTU.
       debug:
         var: response.inet_mtu
 
-    - name: Perform PMTUD to 10.0.0.1. Source from the red routing-instance.
+    - name: Perform PMTUD to 192.68.1.1. Source from the red routing-instance.
       juniper_junos_pmtud:
-        dest: "10.0.0.1"
+        dest: "192.68.1.1"
         routing_instance: "red"
       register: response
     - name: Print the discovered MTU.
