@@ -140,12 +140,12 @@ EXAMPLES = '''
       debug:
         var: response
 
-    - name: Retrieve routes within 10.0.0/8
+    - name: Retrieve routes within 192.68.1/8
       juniper_junos_table:
         file: "routes.yml"
         table: "RouteTable"
         kwargs:
-          destination: "10.0.0.0/8"
+          destination: "192.68.1.0/8"
         response_type: "juniper_items"
       register: response
     - name: Print response
