@@ -386,6 +386,14 @@ def main():
                 # produces <output> messages and <request-reboot-status>
                 # messages.
                 xpath_list.append('..//output')
+            elif (junos_module.sw._multi_RE is True and
+                       junos_module.sw._multi_VC is True):
+                        junos_module.etree.SubElement(rpc,
+                                                      'all-members')
+                        # At least on some platforms stopping/rebooting both
+                        # REs produces <output> messages and
+                        # <request-reboot-status> messages.
+                        xpath_list.append('..//output')
             elif junos_module.sw._mixed_VC is True:
                 junos_module.etree.SubElement(rpc, 'all-members')
 
