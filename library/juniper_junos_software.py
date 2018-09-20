@@ -680,7 +680,10 @@ def main():
                                               "to 5 seconds.")
                     junos_module.dev.timeout = 5
                 junos_module.logger.debug('Initiating reboot.')
-                rpc = junos_module.etree.Element('request-reboot')
+                if junos_module.dev.facts['_is_linux']:
+                    rpc = junos_module.etree.Element('request-shutdown-reboot')
+                else:
+                    rpc = junos_module.etree.Element('request-reboot')
                 xpath_list = ['.//request-reboot-status']
                 if all_re is True:
                     if (junos_module.sw._multi_RE is True and
@@ -699,7 +702,10 @@ def main():
                 junos_module.logger.debug("Reboot RPC executed cleanly.")
                 if len(xpath_list) > 0:
                     for xpath in xpath_list:
-                        got = resp.findtext(xpath)
+                        if junos_module.dev.facts['_is_linux']:
+                            got = resp.text
+                        else:
+                            got = resp.findtext(xpath)
                         if got is not None:
                             results['msg'] += ' Reboot successfully initiated.'
                             break
