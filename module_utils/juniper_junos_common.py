@@ -122,7 +122,7 @@ except NameError:
 
 # Constants
 # Minimum PyEZ version required by shared code.
-MIN_PYEZ_VERSION = "2.1.7"
+MIN_PYEZ_VERSION = "2.2.0"
 # Installation URL for PyEZ.
 PYEZ_INSTALLATION_URL = "https://github.com/Juniper/py-junos-eznc#installation"
 # Minimum lxml version required by shared code.
@@ -466,6 +466,15 @@ connection_spec = {
                    aliases=['password'],
                    # See documentation for real default behavior.
                    # Default behavior coded in JuniperJunosActionModule.run()
+                   default=None,
+                   no_log=True),
+    'cs_user': dict(type='str',
+                 aliases=['console_username'],
+                 required=False,
+                 default=None),
+    'cs_passwd': dict(type='str',
+                   aliases=['console_password'],
+                   required=False,
                    default=None,
                    no_log=True),
     'ssh_private_key_file': dict(type='path',
@@ -1297,6 +1306,9 @@ class JuniperJunosModule(AnsibleModule):
             self.close()
             log_connect_args = dict(connect_args)
             log_connect_args['passwd'] = 'NOT_LOGGING_PARAMETER'
+            if 'cs_passwd' in log_connect_args: 
+                log_connect_args['cs_passwd'] = 'NOT_LOGGING_PARAMETER'
+                
             self.logger.debug("Creating device parameters: %s",
                               log_connect_args)
             timeout = connect_args.pop('timeout')
