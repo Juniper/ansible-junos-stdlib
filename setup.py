@@ -3,14 +3,14 @@ from setuptools import setup
 from version import VERSION
 
 setup(
-    name="ansible-junos-stdlib",
+    name="Juniper.junos",
     version=VERSION,
     author="Jeremy Schulman, Nitin Kumar, Rick Sherman, Stacy Smith",
     author_email="jnpr-community-netdev@juniper.net",
     description=("Ansible Network build automation of Junos devices."),
     license="Apache 2.0",
     keywords="Ansible Junos NETCONF networking automation",
-    url="http://www.github.com/Juniper/ansible-junos-stdlib",
+    url="http://www.github.com/Juniper/Juniper.junos",
     packages=['library'],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
