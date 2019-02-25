@@ -1,7 +1,7 @@
 FROM juniper/pyez:latest
 MAINTAINER Stephen Steiner <ssteiner@juniper.net>
 
-ARG ver_ansible=2.4.0.0
+ARG ver_ansible=2.7.0.0
 ARG ver_jsnapy=1.2.1
 
 WORKDIR /tmp
