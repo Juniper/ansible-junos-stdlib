@@ -325,6 +325,24 @@ class ModuleDocFragment(object):
         type: str
         aliases:
           - username
+    cs_user:
+        description:
+          - The username used to authenticate with the console server over SSH. 
+            This option is only required if you want to connect to a device over console
+             using SSH as transport. Mutually exclusive with the I(console) option.
+        required: false
+        type: str
+        aliases:
+          - console_username
+    cs_passwd:
+        description:
+          - The password used to authenticate with the console server over SSH. 
+            This option is only required if you want to connect to a device over console
+             using SSH as transport. Mutually exclusive with the I(console) option.
+        required: false
+        type: str
+        aliases:
+          - console_password
 '''
 
     LOGGING_DOCUMENTATION = '''
@@ -515,7 +533,9 @@ connection_spec = {
 connection_spec_mutually_exclusive = [['mode', 'console'],
                                       ['port', 'console'],
                                       ['baud', 'console'],
-                                      ['attempts','console']]
+                                      ['attempts','console']
+                                      ['cs_user', 'console'],
+                                      ['cs_passwd', 'console']]
 # Keys are connection options. Values are a list of task_vars to use as the
 # default value.
 connection_spec_fallbacks = {
