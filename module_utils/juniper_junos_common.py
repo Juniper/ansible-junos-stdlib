@@ -533,7 +533,7 @@ connection_spec = {
 connection_spec_mutually_exclusive = [['mode', 'console'],
                                       ['port', 'console'],
                                       ['baud', 'console'],
-                                      ['attempts','console']
+                                      ['attempts','console'],
                                       ['cs_user', 'console'],
                                       ['cs_passwd', 'console']]
 # Keys are connection options. Values are a list of task_vars to use as the
