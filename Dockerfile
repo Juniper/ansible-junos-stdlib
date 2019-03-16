@@ -10,7 +10,7 @@ LABEL net.juniper.jsnapy.version=$ver_jsnapy
 LABEL net.juniper.ansible.module.version=$ver_ansible-stdlib
 
 RUN apk add --no-cache ca-certificates openssh-client build-base gcc g++ make python-dev py-pip &&\
-    pip install --upgrade pip setuptools jxmlease ansible==$ver_ansible jsnapy==$ver_jsnapy &&\
+    pip install jxmlease ansible==$ver_ansible jsnapy==$ver_jsnapy &&\
     apk del -r --purge gcc make g++ &&\
     rm -rf /source/* &&\
     rm -rf /var/cache/apk/* &&\
