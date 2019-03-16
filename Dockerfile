@@ -1,38 +1,28 @@
 FROM juniper/pyez:latest
-MAINTAINER Stephen Steiner <ssteiner@juniper.net>
 
-ARG ver_ansible=2.4.0.0
-ARG ver_jsnapy=1.2.1
+ARG ver_ansible=2.7.9
+ARG ver_jsnapy=1.3.2
+ARG ver_ansible-stdlib=2.1.0
 
-WORKDIR /tmp
-RUN mkdir /tmp/ansible-junos-stdlib &&\
-    mkdir /tmp/ansible-junos-stdlib/library &&\
-    mkdir /tmp/ansible-junos-stdlib/meta &&\
-    mkdir /project
+LABEL net.juniper.image.maintainer="Stephen Steiner <ssteiner@juniper.net>"
+LABEL net.juniper.ansible.version=$ver_ansible
+LABEL net.juniper.jsnapy.version=$ver_jsnapy
+LABEL net.juniper.ansible.module.version=$ver_ansible-stdlib
 
-ADD action_plugins /tmp/ansible-junos-stdlib/action_plugins
-ADD callback_plugins /tmp/ansible-junos-stdlib/callback_plugins
-ADD library /tmp/ansible-junos-stdlib/library
-ADD LICENSE /tmp/ansible-junos-stdlib/LICENSE
-ADD meta /tmp/ansible-junos-stdlib/meta
-ADD module_utils /tmp/ansible-junos-stdlib/module_utils
-ADD version.py /tmp/ansible-junos-stdlib/version.py
-
-
-
-RUN tar -czf Juniper.junos ansible-junos-stdlib &&\
-    apk update && apk add ca-certificates &&\
-    apk add openssh-client &&\
-    apk add build-base gcc g++ make python-dev &&\
-    apk update && apk add py-pip &&\
-    pip install --upgrade pip setuptools &&\
-    pip install jxmlease &&\
-    pip install ansible==$ver_ansible &&\
-    pip install jsnapy==$ver_jsnapy &&\
-    ansible-galaxy install --roles-path=/etc/ansible/roles Juniper.junos &&\
+RUN apk add --no-cache ca-certificates openssh-client build-base gcc g++ make python-dev py-pip &&\
+    pip install --upgrade pip setuptools jxmlease ansible==$ver_ansible jsnapy==$ver_jsnapy &&\
     apk del -r --purge gcc make g++ &&\
     rm -rf /source/* &&\
     rm -rf /var/cache/apk/* &&\
     rm -rf /tmp/*
 
-WORKDIR /project
+WORKDIR /root/.ansible/roles/Juniper.junos
+COPY action_plugins action_plugins
+COPY callback_plugins callback_plugins
+COPY library library
+COPY meta meta
+COPY module_utils module_utils
+
+WORKDIR /playbooks
+
+VOLUME /playbooks
