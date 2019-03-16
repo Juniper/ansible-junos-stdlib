@@ -5,3 +5,4 @@ test/
 tools/
 COPYRIGHT
 env-setup
+.vscode
