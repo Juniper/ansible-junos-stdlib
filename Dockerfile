@@ -4,16 +4,17 @@ LABEL net.juniper.image.maintainer="Stephen Steiner <ssteiner@juniper.net>"
 
 WORKDIR /tmp
 
-RUN apk add --no-cache ca-certificates openssh-client build-base gcc g++ make python-dev py-pip &&\
-    apk del -r --purge gcc make g++ &&\
-    rm -rf /source/* &&\
-    rm -rf /var/cache/apk/* &&\
-    rm -rf /tmp/*
+RUN apk add --no-cache ca-certificates openssh-client build-base gcc g++ make python-dev py-pip
 
 COPY requirements.txt .
 RUN pip install -r requirements.txt
 
-WORKDIR /root/.ansible/roles/Juniper.junos
+RUN apk del -r --purge gcc make g++ &&\
+    rm -rf /source/* &&\
+    rm -rf /var/cache/apk/* &&\
+    rm -rf /tmp/*
+
+WORKDIR /etc/ansible/roles/Juniper.junos
 COPY action_plugins action_plugins
 COPY callback_plugins callback_plugins
 COPY library library
