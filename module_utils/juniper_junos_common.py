@@ -412,7 +412,6 @@ class ModuleDocFragment(object):
           - INFO
           - DEBUG
                
-
 '''
 
     # _SUB_CONNECT_DOCUMENTATION is just _CONNECT_DOCUMENTATION with each
@@ -1019,7 +1018,7 @@ class JuniperJunosModule(AnsibleModule):
             - PyEZ not installed (unable to import).
             - PyEZ version < minimum.
             - check_device and PyEZ Device object can't be imported
-            - check_exception and PyEZ excepetions can't be imported
+            - check_exception and PyEZ exceptions can't be imported
         """
         self._check_library('junos-eznc', HAS_PYEZ_VERSION,
                             PYEZ_INSTALLATION_URL, minimum=minimum,
@@ -1404,7 +1403,7 @@ class JuniperJunosModule(AnsibleModule):
                           options={}, filter=None):
         """Return the device configuration in the specified format.
 
-        Return the datbase device configuration datbase in the format format.
+        Return the database device configuration database in the format format.
         Pass the options specified in the options dict and the filter specified
         in the filter argument.
 
