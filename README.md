@@ -82,6 +82,28 @@ callback_whitelist = jsnapy
 ## INSTALLATION
 You must have the [DEPENDENCIES](#dependencies) installed on your system.  
 
+If you're dealing with Ubuntu 14.04 and faced following error during the installation, it's because the system python which used by Ubuntu 14.04 is locked to 2.7.6 till EOL, as a result, please consider to skip galaxy certification process by appending `-c` option of ansible-galaxy. i.e. `ansible-galaxy install Juniper.junos -c`
+
+```
+[WARNING]: - Juniper.junos was NOT installed successfully: Failed to get data
+from the API server (https://galaxy.ansible.com/api/): Failed to validate the
+SSL certificate for galaxy.ansible.com:443. Make sure your managed systems have
+a valid CA certificate installed. If the website serving the url uses SNI you
+need python >= 2.7.9 on your managed machine  (the python executable used
+(/usr/bin/python) is version: 2.7.6 (default, Nov 23 2017, 15:49:48) [GCC
+4.8.4]) or you can install the `urllib3`, `pyOpenSSL`, `ndg-httpsclient`, and
+`pyasn1` python modules to perform SNI verification in python >= 2.6. You can
+use validate_certs=False if you do not need to confirm the servers identity but
+this is unsafe and not recommended. Paths checked for this platform:
+/etc/ssl/certs, /etc/pki/ca-trust/extracted/pem, /etc/pki/tls/certs, /usr/share
+/ca-certificates/cacert.org, /etc/ansible. The exception msg was: hostname
+u'galaxy.ansible.com' doesn't match either of
+'*.c1e4.galaxy.openshiftapps.com', 'c1e4.galaxy.openshiftapps.com'.
+
+ERROR! - you can use --ignore-errors to skip failed roles and finish processing the list.
+```
+
+
 ### Ansible Galaxy Role
 To download the latest released version of the junos role to the Ansible
 server, execute the ansible-galaxy install command, and specify **Juniper.junos**.

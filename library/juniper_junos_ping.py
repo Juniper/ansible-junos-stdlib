@@ -150,31 +150,31 @@ EXAMPLES = '''
     - Juniper.junos
 
   tasks:
-    - name: Ping 10.0.0.1 with default parameters. Fails if any packets lost.
+    - name: Ping 192.68.1.1 with default parameters. Fails if any packets lost.
       juniper_junos_ping:
-        dest: "10.0.0.1"
+        dest: "192.68.1.1"
 
-    - name: Ping 10.0.0.1. Allow 50% packet loss. Register response.
+    - name: Ping 192.68.1.1 Allow 50% packet loss. Register response.
       juniper_junos_ping:
-        dest: "10.0.0.1"
+        dest: "192.68.1.1"
         acceptable_percent_loss: 50
       register: response
     - name: Print all keys in the response.
       debug:
         var: response
 
-    - name: Ping 10.0.0.1. Send 20 packets. Register response.
+    - name: Ping 192.68.1.1. Send 20 packets. Register response.
       juniper_junos_ping:
-        dest: "10.0.0.1"
+        dest: "192.68.1.1"
         count: 20
       register: response
     - name: Print packet sent from the response.
       debug:
         var: response.packets_sent
 
-    - name: Ping 10.0.0.1. Send 10 packets wihtout rapid. Register response.
+    - name: Ping 192.68.1.1. Send 10 packets wihtout rapid. Register response.
       juniper_junos_ping:
-        dest: "10.0.0.1"
+        dest: "192.68.1.1"
         count: 10
         rapid: false
       register: response
@@ -191,28 +191,28 @@ EXAMPLES = '''
       debug:
         var: response.packet_loss
 
-    - name: Ping 10.0.0.1 with IP packet size of 1500. Register response.
+    - name: Ping 192.68.1.1 with IP packet size of 1500. Register response.
       juniper_junos_ping:
-        dest: "10.0.0.1"
+        dest: "192.68.1.1"
         size: 1472
       register: response
     - name: Print the packets_received from the response.
       debug:
         var: response.packets_received
 
-    - name: Ping 10.0.0.1 with do-not-fragment bit set. Register response.
+    - name: Ping 192.68.1.1 with do-not-fragment bit set. Register response.
       juniper_junos_ping:
-        dest: "10.0.0.1"
+        dest: "192.68.1.1"
         do_not_fragment: true
       register: response
     - name: Print the maximum round-trip-time from the response.
       debug:
         var: response.rtt_maximum
 
-    - name: Ping 10.0.0.1 with source set to 10.0.0.2. Register response.
+    - name: Ping 192.68.1.1 with source set to 192.68.1.2. Register response.
       juniper_junos_ping:
-        dest: "10.0.0.1"
-        source: "10.0.0.2"
+        dest: "192.68.1.1"
+        source: "192.68.1.2"
       register: response
     - name: Print the source from the response.
       debug:

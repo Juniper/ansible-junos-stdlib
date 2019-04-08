@@ -343,13 +343,22 @@ def main():
     rpc = None
     xpath_list = []
     if action == 'reboot':
-        rpc = junos_module.etree.Element('request-reboot')
+        if junos_module.dev.facts['_is_linux']:
+            rpc = junos_module.etree.Element('request-shutdown-reboot')
+        else:
+            rpc = junos_module.etree.Element('request-reboot')
         xpath_list.append('.//request-reboot-status')
     elif action == 'shutdown':
-        rpc = junos_module.etree.Element('request-power-off')
+        if junos_module.dev.facts['_is_linux']:
+            rpc = junos_module.etree.Element('request-shutdown-power-off')
+        else:
+            rpc = junos_module.etree.Element('request-power-off')
         xpath_list.append('.//request-reboot-status')
     elif action == 'halt':
-        rpc = junos_module.etree.Element('request-halt')
+        if junos_module.dev.facts['_is_linux']:
+            rpc = junos_module.etree.Element('request-shutdown-halt')
+        else:
+            rpc = junos_module.etree.Element('request-halt')
         xpath_list.append('.//request-reboot-status')
     elif action == 'zeroize':
         rpc = junos_module.etree.Element('request-system-zeroize')
@@ -420,7 +429,10 @@ def main():
             junos_module.logger.debug("RPC executed cleanly.")
             if len(xpath_list) > 0:
                 for xpath in xpath_list:
-                    got = resp.findtext(xpath)
+                    if junos_module.dev.facts['_is_linux']:
+                        got = resp.text
+                    else:
+                        got = resp.findtext(xpath)
                     if got is not None:
                         results['msg'] = '%s successfully initiated.' % \
                                          (action)
