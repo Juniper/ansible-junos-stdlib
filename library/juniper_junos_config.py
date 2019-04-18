@@ -1054,12 +1054,12 @@ def main():
     junos_module.logger.debug("Step 4 - Determine differences between the "
                               "candidate and committed configuration "
                               "databases.")
-    if diff is True:
+    if diff is True or junos_module._diff:
         diff = junos_module.diff_configuration()
         if diff is not None:
             results['changed'] = True
-            if return_output is True:
-                results['diff'] = diff
+            if return_output is True or junos_module._diff:
+                results['diff'] = {'prepared': diff}
                 results['diff_lines'] = diff.splitlines()
             # Save the diff output
             junos_module.save_text_output('diff', 'diff', diff)
