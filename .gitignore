@@ -53,3 +53,6 @@ desktop.ini
 
 # PyCharm
 .idea
+
+# VC Code
+.vscode

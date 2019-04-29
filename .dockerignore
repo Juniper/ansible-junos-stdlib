@@ -1,0 +1,8 @@
+.travis.yml
+ISSUE_TEMPLATE.md
+docs/
+test/
+tools/
+COPYRIGHT
+env-setup
+.vscode
