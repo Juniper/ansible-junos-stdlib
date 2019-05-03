@@ -412,6 +412,7 @@ class ModuleDocFragment(object):
           - INFO
           - DEBUG
                
+
 '''
 
     # _SUB_CONNECT_DOCUMENTATION is just _CONNECT_DOCUMENTATION with each
@@ -573,6 +574,8 @@ CONFIG_ACTION_CHOICES = ['set', 'merge', 'update',
                          'replace', 'override', 'overwrite']
 # Supported configuration modes
 CONFIG_MODE_CHOICES = ['exclusive', 'private']
+# Supported configuration models
+CONFIG_MODEL_CHOICES = ['openconfig', 'custom', 'ietf', 'True']
 
 
 def convert_to_bool_func(arg):
@@ -1400,7 +1403,8 @@ class JuniperJunosModule(AnsibleModule):
                                    (str(ex)))
 
     def get_configuration(self, database='committed', format='text',
-                          options={}, filter=None):
+                          options={}, filter=None, model=None,
+                          namespace=None, remove_ns=True):
         """Return the device configuration in the specified format.
 
         Return the database device configuration database in the format format.
@@ -1437,6 +1441,11 @@ class JuniperJunosModule(AnsibleModule):
                                'of recognized configuration formats: %s.' %
                                (format, str(CONFIG_FORMAT_CHOICES)))
 
+        if model not in CONFIG_MODEL_CHOICES:
+            self.fail_json(msg='The configuration format % is not in the list '
+                               'of recognized configuration formats: %s.' %
+                               (model, str(CONFIG_MODEL_CHOICES)))
+
         options.update({'database': database,
                         'format': format})
 
@@ -1448,7 +1457,10 @@ class JuniperJunosModule(AnsibleModule):
         config = None
         try:
             config = self.dev.rpc.get_config(options=options,
-                                             filter_xml=filter)
+                                             filter_xml=filter,
+                                             model=model,
+                                             remove_ns=remove_ns,
+                                             namespace=namespace)
             self.logger.debug("Configuration retrieved.")
         except (self.pyez_exception.RpcError,
                 self.pyez_exception.ConnectError) as ex:
@@ -1460,7 +1472,7 @@ class JuniperJunosModule(AnsibleModule):
             if not isinstance(config, self.etree._Element):
                 self.fail_json(msg='Unexpected configuration type returned. '
                                    'Configuration is: %s' % (str(config)))
-            if config.tag != 'configuration-text':
+            if model is None and config.tag != 'configuration-text':
                 self.fail_json(msg='Unexpected XML tag returned. '
                                    'Configuration is: %s' %
                                    (etree.tostring(config, pretty_print=True)))
@@ -1469,7 +1481,7 @@ class JuniperJunosModule(AnsibleModule):
             if not isinstance(config, self.etree._Element):
                 self.fail_json(msg='Unexpected configuration type returned. '
                                    'Configuration is: %s' % (str(config)))
-            if config.tag != 'configuration-set':
+            if model is None and config.tag != 'configuration-set':
                 self.fail_json(msg='Unexpected XML tag returned. '
                                    'Configuration is: %s' %
                                    (etree.tostring(config, pretty_print=True)))
@@ -1478,7 +1490,7 @@ class JuniperJunosModule(AnsibleModule):
             if not isinstance(config, self.etree._Element):
                 self.fail_json(msg='Unexpected configuration type returned. '
                                    'Configuration is: %s' % (str(config)))
-            if config.tag != 'configuration':
+            if model is None and config.tag != 'configuration':
                 self.fail_json(msg='Unexpected XML tag returned. '
                                    'Configuration is: %s' %
                                    (etree.tostring(config, pretty_print=True)))

@@ -748,6 +748,7 @@ def main():
         juniper_junos_common.CONFIG_DATABASE_CHOICES
     config_action_choices = [None] + juniper_junos_common.CONFIG_ACTION_CHOICES
     config_mode_choices = juniper_junos_common.CONFIG_MODE_CHOICES
+    config_model_choices = juniper_junos_common.CONFIG_MODEL_CHOICES
 
     # Create the module instance.
     junos_module = juniper_junos_common.JuniperJunosModule(
@@ -790,6 +791,16 @@ def main():
                         type='str',
                         required=False,
                         default=None),
+            model=dict(required=False,
+                       choices=config_model_choices,
+                        type='str',
+                        default=None),
+            remove_ns=dict(required=False,
+                            type='bool',
+                            default=None),
+            namespace=dict(required=False,
+                            type='str',
+                            default=None),
             check=dict(required=False,
                        type='bool',
                        aliases=['check_commit', 'commit_check'],
@@ -885,6 +896,10 @@ def main():
     confirmed = junos_module.params.get('confirmed')
     comment = junos_module.params.get('comment')
     check_commit_wait = junos_module.params.get('check_commit_wait')
+    model = junos_module.params.get('model')
+    remove_ns = junos_module.params.get('remove_ns')
+    namespace = junos_module.params.get('namespace')
+
 
     # If retrieve is set and load and rollback are not set, then
     # check, diff, and commit default to False.
@@ -1076,7 +1091,10 @@ def main():
                                       database=retrieve,
                                       format=format,
                                       options=options,
-                                      filter=filter)
+                                      filter=filter,
+                                      model=model,
+                                      namespace=namespace,
+                                      remove_ns=remove_ns)
         if return_output is True:
             if config is not None:
                 results['config'] = config
