@@ -1441,11 +1441,6 @@ class JuniperJunosModule(AnsibleModule):
                                'of recognized configuration formats: %s.' %
                                (format, str(CONFIG_FORMAT_CHOICES)))
 
-        if model not in CONFIG_MODEL_CHOICES:
-            self.fail_json(msg='The configuration format % is not in the list '
-                               'of recognized configuration formats: %s.' %
-                               (model, str(CONFIG_MODEL_CHOICES)))
-
         options.update({'database': database,
                         'format': format})
 
