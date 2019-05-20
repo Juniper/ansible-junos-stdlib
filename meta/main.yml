@@ -9,8 +9,6 @@ galaxy_info:
     - name: junos
       versions:
         - all
-  categories:
-    - networking
   galaxy_tags:
   - networking
   - junos
