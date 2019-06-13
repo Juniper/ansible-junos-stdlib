@@ -263,6 +263,12 @@ options:
     required: false
     default: C(/var/tmp/) + filename portion of I(local_package)
     type: path
+  pkg_set:
+    description:
+      -  install software on the members in a mixed Virtual Chassis
+    required: false
+    default: false
+    type: list
   validate:
     description:
       - Whether or not to have the target Junos device should validate the
@@ -449,6 +455,9 @@ def main():
                             # Default is '/var/tmp/' + filename from the
                             # local_package option, if set.
                             default=None),
+        pkg_set=dict(required=False,
+                     type='list',
+                     default=None),
         version=dict(required=False,
                      aliases=['target_version', 'new_version',
                               'desired_version'],
@@ -524,6 +533,7 @@ def main():
     # Straight from params
     local_package = junos_module.params.pop('local_package')
     remote_package = junos_module.params.pop('remote_package')
+    pkg_set = junos_module.params.pop('pkg_set')
     target_version = junos_module.params.pop('version')
     no_copy = junos_module.params.pop('no_copy')
     reboot = junos_module.params.pop('reboot')
@@ -568,6 +578,9 @@ def main():
                 junos_module.fail_json(msg='There is no filename component to '
                                            'the local_package (%s).' %
                                            (local_package))
+            if pkg_set is None:
+                junos_module.fail_json(msg='install() requires either '
+                                           'the package or pkg_set argument.')
         else:
             # Local package was not specified, so we must assume no_copy.
             no_copy = True
@@ -593,7 +606,7 @@ def main():
     if no_copy is True:
         cleanfs = False
 
-    if target_version is None:
+    if target_version is None and pkg_set is None:
         target_version = parse_version_from_filename(remote_filename)
     junos_module.logger.debug("New target version is: %s.", target_version)
 
@@ -638,6 +651,8 @@ def main():
             install_params['package'] = url
         elif local_package is not None:
             install_params['package'] = local_package
+        elif pkg_set is not None:
+            install_params['pkg_set'] = pkg_set
         else:
             install_params['package'] = remote_filename
         if remote_dir is not None:
