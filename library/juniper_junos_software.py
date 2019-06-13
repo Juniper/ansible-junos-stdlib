@@ -526,7 +526,7 @@ def main():
         # Mutually exclusive options.
         mutually_exclusive=[['issu', 'nssu']],
         # One of local_package and remote_package is required.
-        required_one_of=[['local_package', 'remote_package']],
+        required_one_of=[['local_package', 'remote_package', 'pkg_set']],
         supports_check_mode=True
     )
 
