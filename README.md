@@ -85,6 +85,10 @@ should be added to the Ansible configuration file in order to allow the jsnapy c
 
 You must have the [DEPENDENCIES](#dependencies) installed on your system.  
 
+### NOTICES
+
+#### Ubuntu 14.04
+
 If you're dealing with Ubuntu 14.04 and faced following error during the installation, it's because the system python which used by Ubuntu 14.04 is locked to 2.7.6 till EOL, as a result, please consider to skip galaxy certification process by appending `-c` option of ansible-galaxy. i.e. `ansible-galaxy install Juniper.junos -c`
 
     [WARNING]: - Juniper.junos was NOT installed successfully: Failed to get data
@@ -103,6 +107,14 @@ If you're dealing with Ubuntu 14.04 and faced following error during the install
     '*.c1e4.galaxy.openshiftapps.com', 'c1e4.galaxy.openshiftapps.com'.
 
     ERROR! - you can use --ignore-errors to skip failed roles and finish processing the list.
+
+### MacOS Mojave and newer
+
+In MacOS Mojave and newer (>=10.14), ssh keys created with the system `ssh-keygen` are created using the newer 'OPENSSH' key format, even when specifying `-t rsa` during creation. This directly affects the usage of ssh keys, particularly when using the `ssh_private_key_file`. To create/convert/check keys, follow these steps:
+
+- Create a new RSA key: `ssh-keygen -m PEM -t rsa -b 4096`
+- Check existing keys: `head -n1 ~/.ssh/some_private_key` RSA keys will be `-----BEGIN RSA PRIVATE KEY-----` and OPENSSH keys will be `-----BEGIN OPENSSH PRIVATE KEY-----`
+- Convert an OPENSSH key to an RSA key: `ssh-keygen -p -m PEM -f ~/.ssh/some_key`
 
 ### Ansible Galaxy Role
 
@@ -246,9 +258,6 @@ Juniper Networks is actively contributing to and maintaining this repo. Please c
 [jnpr-community-netdev@juniper.net](jnpr-community-netdev@juniper.net) for any queries.
 
 *Contributors:*
-[Nitin Kumar](https://github.com/vnitinv), [Stacy W Smith](https://github.com/stacywsmith),
-[David Gethings](https://github.com/dgjnpr)
-
 [Nitin Kumar](https://github.com/vnitinv), [Stacy W Smith](https://github.com/stacywsmith), [Stephen Steiner](https://github.com/ntwrkguru)
 
 *Former Contributors:*
