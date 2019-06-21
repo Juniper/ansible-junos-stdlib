@@ -265,7 +265,8 @@ options:
     type: path
   pkg_set:
     description:
-      -  install software on the members in a mixed Virtual Chassis
+      -  install software on the members in a mixed Virtual Chassis. Currently
+         we are not doing target package check this option is provided.
     required: false
     default: false
     type: list
@@ -570,6 +571,7 @@ def main():
                                    (remote_package))
 
     if url is None:
+        local_filename = None
         if local_package is not None:
             # Expand out the path.
             local_package = os.path.abspath(local_package)
@@ -578,13 +580,9 @@ def main():
                 junos_module.fail_json(msg='There is no filename component to '
                                            'the local_package (%s).' %
                                            (local_package))
-            if pkg_set is None:
-                junos_module.fail_json(msg='install() requires either '
-                                           'the package or pkg_set argument.')
-        else:
-            # Local package was not specified, so we must assume no_copy.
+        elif remote_package is not None:
+            # remote package was, so we must assume no_copy.
             no_copy = True
-            local_filename = None
 
         if no_copy is False and not os.path.isfile(local_package):
             junos_module.fail_json(msg='The local_package (%s) is not a valid '
@@ -679,7 +677,8 @@ def main():
             results['msg'] = 'Package %s successfully installed.' % \
                              (install_params['package'])
             junos_module.logger.debug('Package %s successfully installed.',
-                                      install_params['package'])
+                                      install_params.get('package') or
+                                      install_params.get('pkg_set'))
         except (junos_module.pyez_exception.ConnectError,
                 junos_module.pyez_exception.RpcError) as ex:
             results['msg'] = 'Installation failed. Error: %s' % str(ex)
