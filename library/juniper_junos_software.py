@@ -441,6 +441,8 @@ def define_progress_callback(junos_module):
         junos_module.logger.info(report)
     return myprogress
 
+# global variable to be used in progress function param to sw.install
+progress_report = ''
 
 def main():
     CHECKSUM_ALGORITHM_CHOICES = ['md5', 'sha1', 'sha256']
@@ -666,19 +668,24 @@ def main():
                 install_params[key] = value
         if kwargs is not None:
             install_params.update(kwargs)
+        def progress(dev, report):
+            global progress_report
+            progress_report = progress_report + report
+        install_params['progress'] = progress
         try:
             junos_module.logger.debug("Install parameters are: %s",
-                                      str(install_params))
+                                       str(install_params))
             junos_module.add_sw()
             ok = junos_module.sw.install(**install_params)
             if ok is not True:
-                results['msg'] = 'Unable to install the software'
+                results['msg'] = 'Unable to install the software, ' \
+                    'potential reason: %s' % progress_report
                 junos_module.fail_json(**results)
-            results['msg'] = 'Package %s successfully installed.' % \
-                             (install_params['package'])
-            junos_module.logger.debug('Package %s successfully installed.',
-                                      install_params.get('package') or
-                                      install_params.get('pkg_set'))
+            msg = 'Package %s successfully installed.' % (
+                        install_params.get('package') or
+                        install_params.get('pkg_set'))
+            results['msg'] = msg
+            junos_module.logger.debug(msg)
         except (junos_module.pyez_exception.ConnectError,
                 junos_module.pyez_exception.RpcError) as ex:
             results['msg'] = 'Installation failed. Error: %s' % str(ex)
@@ -719,7 +726,18 @@ def main():
                         if junos_module.dev.facts['_is_linux']:
                             got = resp.text
                         else:
-                            got = resp.findtext(xpath)
+                            # there are cases where rpc-reply will have multiple
+                            # child element, hence lets work on parent.
+                            # for ex:
+                            # <rpc-reply><output>Rebooting fpc1</output>
+                            # <request-reboot-results>
+                            # <request-reboot-status reboot-time="1561371395">
+                            # Shutdown at Mon Jun 24 10:16:35 2019.
+                            # [pid 1949]
+                            # </request-reboot-status>
+                            # </request-reboot-results></rpc-reply>
+                            obj = resp.getparent()
+                            got = obj.findtext(xpath)
                         if got is not None:
                             results['msg'] += ' Reboot successfully initiated.'
                             break
@@ -728,7 +746,9 @@ def main():
                         # It only gets executed if the loop finished without
                         # hitting the break.
                         results['msg'] += ' Did not find expected response ' \
-                                          'from reboot RPC.'
+                                          'from reboot RPC. RPC response is ' \
+                                          '%s' % \
+                                          junos_module.etree.tostring(resp)
                         junos_module.fail_json(**results)
                 else:
                     results['msg'] += ' Reboot successfully initiated.'
