@@ -277,6 +277,13 @@ class ModuleDocFragment(object):
             is found using the algorithm below, then the SSH private key file
             specified in the user's SSH configuration, or the
             operating-system-specific default is used.
+          - This must be in the RSA PEM format, and not the newer OPENSSH
+            format. To check if the private key is in the correct format, issue
+            the command: `head -n1 ~/.ssh/some_private_key` and ensure that
+            it's RSA and not OPENSSH. To create a key in the RSA PEM format,
+            issue the command: `ssh-keygen -m PEM -t rsa -b 4096`. To convert
+            an OPENSSH key to an RSA key, issue the command: `ssh-keygen -p -m
+            PEM -f ~/.ssh/some_private_key`
         required: false
         default: The first defined value from the following list
                  1) The C(ANSIBLE_NET_SSH_KEYFILE) environment variable.
