@@ -441,8 +441,6 @@ def define_progress_callback(junos_module):
         junos_module.logger.info(report)
     return myprogress
 
-# global variable to be used in progress function param to sw.install
-progress_report = ''
 
 def main():
     CHECKSUM_ALGORITHM_CHOICES = ['md5', 'sha1', 'sha256']
@@ -636,15 +634,23 @@ def main():
                                               current_version, current_re,
                                               target_version)
                     results['changed'] = True
+                else:
+                    results['msg'] += "Current version on %s: %s same as Targeted " \
+                                      "version: %s.\n" % (current_version, current_re,
+                                                          target_version)
         else:
             current_version = junos_module.dev.facts['version']
+            re_name = junos_module.dev.re_name
             if target_version != current_version:
-                re_name = junos_module.dev.re_name
                 junos_module.logger.debug("Current version on %s: %s. "
                                           "Target version: %s.",
                                           current_version, re_name,
                                           target_version)
                 results['changed'] = True
+            else:
+                results['msg'] += "Current version on %s: %s same as Targeted " \
+                                 "version: %s.\n" % (current_version, re_name,
+                                                     target_version)
     else:
         # A non-Junos install. Always attempt to install.
         results['changed'] = True
@@ -676,18 +682,13 @@ def main():
                 install_params[key] = value
         if kwargs is not None:
             install_params.update(kwargs)
-        def progress(dev, report):
-            global progress_report
-            progress_report = progress_report + report
-        install_params['progress'] = progress
         try:
             junos_module.logger.debug("Install parameters are: %s",
                                        str(install_params))
             junos_module.add_sw()
             ok = junos_module.sw.install(**install_params)
             if ok is not True:
-                results['msg'] = 'Unable to install the software, ' \
-                    'potential reason: %s' % progress_report
+                results['msg'] = 'Unable to install the software'
                 junos_module.fail_json(**results)
             msg = 'Package %s successfully installed.' % (
                         install_params.get('package') or
@@ -709,11 +710,16 @@ def main():
                                               "to 5 seconds.")
                     junos_module.dev.timeout = 5
                 junos_module.logger.debug('Initiating reboot.')
+                xpath_list = ['.//request-reboot-status']
                 if junos_module.dev.facts['_is_linux']:
                     rpc = junos_module.etree.Element('request-shutdown-reboot')
+                elif install_params.get('vmhost'):
+                    rpc = junos_module.etree.Element('request-vmhost-reboot')
+                    # RPC reply can contain multiple output tags
+                    xpath_list.append('output')
                 else:
                     rpc = junos_module.etree.Element('request-reboot')
-                xpath_list = ['.//request-reboot-status']
+
                 if all_re is True:
                     if (junos_module.sw._multi_RE is True and
                        junos_module.sw._multi_VC is False):
@@ -722,7 +728,7 @@ def main():
                         # At least on some platforms stopping/rebooting both
                         # REs produces <output> messages and
                         # <request-reboot-status> messages.
-                        xpath_list.append('..//output')
+                        xpath_list.append('output')
                     elif junos_module.sw._mixed_VC is True:
                         junos_module.etree.SubElement(rpc, 'all-members')
                 resp = junos_module.dev.rpc(rpc,
@@ -730,6 +736,7 @@ def main():
                                             normalize=True)
                 junos_module.logger.debug("Reboot RPC executed cleanly.")
                 if len(xpath_list) > 0:
+                    obj = resp.getparent()
                     for xpath in xpath_list:
                         if junos_module.dev.facts['_is_linux']:
                             got = resp.text
@@ -744,10 +751,14 @@ def main():
                             # [pid 1949]
                             # </request-reboot-status>
                             # </request-reboot-results></rpc-reply>
-                            obj = resp.getparent()
-                            got = obj.findtext(xpath)
+                            if xpath == 'output':
+                                got = '\n'.join([i.text for i in obj.findall('output')
+                                                 if i.text is not None])
+                            else:
+                                got = obj.findtext(xpath)
                         if got is not None:
-                            results['msg'] += ' Reboot successfully initiated.'
+                            results['msg'] += ' Reboot successfully initiated. ' \
+                                              'Reboot message: %s' % got
                             break
                     else:
                         # This is the else clause of the for loop.
