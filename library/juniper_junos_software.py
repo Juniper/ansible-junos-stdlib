@@ -565,12 +565,12 @@ def main():
     if url is not None and local_package is not None:
         junos_module.fail_json(msg='There remote_package (%s) is a URL. '
                                    'The local_package option is not allowed.' %
-                                   (remote_package))
+                                   remote_package)
 
     if url is not None and no_copy is True:
         junos_module.fail_json(msg='There remote_package (%s) is a URL. '
                                    'The no_copy option is not allowed.' %
-                                   (remote_package))
+                                   remote_package)
 
     if url is None:
         local_filename = None
@@ -581,15 +581,23 @@ def main():
             if local_filename == '':
                 junos_module.fail_json(msg='There is no filename component to '
                                            'the local_package (%s).' %
-                                           (local_package))
+                                           local_package)
         elif remote_package is not None:
             # remote package was, so we must assume no_copy.
             no_copy = True
 
-        if no_copy is False and not os.path.isfile(local_package):
-            junos_module.fail_json(msg='The local_package (%s) is not a valid '
-                                       'file on the local Ansible control '
-                                       'machine.' % (local_package))
+        if no_copy is False:
+            if local_package is not None and not os.path.isfile(local_package):
+                junos_module.fail_json(msg='The local_package (%s) is not a '
+                                       'valid file on the local Ansible '
+                                       'control machine.' % local_package)
+            elif pkg_set is not None:
+                pkg_set = [os.path.abspath(item) for item in pkg_set]
+                for pkg_set_item in pkg_set:
+                    if not os.path.isfile(pkg_set_item):
+                        junos_module.fail_json(
+                            msg='The pkg (%s) is not a valid file on the local'
+                                ' Ansible control machine.' % pkg_set_item)
 
         if remote_filename == '':
             # Use the same name as local_filename
