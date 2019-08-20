@@ -1,5 +1,0 @@
-ansible==2.7.9
-jsnapy==1.3.2
-jxmlease
-docker
-junos-netconify
