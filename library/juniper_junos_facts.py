@@ -178,6 +178,7 @@ Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project
 # Ansiballz packages module_utils into ansible.module_utils
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils import juniper_junos_common
+from ansible.module_utils._text import to_bytes
 
 
 def get_facts_dict(junos_module):
@@ -241,6 +242,7 @@ def save_facts(junos_module, facts):
         file_path = os.path.normpath(os.path.join(save_dir, file_name))
         junos_module.logger.debug("Saving facts to: %s.", file_path)
         try:
+            # TODO: Verify does thsi work with Python3
             with open(file_path, 'w') as fact_file:
                 json.dump(facts, fact_file)
             junos_module.logger.debug("Facts saved to: %s.", file_path)
@@ -272,7 +274,7 @@ def save_inventory(junos_module, inventory):
         junos_module.logger.debug("Saving inventory to: %s.", file_path)
         try:
             with open(file_path, 'wb') as fact_file:
-                fact_file.write(inventory.encode(encoding='utf-8'))
+                fact_file.write(to_bytes(inventory, encoding='utf-8'))
             junos_module.logger.debug("Inventory saved to: %s.", file_path)
         except IOError:
             junos_module.fail_json(msg="Unable to save inventory. Failed to "
