@@ -514,9 +514,11 @@ connection_spec_mutually_exclusive = [['mode', 'console'],
                                       ['baud', 'console'],
                                       ['attempts','console']]
 # Keys are connection options. Values are a list of task_vars to use as the
-# default value.
+# default value. Order of values specified against each key represents the
+# preference order of options in the key. Has to be maintained consistent with
+# ansible core modules
 connection_spec_fallbacks = {
-    'host': ['inventory_hostname', 'ansible_host'],
+    'host': ['ansible_host', 'inventory_hostname'],
     'user': ['ansible_connection_user', 'ansible_ssh_user', 'ansible_user'],
     'passwd': ['ansible_ssh_pass', 'ansible_pass'],
     'port': ['ansible_ssh_port', 'ansible_port'],
