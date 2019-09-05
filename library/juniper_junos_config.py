@@ -1016,7 +1016,7 @@ def main():
 
     junos_module.logger.debug("Step 1 - Open a candidate configuration "
                               "database.")
-    junos_module.open_configuration(mode=config_mode)
+    junos_module.open_configuration(mode=config_mode, ignore_warning=ignore_warning)
     results['msg'] += 'opened'
 
     junos_module.logger.debug("Step 2 - Load configuration data into the "

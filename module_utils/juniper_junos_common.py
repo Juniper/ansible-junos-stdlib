@@ -1356,7 +1356,7 @@ class JuniperJunosModule(AnsibleModule):
         """
         self.sw = jnpr.junos.utils.sw.SW(self.dev)
 
-    def open_configuration(self, mode):
+    def open_configuration(self, mode, ignore_warning=None):
         """Open candidate configuration database in exclusive or private mode.
 
         Failures:
@@ -1364,6 +1364,18 @@ class JuniperJunosModule(AnsibleModule):
             - RpcError: When there's a RPC problem including an already locked
                         config or an already opened private config.
         """
+
+        ignore_warn=['uncommitted changes will be discarded on exit']
+        # if ignore_warning is a bool, pass the bool
+        # if ignore_warning is a string add to the list
+        # if ignore_warning is a list, merge them
+        if ignore_warning != None and isinstance(ignore_warning, bool):
+            ignore_warn = ignore_warning
+        elif ignore_warning != None and isinstance(ignore_warning, str):
+            ignore_warn.append(ignore_warning)
+        elif ignore_warning != None and isinstance(ignore_warning, list):
+            ignore_warn = ignore_warn + ignore_warning
+
         # Already have an open configuration?
         if self.config is None:
             if mode not in CONFIG_MODE_CHOICES:
@@ -1377,8 +1389,7 @@ class JuniperJunosModule(AnsibleModule):
                 elif config.mode == 'private':
                     self.dev.rpc.open_configuration(
                         private=True,
-                        ignore_warning='uncommitted changes will be '
-                                       'discarded on exit')
+                        ignore_warning=ignore_warn)
             except (pyez_exception.ConnectError,
                     pyez_exception.RpcError) as ex:
                 self.fail_json(msg='Unable to open the configuration in %s '
