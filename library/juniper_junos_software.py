@@ -263,6 +263,13 @@ options:
     required: false
     default: C(/var/tmp/) + filename portion of I(local_package)
     type: path
+  pkg_set:
+    description:
+      -  install software on the members in a mixed Virtual Chassis. Currently
+         we are not doing target package check this option is provided.
+    required: false
+    default: false
+    type: list
   validate:
     description:
       - Whether or not to have the target Junos device should validate the
@@ -449,6 +456,9 @@ def main():
                             # Default is '/var/tmp/' + filename from the
                             # local_package option, if set.
                             default=None),
+        pkg_set=dict(required=False,
+                     type='list',
+                     default=None),
         version=dict(required=False,
                      aliases=['target_version', 'new_version',
                               'desired_version'],
@@ -517,13 +527,14 @@ def main():
         # Mutually exclusive options.
         mutually_exclusive=[['issu', 'nssu']],
         # One of local_package and remote_package is required.
-        required_one_of=[['local_package', 'remote_package']],
+        required_one_of=[['local_package', 'remote_package', 'pkg_set']],
         supports_check_mode=True
     )
 
     # Straight from params
     local_package = junos_module.params.pop('local_package')
     remote_package = junos_module.params.pop('remote_package')
+    pkg_set = junos_module.params.pop('pkg_set')
     target_version = junos_module.params.pop('version')
     no_copy = junos_module.params.pop('no_copy')
     reboot = junos_module.params.pop('reboot')
@@ -552,14 +563,15 @@ def main():
     if url is not None and local_package is not None:
         junos_module.fail_json(msg='There remote_package (%s) is a URL. '
                                    'The local_package option is not allowed.' %
-                                   (remote_package))
+                                   remote_package)
 
     if url is not None and no_copy is True:
         junos_module.fail_json(msg='There remote_package (%s) is a URL. '
                                    'The no_copy option is not allowed.' %
-                                   (remote_package))
+                                   remote_package)
 
     if url is None:
+        local_filename = None
         if local_package is not None:
             # Expand out the path.
             local_package = os.path.abspath(local_package)
@@ -567,16 +579,23 @@ def main():
             if local_filename == '':
                 junos_module.fail_json(msg='There is no filename component to '
                                            'the local_package (%s).' %
-                                           (local_package))
-        else:
-            # Local package was not specified, so we must assume no_copy.
+                                           local_package)
+        elif remote_package is not None:
+            # remote package was, so we must assume no_copy.
             no_copy = True
-            local_filename = None
 
-        if no_copy is False and not os.path.isfile(local_package):
-            junos_module.fail_json(msg='The local_package (%s) is not a valid '
-                                       'file on the local Ansible control '
-                                       'machine.' % (local_package))
+        if no_copy is False:
+            if local_package is not None and not os.path.isfile(local_package):
+                junos_module.fail_json(msg='The local_package (%s) is not a '
+                                       'valid file on the local Ansible '
+                                       'control machine.' % local_package)
+            elif pkg_set is not None:
+                pkg_set = [os.path.abspath(item) for item in pkg_set]
+                for pkg_set_item in pkg_set:
+                    if not os.path.isfile(pkg_set_item):
+                        junos_module.fail_json(
+                            msg='The pkg (%s) is not a valid file on the local'
+                                ' Ansible control machine.' % pkg_set_item)
 
         if remote_filename == '':
             # Use the same name as local_filename
@@ -593,7 +612,7 @@ def main():
     if no_copy is True:
         cleanfs = False
 
-    if target_version is None:
+    if target_version is None and pkg_set is None:
         target_version = parse_version_from_filename(remote_filename)
     junos_module.logger.debug("New target version is: %s.", target_version)
 
@@ -615,15 +634,23 @@ def main():
                                               current_version, current_re,
                                               target_version)
                     results['changed'] = True
+                else:
+                    results['msg'] += "Current version on %s: %s same as Targeted " \
+                                      "version: %s.\n" % (current_version, current_re,
+                                                          target_version)
         else:
             current_version = junos_module.dev.facts['version']
+            re_name = junos_module.dev.re_name
             if target_version != current_version:
-                re_name = junos_module.dev.re_name
                 junos_module.logger.debug("Current version on %s: %s. "
                                           "Target version: %s.",
                                           current_version, re_name,
                                           target_version)
                 results['changed'] = True
+            else:
+                results['msg'] += "Current version on %s: %s same as Targeted " \
+                                 "version: %s.\n" % (current_version, re_name,
+                                                     target_version)
     else:
         # A non-Junos install. Always attempt to install.
         results['changed'] = True
@@ -638,6 +665,8 @@ def main():
             install_params['package'] = url
         elif local_package is not None:
             install_params['package'] = local_package
+        elif pkg_set is not None:
+            install_params['pkg_set'] = pkg_set
         else:
             install_params['package'] = remote_filename
         if remote_dir is not None:
@@ -655,16 +684,17 @@ def main():
             install_params.update(kwargs)
         try:
             junos_module.logger.debug("Install parameters are: %s",
-                                      str(install_params))
+                                       str(install_params))
             junos_module.add_sw()
             ok = junos_module.sw.install(**install_params)
             if ok is not True:
                 results['msg'] = 'Unable to install the software'
                 junos_module.fail_json(**results)
-            results['msg'] = 'Package %s successfully installed.' % \
-                             (install_params['package'])
-            junos_module.logger.debug('Package %s successfully installed.',
-                                      install_params['package'])
+            msg = 'Package %s successfully installed.' % (
+                        install_params.get('package') or
+                        install_params.get('pkg_set'))
+            results['msg'] = msg
+            junos_module.logger.debug(msg)
         except (junos_module.pyez_exception.ConnectError,
                 junos_module.pyez_exception.RpcError) as ex:
             results['msg'] = 'Installation failed. Error: %s' % str(ex)
@@ -680,11 +710,16 @@ def main():
                                               "to 5 seconds.")
                     junos_module.dev.timeout = 5
                 junos_module.logger.debug('Initiating reboot.')
+                xpath_list = ['.//request-reboot-status']
                 if junos_module.dev.facts['_is_linux']:
                     rpc = junos_module.etree.Element('request-shutdown-reboot')
+                elif install_params.get('vmhost'):
+                    rpc = junos_module.etree.Element('request-vmhost-reboot')
+                    # RPC reply can contain multiple output tags
+                    xpath_list.append('output')
                 else:
                     rpc = junos_module.etree.Element('request-reboot')
-                xpath_list = ['.//request-reboot-status']
+
                 if all_re is True:
                     if (junos_module.sw._multi_RE is True and
                        junos_module.sw._multi_VC is False):
@@ -693,7 +728,7 @@ def main():
                         # At least on some platforms stopping/rebooting both
                         # REs produces <output> messages and
                         # <request-reboot-status> messages.
-                        xpath_list.append('..//output')
+                        xpath_list.append('output')
                     elif junos_module.sw._mixed_VC is True:
                         junos_module.etree.SubElement(rpc, 'all-members')
                 resp = junos_module.dev.rpc(rpc,
@@ -701,20 +736,38 @@ def main():
                                             normalize=True)
                 junos_module.logger.debug("Reboot RPC executed cleanly.")
                 if len(xpath_list) > 0:
+                    obj = resp.getparent()
                     for xpath in xpath_list:
                         if junos_module.dev.facts['_is_linux']:
                             got = resp.text
                         else:
-                            got = resp.findtext(xpath)
+                            # there are cases where rpc-reply will have multiple
+                            # child element, hence lets work on parent.
+                            # for ex:
+                            # <rpc-reply><output>Rebooting fpc1</output>
+                            # <request-reboot-results>
+                            # <request-reboot-status reboot-time="1561371395">
+                            # Shutdown at Mon Jun 24 10:16:35 2019.
+                            # [pid 1949]
+                            # </request-reboot-status>
+                            # </request-reboot-results></rpc-reply>
+                            if xpath == 'output':
+                                got = '\n'.join([i.text for i in obj.findall('output')
+                                                 if i.text is not None])
+                            else:
+                                got = obj.findtext(xpath)
                         if got is not None:
-                            results['msg'] += ' Reboot successfully initiated.'
+                            results['msg'] += ' Reboot successfully initiated. ' \
+                                              'Reboot message: %s' % got
                             break
                     else:
                         # This is the else clause of the for loop.
                         # It only gets executed if the loop finished without
                         # hitting the break.
                         results['msg'] += ' Did not find expected response ' \
-                                          'from reboot RPC.'
+                                          'from reboot RPC. RPC response is ' \
+                                          '%s' % \
+                                          junos_module.etree.tostring(resp)
                         junos_module.fail_json(**results)
                 else:
                     results['msg'] += ' Reboot successfully initiated.'

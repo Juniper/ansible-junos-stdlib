@@ -510,6 +510,8 @@ def main():
                     attr = {}
                 if kwarg is None:
                     kwarg = {}
+                if format is not None:
+                    attr['format'] = format
                 junos_module.logger.debug('Executing "get-config" RPC. '
                                           'filter_xml=%s, options=%s, '
                                           'kwargs=%s',

@@ -32,12 +32,12 @@
 #
 
 from __future__ import absolute_import, division, print_function
-from six import iteritems
 
 # Ansible imports
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.basic import BOOLEANS_TRUE, BOOLEANS_FALSE
 from ansible.plugins.action.normal import ActionModule as ActionNormal
+from ansible.module_utils._text import to_bytes
 
 # Standard library imports
 from argparse import ArgumentParser
@@ -277,6 +277,13 @@ class ModuleDocFragment(object):
             is found using the algorithm below, then the SSH private key file
             specified in the user's SSH configuration, or the
             operating-system-specific default is used.
+          - This must be in the RSA PEM format, and not the newer OPENSSH
+            format. To check if the private key is in the correct format, issue
+            the command: `head -n1 ~/.ssh/some_private_key` and ensure that
+            it's RSA and not OPENSSH. To create a key in the RSA PEM format,
+            issue the command: `ssh-keygen -m PEM -t rsa -b 4096`. To convert
+            an OPENSSH key to an RSA key, issue the command: `ssh-keygen -p -m
+            PEM -f ~/.ssh/some_private_key`
         required: false
         default: The first defined value from the following list
                  1) The C(ANSIBLE_NET_SSH_KEYFILE) environment variable.
@@ -537,9 +544,11 @@ connection_spec_mutually_exclusive = [['mode', 'console'],
                                       ['cs_user', 'console'],
                                       ['cs_passwd', 'console']]
 # Keys are connection options. Values are a list of task_vars to use as the
-# default value.
+# default value. Order of values specified against each key represents the
+# preference order of options in the key. Has to be maintained consistent with
+# ansible core modules
 connection_spec_fallbacks = {
-    'host': ['inventory_hostname', 'ansible_host'],
+    'host': ['ansible_host', 'inventory_hostname'],
     'user': ['ansible_connection_user', 'ansible_ssh_user', 'ansible_user'],
     'passwd': ['ansible_ssh_pass', 'ansible_pass'],
     'port': ['ansible_ssh_port', 'ansible_port'],
@@ -603,6 +612,8 @@ CONFIG_ACTION_CHOICES = ['set', 'merge', 'update',
                          'replace', 'override', 'overwrite']
 # Supported configuration modes
 CONFIG_MODE_CHOICES = ['exclusive', 'private']
+# Supported configuration models
+CONFIG_MODEL_CHOICES = ['openconfig', 'custom', 'ietf', 'True']
 
 
 def convert_to_bool_func(arg):
@@ -1048,7 +1059,7 @@ class JuniperJunosModule(AnsibleModule):
             - PyEZ not installed (unable to import).
             - PyEZ version < minimum.
             - check_device and PyEZ Device object can't be imported
-            - check_exception and PyEZ excepetions can't be imported
+            - check_exception and PyEZ exceptions can't be imported
         """
         self._check_library('junos-eznc', HAS_PYEZ_VERSION,
                             PYEZ_INSTALLATION_URL, minimum=minimum,
@@ -1433,10 +1444,11 @@ class JuniperJunosModule(AnsibleModule):
                                    (str(ex)))
 
     def get_configuration(self, database='committed', format='text',
-                          options={}, filter=None):
+                          options={}, filter=None, model=None,
+                          namespace=None, remove_ns=True):
         """Return the device configuration in the specified format.
 
-        Return the datbase device configuration datbase in the format format.
+        Return the database device configuration database in the format format.
         Pass the options specified in the options dict and the filter specified
         in the filter argument.
 
@@ -1481,7 +1493,10 @@ class JuniperJunosModule(AnsibleModule):
         config = None
         try:
             config = self.dev.rpc.get_config(options=options,
-                                             filter_xml=filter)
+                                             filter_xml=filter,
+                                             model=model,
+                                             remove_ns=remove_ns,
+                                             namespace=namespace)
             self.logger.debug("Configuration retrieved.")
         except (self.pyez_exception.RpcError,
                 self.pyez_exception.ConnectError) as ex:
@@ -1493,7 +1508,7 @@ class JuniperJunosModule(AnsibleModule):
             if not isinstance(config, self.etree._Element):
                 self.fail_json(msg='Unexpected configuration type returned. '
                                    'Configuration is: %s' % (str(config)))
-            if config.tag != 'configuration-text':
+            if model is None and config.tag != 'configuration-text':
                 self.fail_json(msg='Unexpected XML tag returned. '
                                    'Configuration is: %s' %
                                    (etree.tostring(config, pretty_print=True)))
@@ -1502,7 +1517,7 @@ class JuniperJunosModule(AnsibleModule):
             if not isinstance(config, self.etree._Element):
                 self.fail_json(msg='Unexpected configuration type returned. '
                                    'Configuration is: %s' % (str(config)))
-            if config.tag != 'configuration-set':
+            if model is None and config.tag != 'configuration-set':
                 self.fail_json(msg='Unexpected XML tag returned. '
                                    'Configuration is: %s' %
                                    (etree.tostring(config, pretty_print=True)))
@@ -1511,7 +1526,7 @@ class JuniperJunosModule(AnsibleModule):
             if not isinstance(config, self.etree._Element):
                 self.fail_json(msg='Unexpected configuration type returned. '
                                    'Configuration is: %s' % (str(config)))
-            if config.tag != 'configuration':
+            if model is None and config.tag != 'configuration':
                 self.fail_json(msg='Unexpected XML tag returned. '
                                    'Configuration is: %s' %
                                    (etree.tostring(config, pretty_print=True)))
@@ -1904,8 +1919,10 @@ class JuniperJunosModule(AnsibleModule):
                 file_path = os.path.normpath(os.path.join(dest_dir, file_name))
         if file_path is not None:
             try:
+                # Use ansible utility to convert objects to bytes
+                # to achieve Python2/3 compatibility
                 with open(file_path, mode) as save_file:
-                    save_file.write(text.encode(encoding='utf-8'))
+                    save_file.write(to_bytes(text, encoding='utf-8'))
                 self.logger.debug("Output saved to: %s.", file_path)
             except IOError:
                 self.fail_json(msg="Unable to save output. Failed to "
