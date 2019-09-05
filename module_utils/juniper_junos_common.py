@@ -32,12 +32,12 @@
 #
 
 from __future__ import absolute_import, division, print_function
-from six import iteritems
 
 # Ansible imports
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.basic import BOOLEANS_TRUE, BOOLEANS_FALSE
 from ansible.plugins.action.normal import ActionModule as ActionNormal
+from ansible.module_utils._text import to_bytes
 
 # Standard library imports
 from argparse import ArgumentParser
@@ -514,9 +514,11 @@ connection_spec_mutually_exclusive = [['mode', 'console'],
                                       ['baud', 'console'],
                                       ['attempts','console']]
 # Keys are connection options. Values are a list of task_vars to use as the
-# default value.
+# default value. Order of values specified against each key represents the
+# preference order of options in the key. Has to be maintained consistent with
+# ansible core modules
 connection_spec_fallbacks = {
-    'host': ['inventory_hostname', 'ansible_host'],
+    'host': ['ansible_host', 'inventory_hostname'],
     'user': ['ansible_connection_user', 'ansible_ssh_user', 'ansible_user'],
     'passwd': ['ansible_ssh_pass', 'ansible_pass'],
     'port': ['ansible_ssh_port', 'ansible_port'],
@@ -1878,8 +1880,10 @@ class JuniperJunosModule(AnsibleModule):
                 file_path = os.path.normpath(os.path.join(dest_dir, file_name))
         if file_path is not None:
             try:
+                # Use ansible utility to convert objects to bytes
+                # to achieve Python2/3 compatibility
                 with open(file_path, mode) as save_file:
-                    save_file.write(text.encode(encoding='utf-8'))
+                    save_file.write(to_bytes(text, encoding='utf-8'))
                 self.logger.debug("Output saved to: %s.", file_path)
             except IOError:
                 self.fail_json(msg="Unable to save output. Failed to "
