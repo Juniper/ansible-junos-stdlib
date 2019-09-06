@@ -122,7 +122,7 @@ except NameError:
 
 # Constants
 # Minimum PyEZ version required by shared code.
-MIN_PYEZ_VERSION = "2.1.7"
+MIN_PYEZ_VERSION = "2.2.0"
 # Installation URL for PyEZ.
 PYEZ_INSTALLATION_URL = "https://github.com/Juniper/py-junos-eznc#installation"
 # Minimum lxml version required by shared code.
@@ -332,6 +332,24 @@ class ModuleDocFragment(object):
         type: str
         aliases:
           - username
+    cs_user:
+        description:
+          - The username used to authenticate with the console server over SSH. 
+            This option is only required if you want to connect to a device over console
+             using SSH as transport. Mutually exclusive with the I(console) option.
+        required: false
+        type: str
+        aliases:
+          - console_username
+    cs_passwd:
+        description:
+          - The password used to authenticate with the console server over SSH. 
+            This option is only required if you want to connect to a device over console
+             using SSH as transport. Mutually exclusive with the I(console) option.
+        required: false
+        type: str
+        aliases:
+          - console_password
 '''
 
     LOGGING_DOCUMENTATION = '''
@@ -475,6 +493,15 @@ connection_spec = {
                    # Default behavior coded in JuniperJunosActionModule.run()
                    default=None,
                    no_log=True),
+    'cs_user': dict(type='str',
+                 aliases=['console_username'],
+                 required=False,
+                 default=None),
+    'cs_passwd': dict(type='str',
+                   aliases=['console_password'],
+                   required=False,
+                   default=None,
+                   no_log=True),
     'ssh_private_key_file': dict(type='path',
                                  required=False,
                                  aliases=['ssh_keyfile'],
@@ -513,7 +540,9 @@ connection_spec = {
 connection_spec_mutually_exclusive = [['mode', 'console'],
                                       ['port', 'console'],
                                       ['baud', 'console'],
-                                      ['attempts','console']]
+                                      ['attempts','console'],
+                                      ['cs_user', 'console'],
+                                      ['cs_passwd', 'console']]
 # Keys are connection options. Values are a list of task_vars to use as the
 # default value. Order of values specified against each key represents the
 # preference order of options in the key. Has to be maintained consistent with
@@ -1308,6 +1337,9 @@ class JuniperJunosModule(AnsibleModule):
             self.close()
             log_connect_args = dict(connect_args)
             log_connect_args['passwd'] = 'NOT_LOGGING_PARAMETER'
+            if 'cs_passwd' in log_connect_args: 
+                log_connect_args['cs_passwd'] = 'NOT_LOGGING_PARAMETER'
+                
             self.logger.debug("Creating device parameters: %s",
                               log_connect_args)
             timeout = connect_args.pop('timeout')
