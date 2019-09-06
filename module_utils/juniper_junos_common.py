@@ -279,10 +279,10 @@ class ModuleDocFragment(object):
             operating-system-specific default is used.
           - This must be in the RSA PEM format, and not the newer OPENSSH
             format. To check if the private key is in the correct format, issue
-            the command: `head -n1 ~/.ssh/some_private_key` and ensure that
+            the command `head -n1 ~/.ssh/some_private_key` and ensure that
             it's RSA and not OPENSSH. To create a key in the RSA PEM format,
-            issue the command: `ssh-keygen -m PEM -t rsa -b 4096`. To convert
-            an OPENSSH key to an RSA key, issue the command: `ssh-keygen -p -m
+            issue the command `ssh-keygen -m PEM -t rsa -b 4096`. To convert
+            an OPENSSH key to an RSA key, issue the command `ssh-keygen -p -m
             PEM -f ~/.ssh/some_private_key`
         required: false
         default: The first defined value from the following list
@@ -332,7 +332,7 @@ class ModuleDocFragment(object):
         type: str
         aliases:
           - username
-    cs_user:
+      cs_user:
         description:
           - The username used to authenticate with the console server over SSH. 
             This option is only required if you want to connect to a device over console
@@ -341,7 +341,7 @@ class ModuleDocFragment(object):
         type: str
         aliases:
           - console_username
-    cs_passwd:
+      cs_passwd:
         description:
           - The password used to authenticate with the console server over SSH. 
             This option is only required if you want to connect to a device over console
