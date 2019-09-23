@@ -698,10 +698,12 @@ config_parsed:
 diff:
   description: 
     - The configuration differences between the previous and new
-      configurations. The value is a single multi-line string in "diff" format.
+      configurations. The value is a dict that contains a single key named
+      "prepared". Value associated with that key is a single multi-line string
+      in "diff" format.
   returned: when I(load)  or I(rollback) is specified, I(diff) is C(true), and
             I(return_output) is C(true).
-  type: str
+  type: dict
 diff_lines:
   description:
     - The configuration differences between the previous and new
