@@ -184,6 +184,12 @@ options:
     required: false
     default: false
     type: bool
+  commit_full:
+    description:
+      - Coupled with commit=True, this will perform a C(commit full) operation.
+    required: false
+    default: false
+    type: bool
   config_mode:
     description:
       - The mode used to access the candidate configuration database.
@@ -662,6 +668,17 @@ EXAMPLES = '''
     - name: Print the complete response
       debug:
         var: response
+
+    - name: Issue commit full
+      juniper_junos_config:
+        load: replace
+        format: 'set'
+        check: False
+        commit: True
+        commit_empty_changes: True
+        commit_full: True
+        lines:
+          - ''
 '''
 
 RETURN = '''
@@ -841,6 +858,9 @@ def main():
             commit_empty_changes=dict(required=False,
                                       type='bool',
                                       default=False),
+            commit_full=dict(required=False,
+                             type='bool',
+                             default=False),
             confirmed=dict(required=False,
                            type='int',
                            aliases=['confirm'],
@@ -893,6 +913,7 @@ def main():
     dest = junos_module.params.get('dest')
     commit = junos_module.params.get('commit')
     commit_empty_changes = junos_module.params.get('commit_empty_changes')
+    commit_full = junos_module.params.get('commit_full')
     confirmed = junos_module.params.get('confirmed')
     comment = junos_module.params.get('comment')
     check_commit_wait = junos_module.params.get('check_commit_wait')
@@ -1120,7 +1141,8 @@ def main():
                 time.sleep(check_commit_wait)
             junos_module.commit_configuration(ignore_warning=ignore_warning,
                                               comment=comment,
-                                              confirmed=confirmed)
+                                              confirmed=confirmed,
+                                              full=commit_full))
             results['msg'] += ', committed'
         else:
             junos_module.logger.debug("Skipping commit. Nothing changed.")

@@ -1711,7 +1711,7 @@ class JuniperJunosModule(AnsibleModule):
                                (str(ex)))
 
     def commit_configuration(self, ignore_warning=None, comment=None,
-                             confirmed=None):
+                             confirmed=None, full=False):
         """Commit the candidate configuration.
 
         Commit the configuration. Assumes the configuration is already opened.
@@ -1731,7 +1731,8 @@ class JuniperJunosModule(AnsibleModule):
         try:
             self.config.commit(ignore_warning=ignore_warning,
                                comment=comment,
-                               confirm=confirmed)
+                               confirm=confirmed,
+                               full=full)
             self.logger.debug("Configuration committed.")
         except (self.pyez_exception.RpcError,
                 self.pyez_exception.ConnectError) as ex:
