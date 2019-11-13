@@ -745,7 +745,7 @@ class JuniperJunosModule(AnsibleModule):
                 if arg_name in self.aliases:
                     arg_name = self.aliases[arg_name]
                 # Some parameters like logfile and logdir can either be in
-                # provider os declared in the module params. The priority should
+                # provider or declared in the module params. The priority should
                 # be given to the module params in this case.
                 if self.params[arg_name] is None:
                     self.params[arg_name] = arg_value
