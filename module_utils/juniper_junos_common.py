@@ -744,7 +744,11 @@ class JuniperJunosModule(AnsibleModule):
             for arg_name, arg_value in self.params['provider'].items():
                 if arg_name in self.aliases:
                     arg_name = self.aliases[arg_name]
-                self.params[arg_name] = arg_value
+                # Some parameters like logfile and logdir can either be in
+                # provider os declared in the module params. The priority should
+                # be given to the module params in this case.
+                if self.params[arg_name] is None:
+                    self.params[arg_name] = arg_value
             self.params.pop('provider')
         # Parse the console option
         self._parse_console_options()
