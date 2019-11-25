@@ -1,4 +1,5 @@
-ansible
+ansible >= 2.4
+junos-eznc
 jsnapy==1.3.2
 jxmlease
 docker
