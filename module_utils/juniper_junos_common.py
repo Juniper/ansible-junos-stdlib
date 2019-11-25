@@ -111,6 +111,13 @@ try:
 except ImportError:
     HAS_YAML_VERSION = None
 
+try:
+    # Python 2
+    basestring
+except NameError:
+    # Python 3
+    basestring = str
+
 # Constants
 # Minimum PyEZ version required by shared code.
 MIN_PYEZ_VERSION = "2.2.0"
