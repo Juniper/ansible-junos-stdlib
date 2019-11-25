@@ -33,7 +33,7 @@
 
 from __future__ import absolute_import, division, print_function
 from ansible.plugins.action.network import ActionModule as ActionNetworkModule
-from ansible.module_utils.basic import BOOLEANS_TRUE, BOOLEANS_FALSE
+from ansible.module_utils.basic import boolean as ansible_vars_convert_to_boolean
 import os
 
 try:
@@ -52,28 +52,7 @@ connection_spec_fallbacks = {
                              'ansible_private_key_file']
 }
 
-
-def convert_to_bool_func(arg):
-    """Try converting arg to a bool value using Ansible's aliases for bool.
-
-    Args:
-        arg: The value to convert.
-
-    Returns:
-        A boolean value if successfully converted, or None if not.
-    """
-    if arg is None or type(arg) == bool:
-        return arg
-    if isinstance(arg, basestring):
-        arg = arg.lower()
-    if arg in BOOLEANS_TRUE:
-        return True
-    elif arg in BOOLEANS_FALSE:
-        return False
-    else:
-        return None
-
-
+# Moved the defintion
 class ActionModule(ActionNetworkModule):
     """A subclass of ActionNormal used by all juniper_junos_* modules.
 
@@ -151,4 +130,4 @@ class ActionModule(ActionNetworkModule):
         Returns:
             A boolean value if successfully converted, or None if not.
         """
-        return convert_to_bool_func(arg)
+        return ansible_vars_convert_to_boolean(arg)

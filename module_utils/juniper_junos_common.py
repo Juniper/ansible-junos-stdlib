@@ -35,8 +35,7 @@ from __future__ import absolute_import, division, print_function
 
 # Ansible imports
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.basic import BOOLEANS_TRUE, BOOLEANS_FALSE
-
+from ansible.module_utils.basic import boolean as ansible_vars_convert_to_boolean
 from ansible.module_utils._text import to_bytes
 
 # Standard library imports
@@ -588,27 +587,6 @@ CONFIG_MODE_CHOICES = ['exclusive', 'private']
 CONFIG_MODEL_CHOICES = ['openconfig', 'custom', 'ietf', 'True']
 
 
-def convert_to_bool_func(arg):
-    """Try converting arg to a bool value using Ansible's aliases for bool.
-
-    Args:
-        arg: The value to convert.
-
-    Returns:
-        A boolean value if successfully converted, or None if not.
-    """
-    if arg is None or type(arg) == bool:
-        return arg
-    if isinstance(arg, basestring):
-        arg = arg.lower()
-    if arg in BOOLEANS_TRUE:
-        return True
-    elif arg in BOOLEANS_FALSE:
-        return False
-    else:
-        return None
-
-
 class JuniperJunosModule(AnsibleModule):
     """A subclass of AnsibleModule used by all juniper_junos_* modules.
 
@@ -1127,7 +1105,7 @@ class JuniperJunosModule(AnsibleModule):
         Returns:
             A boolean value if successfully converted, or None if not.
         """
-        return convert_to_bool_func(arg)
+        return ansible_vars_convert_to_boolean(arg)
 
     def parse_arg_to_list_of_dicts(self,
                                    option_name,
