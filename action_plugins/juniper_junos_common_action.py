@@ -32,7 +32,7 @@
 #
 
 from __future__ import absolute_import, division, print_function
-from ansible.plugins.action.network import ActionModule as ActionNetworkModule
+from ansible.plugins.action.normal import ActionModule as ActionNormal
 from ansible.module_utils.basic import boolean as ansible_vars_convert_to_boolean
 import os
 
@@ -46,8 +46,11 @@ connection_spec_fallbacks = {
                              'ansible_private_key_file']
 }
 
-# Moved the defintion
-class ActionModule(ActionNetworkModule):
+
+# Moved the defintion from module_utils/juniper_junos_common.py to action_plugins/juniper_junos_common_action.py
+# Use the custom behavior defined below as our ActionModule.
+# The Ansible core engine will call ActionModule.run()
+class ActionModule(ActionNormal):
     """A subclass of ansible.plugins.action.network.ActionModule used by all juniper_junos_* modules.
 
     All juniper_junos_* modules share common behavior which is implemented in
@@ -58,8 +61,6 @@ class ActionModule(ActionNetworkModule):
         convert_to_bool: Try converting to bool using aliases for bool.
     """
     def run(self, tmp=None, task_vars=None):
-        # This variable is no longer used in the run definition
-        del tmp
         # The new connection arguments based on fallback/defaults.
         new_connection_args = dict()
 
@@ -115,15 +116,16 @@ class ActionModule(ActionNetworkModule):
         self._task.args['_module_name'] = self._task.action
 
         # Call the parent action module.
-        return super(ActionModule, self).run(task_vars)
+        return super(ActionModule, self).run(tmp, task_vars)
 
     def convert_to_bool(self, arg):
-        """Try converting arg to a bool value using Ansible's aliases for bool.
+        """
+        Try converting arg to a bool value using Ansible's aliases for bool.
 
         Args:
             arg: The value to convert.
 
         Returns:
-            A boolean value if successfully converted, or None if not.
+            A boolean value if successfully converted, or raises TypeError if not able to convert.
         """
         return ansible_vars_convert_to_boolean(arg)
