@@ -507,6 +507,7 @@ connection_spec = {
                     required=False,
                     default=30),
 }
+
 # Connection arguments which are mutually exclusive.
 connection_spec_mutually_exclusive = [['mode', 'console'],
                                       ['port', 'console'],
@@ -514,18 +515,6 @@ connection_spec_mutually_exclusive = [['mode', 'console'],
                                       ['attempts','console'],
                                       ['cs_user', 'console'],
                                       ['cs_passwd', 'console']]
-# Keys are connection options. Values are a list of task_vars to use as the
-# default value. Order of values specified against each key represents the
-# preference order of options in the key. Has to be maintained consistent with
-# ansible core modules
-connection_spec_fallbacks = {
-    'host': ['ansible_host', 'inventory_hostname'],
-    'user': ['ansible_connection_user', 'ansible_ssh_user', 'ansible_user'],
-    'passwd': ['ansible_ssh_pass', 'ansible_pass'],
-    'port': ['ansible_ssh_port', 'ansible_port'],
-    'ssh_private_key_file': ['ansible_ssh_private_key_file',
-                             'ansible_private_key_file']
-}
 
 # Specify the provider spec with options matching connection_spec.
 provider_spec = {
@@ -1888,5 +1877,3 @@ class JuniperJunosModule(AnsibleModule):
             except IOError:
                 self.fail_json(msg="Unable to save output. Failed to "
                                    "open the %s file." % (file_path))
-
-

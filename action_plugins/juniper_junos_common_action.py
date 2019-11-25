@@ -36,12 +36,6 @@ from ansible.plugins.action.network import ActionModule as ActionNetworkModule
 from ansible.module_utils.basic import boolean as ansible_vars_convert_to_boolean
 import os
 
-try:
-    # Python 2
-    basestring
-except NameError:
-    # Python 3
-    basestring = str
 
 connection_spec_fallbacks = {
     'host': ['ansible_host', 'inventory_hostname'],
@@ -54,7 +48,7 @@ connection_spec_fallbacks = {
 
 # Moved the defintion
 class ActionModule(ActionNetworkModule):
-    """A subclass of ActionNormal used by all juniper_junos_* modules.
+    """A subclass of ansible.plugins.action.network.ActionModule used by all juniper_junos_* modules.
 
     All juniper_junos_* modules share common behavior which is implemented in
     this class. This includes specific option fallback/default behavior and
@@ -64,6 +58,8 @@ class ActionModule(ActionNetworkModule):
         convert_to_bool: Try converting to bool using aliases for bool.
     """
     def run(self, tmp=None, task_vars=None):
+        # This variable is no longer used in the run definition
+        del tmp
         # The new connection arguments based on fallback/defaults.
         new_connection_args = dict()
 
