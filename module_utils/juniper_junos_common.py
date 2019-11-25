@@ -36,7 +36,7 @@ from __future__ import absolute_import, division, print_function
 # Ansible imports
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.basic import BOOLEANS_TRUE, BOOLEANS_FALSE
-from ansible.plugins.action.normal import ActionModule as ActionNormal
+
 from ansible.module_utils._text import to_bytes
 
 # Standard library imports
@@ -112,14 +112,6 @@ try:
 except ImportError:
     HAS_YAML_VERSION = None
 
-try:
-    # Python 2
-    basestring
-except NameError:
-    # Python 3
-    basestring = str
-
-
 # Constants
 # Minimum PyEZ version required by shared code.
 MIN_PYEZ_VERSION = "2.2.0"
@@ -141,26 +133,6 @@ JXMLEASE_INSTALLATION_URL = \
 # Minimum yaml version required by shared code.
 MIN_YAML_VERSION = "3.08"
 YAML_INSTALLATION_URL = "http://pyyaml.org/wiki/PyYAMLDocumentation"
-
-def convert_to_bool_func(arg):
-    """Try converting arg to a bool value using Ansible's aliases for bool.
-
-    Args:
-        arg: The value to convert.
-
-    Returns:
-        A boolean value if successfully converted, or None if not.
-    """
-    if arg is None or type(arg) == bool:
-        return arg
-    if isinstance(arg, basestring):
-        arg = arg.lower()
-    if arg in BOOLEANS_TRUE:
-        return True
-    elif arg in BOOLEANS_FALSE:
-        return False
-    else:
-        return None
 
 
 class ModuleDocFragment(object):
@@ -1940,81 +1912,3 @@ class JuniperJunosModule(AnsibleModule):
                                    "open the %s file." % (file_path))
 
 
-class JuniperJunosActionModule(ActionNormal):
-    """A subclass of ActionNormal used by all juniper_junos_* modules.
-
-    All juniper_junos_* modules share common behavior which is implemented in
-    this class. This includes specific option fallback/default behavior and
-    passing the "hidden" _module_utils_path option to the module.
-
-    Public Methods:
-        convert_to_bool: Try converting to bool using aliases for bool.
-    """
-    def run(self, tmp=None, task_vars=None):
-        # The new connection arguments based on fallback/defaults.
-        new_connection_args = dict()
-
-        # Get the current connection args from either provider or the top-level
-        if 'provider' in self._task.args:
-            connection_args = self._task.args['provider']
-        else:
-            connection_args = self._task.args
-
-        # The environment variables used by Ansible Tower
-        if 'user' not in connection_args:
-            net_user = os.getenv('ANSIBLE_NET_USERNAME')
-            if net_user is not None:
-                new_connection_args['user'] = net_user
-                connection_args['user'] = net_user
-        if 'passwd' not in connection_args:
-            net_passwd = os.getenv('ANSIBLE_NET_PASSWORD')
-            if net_passwd is not None:
-                new_connection_args['passwd'] = net_passwd
-                connection_args['passwd'] = net_passwd
-        if 'ssh_private_key_file' not in connection_args:
-            net_key = os.getenv('ANSIBLE_NET_SSH_KEYFILE')
-            if net_key is not None:
-                new_connection_args['ssh_private_key_file'] = net_key
-                connection_args['ssh_private_key_file'] = net_key
-
-        # The values set by Ansible command line arguments, configuration
-        # settings, or environment variables.
-        for key in connection_spec_fallbacks:
-            if key not in connection_args:
-                for task_var_key in connection_spec_fallbacks[key]:
-                    if task_var_key in task_vars:
-                        new_connection_args[key] = task_vars[task_var_key]
-                        break
-
-        # Backwards compatible behavior to fallback to USER env. variable.
-        if 'user' not in connection_args and 'user' not in new_connection_args:
-            user = os.getenv('USER')
-            if user is not None:
-                new_connection_args['user'] = user
-
-        # Copy the new connection arguments back into either top-level or
-        # the provider dictionary.
-        if 'provider' in self._task.args:
-            self._task.args['provider'].update(new_connection_args)
-        else:
-            self._task.args.update(new_connection_args)
-
-        # Pass the hidden _module_utils_path option
-        module_utils_path = os.path.normpath(os.path.dirname(__file__))
-        self._task.args['_module_utils_path'] = module_utils_path
-        # Pass the hidden _module_name option
-        self._task.args['_module_name'] = self._task.action
-
-        # Call the parent action module.
-        return super(JuniperJunosActionModule, self).run(tmp, task_vars)
-
-    def convert_to_bool(self, arg):
-        """Try converting arg to a bool value using Ansible's aliases for bool.
-
-        Args:
-            arg: The value to convert.
-
-        Returns:
-            A boolean value if successfully converted, or None if not.
-        """
-        return convert_to_bool_func(arg)
