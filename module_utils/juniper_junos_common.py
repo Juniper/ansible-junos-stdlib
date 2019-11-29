@@ -35,7 +35,7 @@ from __future__ import absolute_import, division, print_function
 
 # Ansible imports
 from ansible.module_utils.basic import AnsibleModule
-from ansible.module_utils.basic import boolean as ansible_vars_convert_to_boolean
+from ansible.module_utils.basic import boolean
 from ansible.module_utils._text import to_bytes
 
 # Standard library imports
@@ -601,7 +601,6 @@ class JuniperJunosModule(AnsibleModule):
         check_lxml_etree: Verify the lxml Etree library is present and
                           functional.
         check_yaml: Verify the YAML library is present and functional.
-        convert_to_bool: Try converting to bool using aliases for bool.
         parse_arg_to_list_of_dicts: Parses string_val into a list of dicts.
         parse_ignore_warning_option: Parses the ignore_warning option.
         parse_rollback_option: Parses the rollback option.
@@ -1092,17 +1091,6 @@ class JuniperJunosModule(AnsibleModule):
         self._check_library('yaml', HAS_YAML_VERSION,
                             YAML_INSTALLATION_URL, minimum=minimum)
 
-    def convert_to_bool(self, arg):
-        """Try converting arg to a bool value using Ansible's aliases for bool.
-
-        Args:
-            arg: The value to convert.
-
-        Returns:
-            A boolean value if successfully converted, or None if not.
-        """
-        return ansible_vars_convert_to_boolean(arg)
-
     def parse_arg_to_list_of_dicts(self,
                                    option_name,
                                    string_val,
@@ -1185,7 +1173,7 @@ class JuniperJunosModule(AnsibleModule):
                 if allow_bool_values is True:
                     # Try to convert it to a boolean value. Will be None if it
                     # can't be converted.
-                    bool_val = self.convert_to_bool(v)
+                    bool_val = boolean(v)
                     if bool_val is not None:
                         v = bool_val
                 return_item[k] = v
@@ -1210,7 +1198,7 @@ class JuniperJunosModule(AnsibleModule):
         if ignore_warn_list is None:
             return ignore_warn_list
         if len(ignore_warn_list) == 1:
-            bool_val = self.convert_to_bool(ignore_warn_list[0])
+            bool_val = boolean(ignore_warn_list[0])
             if bool_val is not None:
                 return bool_val
             elif isinstance(ignore_warn_list[0], basestring):

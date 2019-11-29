@@ -33,7 +33,6 @@
 
 from __future__ import absolute_import, division, print_function
 from ansible.plugins.action.normal import ActionModule as ActionNormal
-from ansible.module_utils.basic import boolean as ansible_vars_convert_to_boolean
 import os
 
 
@@ -57,8 +56,6 @@ class ActionModule(ActionNormal):
     this class. This includes specific option fallback/default behavior and
     passing the "hidden" _module_utils_path option to the module.
 
-    Public Methods:
-        convert_to_bool: Try converting to bool using aliases for bool.
     """
     def run(self, tmp=None, task_vars=None):
         # The new connection arguments based on fallback/defaults.
@@ -117,15 +114,3 @@ class ActionModule(ActionNormal):
 
         # Call the parent action module.
         return super(ActionModule, self).run(tmp, task_vars)
-
-    def convert_to_bool(self, arg):
-        """
-        Try converting arg to a bool value using Ansible's aliases for bool.
-
-        Args:
-            arg: The value to convert.
-
-        Returns:
-            A boolean value if successfully converted, or raises TypeError if not able to convert.
-        """
-        return ansible_vars_convert_to_boolean(arg)
