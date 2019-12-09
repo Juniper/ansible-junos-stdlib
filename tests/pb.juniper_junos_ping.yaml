@@ -7,7 +7,7 @@
     - Juniper.junos
   tasks:
     - name: "TEST 1 - Ping Google DNS"
-      junos_ping:
+      juniper_junos_ping:
         host: "{{ ansible_ssh_host }}"
         port: "{{ ansible_ssh_port }}"
         user: "{{ ansible_ssh_user }}"
@@ -25,7 +25,7 @@
 ############
 
     - name: "TEST 2 - Ping Wrong IP"
-      junos_ping:
+      juniper_junos_ping:
         host: "{{ ansible_ssh_host }}"
         port: "{{ ansible_ssh_port }}"
         user: "{{ ansible_ssh_user }}"
@@ -42,7 +42,7 @@
 #################
 
     - name: "TEST 3 - Change nbr packets"
-      junos_ping:
+      juniper_junos_ping:
         host: "{{ ansible_ssh_host }}"
         port: "{{ ansible_ssh_port }}"
         user: "{{ ansible_ssh_user }}"
@@ -61,7 +61,7 @@
 #################
 
     - name: "TEST 4 - Ping with DF-bit set"
-      junos_ping:
+      juniper_junos_ping:
         host: "{{ ansible_ssh_host }}"
         port: "{{ ansible_ssh_port }}"
         user: "{{ ansible_ssh_user }}"
@@ -82,7 +82,7 @@
 #################
 
     - name: "TEST 5 - Ping with DF-bit set and size that well exceeds jumbo sizes"
-      junos_ping:
+      juniper_junos_ping:
         host: "{{ ansible_ssh_host }}"
         port: "{{ ansible_ssh_port }}"
         user: "{{ ansible_ssh_user }}"

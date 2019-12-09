@@ -7,7 +7,7 @@
     - Juniper.junos
   tasks:
     - name: "TEST 1 - Gather Facts"
-      junos_get_facts:
+      juniper_junos_facts:
         host: "{{ ansible_ssh_host }}"
         port: "{{ ansible_ssh_port }}"
         user: "{{ ansible_ssh_user }}"

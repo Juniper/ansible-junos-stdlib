@@ -10,7 +10,7 @@
 ####    TEST 1                                  ##
 ##################################################
     - name: "TEST 1 - Execute SNAPCHECK with 1 test file / no dir"
-      junos_jsnapy:
+      juniper_junos_jsnapy:
         host: "{{ ansible_ssh_host }}"
         port: "{{ ansible_ssh_port }}"
         user: "{{ ansible_ssh_user }}"
@@ -34,7 +34,7 @@
 ####    TEST 2                                  ##
 ##################################################
     - name: "TEST 2 - Execute SNAPCHECK with 2 test file & dir"
-      junos_jsnapy:
+      juniper_junos_jsnapy:
         host: "{{ ansible_ssh_host }}"
         port: "{{ ansible_ssh_port }}"
         user: "{{ ansible_ssh_user }}"
@@ -61,7 +61,7 @@
 ####    TEST 3                                  ##
 ##################################################
     - name: "TEST 3 - Wrong test file"
-      junos_jsnapy:
+      juniper_junos_jsnapy:
         host: "{{ ansible_ssh_host }}"
         port: "{{ ansible_ssh_port }}"
         user: "{{ ansible_ssh_user }}"
@@ -83,7 +83,7 @@
 ####    TEST 4                                  ##
 ##################################################
     - name: "TEST 4 - SNAP_PRE"
-      junos_jsnapy:
+      juniper_junos_jsnapy:
         host: "{{ ansible_ssh_host }}"
         port: "{{ ansible_ssh_port }}"
         user: "{{ ansible_ssh_user }}"
@@ -106,7 +106,7 @@
 ####    TEST 5                                  ##
 ##################################################
     - name: "TEST 5 - SNAP_POST"
-      junos_jsnapy:
+      juniper_junos_jsnapy:
         host: "{{ ansible_ssh_host }}"
         port: "{{ ansible_ssh_port }}"
         user: "{{ ansible_ssh_user }}"
@@ -129,7 +129,7 @@
 ####    TEST 6                                  ##
 ##################################################
     - name: "TEST 6 - CHECK"
-      junos_jsnapy:
+      juniper_junos_jsnapy:
         host: "{{ ansible_ssh_host }}"
         port: "{{ ansible_ssh_port }}"
         user: "{{ ansible_ssh_user }}"
@@ -153,13 +153,13 @@
 ####    TEST 7                                  ##
 ##################################################
     - name: "PRE-TEST 7 - Add loopback address"
-      junos_install_config:
+      juniper_junos_config:
         host: "{{ ansible_ssh_host }}"
         port: "{{ ansible_ssh_port }}"
         user: "{{ ansible_ssh_user }}"
         passwd: "{{ ansible_ssh_pass }}"
+        load: 'merge'
         file: junos_jsnapy/add_loopback.set
-        overwrite: no
       register: test7_1
       ignore_errors: True
       tags: [ test7 ]
@@ -168,7 +168,7 @@
       pause: seconds=15
 
     - name: "TEST 7 - SNAP_POST with additional loopback"
-      junos_jsnapy:
+      juniper_junos_jsnapy:
         host: "{{ ansible_ssh_host }}"
         port: "{{ ansible_ssh_port }}"
         user: "{{ ansible_ssh_user }}"
@@ -181,7 +181,7 @@
     # - debug: var=pretest7
 
     - name: "TEST 7 - CHECK"
-      junos_jsnapy:
+      juniper_junos_jsnapy:
         host: "{{ ansible_ssh_host }}"
         port: "{{ ansible_ssh_port }}"
         user: "{{ ansible_ssh_user }}"
@@ -194,13 +194,13 @@
     - debug: var=test7
 
     - name: "TEST 7 - Cleanup"
-      junos_install_config:
+      juniper_junos_config:
         host: "{{ ansible_ssh_host }}"
         port: "{{ ansible_ssh_port }}"
         user: "{{ ansible_ssh_user }}"
         passwd: "{{ ansible_ssh_pass }}"
         file: junos_jsnapy/delete_loopback.set
-        overwrite: no
+        load: 'merge'
       register: test7_3
       ignore_errors: True
       tags: [ test7 ]

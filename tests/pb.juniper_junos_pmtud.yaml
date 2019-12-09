@@ -7,7 +7,7 @@
     - Juniper.junos
   tasks:
     - name: "TEST 1 - Check path MTU to Google DNS"
-      junos_pmtud:
+      juniper_junos_pmtud:
         host: "{{ ansible_ssh_host }}"
         port: "{{ ansible_ssh_port }}"
         user: "{{ ansible_ssh_user }}"
