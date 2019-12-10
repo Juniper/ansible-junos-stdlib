@@ -32,22 +32,85 @@
 #
 
 from __future__ import absolute_import, division, print_function
-
-# Standard library imports
-import os.path
-import sys
-
-# The module_utils path must be added to sys.path in order to import
-# juniper_junos_common. The module_utils path is relative to the path of this
-# file.
-module_utils_path = os.path.normpath(os.path.dirname(__file__) +
-                                     '/../module_utils')
-if module_utils_path is not None:
-    sys.path.insert(0, module_utils_path)
-    import juniper_junos_common
-    del sys.path[0]
+from ansible.plugins.action.normal import ActionModule as ActionNormal
+import os
 
 
-# Use the custom behavior of JuniperJunosActionModule as our ActionModule.
+connection_spec_fallbacks = {
+    'host': ['ansible_host', 'inventory_hostname'],
+    'user': ['ansible_connection_user', 'ansible_ssh_user', 'ansible_user'],
+    'passwd': ['ansible_ssh_pass', 'ansible_pass'],
+    'port': ['ansible_ssh_port', 'ansible_port'],
+    'ssh_private_key_file': ['ansible_ssh_private_key_file',
+                             'ansible_private_key_file']
+}
+
+
+# Moved the defintion from module_utils/juniper_junos_common.py to action_plugins/juniper_junos_common_action.py
+# Use the custom behavior defined below as our ActionModule.
 # The Ansible core engine will call ActionModule.run()
-from juniper_junos_common import JuniperJunosActionModule as ActionModule
+class ActionModule(ActionNormal):
+    """A subclass of ansible.plugins.action.network.ActionModule used by all juniper_junos_* modules.
+
+    All juniper_junos_* modules share common behavior which is implemented in
+    this class. This includes specific option fallback/default behavior and
+    passing the "hidden" _module_utils_path option to the module.
+
+    """
+    def run(self, tmp=None, task_vars=None):
+        # The new connection arguments based on fallback/defaults.
+        new_connection_args = dict()
+
+        # Get the current connection args from either provider or the top-level
+        if 'provider' in self._task.args:
+            connection_args = self._task.args['provider']
+        else:
+            connection_args = self._task.args
+
+        # The environment variables used by Ansible Tower
+        if 'user' not in connection_args:
+            net_user = os.getenv('ANSIBLE_NET_USERNAME')
+            if net_user is not None:
+                new_connection_args['user'] = net_user
+                connection_args['user'] = net_user
+        if 'passwd' not in connection_args:
+            net_passwd = os.getenv('ANSIBLE_NET_PASSWORD')
+            if net_passwd is not None:
+                new_connection_args['passwd'] = net_passwd
+                connection_args['passwd'] = net_passwd
+        if 'ssh_private_key_file' not in connection_args:
+            net_key = os.getenv('ANSIBLE_NET_SSH_KEYFILE')
+            if net_key is not None:
+                new_connection_args['ssh_private_key_file'] = net_key
+                connection_args['ssh_private_key_file'] = net_key
+
+        # The values set by Ansible command line arguments, configuration
+        # settings, or environment variables.
+        for key in connection_spec_fallbacks:
+            if key not in connection_args:
+                for task_var_key in connection_spec_fallbacks[key]:
+                    if task_var_key in task_vars:
+                        new_connection_args[key] = task_vars[task_var_key]
+                        break
+
+        # Backwards compatible behavior to fallback to USER env. variable.
+        if 'user' not in connection_args and 'user' not in new_connection_args:
+            user = os.getenv('USER')
+            if user is not None:
+                new_connection_args['user'] = user
+
+        # Copy the new connection arguments back into either top-level or
+        # the provider dictionary.
+        if 'provider' in self._task.args:
+            self._task.args['provider'].update(new_connection_args)
+        else:
+            self._task.args.update(new_connection_args)
+
+        # Pass the hidden _module_utils_path option
+        module_utils_path = os.path.normpath(os.path.dirname(__file__))
+        self._task.args['_module_utils_path'] = module_utils_path
+        # Pass the hidden _module_name option
+        self._task.args['_module_name'] = self._task.action
+
+        # Call the parent action module.
+        return super(ActionModule, self).run(tmp, task_vars)
