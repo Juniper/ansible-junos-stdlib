@@ -7,9 +7,7 @@
     - Juniper.junos
 
   tasks:
-##################################################
-####    TEST 1                                  ##
-##################################################
+#################
     - name: "Execute single RPC get-software-information without any kwargs"
       juniper_junos_rpc:
         host: "{{ ansible_ssh_host }}"
@@ -28,9 +26,7 @@
           - test1|succeeded
       tags: [ test1 ]
 
-##################################################
-####    TEST 2                                  ##
-##################################################
+#################
     - name: "Get Device Configuration with dest"
       juniper_junos_rpc:
         host: "{{ ansible_ssh_host }}"
@@ -56,6 +52,9 @@
       tags: [ test2 ]
 
     - name: Clean up TEST 2
+      file:
+        path: get_config.conf
+        state: absent
 
 
 #################
@@ -159,8 +158,12 @@
           - stat_result_1.stat.exists == True
       tags: [ test6 ]
 
-#################
+    - name: Clean up TEST 6
+      file:
+        path: get_config.conf
+        state: absent
 
+#################
     - name: Get Device Configuration for interface
       juniper_junos_rpc:
         host: "{{ ansible_ssh_host }}"
@@ -178,5 +181,24 @@
         that:
           - test7|succeeded
       tags: [ test7 ]
+
+#################
+    - name: "Execute wrong RPC to generate RPC error"
+      juniper_junos_rpc:
+        host: "{{ ansible_ssh_host }}"
+        port: "{{ ansible_ssh_port }}"
+        user: "{{ ansible_ssh_user }}"
+        passwd: "{{ ansible_ssh_pass }}"
+        rpcs:
+          - "wrong-rpc"
+      register: test8
+      ignore_errors: True
+      tags: [ test5 ]
+
+    - name: Check TEST 8
+      assert:
+        that:
+          - test8|failed
+      tags: [ test8 ]
 
 #################
