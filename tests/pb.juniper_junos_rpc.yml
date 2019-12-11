@@ -149,10 +149,15 @@
       ignore_errors: True
       tags: [ test6 ]
 
-    - name: Check that the get_config.conf exists
+    - name: Check out/choc-qfx-a_get-interface-information.xml exists
       stat:
-        path: out
+        path: out/choc-qfx-a_get-interface-information.xml
       register: stat_result_1
+
+    - name: Check out/choc-qfx-a_get-software-information.xml exists
+      stat:
+        path: out/choc-qfx-a_get-software-information.xml
+      register: stat_result_2
 
     - name: Check TEST 6
       assert:
@@ -160,11 +165,12 @@
           - test6.results[0].msg == "The RPC executed successfully."
           - test6.results[1].msg == "The RPC executed successfully."
           - stat_result_1.stat.exists == True
+          - stat_result_2.stat.exists == True
       tags: [ test6 ]
 
     - name: Clean up TEST 6
       file:
-        path: get_config.conf
+        path: out
         state: absent
 
 #################
