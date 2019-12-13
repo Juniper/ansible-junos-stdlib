@@ -1,5 +1,5 @@
 ---
-- name: Test junos_pmtud module
+- name: Test juniper_junos_pmtud module
   hosts: all
   connection: local
   gather_facts: no

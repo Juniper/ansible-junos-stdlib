@@ -1,0 +1,118 @@
+---
+- name: Test juniper_junos_config module
+  hosts: all
+  connection: local
+  gather_facts: no
+  roles:
+    - Juniper.junos
+  tasks:
+#################
+    - name: Retrieve the committed configuration
+      juniper_junos_config:
+        retrieve: 'committed'
+        diff: false
+        check: false
+        commit: false
+      register: test1
+      ignore_errors: True
+      tags: [ test1 ]
+
+    - name: Check TEST 1
+      assert:
+        that:
+          - test1.config
+          - "'host-name choc-qfx-a;' in test1.config"
+#################
+    - name: Append .foo to the hostname using private config mode.
+      juniper_junos_config:
+        config_mode: 'private'
+        load: 'merge'
+        lines:
+          - "set system host-name {{ inventory_hostname }}.foo"
+      register: test2
+      ignore_errors: True
+      tags: [ test2 ]
+
+    - name: Check TEST 2
+      assert:
+        that:
+          - test2.diff_lines
+          - "'+  host-name choc-qfx-a.foo;' in test2.diff_lines"
+#################
+    - name: Rollback to the previous config.
+      juniper_junos_config:
+        config_mode: 'private'
+        rollback: "1"
+      register: test3
+      ignore_errors: True
+      tags: [ test3 ]
+
+    - name: Check TEST 3
+      assert:
+        that:
+          - test3.diff_lines
+          - "'-  host-name choc-qfx-a.foo;' in test3.diff_lines"
+#################
+    - name: Creates directory
+      file:
+        path: out
+        state: directory
+
+    - name: Configure LLDP
+      juniper_junos_config:
+        load: 'merge'
+        lines:
+          - "set protocols lldp advertisement-interval 30"
+          - "set protocols lldp transmit-delay 2"
+          - "set protocols lldp hold-multiplier 4"
+          - "set protocols lldp ptopo-configuration-trap-interval 30"
+          - "set protocols lldp ptopo-configuration-maximum-hold-time 300"
+          - "set protocols lldp lldp-configuration-notification-interval 30"
+          - "set protocols lldp interface all disable"
+          - "set protocols lldp interface ge-1/1/1"
+        format: 'set'
+        comment: 'Start LLDP with given options'
+        dest_dir: './out'
+      register: test4
+      ignore_errors: True
+      tags: [ test4 ]
+
+    - name: Rollback to the rescue config.
+      juniper_junos_config:
+        rollback: 'rescue'
+
+    - name: Check out/choc-qfx-a.diff exists
+      stat:
+        path: out/choc-qfx-a.diff
+      register: stat_result_1
+
+    - name: Check TEST 4
+      assert:
+        that:
+          - stat_result_1.stat.exists == True
+          - test4.diff_lines
+          - "'+          interface ge-1/1/1;' in test4.diff_lines"
+
+    - name: Clean up TEST 4
+      file:
+        path: out
+        state: absent
+#################
+    - name: Retrieve [edit system services] of current committed config.
+      juniper_junos_config:
+        retrieve: 'committed'
+        filter: 'system/services'
+        diff: true
+        check: false
+        commit: false
+      register: test5
+      ignore_errors: True
+      tags: [ test5 ]
+
+    - name: Check TEST 5
+      assert:
+        that:
+          - test5.failed == False
+          - "'system {' in test5.config_lines"
+#################
+#TODO: Add tests for commit check and commit confirmed workflows
