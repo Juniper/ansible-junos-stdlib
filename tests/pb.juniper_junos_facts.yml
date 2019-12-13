@@ -1,5 +1,5 @@
 ---
-- name: Test junos_get_facts module
+- name: Test juniper_junos_facts module
   hosts: all
   connection: local
   gather_facts: no

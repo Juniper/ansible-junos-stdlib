@@ -1173,7 +1173,10 @@ class JuniperJunosModule(AnsibleModule):
                 if allow_bool_values is True:
                     # Try to convert it to a boolean value. Will be None if it
                     # can't be converted.
-                    bool_val = boolean(v)
+                    try:
+                        bool_val = boolean(v)
+                    except TypeError:
+                        bool_val = None
                     if bool_val is not None:
                         v = bool_val
                 return_item[k] = v
@@ -1851,7 +1854,7 @@ class JuniperJunosModule(AnsibleModule):
                 if getattr(self, 'destfile', None) is None:
                     self.destfile = self.params.get('dest')
                 else:
-                    mode = 'a'
+                    mode = 'ab'
             elif self.params.get('dest_dir') is not None:
                 dest_dir = self.params.get('dest_dir')
                 hostname = self.params.get('host')

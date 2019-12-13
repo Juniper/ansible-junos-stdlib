@@ -1,5 +1,5 @@
 ---
-- name: Test junos_ping module
+- name: Test juniper_junos_ping module
   hosts: all
   connection: local
   gather_facts: no

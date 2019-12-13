@@ -1,0 +1,217 @@
+---
+- name: Test juniper_junos_rpc module
+  hosts: all
+  connection: local
+  gather_facts: no
+  roles:
+    - Juniper.junos
+
+  tasks:
+#################
+    - name: "Execute single RPC get-software-information without any kwargs"
+      juniper_junos_rpc:
+        host: "{{ ansible_ssh_host }}"
+        port: "{{ ansible_ssh_port }}"
+        user: "{{ ansible_ssh_user }}"
+        passwd: "{{ ansible_ssh_pass }}"
+        rpcs:
+          - "get-software-information"
+      register: test1
+      ignore_errors: True
+      tags: [ test1 ]
+
+    - name: Check TEST 1
+      assert:
+        that:
+          - test1.msg == "The RPC executed successfully."
+      tags: [ test1 ]
+
+#################
+    - name: "Get Device Configuration with dest"
+      juniper_junos_rpc:
+        host: "{{ ansible_ssh_host }}"
+        port: "{{ ansible_ssh_port }}"
+        user: "{{ ansible_ssh_user }}"
+        passwd: "{{ ansible_ssh_pass }}"
+        rpc: get-config
+        dest: get_config.conf
+      register: test2
+      ignore_errors: True
+      tags: [ test2 ]
+
+    - name: Check that the get_config.conf exists
+      stat:
+        path: get_config.conf
+      register: stat_result
+
+    - name: Check TEST 2
+      assert:
+        that:
+          - test2.msg == "The \"get-config\" RPC executed successfully."
+          - stat_result.stat.exists == True
+      tags: [ test2 ]
+
+    - name: Clean up TEST 2
+      file:
+        path: get_config.conf
+        state: absent
+#################
+
+    - name: "Get Device Configuration in text"
+      juniper_junos_rpc:
+        host: "{{ ansible_ssh_host }}"
+        port: "{{ ansible_ssh_port }}"
+        user: "{{ ansible_ssh_user }}"
+        passwd: "{{ ansible_ssh_pass }}"
+        rpc: get-interface-information
+        kwargs: "interface_name=em0"
+        format: text
+      register: test3
+      ignore_errors: True
+      tags: [ test3 ]
+
+    - name: Check TEST 3
+      assert:
+        that:
+          - test3.msg == "The RPC executed successfully."
+      tags: [ test3 ]
+
+#################
+
+    - name: "Execute multiple RPCs without any kwargs"
+      juniper_junos_rpc:
+        host: "{{ ansible_ssh_host }}"
+        port: "{{ ansible_ssh_port }}"
+        user: "{{ ansible_ssh_user }}"
+        passwd: "{{ ansible_ssh_pass }}"
+        rpcs:
+          - "get-software-information"
+          - "get-interface-information"
+        dest: get_config.conf
+      register: test4
+      ignore_errors: True
+      tags: [ test4 ]
+
+    - name: Check TEST 4
+      assert:
+        that:
+          - test4.results[0].msg == "The RPC executed successfully."
+          - test4.results[1].msg == "The RPC executed successfully."
+      tags: [ test4 ]
+
+    - name: Clean up TEST 4
+      file:
+        path: get_config.conf
+        state: absent
+
+#################
+
+    - name: "Execute multiple RPCs with multiple kwargs"
+      juniper_junos_rpc:
+        host: "{{ ansible_ssh_host }}"
+        port: "{{ ansible_ssh_port }}"
+        user: "{{ ansible_ssh_user }}"
+        passwd: "{{ ansible_ssh_pass }}"
+        rpcs:
+          - "get-software-information"
+          - "get-interface-information"
+        kwargs:
+          - {}
+          - "interface_name=em0"
+      register: test5
+      ignore_errors: True
+      tags: [ test5 ]
+
+    - name: Check TEST 5
+      assert:
+        that:
+          - test5.results[0].msg == "The RPC executed successfully."
+          - test5.results[1].msg == "The RPC executed successfully."
+      tags: [ test5 ]
+
+#################
+    - name: Creates directory
+      file:
+        path: out
+        state: directory
+
+    - name: "Execute multiple RPCs with multiple kwargs and dest-dir"
+      juniper_junos_rpc:
+        host: "{{ ansible_ssh_host }}"
+        port: "{{ ansible_ssh_port }}"
+        user: "{{ ansible_ssh_user }}"
+        passwd: "{{ ansible_ssh_pass }}"
+        rpcs:
+          - "get-software-information"
+          - "get-interface-information"
+        kwargs:
+          - {}
+          - "interface_name=em0"
+        dest_dir: "out"
+      register: test6
+      ignore_errors: True
+      tags: [ test6 ]
+
+    - name: Check get-interface-information.xml exists
+      stat:
+        path: "out/{{ ansible_ssh_host }}_get-interface-information.xml"
+      register: stat_result_1
+
+    - name: Check get-software-information.xml exists
+      stat:
+        path: "out/{{ ansible_ssh_host }}_get-software-information.xml"
+      register: stat_result_2
+
+    - name: Check TEST 6
+      assert:
+        that:
+          - test6.results[0].msg == "The RPC executed successfully."
+          - test6.results[1].msg == "The RPC executed successfully."
+          - stat_result_1.stat.exists == True
+          - stat_result_2.stat.exists == True
+      tags: [ test6 ]
+
+    - name: Clean up TEST 6
+      file:
+        path: out
+        state: absent
+
+#################
+    - name: Get Device Configuration for interface
+      juniper_junos_rpc:
+        host: "{{ ansible_ssh_host }}"
+        port: "{{ ansible_ssh_port }}"
+        user: "{{ ansible_ssh_user }}"
+        passwd: "{{ ansible_ssh_pass }}"
+        rpc: get-config
+        filter_xml: "<configuration><interfaces/></configuration>"
+      register: test7
+      ignore_errors: True
+      tags: [ test7 ]
+
+    - name: Check TEST 7
+      assert:
+        that:
+          - test7.msg == "The \"get-config\" RPC executed successfully."
+      tags: [ test7 ]
+
+#################
+    - name: "Execute wrong RPC to generate RPC error"
+      juniper_junos_rpc:
+        host: "{{ ansible_ssh_host }}"
+        port: "{{ ansible_ssh_port }}"
+        user: "{{ ansible_ssh_user }}"
+        passwd: "{{ ansible_ssh_pass }}"
+        rpcs:
+          - "wrong-rpc"
+      register: test8
+      ignore_errors: True
+      tags: [ test8 ]
+
+    - name: Check TEST 8
+      assert:
+        that:
+          - '"Unable to execute the RPC" in test8.msg'
+      tags: [ test8 ]
+
+#################
