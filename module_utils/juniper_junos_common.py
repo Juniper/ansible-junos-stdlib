@@ -1177,7 +1177,6 @@ class JuniperJunosModule(AnsibleModule):
                         bool_val = boolean(v)
                     except TypeError:
                         bool_val = None
-                        pass
                     if bool_val is not None:
                         v = bool_val
                 return_item[k] = v

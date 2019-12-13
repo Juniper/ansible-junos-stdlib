@@ -154,12 +154,12 @@
 
     - name: Check get-interface-information.xml exists
       stat:
-        path: "out/{{ inventory_hostname }}_get-interface-information.xml"
+        path: "out/{{ ansible_ssh_host }}_get-interface-information.xml"
       register: stat_result_1
 
     - name: Check get-software-information.xml exists
       stat:
-        path: "out/{{ inventory_hostname }}_get-software-information.xml"
+        path: "out/{{ ansible_ssh_host }}_get-software-information.xml"
       register: stat_result_2
 
     - name: Check TEST 6
