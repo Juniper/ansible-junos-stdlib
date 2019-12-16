@@ -1,6 +1,7 @@
 ---
 galaxy_info:
   author: Juniper #Stacy W. Smith @stacywsmith
+  role_name: junos
   description: Network build automation of Junos devices.
   company: Juniper Networks, Inc.
   license: Apache 2.0
