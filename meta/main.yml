@@ -5,7 +5,7 @@ galaxy_info:
   description: Network build automation of Junos devices.
   company: Juniper Networks, Inc.
   license: Apache 2.0
-  min_ansible_version: 2.1
+  min_ansible_version: 2.4
   platforms:
     - name: junos
       versions:
