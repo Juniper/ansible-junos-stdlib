@@ -112,6 +112,12 @@ except ImportError:
     HAS_YAML_VERSION = None
 
 try:
+    from  ncclient.operations.errors import TimeoutExpiredError
+    HAS_NCCLIENT = True
+except ImportError:
+    HAS_NCCLIENT = False
+
+try:
     # Python 2
     basestring
 except NameError:
@@ -775,7 +781,11 @@ class JuniperJunosModule(AnsibleModule):
                       AnsibleModule.exit_json().
         """
         # Close the connection.
-        self.close()
+        try:
+            self.close()
+        except TimeoutExpiredError:
+            if hasattr(self, 'logger'):
+                self.logger.debug("Ignoring dev.close() timeout error")
         self.logger.debug("Exit JSON: %s", kwargs)
         # Call the parent's exit_json()
         super(JuniperJunosModule, self).exit_json(**kwargs)
@@ -790,7 +800,11 @@ class JuniperJunosModule(AnsibleModule):
         # Close the configuration
         self.close_configuration()
         # Close the connection.
-        self.close()
+        try:
+            self.close()
+        except TimeoutExpiredError:
+            if hasattr(self, 'logger'):
+                self.logger.debug("Ignoring dev.close() timeout error")
         if hasattr(self, 'logger'):
             self.logger.debug("Fail JSON: %s", kwargs)
         # Call the parent's fail_json()
