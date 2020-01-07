@@ -1125,7 +1125,7 @@ def main():
                 results['config_parsed'] = config_parsed
         # Save the output
         format_extension = 'config' if format == 'text' else format
-        junos_module.save_text_0output('config', format_extension, config)
+        junos_module.save_text_output('config', format_extension, config)
         results['msg'] += ', retrieved'
 
     junos_module.logger.debug("Step 6 - Commit the configuration changes.")
