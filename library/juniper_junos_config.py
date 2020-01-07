@@ -339,6 +339,26 @@ options:
     required: false
     default: none
     type: bool, str, or list of str
+  model:
+    description;
+      - Specifies yang model openconfig/custom/ietf to fetch. 
+      - When model is True and filter_xml is None, xml is enclosed under
+        <data> so that we get junos as well as other model configurations.
+      - In case of custom, user will have to provide the namespace to be fetched
+        using I(namespace) option.
+    required: false
+    default: none
+    choices:
+      - openconfig
+      - ietf
+      - custom
+  namespace:
+    description:
+      - Used with I(model) option. Specifies the custom namespace to be fetched
+        from the database.
+    required: false
+    default: none
+    type: str
   lines:
     description:
       - Used with the I(load) option. Specifies a list of list of
@@ -1105,7 +1125,7 @@ def main():
                 results['config_parsed'] = config_parsed
         # Save the output
         format_extension = 'config' if format == 'text' else format
-        junos_module.save_text_output('config', format_extension, config)
+        junos_module.save_text_0output('config', format_extension, config)
         results['msg'] += ', retrieved'
 
     junos_module.logger.debug("Step 6 - Commit the configuration changes.")

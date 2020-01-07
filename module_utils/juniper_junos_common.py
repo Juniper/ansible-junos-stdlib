@@ -1405,6 +1405,11 @@ class JuniperJunosModule(AnsibleModule):
                       in CONFIG_DATABASE_CHOICES.
             format: The format of the configuration to return. Choices are
                     defined in CONFIG_FORMAT_CHOICES.
+            model: The namespace of the configuration to return. Choices are defined
+                    in CONFIG_MODEL_CHOICES.
+            namespace:  User can have their own defined namespace in the
+                    custom yang models, In such cases they need to provide that
+                    namespace so that it can be used to fetch yang modeled configs
         Returns:
             A tuple containing:
             - The configuration in the requested format as a single
@@ -1419,17 +1424,6 @@ class JuniperJunosModule(AnsibleModule):
             - Invalid filter.
             - Format not understood by device.
         """
-        if database not in CONFIG_DATABASE_CHOICES:
-            self.fail_json(msg='The configuration database % is not in the '
-                               'list of recognized configuration databases: '
-                               '%s.' %
-                               (database, str(CONFIG_DATABASE_CHOICES)))
-
-        if format not in CONFIG_FORMAT_CHOICES:
-            self.fail_json(msg='The configuration format % is not in the list '
-                               'of recognized configuration formats: %s.' %
-                               (format, str(CONFIG_FORMAT_CHOICES)))
-
         options.update({'database': database,
                         'format': format})
 
