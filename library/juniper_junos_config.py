@@ -340,7 +340,7 @@ options:
     default: none
     type: bool, str, or list of str
   model:
-    description;
+    description:
       - Specifies yang model openconfig/custom/ietf to fetch. 
       - When model is True and filter_xml is None, xml is enclosed under
         <data> so that we get junos as well as other model configurations.

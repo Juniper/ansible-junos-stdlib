@@ -1,11 +1,10 @@
 ## About
 
- Ansible-junos-awx provides a web-based user interface and task engine built on top of [Ansible](https://github.com/ansible/ansible.git) which helps to perform specific
+Ansible-junos-awx provides a web-based user interface and task engine built on top of [Ansible](https://github.com/ansible/ansible.git) which helps to perform specific
 operational and configuration tasks on devices running Junos OS using [ansible-junos-stdlib](https://github.com/Juniper/ansible-junos-stdlib.git).
 
 ## Requirements
- Before you can run a deployment, you'll need the following installed in your local environment:
-
+Before you can run a deployment, you'll need the following installed in your local environment:
 - [Docker](https://www.docker.com)
 - pip module
 - [GNU Make](https://ftp.gnu.org/gnu/make/)
@@ -600,13 +599,9 @@ In the above case, the `PROJECT_DATA_DIR = XYZ`
 - Ensure docker has permission to bind the location mentioned in Makefile.variable
 
 ## LICENSE
-
 Apache 2.0
 
 ## CONTRIBUTORS
-
 Juniper Networks is actively contributing to and maintaining this repo. Please contact jnpr-community-netdev@juniper.net for any queries.
-
 *Contributors:*
-
 - v0.0.1: [Raja Shekar M](https://github.com/rsmekala),[Dinesh Babu R](https://github.com/dineshbaburam91), [Jasminderpal Sidhu](https://github.com/sidhujasminder)

@@ -14,7 +14,9 @@ SPHINXBUILD   = sphinx-build
 PAPER         =
 BUILDDIR      = _build
 RSTDIR        = .
+MDDIR         = .
 MODULES_PATH  = ../library
+ANSIBLE_JUNOS_AWX_DOC_PATH = ../ansible-junos-awx/README.md
 EXCLUDE_PATHS = ../library/_junos*
 DOC_PROJECTS  = "Ansible API"
 
@@ -58,6 +60,7 @@ clean:
 	rm -rf $(BUILDDIR)/*
 	rm -rf $(RSTDIR)/*.rst
 	rm -rf $(LOGFILE)
+	rm -rf $(MDDIR)/*.md
 
 .PHONY: apidoc
 apidoc:
@@ -65,6 +68,7 @@ apidoc:
 
 .PHONY: html
 html:
+	cp $(ANSIBLE_JUNOS_AWX_DOC_PATH) $(MDDIR)/ansible_junos_awx.md
 	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) $(RSTDIR) $(BUILDDIR)/html
 	@echo
 	@echo "Build finished. The HTML pages are in $(BUILDDIR)/html."

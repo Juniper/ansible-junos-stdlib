@@ -421,6 +421,18 @@ def main():
 
     for module_name in module_names:
         index_file.write('   %s\n' % module_name)
+    index_file.write('\n')
+
+    index_file.write('Ansible Junos AWX\n')
+    index_file.write('=================================================\n')
+    index_file.write('\n')
+    index_file.write('Contents:\n')
+    index_file.write('\n')
+    index_file.write('.. toctree::\n')
+    index_file.write('   :maxdepth: 1\n')
+    index_file.write('\n')
+    index_file.write('   ansible_junos_awx\n')
+
 
 if __name__ == '__main__':
     main()
