@@ -328,6 +328,12 @@ class ModuleDocFragment(object):
         type: str
         aliases:
           - console_password
+      huge_tree:
+        description:
+          - Parse XML with very deep trees and long text content.
+        required: false
+        type: bool
+        default: false
 '''
 
     LOGGING_DOCUMENTATION = '''
@@ -513,6 +519,9 @@ connection_spec = {
     'timeout': dict(type='int',
                     required=False,
                     default=30),
+    'huge_tree': dict(type='bool',
+                      required=False,
+                      default=False),
 }
 
 # Connection arguments which are mutually exclusive.
