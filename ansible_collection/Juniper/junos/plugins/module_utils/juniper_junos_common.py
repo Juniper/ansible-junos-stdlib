@@ -1201,7 +1201,7 @@ class JuniperJunosModule(AnsibleModule):
         if ignore_warn_list is None:
             return ignore_warn_list
         if len(ignore_warn_list) == 1:
-            bool_val = boolean(ignore_warn_list[0])
+            bool_val = boolean(ignore_warn_list[0], strict=False)
             if bool_val is not None:
                 return bool_val
             elif isinstance(ignore_warn_list[0], basestring):
