@@ -111,6 +111,8 @@ class ActionModule(ActionNormal):
         self._task.args['_module_utils_path'] = module_utils_path
         # Pass the hidden _module_name option
         self._task.args['_module_name'] = self._task.action
+        # Pass the hidden _inventory_hostname option
+        self._task.args['_inventory_hostname'] = task_vars['inventory_hostname']
 
         # Call the parent action module.
         return super(ActionModule, self).run(tmp, task_vars)
