@@ -4,10 +4,10 @@ LABEL net.juniper.image.maintainer="Stephen Steiner <ssteiner@juniper.net>"
 
 WORKDIR /tmp
 
-RUN apk add --no-cache ca-certificates openssh-client build-base gcc g++ make python-dev py-pip
+RUN apk add --no-cache ca-certificates openssh-client build-base gcc g++ make
 
 COPY requirements.txt .
-RUN pip install -r requirements.txt
+RUN pip3 install -r requirements.txt
 
 RUN apk del -r --purge gcc make g++ &&\
     rm -rf /source/* &&\
