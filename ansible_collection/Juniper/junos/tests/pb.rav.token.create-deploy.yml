@@ -1,0 +1,85 @@
+---
+- name: Create Application on Ravello for CI
+  connection: local
+  hosts: all
+  gather_facts: no
+  roles:
+    - ravello.lib
+  vars:
+    ravello_deploy_topology_cloud: AMAZON
+    ravello_deploy_topology_region: Oregon
+    ravello_deploy_topology_optimization: PERFORMANCE_OPTIMIZED
+    ravello_deploy_topology_start_all: true
+
+  tasks:
+    - name: Create Application from Blueprint for CI
+      uri:
+        url: "https://cloud.ravellosystems.com/api/v1/applications/"
+        method: POST
+        status_code: 201
+        HEADER_Content-Type: 'application/json'
+        HEADER_Accept: 'application/json'
+        HEADER_X-Ephemeral-Token-Authorization: "{{ ravello_ci_token }}"
+        body:
+          name: "{{ ravello_ci_app_name }}"
+          description: "App created by Travis CI"
+          baseBlueprintId: "{{ ravello_ci_blueprint }}"
+        body_format: json
+      run_once: true
+      changed_when: true
+
+    - name: Get App ID from Ravello
+      ravello_get_id:
+        resource_name: "{{ ravello_ci_app_name }}"
+        resource_type: applications
+        token:  "{{ ravello_ci_token }}"
+      register: app
+      run_once: true
+
+    - debug: var=app
+      run_once: true
+
+#######################################################
+##  Deploy Application(s)                            ##
+#######################################################
+    - name: Deploy Application On Ravello
+      uri:
+        url: "https://cloud.ravellosystems.com/api/v1/applications/{{ app.json.id }}/publish"
+        method: POST
+        status_code: 202
+        HEADER_Content-Type: 'application/json'
+        HEADER_Accept: 'application/json'
+        HEADER_X-Ephemeral-Token-Authorization: "{{ ravello_ci_token }}"
+        body: >
+          {
+            "preferredCloud": "{{ ravello_deploy_topology_cloud }}",
+            "preferredRegion": "{{ ravello_deploy_topology_region }}",
+            "optimizationLevel": "{{ ravello_deploy_topology_optimization }}",
+            "startAllVms": "{{ ravello_deploy_topology_start_all }}"
+          }
+        body_format: json
+      run_once: true
+
+########################################
+##  Set application Expiration time   ##
+########################################
+    - name: Set Application Expiration time
+      uri:
+        url: "https://cloud.ravellosystems.com/api/v1/applications/{{ app.json.id }}/setExpiration"
+        method: POST
+        status_code: 200
+        HEADER_Content-Type: 'application/json'
+        HEADER_Accept: 'application/json'
+        HEADER_X-Ephemeral-Token-Authorization: "{{ ravello_ci_token }}"
+        body: '{  "expirationFromNowSeconds": {{ ravello_ci_expiration_time_min * 60 }} }'
+        body_format: json
+      run_once: true
+
+    - name: Wait for devices to come up
+      pause: minutes=5
+
+    - name: Wait for devices to come up
+      pause: minutes=5
+
+    - name: Wait for devices to come up
+      pause: minutes=2

@@ -1,0 +1,3 @@
+set routing-instances LO10 interface lo0.10
+set routing-instances LO10 instance-type virtual-router
+set interfaces lo0 unit 10 family inet
