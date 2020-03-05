@@ -1,2 +1,0 @@
-delete routing-instances LO10
-delete interfaces lo0 unit 10
