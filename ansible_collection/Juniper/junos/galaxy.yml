@@ -17,7 +17,7 @@ readme: README.md
 # A list of the collection's content authors. Can be just the name or in the format 'Full Name <email> (url)
 # @nicks:irc/im.site#channel'
 authors:
-- Jeremy <jnpr-community-netdev@juniper.net>
+- Juniper Networks <jnpr-community-netdev@juniper.net>
 
 # A short summary description of the collection
 description: set of Ansible modules that perform specific operational and configuration tasks on devices running Junos OS.
@@ -25,7 +25,7 @@ description: set of Ansible modules that perform specific operational and config
 # Either a single license or a list of licenses for content inside of a collection. Ansible Galaxy currently only
 # accepts L(SPDX,https://spdx.org/licenses/) licenses. This key is mutually exclusive with 'license_file'
 license:
-- Apache-2.0-or-later
+- Apache-2.0
 
 # The path to the license file for the collection. This path is relative to the root of the collection. This key is
 # mutually exclusive with 'license'
@@ -45,7 +45,7 @@ dependencies: {}
 repository: https://github.com/Juniper/ansible-junos-stdlib
 
 # The URL to any online docs
-documentation: https://github.com/Juniper/ansible-junos-stdlib
+documentation: https://junos-ansible-modules.readthedocs.io
 
 # The URL to the homepage of the collection/project
 homepage: https://github.com/Juniper/ansible-junos-stdlib
