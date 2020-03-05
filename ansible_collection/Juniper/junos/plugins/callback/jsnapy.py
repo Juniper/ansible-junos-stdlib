@@ -86,3 +86,25 @@ class CallbackModule(CallbackBase):
                       str(testlet['xpath']),
                       json.dumps(data)),
                     color=C.COLOR_ERROR)
+
+              elif testlet['count']['pass'] != 0 :
+                if not has_printed_banner:
+                  self._display.banner("JSNAPy Results for: " + str(host))
+                  has_printed_banner = True
+
+                for test in testlet['passed']:
+
+                  # Check if POST exist in the response
+                  data = ''
+                  if 'post' in test:
+                      data = test['post']
+                  else:
+                      data = test
+
+                  self._display.display(
+                    "Value of '{0}' '{1}' at '{2}' with {3}".format(
+                      str(testlet['node_name']),
+                      str(testlet['testoperation']),
+                      str(testlet['xpath']),
+                      json.dumps(data)),
+                    color=C.COLOR_DEBUG)
