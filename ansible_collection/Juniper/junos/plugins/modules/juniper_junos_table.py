@@ -328,7 +328,7 @@ def juniper_items_to_list_of_dicts(module, data):
         # table_fields - element 1 is also a list of tuples
         temp = {}
         for key, value in table_fields:
-            if (value and isinstance(value, module.pyez_factory_table.Table)):
+            if isinstance(value, module.pyez_factory_table.Table):
                 value = juniper_items_to_list_of_dicts(module, value)
             temp[key] = value
         resources.append(temp)
