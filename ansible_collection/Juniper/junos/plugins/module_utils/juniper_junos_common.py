@@ -1201,16 +1201,17 @@ class JuniperJunosModule(AnsibleModule):
         if ignore_warn_list is None:
             return ignore_warn_list
         if len(ignore_warn_list) == 1:
-            bool_val = boolean(ignore_warn_list[0], strict=False)
-            if bool_val is not None:
-                return bool_val
-            elif isinstance(ignore_warn_list[0], basestring):
-                return ignore_warn_list[0]
-            else:
-                self.fail_json(msg="The value of the ignore_warning option "
-                                   "(%s) is invalid. Unexpected type (%s)." %
-                                   (ignore_warn_list[0],
-                                    type(ignore_warn_list[0])))
+            try:
+                bool_val = boolean(ignore_warn_list[0])
+                if bool_val is not None:
+                    return bool_val
+            except TypeError:
+                if isinstance(ignore_warn_list[0], basestring):
+                    return ignore_warn_list[0]
+            self.fail_json(msg="The value of the ignore_warning option "
+                               "(%s) is invalid. Unexpected type (%s)." %
+                               (ignore_warn_list[0],
+                                type(ignore_warn_list[0])))
         elif len(ignore_warn_list) > 1:
             for ignore_warn in ignore_warn_list:
                 if not isinstance(ignore_warn, basestring):
