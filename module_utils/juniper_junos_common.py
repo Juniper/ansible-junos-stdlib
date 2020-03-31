@@ -576,7 +576,7 @@ CONFIG_FORMAT_CHOICES = ['xml', 'set', 'text', 'json']
 CONFIG_DATABASE_CHOICES = ['candidate', 'committed']
 # Known configuration actions
 CONFIG_ACTION_CHOICES = ['set', 'merge', 'update',
-                         'replace', 'override', 'overwrite']
+                         'replace', 'override', 'overwrite', 'patch']
 # Supported configuration modes
 CONFIG_MODE_CHOICES = ['exclusive', 'private']
 # Supported configuration models
@@ -1590,7 +1590,7 @@ class JuniperJunosModule(AnsibleModule):
         Args:
             action - The type of load to perform: 'merge', 'replace', 'set',
                                                   'override', 'overwrite', and
-                                                  'update'
+                                                  'update', 'patch'
             lines - A list of strings containing the configuration.
             src - The file path on the local Ansible control machine to the
                   configuration to be loaded.
@@ -1620,6 +1620,8 @@ class JuniperJunosModule(AnsibleModule):
             load_args['overwrite'] = True
         if action == 'update':
             load_args['update'] = True
+        if action == 'patch':
+            load_args['patch'] = True
         if lines is not None:
             config = '\n'.join(map(lambda line: line.rstrip('\n'), lines))
             self.logger.debug("Loading the supplied configuration.")

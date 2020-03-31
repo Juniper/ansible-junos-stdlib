@@ -395,6 +395,7 @@ options:
         data is loaded line by line and may contain any configuration mode
         commands, such as set, delete, edit, or deactivate. This value must be
         specified if the new configuration is in set format.  
+      - B(patch) - Add the configuration to the existing configuration.
     required: false
     default: none
     choices:
@@ -405,6 +406,7 @@ options:
       - replace
       - override
       - overwrite
+      - patch
     type: str
   options:
     description:
