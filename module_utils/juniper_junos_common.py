@@ -565,6 +565,9 @@ internal_spec = {
     '_module_name': dict(type='str',
                          required=True,
                          default=None),
+    '_inventory_hostname': dict(type='str',
+                                required=True,
+                                default=None),
 }
 
 # Known RPC output formats
@@ -681,6 +684,7 @@ class JuniperJunosModule(AnsibleModule):
             mutually_exclusive=mutually_exclusive,
             **kwargs)
         self.module_name = self.params.get('_module_name')
+        self.inventory_hostname = self.params.get('_inventory_hostname')
         # Remove any arguments in internal_spec
         for arg_name in internal_spec:
             self.params.pop(arg_name)
@@ -1846,8 +1850,7 @@ class JuniperJunosModule(AnsibleModule):
                 file_path = os.path.normpath(self.params.get('diffs_file'))
             elif self.params.get('dest_dir') is not None:
                 dest_dir = self.params.get('dest_dir')
-                hostname = self.params.get('host')
-                file_name = '%s.diff' % (hostname)
+                file_name = '%s.diff' % (self.inventory_hostname,)
                 file_path = os.path.normpath(os.path.join(dest_dir, file_name))
         else:
             if self.params.get('dest') is not None:
@@ -1858,13 +1861,12 @@ class JuniperJunosModule(AnsibleModule):
                     mode = 'ab'
             elif self.params.get('dest_dir') is not None:
                 dest_dir = self.params.get('dest_dir')
-                hostname = self.params.get('host')
                 # Substitute underscore for spaces.
                 name = name.replace(' ', '_')
                 # Substitute underscore for pipe
                 name = name.replace('|', '_')
                 name = '' if name == 'config' else '_' + name
-                file_name = '%s%s.%s' % (hostname, name, format)
+                file_name = '%s%s.%s' % (self.inventory_hostname, name, format)
                 file_path = os.path.normpath(os.path.join(dest_dir, file_name))
         if file_path is not None:
             try:
