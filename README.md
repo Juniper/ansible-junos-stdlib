@@ -132,8 +132,11 @@ server, execute the ansible-galaxy install command, and specify **Juniper.junos*
 You can also use the ansible-galaxy install command to install the latest
 development version of the junos role directly from GitHub.
 
+Note: juniper.junos roles have been moved to roles-branch. 
+Master branch will be used for ansible-collection development.
+
 ```bash
-sudo ansible-galaxy install git+https://github.com/Juniper/ansible-junos-stdlib.git,,Juniper.junos
+sudo ansible-galaxy install git+https://github.com/Juniper/ansible-junos-stdlib.git,roles,Juniper.junos
 ```
 
 ### Git clone
