@@ -46,7 +46,6 @@ extends_documentation_fragment:
   - juniper_junos_common.connection_documentation
   - juniper_junos_common.logging_documentation
 module: juniper_junos_jsnapy
-version_added: "2.0.0" # of Juniper.junos role
 author:
   - Juniper Networks
   - Roslan Zaki
@@ -115,8 +114,8 @@ EXAMPLES = '''
   hosts: junos-all
   connection: local
   gather_facts: no
-  roles:
-    - Juniper.junos
+  collections:
+    - Juniper.junos_collection
 
   tasks:
     - name: JUNOS Post Checklist
@@ -209,7 +208,7 @@ Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project
 
 # Ansiballz packages module_utils into ansible.module_utils
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.Juniper.junos.plugins.module_utils import juniper_junos_common
+from ansible_collections.plugins.module_utils import juniper_junos_common
 
 def main():
     JSNAPY_ACTION_CHOICES = ['check', 'snapcheck', 'snap_pre', 'snap_post']

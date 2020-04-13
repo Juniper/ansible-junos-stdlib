@@ -46,7 +46,6 @@ extends_documentation_fragment:
   - juniper_junos_common.connection_documentation
   - juniper_junos_common.logging_documentation
 module: juniper_junos_facts
-version_added: "2.0.0" # of Juniper.junos role
 author: "Juniper Networks - Stacy Smith (@stacywsmith)"
 short_description: Retrieve facts from a Junos device
 description:
@@ -90,8 +89,8 @@ EXAMPLES = '''
   hosts: junos-all
   connection: local
   gather_facts: no
-  roles:
-    - Juniper.junos
+  collections:
+    - Juniper.junos_collection
   tasks:
     - name: Gather Junos facts with no configuration
       juniper_junos_facts:
@@ -177,7 +176,7 @@ Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project
 
 # Ansiballz packages module_utils into ansible.module_utils
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.Juniper.junos.plugins.module_utils import juniper_junos_common
+from ansible_collections.plugins.module_utils import juniper_junos_common
 from ansible.module_utils._text import to_bytes
 
 def get_facts_dict(junos_module):

@@ -410,7 +410,7 @@ def main():
 
     index_file_path = os.path.join(OUTPUTDIR, "index.rst")
     index_file = open(index_file_path, "w")
-    index_file.write('Juniper.junos Ansible Modules\n')
+    index_file.write('Juniper.junos_collection Ansible Modules\n')
     index_file.write('=================================================\n')
     index_file.write('\n')
     index_file.write('Contents:\n')

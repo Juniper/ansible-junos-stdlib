@@ -46,7 +46,6 @@ extends_documentation_fragment:
   - juniper_junos_common.connection_documentation
   - juniper_junos_common.logging_documentation
 module: juniper_junos_software
-version_added: "2.0.0" # of Juniper.junos role
 author:
   - Jeremy Schulman
   - "Juniper Networks - Stacy Smith (@stacywsmith)"
@@ -322,8 +321,8 @@ EXAMPLES = '''
   hosts: junos-all
   connection: local
   gather_facts: no
-  roles:
-    - Juniper.junos
+  collections:
+    - Juniper.junos_collection
 
   tasks:
     - name: Execute a basic Junos software upgrade.
@@ -391,7 +390,7 @@ Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project
 
 # Ansiballz packages module_utils into ansible.module_utils
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.Juniper.junos.plugins.module_utils import juniper_junos_common
+from ansible_collections.plugins.module_utils import juniper_junos_common
 
 def parse_version_from_filename(filename):
     """Attempts to parse a version string from the filename of a Junos package.
