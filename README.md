@@ -1,27 +1,35 @@
-# Juniper Ansible roles for Junos
+# Juniper Ansible collection for Junos
 
 ## About
 
-Juniper Networks supports Ansible for managing devices running
-the Junos operating system (Junos OS). This role is hosted on the Ansible Galaxy website under
-the role [Juniper.junos](https://galaxy.ansible.com/Juniper/junos/). The Juniper.junos role includes a set of Ansible
-modules that perform specific operational and configuration tasks on devices running Junos OS. These tasks include:
+Juniper Networks supports Ansible for managing devices running the Junos operating system (Junos OS). 
+This collection is hosted on the Ansible Galaxy website under the collection 
+[Juniper.junos_collection](https://galaxy.ansible.com/Juniper/junos/). The Juniper.junos_collection collection includes 
+a set of Ansible modules that perform specific operational and configuration tasks on devices running Junos OS. 
+These tasks include:
 installing and upgrading Junos OS, provisioning new Junos devices in the network, loading configuration changes,
 retrieving information, and resetting, rebooting, or shutting down managed devices.  Please refer to the
-[INSTALLATION](#installation) section for instructions on installing this role.
+[INSTALLATION](#installation) section for instructions on installing this collection.
+
+#Juniper.junos roles by Juniper Networks
+
+Ansible galaxy is upgrading to collections and plans to deprecate roles in future. The master branch will now have 
+Juniper.junos_collection support. Juniper.junos roles have been moved to roles branch. Roles will be supported for now. 
+For more information for roles, check: 
+https://github.com/Juniper/ansible-junos-stdlib/tree/roles
 
 ## Two Sets of Ansible Modules for Junos devices
 
 Since Ansible version >= 2.1, Ansible also natively includes
 [core modules for Junos](http://docs.ansible.com/ansible/list_of_network_modules.html#junos). The Junos modules included
-in Ansible core have names which begin with the prefix `junos_`. The Junos modules included in this Juniper.junos role
-have names which begin with the prefix `juniper_junos_`. These two sets of Junos modules can coexist on the same
+in Ansible core have names which begin with the prefix `junos_`. The Junos modules included in this Juniper.junos_collection
+collection have names which begin with the prefix `juniper_junos_`. These two sets of Junos modules can coexist on the same
 Ansible control machine, and an Ansible play may invoke a module from either (or both) sets. Juniper Networks recommends
-using the modules in this role when writing new playbooks that manage Junos devices.
+using the modules in this collection when writing new playbooks that manage Junos devices.
 
 ## Overview of Modules
 
-This Juniper.junos role includes the following modules:
+This Juniper.junos_collection collection includes the following modules:
 
 - **juniper_junos_command** — Execute one or more CLI commands on a Junos device.
 - **juniper_junos_config** — Manipulate the configuration of a Junos device.
@@ -34,17 +42,6 @@ This Juniper.junos role includes the following modules:
 - **juniper_junos_srx_cluster** — Add or remove SRX chassis cluster configuration.
 - **juniper_junos_system** — Initiate operational actions on the Junos system.
 - **juniper_junos_table** — Retrieve data from a Junos device using a PyEZ table/view.
-
-### Important Changes
-
-Significant changes to the modules in the Juniper.junos role were made between versions 1.4.3 and 2.0.0.
-In versions <= 1.4.3 of the Juniper.junos role, the modules used different module and argument names. Versions >= 2.0.0
-of the Juniper.junos role provide backwards compatibility with playbooks written to prior versions of the Juniper.junos
-role. If a playbook worked with a prior version of the Juniper.junos role, it should
-continue to work on the current version without requiring modifications to the playbook. However, these older module and
-argument names are no longer present in the current documentation. You may reference previous module and argument names
-by referring directly to the
-[1.4.3 version of the Juniper.junos role documentation](http://junos-ansible-modules.readthedocs.io/en/1.4.3/).
 
 ### Overview of Plugins
 
@@ -89,9 +86,11 @@ You must have the [DEPENDENCIES](#dependencies) installed on your system.
 
 #### Ubuntu 14.04
 
-If you're dealing with Ubuntu 14.04 and faced following error during the installation, it's because the system python which used by Ubuntu 14.04 is locked to 2.7.6 till EOL, as a result, please consider to skip galaxy certification process by appending `-c` option of ansible-galaxy. i.e. `ansible-galaxy install Juniper.junos -c`
+If you're dealing with Ubuntu 14.04 and faced following error during the installation, it's because the system python 
+which used by Ubuntu 14.04 is locked to 2.7.6 till EOL, as a result, please consider to skip galaxy certification process
+by appending `-c` option of ansible-galaxy. i.e. `ansible-galaxy collection install Juniper.junos_collection -c`
 
-    [WARNING]: - Juniper.junos was NOT installed successfully: Failed to get data
+    [WARNING]: - Juniper.junos_collection was NOT installed successfully: Failed to get data
     from the API server (https://galaxy.ansible.com/api/): Failed to validate the
     SSL certificate for galaxy.ansible.com:443. Make sure your managed systems have
     a valid CA certificate installed. If the website serving the url uses SNI you
@@ -106,7 +105,7 @@ If you're dealing with Ubuntu 14.04 and faced following error during the install
     u'galaxy.ansible.com' doesn't match either of
     '*.c1e4.galaxy.openshiftapps.com', 'c1e4.galaxy.openshiftapps.com'.
 
-    ERROR! - you can use --ignore-errors to skip failed roles and finish processing the list.
+    ERROR! - you can use --ignore-errors to skip failed collections and finish processing the list.
 
 ### MacOS Mojave and newer
 
@@ -116,24 +115,20 @@ In MacOS Mojave and newer (>=10.14), ssh keys created with the system `ssh-keyge
 - Check existing keys: `head -n1 ~/.ssh/some_private_key` RSA keys will be `-----BEGIN RSA PRIVATE KEY-----` and OPENSSH keys will be `-----BEGIN OPENSSH PRIVATE KEY-----`
 - Convert an OPENSSH key to an RSA key: `ssh-keygen -p -m PEM -f ~/.ssh/some_key`
 
-### Ansible Galaxy Role
+### Ansible Galaxy collection
 
-To download the latest released version of the junos role to the Ansible
-server, execute the ansible-galaxy install command, and specify **Juniper.junos**.
+To download the latest released version of the junos collection to the Ansible
+server, execute the ansible-galaxy collection install command, and specify **Juniper.junos_collection**.
 
 ```bash
-[root@ansible-cm]# ansible-galaxy install Juniper.junos
-- downloading role 'junos', owned by Juniper
-- downloading role from https://github.com/Juniper/ansible-junos-stdlib/archive/1.3.1.tar.gz
-- extracting Juniper.junos to /usr/local/etc/ansible/roles/Juniper.junos
-- Juniper.junos was installed successfully
+[root@ansible-cm]# ansible-galaxy collection install Juniper.junos_collection
 ```
 
 You can also use the ansible-galaxy install command to install the latest
-development version of the junos role directly from GitHub.
+development version of the junos collection directly from GitHub.
 
 ```bash
-sudo ansible-galaxy install git+https://github.com/Juniper/ansible-junos-stdlib.git,,Juniper.junos
+sudo ansible-galaxy collection install git+https://github.com/Juniper/ansible-junos-stdlib.git,,Juniper.junos_collection
 ```
 
 ### Git clone
@@ -196,8 +191,8 @@ This example outlines how to use Ansible to install or upgrade the software imag
 ---
 - name: Install Junos OS
   hosts: dc1
-  roles:
-    - Juniper.junos
+  collections:
+    - Juniper.junos_collection
   connection: local
   gather_facts: no
   vars:
@@ -241,8 +236,8 @@ Apache 2.0
 
 ## SUPPORT
 
-Support for this Juniper.junos role is provided by the community and Juniper Networks. If you have an
-issue with a module in the Juniper.junos role, you may:
+Support for this Juniper.junos_collection collection is provided by the community and Juniper Networks. If you have an
+issue with a module in the Juniper.junos_collection collection, you may:
 
 - Open a [GitHub issue](https://github.com/Juniper/ansible-junos-stdlib/issues).
 - Post a question on our [Google Group](https://groups.google.com/forum/#!forum/junos-python-ez)
@@ -258,7 +253,8 @@ Juniper Networks is actively contributing to and maintaining this repo. Please c
 [jnpr-community-netdev@juniper.net](jnpr-community-netdev@juniper.net) for any queries.
 
 *Contributors:*
-[Nitin Kumar](https://github.com/vnitinv), [Stacy W Smith](https://github.com/stacywsmith), [Stephen Steiner](https://github.com/ntwrkguru)
+[Nitin Kumar](https://github.com/vnitinv), [Stacy W Smith](https://github.com/stacywsmith), [Stephen Steiner](https://github.com/ntwrkguru),
+[Rahul Kumar](https://github.com/rahkumar651991)
 
 *Former Contributors:*
 
