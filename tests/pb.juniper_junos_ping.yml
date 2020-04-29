@@ -1,0 +1,102 @@
+---
+- name: Test juniper_junos_ping module
+  hosts: all
+  connection: local
+  gather_facts: no
+  roles:
+    - Juniper.junos
+  tasks:
+    - name: "TEST 1 - Ping Google DNS"
+      juniper_junos_ping:
+        host: "{{ ansible_ssh_host }}"
+        port: "{{ ansible_ssh_port }}"
+        user: "{{ ansible_ssh_user }}"
+        passwd: "{{ ansible_ssh_pass }}"
+        dest_ip: 8.8.8.8
+      register: test1
+      ignore_errors: True
+#    - debug: var=test1
+
+    - name: Check TEST 1
+      assert:
+        that:
+          - test1.packet_loss == '0'
+
+############
+
+    - name: "TEST 2 - Ping Wrong IP"
+      juniper_junos_ping:
+        host: "{{ ansible_ssh_host }}"
+        port: "{{ ansible_ssh_port }}"
+        user: "{{ ansible_ssh_user }}"
+        passwd: "{{ ansible_ssh_pass }}"
+        dest_ip: 8.8.1.1
+      register: test2
+      ignore_errors: True
+#    - debug: var=test2
+
+    - name: Check TEST 2
+      assert:
+        that:
+          - test2.packet_loss == '100'
+#################
+
+    - name: "TEST 3 - Change nbr packets"
+      juniper_junos_ping:
+        host: "{{ ansible_ssh_host }}"
+        port: "{{ ansible_ssh_port }}"
+        user: "{{ ansible_ssh_user }}"
+        passwd: "{{ ansible_ssh_pass }}"
+        dest_ip: 8.8.8.8
+        count: 3
+      register: test3
+      ignore_errors: True
+#    - debug: var=test3
+
+    - name: Check TEST 3
+      assert:
+        that:
+          - test3.packets_sent == '3'
+
+#################
+
+    - name: "TEST 4 - Ping with DF-bit set"
+      juniper_junos_ping:
+        host: "{{ ansible_ssh_host }}"
+        port: "{{ ansible_ssh_port }}"
+        user: "{{ ansible_ssh_user }}"
+        passwd: "{{ ansible_ssh_pass }}"
+        dest_ip: 8.8.8.8
+        count: 3
+        do_not_fragment: True
+        size: 64
+      register: test4
+      ignore_errors: True
+#    - debug: var=test4
+
+    - name: Check TEST 4
+      assert:
+        that:
+          - test4.packets_received == '3'
+
+#################
+
+    - name: "TEST 5 - Ping with DF-bit set and size that well exceeds jumbo sizes"
+      juniper_junos_ping:
+        host: "{{ ansible_ssh_host }}"
+        port: "{{ ansible_ssh_port }}"
+        user: "{{ ansible_ssh_user }}"
+        passwd: "{{ ansible_ssh_pass }}"
+        dest_ip: 8.8.8.8
+        count: 3
+        do_not_fragment: True
+        size: 9999
+      register: test5
+      ignore_errors: True
+#    - debug: var=test5
+
+    - name: Check TEST 5
+      assert:
+        that:
+          - test5.packets_received == '0'
+

@@ -1,0 +1,23 @@
+---
+- name: Test juniper_junos_pmtud module
+  hosts: all
+  connection: local
+  gather_facts: no
+  roles:
+    - Juniper.junos
+  tasks:
+    - name: "TEST 1 - Check path MTU to Google DNS"
+      juniper_junos_pmtud:
+        host: "{{ ansible_ssh_host }}"
+        port: "{{ ansible_ssh_port }}"
+        user: "{{ ansible_ssh_user }}"
+        passwd: "{{ ansible_ssh_pass }}"
+        dest_ip: 8.8.8.8
+      register: test1
+      ignore_errors: True
+    - debug: var=test1
+
+    - name: Check TEST 1
+      assert:
+        that:
+          - 768 <= test1.inet_mtu <= 1500

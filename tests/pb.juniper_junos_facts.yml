@@ -1,0 +1,26 @@
+---
+- name: Test juniper_junos_facts module
+  hosts: all
+  connection: local
+  gather_facts: no
+  roles:
+    - Juniper.junos
+  tasks:
+    - name: "TEST 1 - Gather Facts"
+      juniper_junos_facts:
+        host: "{{ ansible_ssh_host }}"
+        port: "{{ ansible_ssh_port }}"
+        user: "{{ ansible_ssh_user }}"
+        passwd: "{{ ansible_ssh_pass }}"
+      ignore_errors: True
+      register: test1
+
+  #  - debug: var=test1
+
+    - name: Check TEST 1
+      assert:
+        that:
+          - test1.facts.hostname
+          - test1.facts.serialnumber
+          - test1.facts.model
+          - test1.facts.fqdn
