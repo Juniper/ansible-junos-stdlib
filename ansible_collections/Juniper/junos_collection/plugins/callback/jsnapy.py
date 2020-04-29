@@ -20,6 +20,9 @@ class CallbackModule(CallbackBase):
   CALLBACK_TYPE = 'aggregate'
   CALLBACK_NAME = 'jsnapy'
 
+  # only needed if you ship it and don't want to enable by default
+  CALLBACK_NEEDS_WHITELIST = True
+
 ## useful links regarding Callback
 ## https://github.com/ansible/ansible/blob/devel/lib/ansible/plugins/callback/__init__.py
 
