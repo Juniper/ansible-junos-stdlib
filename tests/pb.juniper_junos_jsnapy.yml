@@ -3,18 +3,14 @@
   hosts: all
   connection: local
   gather_facts: no
-  roles:
-    - Juniper.junos
+  collections:
+    - Juniper.junos_collection
   tasks:
 ##################################################
 ####    TEST 1                                  ##
 ##################################################
     - name: "TEST 1 - Execute SNAPCHECK with 1 test file / no dir"
       juniper_junos_jsnapy:
-        host: "{{ ansible_ssh_host }}"
-        port: "{{ ansible_ssh_port }}"
-        user: "{{ ansible_ssh_user }}"
-        passwd: "{{ ansible_ssh_pass }}"
         test_files: junos_jsnapy/test_junos_storage.yml
         action: snapcheck
       register: test1
@@ -35,10 +31,6 @@
 ##################################################
     - name: "TEST 2 - Execute SNAPCHECK with 2 test file & dir"
       juniper_junos_jsnapy:
-        host: "{{ ansible_ssh_host }}"
-        port: "{{ ansible_ssh_port }}"
-        user: "{{ ansible_ssh_user }}"
-        passwd: "{{ ansible_ssh_pass }}"
         test_files:
           - test_junos_storage.yml
           - test_version.yml
@@ -62,10 +54,6 @@
 ##################################################
     - name: "TEST 3 - Wrong test file"
       juniper_junos_jsnapy:
-        host: "{{ ansible_ssh_host }}"
-        port: "{{ ansible_ssh_port }}"
-        user: "{{ ansible_ssh_user }}"
-        passwd: "{{ ansible_ssh_pass }}"
         test_files: file_that_doesnt_exist.yml
         action: snapcheck
       register: test3
@@ -84,10 +72,6 @@
 ##################################################
     - name: "TEST 4 - SNAP_PRE"
       juniper_junos_jsnapy:
-        host: "{{ ansible_ssh_host }}"
-        port: "{{ ansible_ssh_port }}"
-        user: "{{ ansible_ssh_user }}"
-        passwd: "{{ ansible_ssh_pass }}"
         test_files: junos_jsnapy/test_loopback.yml
         action: snap_pre
       register: test4
@@ -107,10 +91,6 @@
 ##################################################
     - name: "TEST 5 - SNAP_POST"
       juniper_junos_jsnapy:
-        host: "{{ ansible_ssh_host }}"
-        port: "{{ ansible_ssh_port }}"
-        user: "{{ ansible_ssh_user }}"
-        passwd: "{{ ansible_ssh_pass }}"
         test_files: junos_jsnapy/test_loopback.yml
         action: snap_post
       register: test5
@@ -130,10 +110,6 @@
 ##################################################
     - name: "TEST 6 - CHECK"
       juniper_junos_jsnapy:
-        host: "{{ ansible_ssh_host }}"
-        port: "{{ ansible_ssh_port }}"
-        user: "{{ ansible_ssh_user }}"
-        passwd: "{{ ansible_ssh_pass }}"
         test_files: junos_jsnapy/test_loopback.yml
         action: check
       register: test6
@@ -154,10 +130,6 @@
 ##################################################
     - name: "PRE-TEST 7 - Add loopback address"
       juniper_junos_config:
-        host: "{{ ansible_ssh_host }}"
-        port: "{{ ansible_ssh_port }}"
-        user: "{{ ansible_ssh_user }}"
-        passwd: "{{ ansible_ssh_pass }}"
         load: 'merge'
         file: junos_jsnapy/add_loopback.set
       register: test7_1
@@ -169,10 +141,6 @@
 
     - name: "TEST 7 - SNAP_POST with additional loopback"
       juniper_junos_jsnapy:
-        host: "{{ ansible_ssh_host }}"
-        port: "{{ ansible_ssh_port }}"
-        user: "{{ ansible_ssh_user }}"
-        passwd: "{{ ansible_ssh_pass }}"
         test_files: junos_jsnapy/test_loopback.yml
         action: snap_post
       register: test7_2
@@ -182,10 +150,6 @@
 
     - name: "TEST 7 - CHECK"
       juniper_junos_jsnapy:
-        host: "{{ ansible_ssh_host }}"
-        port: "{{ ansible_ssh_port }}"
-        user: "{{ ansible_ssh_user }}"
-        passwd: "{{ ansible_ssh_pass }}"
         test_files: junos_jsnapy/test_loopback.yml
         action: check
       register: test7
@@ -195,10 +159,6 @@
 
     - name: "TEST 7 - Cleanup"
       juniper_junos_config:
-        host: "{{ ansible_ssh_host }}"
-        port: "{{ ansible_ssh_port }}"
-        user: "{{ ansible_ssh_user }}"
-        passwd: "{{ ansible_ssh_pass }}"
         file: junos_jsnapy/delete_loopback.set
         load: 'merge'
       register: test7_3
