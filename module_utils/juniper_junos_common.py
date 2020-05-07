@@ -1570,7 +1570,8 @@ class JuniperJunosModule(AnsibleModule):
 
         self.logger.debug("Diffing candidate and committed configurations.")
         try:
-            diff = self.config.diff(rb_id=0, ignore_warning)
+	    rb_id =0
+            diff = self.config.diff(rb_id, ignore_warning)
             self.logger.debug("Configuration diff completed.")
             return diff
         except (self.pyez_exception.RpcError,
