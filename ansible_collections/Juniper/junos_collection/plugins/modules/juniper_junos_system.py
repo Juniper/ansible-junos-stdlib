@@ -343,7 +343,7 @@ def main():
             elif action == 'halt':
                 got = junos_module.sw.halt(in_min, at, all_re, other_re)
             elif action == 'zeroize':
-                got = junos_module.sw.halt(all_re, media)
+                got = junos_module.sw.zeroize(all_re, media)
             else:
                 junos_module.fail_json(msg='Relevant action not found')
 
