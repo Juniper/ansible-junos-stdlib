@@ -6,9 +6,9 @@
   collections:
     - Juniper.junos_collection
   tasks:
-    - name: "TEST 1 - Check path MTU to Google DNS"
+    - name: "TEST 1 - Check path MTU to host DNS"
       juniper_junos_pmtud:
-        dest_ip: 8.8.8.8
+        dest_ip: "{{ ansible_ssh_host }}"
       register: test1
       ignore_errors: True
     - debug: var=test1
@@ -17,3 +17,16 @@
       assert:
         that:
           - 768 <= test1.inet_mtu <= 1500
+
+    - name: "TEST 2 - Configure and check inet.mtu to host DNS"
+      juniper_junos_pmtud:
+        dest_ip: "{{ ansible_ssh_host }}"
+        max_size: 700
+      register: test1
+      ignore_errors: True
+    - debug: var=test1
+
+    - name: Check TEST 2
+      assert:
+        that:
+          - test1.inet_mtu <= 700
