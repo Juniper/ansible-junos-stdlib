@@ -134,6 +134,18 @@ options:
       - format
       - display
       - output
+  ignore_warning:
+    description:
+      - A boolean, string or list of strings. If the value is C(true),
+        ignore all warnings regardless of the warning message. If the value
+        is a string, it will ignore warning(s) if the message of each warning
+        matches the string. If the value is a list of strings, ignore
+        warning(s) if the message of each warning matches at least one of the
+        strings in the list. The value of the I(ignore_warning) option is
+        applied to the load and commit operations performed by this module.
+    required: false
+    default: none
+    type: bool, str, or list of str
   return_output:
     description:
       - Indicates if the output of the command should be returned in the
@@ -332,6 +344,9 @@ def main():
                           type='path',
                           aliases=['destination_dir', 'destdir'],
                           default=None),
+            ignore_warning=dict(required=False,
+                                type='list',
+                                default=None),
             return_output=dict(required=False,
                                type='bool',
                                default=True)
@@ -344,6 +359,9 @@ def main():
         supports_check_mode=True,
         min_jxmlease_version=juniper_junos_common.MIN_JXMLEASE_VERSION,
     )
+
+    # Parse ignore_warning value
+    ignore_warning = junos_module.parse_ignore_warning_option()
 
     # Check over commands
     commands = junos_module.params.get('commands')
@@ -413,7 +431,7 @@ def main():
                                       command)
             rpc = junos_module.etree.Element('command', format=format)
             rpc.text = command
-            resp = junos_module.dev.rpc(rpc, normalize=bool(format == 'xml'))
+            resp = junos_module.dev.rpc(rpc, ignore_warning=ignore_warning, normalize=bool(format == 'xml'))
             result['msg'] = 'The command executed successfully.'
             junos_module.logger.debug('Command "%s" executed successfully.',
                                       command)
