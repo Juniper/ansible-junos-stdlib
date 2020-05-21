@@ -20,7 +20,7 @@ class CallbackModule(CallbackBase):
   CALLBACK_TYPE = 'aggregate'
   CALLBACK_NAME = 'jsnapy'
 
-  # only needed if you ship it and don't want to enable by default
+  # callback needs to be enabled with config-file to use jsnapy callback during execution
   CALLBACK_NEEDS_WHITELIST = True
 
 ## useful links regarding Callback
