@@ -504,6 +504,8 @@ def main():
 
         # Execute the RPC
         try:
+            #for get-config in case of exception handling it will not display
+            #filters and arguments. To be added in future.
             rpc = junos_module.etree.Element(rpc_string, format=format)
             if rpc_string == 'get-config':
                 filter = junos_module.params.get('filter')
