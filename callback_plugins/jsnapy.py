@@ -64,11 +64,10 @@ class CallbackModule(CallbackBase):
       for result in results:
         # self._pp.pprint(result.__dict__)
         res = result._result
-        if res['final_result'] == "Failed":
+        if ('final_result' in res) and res['final_result'] == "Failed":
           for test_name, test_results in iteritems(res['test_results']):
             for testlet in test_results:
-              if testlet['count']['fail'] != 0:
-
+              if ('count' in testlet) and testlet['count']['fail'] != 0:
                 if not has_printed_banner:
                   self._display.banner("JSNAPy Results for: " + str(host))
                   has_printed_banner = True
