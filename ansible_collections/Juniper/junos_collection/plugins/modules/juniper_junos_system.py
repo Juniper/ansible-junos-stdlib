@@ -137,6 +137,12 @@ options:
     required: false
     default: false
     type: bool
+  vmhost:
+    description:
+      - Whether or not this is a vmhost reboot.
+    required: false
+    default: false
+    type: bool
 notes:
   - This module only B(INITIATES) the action. It does B(NOT) wait for the
     action to complete.
@@ -273,6 +279,9 @@ def main():
             other_re=dict(type='bool',
                           required=False,
                           default=False),
+            vmhost=dict(required=False,
+                        type='bool',
+                        default=False),
             media=dict(type='bool',
                        required=False,
                        default=False),
@@ -290,19 +299,24 @@ def main():
     all_re = params.get('all_re')
     other_re = params.get('other_re')
     media = params.get('media')
+    vmhost = params.get('vmhost')
 
     # Synonymn for shutdown
     if action == 'off' or action == 'power_off' or action == 'power-off':
         action = 'shutdown'
 
+    if action == 'reboot' and vmhost is True:
+        junos_module.fail_json(msg='The vmhost option can only be used when '
+                                   'the action option has the value "reboot".')
+
     #Four actions are expected - reboot, shutdown, halt and zeroize
-    if action not in {'reboot', 'shutdown', 'halt'}:
+    if action not in ['reboot', 'shutdown', 'halt']:
         # at, in_min and other_re option only applies to reboot, shutdown, or halt action.
-        for str,val in {"at":at,"in_min":in_min,"other_re":other_re}:
-            if val is not None:
+        for arg_type,arg_val in {"at":at,"in_min":in_min,"other_re":other_re}:
+            if arg_val is not None:
                 junos_module.fail_json(msg='The %s option can only be used when '
                                            'the action option has the value "reboot", '
-                                           '"shutdown", or "halt".' % str)
+                                           '"shutdown", or "halt".' % arg_type)
 
     elif media is True:       # media option only applies to zeroize action.
         junos_module.fail_json(msg='The media option can only be used when '
@@ -316,6 +330,7 @@ def main():
                'all_re': all_re,
                'other_re': other_re,
                'media': media,
+               'vmhost': vmhost,
                'failed': True}
 
     if not junos_module.check_mode:
@@ -337,7 +352,7 @@ def main():
             junos_module.logger.debug("Executing RPC")
 
             if action == 'reboot':
-                got = junos_module.sw.reboot(in_min, at, all_re, None, False, other_re)
+                got = junos_module.sw.reboot(in_min, at, all_re, None, vmhost, other_re)
             elif action == 'shutdown':
                 got = junos_module.sw.poweroff(in_min, at, None, all_re, other_re)
             elif action == 'halt':
