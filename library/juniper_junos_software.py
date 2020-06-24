@@ -46,7 +46,6 @@ extends_documentation_fragment:
   - juniper_junos_common.connection_documentation
   - juniper_junos_common.logging_documentation
 module: juniper_junos_software
-version_added: "2.0.0" # of Juniper.junos role
 author:
   - Jeremy Schulman
   - "Juniper Networks - Stacy Smith (@stacywsmith)"
@@ -710,67 +709,23 @@ def main():
                                               "to 5 seconds.")
                     junos_module.dev.timeout = 5
                 junos_module.logger.debug('Initiating reboot.')
-                xpath_list = ['.//request-reboot-status']
-                if junos_module.dev.facts['_is_linux']:
-                    rpc = junos_module.etree.Element('request-shutdown-reboot')
-                elif install_params.get('vmhost'):
-                    rpc = junos_module.etree.Element('request-vmhost-reboot')
-                    # RPC reply can contain multiple output tags
-                    xpath_list.append('output')
-                else:
-                    rpc = junos_module.etree.Element('request-reboot')
 
-                if all_re is True:
-                    if (junos_module.sw._multi_RE is True and
-                       junos_module.sw._multi_VC is False):
-                        junos_module.etree.SubElement(rpc,
-                                                      'both-routing-engines')
-                        # At least on some platforms stopping/rebooting both
-                        # REs produces <output> messages and
-                        # <request-reboot-status> messages.
-                        xpath_list.append('output')
-                    elif junos_module.sw._mixed_VC is True:
-                        junos_module.etree.SubElement(rpc, 'all-members')
-                resp = junos_module.dev.rpc(rpc,
-                                            ignore_warning=True,
-                                            normalize=True)
-                junos_module.logger.debug("Reboot RPC executed cleanly.")
-                if len(xpath_list) > 0:
-                    obj = resp.getparent()
-                    for xpath in xpath_list:
-                        if junos_module.dev.facts['_is_linux']:
-                            got = resp.text
-                        else:
-                            # there are cases where rpc-reply will have multiple
-                            # child element, hence lets work on parent.
-                            # for ex:
-                            # <rpc-reply><output>Rebooting fpc1</output>
-                            # <request-reboot-results>
-                            # <request-reboot-status reboot-time="1561371395">
-                            # Shutdown at Mon Jun 24 10:16:35 2019.
-                            # [pid 1949]
-                            # </request-reboot-status>
-                            # </request-reboot-results></rpc-reply>
-                            if xpath == 'output':
-                                got = '\n'.join([i.text for i in obj.findall('output')
-                                                 if i.text is not None])
-                            else:
-                                got = obj.findtext(xpath)
-                        if got is not None:
-                            results['msg'] += ' Reboot successfully initiated. ' \
+                got = junos_module.sw.reboot(0, None, all_re, None, install_params.get('vmhost'))
+
+                junos_module.logger.debug("Reboot RPC executed.")
+
+                if got is not None:
+                    results['msg'] += ' Reboot successfully initiated. ' \
                                               'Reboot message: %s' % got
-                            break
-                    else:
-                        # This is the else clause of the for loop.
-                        # It only gets executed if the loop finished without
-                        # hitting the break.
-                        results['msg'] += ' Did not find expected response ' \
-                                          'from reboot RPC. RPC response is ' \
-                                          '%s' % \
-                                          junos_module.etree.tostring(resp)
-                        junos_module.fail_json(**results)
                 else:
-                    results['msg'] += ' Reboot successfully initiated.'
+                    # This is the else clause of the for loop.
+                    # It only gets executed if the loop finished without
+                    # hitting the break.
+                    results['msg'] += ' Did not find expected response ' \
+                                      'from reboot RPC. RPC response is ' \
+                                      '%s' % \
+                                      junos_module.etree.tostring(resp)
+                    junos_module.fail_json(**results)
             except (junos_module.pyez_exception.RpcTimeoutError) as ex:
                 # This might be OK. It might just indicate the device didn't
                 # send the closing </rpc-reply> (known Junos bug).
@@ -783,6 +738,7 @@ def main():
                                       'initiated.'
                     junos_module.fail_json(**results)
                 except (junos_module.pyez_exception.RpcError,
+                        junos_module.pyez_exception.RpcTimeoutError,
                         junos_module.pyez_exception.ConnectError):
                     # This is expected. The device has already disconnected.
                     results['msg'] += ' Reboot succeeded.'
