@@ -737,6 +737,7 @@ def main():
                                       'initiated.'
                     junos_module.fail_json(**results)
                 except (junos_module.pyez_exception.RpcError,
+                        junos_module.pyez_exception.RpcTimeoutError,
                         junos_module.pyez_exception.ConnectError):
                     # This is expected. The device has already disconnected.
                     results['msg'] += ' Reboot succeeded.'
