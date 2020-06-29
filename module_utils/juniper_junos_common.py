@@ -85,6 +85,12 @@ except ImportError:
     HAS_PYEZ_EXCEPTIONS = False
 
 try:
+    import ncclient.operations.errors as ncclient_exception
+    HAS_NCCLIENT_EXCEPTIONS = True
+except ImportError:
+    HAS_NCCLIENT_EXCEPTIONS = False
+
+try:
     import jnpr.jsnapy
     HAS_JSNAPY_VERSION = jnpr.jsnapy.__version__
 except ImportError:
@@ -748,6 +754,7 @@ class JuniperJunosModule(AnsibleModule):
         self.pyez_factory_table = jnpr.junos.factory.table
         self.pyez_op_table = jnpr.junos.op
         self.pyez_exception = pyez_exception
+        self.ncclient_exception = ncclient_exception
         # Check LXML Etree.
         self.check_lxml_etree(min_lxml_etree_version)
         self.etree = etree
@@ -1037,6 +1044,9 @@ class JuniperJunosModule(AnsibleModule):
             if HAS_PYEZ_EXCEPTIONS is False:
                 self.fail_json(msg='junos-eznc (aka PyEZ) is installed, but '
                                    'the jnpr.junos.exception module could not '
+                                   'be imported.')
+            if HAS_NCCLIENT_EXCEPTIONS is False:
+                self.fail_json(msg='ncclient.operations.errors module could not '
                                    'be imported.')
 
     def check_jsnapy(self, minimum=None):
