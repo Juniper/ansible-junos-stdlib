@@ -64,7 +64,7 @@ class CallbackModule(CallbackBase):
       for result in results:
         # self._pp.pprint(result.__dict__)
         res = result._result
-        if ('final_result' in res) and res['final_result'] == "Failed":
+        if res.get('final_result') == "Failed":
           for test_name, test_results in iteritems(res['test_results']):
             for testlet in test_results:
               if ('count' in testlet) and testlet['count']['fail'] != 0:
