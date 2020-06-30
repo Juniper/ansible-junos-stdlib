@@ -20,3 +20,13 @@
           - test1.facts.serialnumber
           - test1.facts.model
           - test1.facts.fqdn
+
+    - name: TEST 2 - get facts in xml format
+      juniper_junos_facts:
+        config_format: xml
+      register: test2
+
+    - name: Check TEST 2
+      assert:
+        that:
+          - "'<configuration' in test2.facts.config"

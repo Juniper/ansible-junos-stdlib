@@ -6,9 +6,9 @@
   collections:
     - Juniper.junos_collection
   tasks:
-    - name: "TEST 1 - Ping Google DNS"
+    - name: "TEST 1 - Ping Host DNS"
       juniper_junos_ping:
-        dest_ip: 8.8.8.8
+        dest_ip: "{{ ansible_ssh_host }}"
       register: test1
       ignore_errors: True
 #    - debug: var=test1
@@ -35,7 +35,7 @@
 
     - name: "TEST 3 - Change nbr packets"
       juniper_junos_ping:
-        dest_ip: 8.8.8.8
+        dest_ip: "{{ ansible_ssh_host }}"
         count: 3
       register: test3
       ignore_errors: True
@@ -50,7 +50,7 @@
 
     - name: "TEST 4 - Ping with DF-bit set"
       juniper_junos_ping:
-        dest_ip: 8.8.8.8
+        dest_ip: "{{ ansible_ssh_host }}"
         count: 3
         do_not_fragment: True
         size: 64
@@ -65,18 +65,4 @@
 
 #################
 
-    - name: "TEST 5 - Ping with DF-bit set and size that well exceeds jumbo sizes"
-      juniper_junos_ping:
-        dest_ip: 8.8.8.8
-        count: 3
-        do_not_fragment: True
-        size: 9999
-      register: test5
-      ignore_errors: True
-#    - debug: var=test5
-
-    - name: Check TEST 5
-      assert:
-        that:
-          - test5.packets_received == '0'
 
