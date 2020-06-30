@@ -686,13 +686,14 @@ def main():
             junos_module.logger.debug("Install parameters are: %s",
                                        str(install_params))
             junos_module.add_sw()
-            ok = junos_module.sw.install(**install_params)
+            ok, msg_ret = junos_module.sw.install(**install_params)
             if ok is not True:
-                results['msg'] = 'Unable to install the software %s',ok
+                results['msg'] = 'Unable to install the software %s', msg_ret
                 junos_module.fail_json(**results)
-            msg = 'Package %s successfully installed.' % (
+            msg = 'Package %s successfully installed. Response from device is: %s' % (
                         install_params.get('package') or
-                        install_params.get('pkg_set'))
+                        install_params.get('pkg_set'),
+                        msg_ret)
             results['msg'] = msg
             junos_module.logger.debug(msg)
         except (junos_module.pyez_exception.ConnectError,
