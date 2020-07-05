@@ -330,6 +330,9 @@ def main():
                           type='path',
                           aliases=['destination_dir', 'destdir'],
                           default=None),
+            ignore_warning=dict(required=False,
+                                type='list',
+                                default=None),
             return_output=dict(required=False,
                                type='bool',
                                default=True)
@@ -342,6 +345,9 @@ def main():
         supports_check_mode=True,
         min_jxmlease_version=juniper_junos_common.MIN_JXMLEASE_VERSION,
     )
+
+    # Parse ignore_warning value
+    ignore_warning = junos_module.parse_ignore_warning_option()
 
     # Check over commands
     commands = junos_module.params.get('commands')
@@ -411,7 +417,7 @@ def main():
                                       command)
             rpc = junos_module.etree.Element('command', format=format)
             rpc.text = command
-            resp = junos_module.dev.rpc(rpc, normalize=bool(format == 'xml'))
+            resp = junos_module.dev.rpc(rpc, ignore_warning=ignore_warning, normalize=bool(format == 'xml'))
             result['msg'] = 'The command executed successfully.'
             junos_module.logger.debug('Command "%s" executed successfully.',
                                       command)

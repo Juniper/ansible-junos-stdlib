@@ -367,7 +367,7 @@ def main():
                 results['msg'] = 'Did not find expected RPC response.'
                 results['changed'] = False
             else:
-                results['msg'] = '%s successfully initiated.' % (action)
+                results['msg'] = '%s successfully initiated. Response got %s' % (action, got)
                 results['failed'] = False
         except (junos_module.pyez_exception.RpcTimeoutError) as ex:
             # This might be OK. It might just indicate the device didn't

@@ -684,13 +684,14 @@ def main():
             junos_module.logger.debug("Install parameters are: %s",
                                        str(install_params))
             junos_module.add_sw()
-            ok = junos_module.sw.install(**install_params)
+            ok, msg_ret = junos_module.sw.install(**install_params)
             if ok is not True:
-                results['msg'] = 'Unable to install the software'
+                results['msg'] = 'Unable to install the software %s', msg_ret
                 junos_module.fail_json(**results)
-            msg = 'Package %s successfully installed.' % (
+            msg = 'Package %s successfully installed. Response from device is: %s' % (
                         install_params.get('package') or
-                        install_params.get('pkg_set'))
+                        install_params.get('pkg_set'),
+                        msg_ret)
             results['msg'] = msg
             junos_module.logger.debug(msg)
         except (junos_module.pyez_exception.ConnectError,
@@ -703,14 +704,19 @@ def main():
                 # </rpc-reply> and therefore might get an RpcTimeout.
                 # (This is a known Junos bug.) Set the timeout low so this
                 # happens relatively quickly.
+                restore_timeout = junos_module.dev.timeout
                 if junos_module.dev.timeout > 5:
                     junos_module.logger.debug("Decreasing device RPC timeout "
                                               "to 5 seconds.")
                     junos_module.dev.timeout = 5
                 junos_module.logger.debug('Initiating reboot.')
+                try:
 
-                got = junos_module.sw.reboot(0, None, all_re, None, install_params.get('vmhost'))
-
+                    got = junos_module.sw.reboot(0, None, all_re, None, install_params.get('vmhost'))
+                    junos_module.dev.timeout = restore_timeout
+                except Exception:  # pylint: disable=broad-except
+                    junos_module.dev.timeout = restore_timeout
+                    raise
                 junos_module.logger.debug("Reboot RPC executed.")
 
                 if got is not None:
@@ -721,9 +727,7 @@ def main():
                     # It only gets executed if the loop finished without
                     # hitting the break.
                     results['msg'] += ' Did not find expected response ' \
-                                      'from reboot RPC. RPC response is ' \
-                                      '%s' % \
-                                      junos_module.etree.tostring(resp)
+                                          'from reboot RPC. '
                     junos_module.fail_json(**results)
             except (junos_module.pyez_exception.RpcTimeoutError) as ex:
                 # This might be OK. It might just indicate the device didn't
@@ -741,10 +745,20 @@ def main():
                         junos_module.pyez_exception.ConnectError):
                     # This is expected. The device has already disconnected.
                     results['msg'] += ' Reboot succeeded.'
+                except (junos_module.ncclient_exception.TimeoutExpiredError):
+                    # This is not really expected. Still consider reboot success as
+                    # Looks like rpc was consumed but no response as its rebooting.
+                    results['msg'] += ' Reboot succeeded. Ignoring close error.'
             except (junos_module.pyez_exception.RpcError,
                     junos_module.pyez_exception.ConnectError) as ex:
                 results['msg'] += ' Reboot failed. Error: %s' % (str(ex))
                 junos_module.fail_json(**results)
+            else:
+                try:
+                    junos_module.close()
+                except (junos_module.ncclient_exception.TimeoutExpiredError):
+                    junos_module.logger.debug("Ignoring TimeoutError for close call")
+
             junos_module.logger.debug("Reboot RPC successfully initiated.")
             if reboot_pause > 0:
                 junos_module.logger.debug("Sleeping for %d seconds",

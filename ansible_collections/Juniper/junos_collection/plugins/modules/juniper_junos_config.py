@@ -1070,7 +1070,7 @@ def main():
                               "candidate and committed configuration "
                               "databases.")
     if diff is True or junos_module._diff:
-        diff = junos_module.diff_configuration()
+        diff = junos_module.diff_configuration(ignore_warning)
         if diff is not None:
             results['changed'] = True
             if return_output is True or junos_module._diff:
