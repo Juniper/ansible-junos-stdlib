@@ -48,7 +48,7 @@ This Juniper.junos_collection collection includes the following modules:
 - **juniper_junos_table** — Retrieve data from a Junos device using a PyEZ table/view.
 
 ### PyEZ Version Requirement
-For ansible roles 2.4.0 we will need to install junos-eznc(PyEZ) version 2.5.0 or higher. 
+For ansible collection junos_collection we will need to install junos-eznc(PyEZ) version 2.5.0 or higher. 
 
 ### Overview of Plugins
 
