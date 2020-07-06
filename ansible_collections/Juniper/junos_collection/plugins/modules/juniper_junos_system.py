@@ -137,6 +137,12 @@ options:
     required: false
     default: false
     type: bool
+  vmhost:
+    description:
+      - Whether or not this is a vmhost reboot.
+    required: false
+    default: false
+    type: bool
 notes:
   - This module only B(INITIATES) the action. It does B(NOT) wait for the
     action to complete.
@@ -273,6 +279,9 @@ def main():
             other_re=dict(type='bool',
                           required=False,
                           default=False),
+            vmhost=dict(required=False,
+                        type='bool',
+                        default=False),
             media=dict(type='bool',
                        required=False,
                        default=False),
@@ -285,122 +294,44 @@ def main():
     params = junos_module.params
 
     action = params['action']
-    # Synonymns for shutdown
+    at = params.get('at')
+    in_min = params.get('in_min')
+    all_re = params.get('all_re')
+    other_re = params.get('other_re')
+    media = params.get('media')
+    vmhost = params.get('vmhost')
+
+    # Synonymn for shutdown
     if action == 'off' or action == 'power_off' or action == 'power-off':
         action = 'shutdown'
 
-    # at option only applies to reboot, shutdown, or halt actions.
-    if (params.get('at') is not None and
-       action != 'reboot' and
-       action != 'shutdown' and
-       action != 'halt'):
-        junos_module.fail_json(msg='The at option can only be used when '
-                                   'the action option has the value "reboot", '
-                                   '"shutdown", or "halt".')
+    if action == 'reboot' and vmhost is True:
+        junos_module.fail_json(msg='The vmhost option can only be used when '
+                                   'the action option has the value "reboot".')
 
-    # in_min option only applies to reboot, shutdown, or halt actions.
-    if (params.get('in_min') is not None and
-       action != 'reboot' and
-       action != 'shutdown' and
-       action != 'halt'):
-        junos_module.fail_json(msg='The in_min option can only be used when '
-                                   'the action option has the value "reboot", '
-                                   '"shutdown", or "halt".')
+    #Four actions are expected - reboot, shutdown, halt and zeroize
+    if action not in ['reboot', 'shutdown', 'halt']:
+        # at, in_min and other_re option only applies to reboot, shutdown, or halt action.
+        for arg_type,arg_val in {"at":at,"in_min":in_min,"other_re":other_re}:
+            if arg_val is not None:
+                junos_module.fail_json(msg='The %s option can only be used when '
+                                           'the action option has the value "reboot", '
+                                           '"shutdown", or "halt".' % arg_type)
 
-    # other_re option only applies to reboot, shutdown, or halt actions.
-    if (params.get('other_re') is True and
-       action != 'reboot' and
-       action != 'shutdown' and
-       action != 'halt'):
-        junos_module.fail_json(msg='The other_re option can only be used when '
-                                   'the action option has the value "reboot", '
-                                   '"shutdown", or "halt".')
-
-    # media option only applies to zeroize action.
-    if params['media'] is True and action != 'zeroize':
+    elif media is True:       # media option only applies to zeroize action.
         junos_module.fail_json(msg='The media option can only be used when '
-                                   'the action option has the value '
-                                   '"zeroize".')
-
-    # If other_re, then we should turn off all_re
-    if params['other_re'] is True:
-        params['all_re'] = False
+                                   'the action option has the value "zeroize".')
 
     # Set initial results values. Assume failure until we know it's success.
-    # Assume we haven't changed the state until we do.
-    results = {'changed': False,
+    results = {'changed': True,
                'msg': '',
                'reboot': bool(action == 'reboot'),
                'action': action,
-               'all_re': params.get('all_re'),
-               'other_re': params.get('other_re'),
-               'media': params.get('media'),
+               'all_re': all_re,
+               'other_re': other_re,
+               'media': media,
+               'vmhost': vmhost,
                'failed': True}
-
-    # Map the action to an RPC.
-    rpc = None
-    xpath_list = []
-    if action == 'reboot':
-        if junos_module.dev.facts['_is_linux']:
-            rpc = junos_module.etree.Element('request-shutdown-reboot')
-        else:
-            rpc = junos_module.etree.Element('request-reboot')
-        xpath_list.append('.//request-reboot-status')
-    elif action == 'shutdown':
-        if junos_module.dev.facts['_is_linux']:
-            rpc = junos_module.etree.Element('request-shutdown-power-off')
-        else:
-            rpc = junos_module.etree.Element('request-power-off')
-        xpath_list.append('.//request-reboot-status')
-    elif action == 'halt':
-        if junos_module.dev.facts['_is_linux']:
-            rpc = junos_module.etree.Element('request-shutdown-halt')
-        else:
-            rpc = junos_module.etree.Element('request-halt')
-        xpath_list.append('.//request-reboot-status')
-    elif action == 'zeroize':
-        rpc = junos_module.etree.Element('request-system-zeroize')
-    else:
-        results['msg'] = 'No RPC found for the %s action.' % (action)
-        junos_module.fail_json(**results)
-
-    # Add the arguments
-    if action == 'zeroize':
-        if params['all_re'] is False:
-            if junos_module.dev.facts['2RE']:
-                junos_module.etree.SubElement(rpc, 'local')
-        if params['media'] is True:
-            junos_module.etree.SubElement(rpc, 'media')
-    else:
-        if params['in_min'] is not None:
-            junos_module.etree.SubElement(rpc,
-                                          'in').text = str(params['in_min'])
-        elif params['at'] is not None:
-            junos_module.etree.SubElement(rpc,
-                                          'at').text = params['at']
-        if params['other_re'] is True:
-            if junos_module.dev.facts['2RE']:
-                junos_module.etree.SubElement(rpc, 'other-routing-engine')
-                # At least on some platforms stopping/rebooting the other RE
-                # just produces <output> messages.
-                xpath_list.append('..//output')
-        elif params['all_re'] is True:
-            junos_module.add_sw()
-            if (junos_module.sw._multi_RE is True and
-               junos_module.sw._multi_VC is False):
-                junos_module.etree.SubElement(rpc, 'both-routing-engines')
-                # At least on some platforms stopping/rebooting both REs
-                # produces <output> messages and <request-reboot-status>
-                # messages.
-                xpath_list.append('..//output')
-            elif junos_module.sw._mixed_VC is True:
-                junos_module.etree.SubElement(rpc, 'all-members')
-
-    # OK, we're ready to do something. Set changed and log the RPC.
-    results['changed'] = True
-    junos_module.logger.debug("Ready to execute RPC: %s",
-                              junos_module.etree.tostring(rpc,
-                                                          pretty_print=True))
 
     if not junos_module.check_mode:
         if action != 'zeroize':
@@ -409,8 +340,8 @@ def main():
             # </rpc-reply> and therefore might get an RpcTimeout.
             # (This is a known Junos bug.) Set the timeout low so this happens
             # relatively quickly.
-            if (params['at'] == 'now' or params['in_min'] == 0 or
-               (params['at'] is None and params['in_min'] is None)):
+            if (at == 'now' or in_min == 0 or
+               (at is None and in_min is None)):
                 if junos_module.dev.timeout > 5:
                     junos_module.logger.debug("Decreasing device RPC timeout "
                                               "to 5 seconds.")
@@ -418,32 +349,25 @@ def main():
 
         # Execute the RPC.
         try:
-            junos_module.logger.debug(
-                "Executing RPC: %s",
-                junos_module.etree.tostring(rpc, pretty_print=True))
-            resp = junos_module.dev.rpc(rpc,
-                                        ignore_warning=True,
-                                        normalize=True)
-            junos_module.logger.debug("RPC executed cleanly.")
-            if len(xpath_list) > 0:
-                for xpath in xpath_list:
-                    if junos_module.dev.facts['_is_linux']:
-                        got = resp.text
-                    else:
-                        got = resp.findtext(xpath)
-                    if got is not None:
-                        results['msg'] = '%s successfully initiated.' % \
-                                         (action)
-                        results['failed'] = False
-                        break
-                else:
-                    # This is the else clause of the for loop.
-                    # It only gets executed if the loop finished without
-                    # hitting the break.
-                    results['msg'] = 'Did not find expected RPC response.'
-                    results['changed'] = False
+            junos_module.logger.debug("Executing RPC")
+
+            if action == 'reboot':
+                got = junos_module.sw.reboot(in_min, at, all_re, None, vmhost, other_re)
+            elif action == 'shutdown':
+                got = junos_module.sw.poweroff(in_min, at, None, all_re, other_re)
+            elif action == 'halt':
+                got = junos_module.sw.halt(in_min, at, all_re, other_re)
+            elif action == 'zeroize':
+                got = junos_module.sw.zeroize(all_re, media)
             else:
-                results['msg'] = '%s successfully initiated.' % (action)
+                junos_module.fail_json(msg='Relevant action not found')
+
+            junos_module.logger.debug("RPC executed")
+            if got is None:
+                results['msg'] = 'Did not find expected RPC response.'
+                results['changed'] = False
+            else:
+                results['msg'] = '%s successfully initiated. Response got %s' % (action, got)
                 results['failed'] = False
         except (junos_module.pyez_exception.RpcTimeoutError) as ex:
             # This might be OK. It might just indicate the device didn't

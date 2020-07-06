@@ -47,6 +47,9 @@ This Juniper.junos_collection collection includes the following modules:
 - **juniper_junos_system** — Initiate operational actions on the Junos system.
 - **juniper_junos_table** — Retrieve data from a Junos device using a PyEZ table/view.
 
+### PyEZ Version Requirement
+For ansible collection junos_collection we will need to install junos-eznc(PyEZ) version 2.5.0 or higher. 
+
 ### Overview of Plugins
 
 In addition to the modules listed above, a callback_plugin `jsnapy` is available for the module `juniper_junos_jsnapy`.
@@ -121,14 +124,7 @@ In MacOS Mojave and newer (>=10.14), ssh keys created with the system `ssh-keyge
 
 ### Ansible Galaxy collection
 
-To download the latest released version of the junos collection to the Ansible
-server, execute the ansible-galaxy collection install command, and specify **Juniper.junos_collection**.
-
-```bash
-[root@ansible-cm]# ansible-galaxy collection install Juniper.junos_collection
-```
-
-You can also use the ansible-galaxy install command to install the latest
+You can use the ansible-galaxy install command to install the latest
 development version of the junos collection directly from GitHub.
 
 ```bash
