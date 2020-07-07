@@ -15,7 +15,7 @@ installing and upgrading Junos OS, provisioning new Junos devices in the network
 retrieving information, and resetting, rebooting, or shutting down managed devices.  Please refer to the
 [INSTALLATION](#installation) section for instructions on installing this collection.
 
-#Juniper.junos roles by Juniper Networks
+## Juniper.junos roles by Juniper Networks
 
 Ansible galaxy is upgrading to collections and plans to deprecate roles in future. The master branch will now have 
 Juniper.junos_collection support. Juniper.junos roles have been moved to roles branch. Roles will be supported for now. 
