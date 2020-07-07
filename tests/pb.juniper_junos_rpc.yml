@@ -4,7 +4,7 @@
   connection: local
   gather_facts: no
   collections:
-    - Juniper.junos_collection
+    - Juniper.junos
 
   tasks:
 #################

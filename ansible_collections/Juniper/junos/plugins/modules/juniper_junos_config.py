@@ -521,7 +521,7 @@ EXAMPLES = '''
   connection: local
   gather_facts: no
   collections:
-    - Juniper.junos_collection
+    - Juniper.junos
   tasks:
     - name: Retrieve the committed configuration
       juniper_junos_config:
@@ -739,7 +739,7 @@ Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project
 
 # Ansiballz packages module_utils into ansible.module_utils
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.Juniper.junos_collection.plugins.module_utils import juniper_junos_common
+from ansible_collections.Juniper.junos.plugins.module_utils import juniper_junos_common
 
 def main():
     # Choices which are defined in the common module.
