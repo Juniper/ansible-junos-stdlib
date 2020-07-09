@@ -126,7 +126,7 @@ except NameError:
 
 # Constants
 # Minimum PyEZ version required by shared code.
-MIN_PYEZ_VERSION = "2.2.0"
+MIN_PYEZ_VERSION = "2.5.0"
 # Installation URL for PyEZ.
 PYEZ_INSTALLATION_URL = "https://github.com/Juniper/py-junos-eznc#installation"
 # Minimum lxml version required by shared code.
@@ -1580,7 +1580,7 @@ class JuniperJunosModule(AnsibleModule):
 
         self.logger.debug("Diffing candidate and committed configurations.")
         try:
-            diff = self.config.diff(rb_id=0)
+            diff = self.config.diff(rb_id=0, ignore_warning=ignore_warning)
             self.logger.debug("Configuration diff completed.")
             return diff
         except (self.pyez_exception.RpcError,
