@@ -46,7 +46,6 @@ extends_documentation_fragment:
   - juniper_junos_common.connection_documentation
   - juniper_junos_common.logging_documentation
 module: juniper_junos_pmtud
-version_added: "2.0.0" # of Juniper.junos role
 author:
   - Martin Komon (@mkomon)
   - Juniper Networks - Stacy Smith (@stacywsmith)
@@ -133,7 +132,7 @@ EXAMPLES = '''
   connection: local
   gather_facts: no
   collections:
-    - Juniper.junos
+    - junipernetworks.device
 
   tasks:
     - name: Perform PMTUD to 192.68.1.1 with default parameters.
@@ -248,7 +247,7 @@ Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project
 
 # Ansiballz packages module_utils into ansible.module_utils
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.Juniper.junos.plugins.module_utils import juniper_junos_common
+from ansible_collections.junipernetworks.device.plugins.module_utils import juniper_junos_common
 
 def main():
     # Constants for MTU size

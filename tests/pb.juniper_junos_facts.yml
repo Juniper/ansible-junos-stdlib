@@ -4,7 +4,7 @@
   connection: local
   gather_facts: no
   collections:
-    - Juniper.junos
+    - junipernetworks.device
   tasks:
     - name: "TEST 1 - Gather Facts"
       juniper_junos_facts:

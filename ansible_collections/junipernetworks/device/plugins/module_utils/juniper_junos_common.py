@@ -126,7 +126,7 @@ except NameError:
 
 # Constants
 # Minimum PyEZ version required by shared code.
-MIN_PYEZ_VERSION = "2.2.0"
+MIN_PYEZ_VERSION = "2.4.0"
 # Installation URL for PyEZ.
 PYEZ_INSTALLATION_URL = "https://github.com/Juniper/py-junos-eznc#installation"
 # Minimum lxml version required by shared code.
@@ -134,7 +134,7 @@ MIN_LXML_ETREE_VERSION = "3.2.4"
 # Installation URL for LXML.
 LXML_ETREE_INSTALLATION_URL = "http://lxml.de/installation.html"
 # Minimum JSNAPy version required by shared code.
-MIN_JSNAPY_VERSION = "1.2.1"
+MIN_JSNAPY_VERSION = "1.3.4"
 # Installation URL for JSNAPy.
 JSNAPY_INSTALLATION_URL = "https://github.com/Juniper/jsnapy#installation"
 # Minimum jxmlease version required by shared code.
@@ -145,7 +145,6 @@ JXMLEASE_INSTALLATION_URL = \
 # Minimum yaml version required by shared code.
 MIN_YAML_VERSION = "3.08"
 YAML_INSTALLATION_URL = "http://pyyaml.org/wiki/PyYAMLDocumentation"
-
 
 class ModuleDocFragment(object):
     """Documentation fragment for connection-related parameters.
@@ -448,7 +447,7 @@ class ModuleDocFragment(object):
         suboptions:''' + _SUB_CONNECT_DOCUMENTATION + '''
     requirements:
       - U(junos-eznc|https://github.com/Juniper/py-junos-eznc) >= ''' + MIN_PYEZ_VERSION + '''
-      - Python >= 2.7
+      - Python >= 3.5
     notes:
       - The NETCONF system service must be enabled on the target Junos device.
 '''

@@ -56,7 +56,6 @@ description:
     committing the configuration of a Junos device. It performs the following
     steps in order:
 
-
     #. Open a candidate configuration database.
     
        * If the I(config_mode) option has a value of C(exclusive), the default,
@@ -521,7 +520,7 @@ EXAMPLES = '''
   connection: local
   gather_facts: no
   collections:
-    - Juniper.junos
+    - junipernetworks.device
   tasks:
     - name: Retrieve the committed configuration
       juniper_junos_config:
@@ -739,7 +738,7 @@ Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project
 
 # Ansiballz packages module_utils into ansible.module_utils
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.Juniper.junos.plugins.module_utils import juniper_junos_common
+from ansible_collections.junipernetworks.device.plugins.module_utils import juniper_junos_common
 
 def main():
     # Choices which are defined in the common module.

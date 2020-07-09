@@ -128,7 +128,7 @@ EXAMPLES = '''
   connection: local
   gather_facts: no
   collections:
-    - Juniper.junos
+    - junipernetworks.device
 
   tasks:
     - name: Retrieve LLDP Neighbor Information Using PyEZ-included Table
@@ -291,7 +291,7 @@ Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project
 
 # Ansiballz packages module_utils into ansible.module_utils
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.Juniper.junos.plugins.module_utils import juniper_junos_common
+from ansible_collections.junipernetworks.device.plugins.module_utils import juniper_junos_common
 
 def expand_items(module, data):
     """Recursively expand any table items

@@ -50,6 +50,7 @@ author: "Juniper Networks - Stacy Smith (@stacywsmith)"
 short_description: Execute one or more CLI commands on a Junos device
 description:
   - Execute one or more CLI commands on a Junos device.
+  - Alias command
   - This module does NOT use the Junos CLI to execute the CLI command.
     Instead, it uses the C(<command>) RPC over a NETCONF channel. The
     C(<command>) RPC takes a CLI command as it's input and is very similar to
@@ -152,7 +153,7 @@ EXAMPLES = '''
   connection: local
   gather_facts: no
   collections:
-    - Juniper.junos
+    - junipernetworks.device
 
   tasks:
     - name: Execute single "show version" command.
@@ -308,7 +309,7 @@ Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project
 
 # Ansiballz packages module_utils into ansible.module_utils
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.Juniper.junos.plugins.module_utils import juniper_junos_common
+from ansible_collections.junipernetworks.device.plugins.module_utils import juniper_junos_common
 
 def main():
     # Create the module instance.
