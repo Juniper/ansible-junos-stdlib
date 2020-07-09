@@ -13,9 +13,9 @@ Module Name
 <!--- Insert, BELOW THIS COMMENT, the name of the module, plugin, task or feature
 -->
 
-junipernetworks.device role and Python libraries version
+junipernetworks.devices collection and Python libraries version
 <!--- Paste, BELOW THIS COMMENT, verbatim output from "ansible --version" and  "pip freeze" between quotes below 
-Also provide the version of junipernetworks.device role-->
+Also provide the version of junipernetworks.devices collection-->
 ```
 
 ```
