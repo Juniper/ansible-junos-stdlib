@@ -4,7 +4,7 @@
   connection: local
   gather_facts: no
   collections:
-    - junipernetworks.devices
+    - juniper.device
   tasks:
 #################
     - name: Retrieve the committed configuration

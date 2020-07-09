@@ -8,7 +8,7 @@ The repo is under active development.  If you take a clone, you are getting the 
 
 Juniper Networks supports Ansible for managing devices running the Junos operating system (Junos OS). 
 This collection is hosted on the Ansible Galaxy website under the collection 
-[junipernetworks.devices](https://galaxy.ansible.com/Juniper/junos/). The junipernetworks.devices collection includes 
+[juniper.device](https://galaxy.ansible.com/Juniper/junos/). The juniper.device collection includes 
 a set of Ansible modules that perform specific operational and configuration tasks on devices running Junos OS. 
 These tasks include:
 installing and upgrading Junos OS, provisioning new Junos devices in the network, loading configuration changes,
@@ -18,7 +18,7 @@ retrieving information, and resetting, rebooting, or shutting down managed devic
 ## juniper.junos roles by Juniper Networks
 
 Ansible galaxy is upgrading to collections and plans to deprecate roles in future. The master branch will now have 
-junipernetworks.devices collection support. Juniper.junos roles have been moved to roles branch. 
+juniper.device collection support. Juniper.junos roles have been moved to roles branch. 
 For more information for roles, check: 
 https://github.com/Juniper/ansible-junos-stdlib/tree/roles
 
@@ -33,7 +33,7 @@ using the modules in this collection when writing new playbooks that manage Juno
 
 ## Overview of Modules
 
-This junipernetworks.devices collection includes the following modules:
+This juniper.device collection includes the following modules:
 
 - **juniper_junos_command** — Execute one or more CLI commands on a Junos device.
 - **juniper_junos_config** — Manipulate the configuration of a Junos device.
@@ -100,10 +100,10 @@ In MacOS Mojave and newer (>=10.14), ssh keys created with the system `ssh-keyge
 ### Ansible Galaxy collection
 
 You can use the ansible-galaxy install command to install the latest
-version of the junipernetworks.devices collection.
+version of the juniper.device collection.
 
 ```bash
-sudo ansible-galaxy collection install junipernetworks.devices
+sudo ansible-galaxy collection install juniper.device
 ```
 
 ### Git clone
@@ -167,7 +167,7 @@ This example outlines how to use Ansible to install or upgrade the software imag
 - name: Install Junos OS
   hosts: dc1
   collections:
-    - junipernetworks.devices
+    - juniper.device
   connection: local
   gather_facts: no
   vars:
@@ -211,8 +211,8 @@ Apache 2.0
 
 ## SUPPORT
 
-Support for this junipernetworks.devices collection is provided by the community and Juniper Networks. If you have an
-issue with a module in the junipernetworks.devices collection, you may:
+Support for this juniper.device collection is provided by the community and Juniper Networks. If you have an
+issue with a module in the juniper.device collection, you may:
 
 - Open a [GitHub issue](https://github.com/Juniper/ansible-junos-stdlib/issues).
 - Post a question on our [Google Group](https://groups.google.com/forum/#!forum/junos-python-ez)

@@ -90,7 +90,7 @@ EXAMPLES = '''
   connection: local
   gather_facts: no
   collections:
-    - junipernetworks.devices
+    - juniper.device
   tasks:
     - name: Gather Junos facts with no configuration
       juniper_junos_facts:
@@ -176,7 +176,7 @@ Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project
 
 # Ansiballz packages module_utils into ansible.module_utils
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.junipernetworks.devices.plugins.module_utils import juniper_junos_common
+from ansible_collections.juniper.device.plugins.module_utils import juniper_junos_common
 from ansible.module_utils._text import to_bytes
 
 def get_facts_dict(junos_module):

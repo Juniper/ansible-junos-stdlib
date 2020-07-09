@@ -26,8 +26,8 @@ This will do the following operations:
 - Clone AWX repository into the Juniper-awx/awx folder
 - Change AWX inventory file to include user specifications.Refer [Makefile.variable](#makefilevariable).
 - Launch AWX conatiners.
-- Install junipernetworks.devices role with user specified version.Refer [Makefile.variable](#makefilevariable).
-- Install python modules required for junipernetworks.devices role in awx_task container: jxmlease,junos-eznc,jsnappy.
+- Install juniper.junos role with user specified version.Refer [Makefile.variable](#makefilevariable).
+- Install python modules required for juniper.junos role in awx_task container: jxmlease,junos-eznc,jsnappy.
 - Change roles_path in ansible.cfg for awx_task container.
 - If HOST_FILE is mentioned, an inventory with name INVENTORY_NAME is created and host's loaded into it.Refer [Makefile.variable](#makefilevariable).
 
@@ -508,11 +508,11 @@ Installing collected packages: lxml, ncclient, scp, pyserial, netaddr, junos-ezn
 Successfully installed colorama-0.3.9 configparser-3.5.0 future-0.16.0 icdiff-1.9.1 jsnapy-1.3.1 junos-eznc-2.1.7 jxmlease-1.0.1 lxml-4.1.1 ncclient-0.5.3 netaddr-0.7.19 pyparsing-2.2.0 pyserial-3.4 scp-0.10.2
 You are using pip version 8.1.2, however version 9.0.1 is available.
 You should consider upgrading via the 'pip install --upgrade pip' command.
-docker exec -it awx_task ansible-galaxy install junipernetworks.devices, -p  /etc/ansible/roles
+docker exec -it awx_task ansible-galaxy install juniper.junos, -p  /etc/ansible/roles
 - downloading role 'junos', owned by Juniper
 - downloading role from https://github.com/Juniper/ansible-junos-stdlib/archive/2.0.2.tar.gz
-- extracting junipernetworks.devices to /etc/ansible/roles/junipernetworks.devices
-- junipernetworks.devices (2.0.2) was installed successfully
+- extracting juniper.junos to /etc/ansible/roles/juniper.junos
+- juniper.junos (2.0.2) was installed successfully
 docker exec -it awx_task /bin/bash -c 'sed -i '/roles_path/s/^#//g' /etc/ansible/ansible.cfg'
 
 
@@ -580,7 +580,7 @@ INVENTORY_NAME = Junos
 1. `PROJECT_DATA_DIR` : Provide absolute path to directory where the ansible projects reside.If the directory is not present Makefile will create the path.
 2. `AWX_TASK_TAG`: Mention the awx_task tag to be installed.For available versions refer [Dockerhub](https://hub.docker.com/r/ansible/awx_task/tags/).
 3. `POSTGRES_DATA_DIR`: Provide absolute path to postgres directory.If the directory is not present Makefile will create the path and create folders required for postgres to run.
-4. `ANSIBLE_JUNOS_VERSION`: Mention the junipernetworks.devices version to be installed.By default, it installs the latest version.
+4. `ANSIBLE_JUNOS_VERSION`: Mention the juniper.junos version to be installed.By default, it installs the latest version.
 5. `HOST_FILE`: Provide the absolute path to the host file.This option can be only used if PROJECT_DATA_DIR is mentioned.
 By default, it doesnot load any host file.Please ensure that a unique INVENTORY_NAME is mentioned to avoid errors e.g Hosts.
 6. `INVENTORY_NAME`: The name of the inventory to which HOST_FILE is to be loaded.

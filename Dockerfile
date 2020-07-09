@@ -14,7 +14,7 @@ RUN apk del -r --purge gcc make g++ &&\
     rm -rf /var/cache/apk/* &&\
     rm -rf /tmp/*
 
-WORKDIR /etc/ansible/collections/ansible_collections/junipernetworks.devices
+WORKDIR /etc/ansible/collections/ansible_collections/juniper.device
 COPY action_plugins action_plugins
 COPY callback_plugins callback_plugins
 COPY library library

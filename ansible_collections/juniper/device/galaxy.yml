@@ -3,10 +3,10 @@
 # The namespace of the collection. This can be a company/brand/organization or product namespace under which all
 # content lives. May only contain alphanumeric characters and underscores. Additionally namespaces cannot start with
 # underscores or numbers and cannot contain consecutive underscores
-namespace: junipernetworks
+namespace: juniper
 
 # The name of the collection. Has the same character restrictions as 'namespace'
-name: devices
+name: device
 
 # The version of the collection. Must be compatible with semantic versioning
 version: 0.1.0

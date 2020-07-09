@@ -163,7 +163,7 @@ EXAMPLES = '''
   connection: local
   gather_facts: no
   collections:
-    - junipernetworks.devices
+    - juniper.device
 
   tasks:
     - name: Reboot all REs of the device
@@ -255,7 +255,7 @@ Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project
 
 # Ansiballz packages module_utils into ansible.module_utils
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.junipernetworks.devices.plugins.module_utils import juniper_junos_common
+from ansible_collections.juniper.device.plugins.module_utils import juniper_junos_common
 
 def main():
     # Create the module instance.
