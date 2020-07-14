@@ -3,16 +3,12 @@
   hosts: all
   connection: local
   gather_facts: no
-  roles:
-    - Juniper.junos
+  collections:
+    - Juniper.junos_collection
   tasks:
-    - name: "TEST 1 - Ping Google DNS"
+    - name: "TEST 1 - Ping Host DNS"
       juniper_junos_ping:
-        host: "{{ ansible_ssh_host }}"
-        port: "{{ ansible_ssh_port }}"
-        user: "{{ ansible_ssh_user }}"
-        passwd: "{{ ansible_ssh_pass }}"
-        dest_ip: 8.8.8.8
+        dest_ip: "{{ ansible_ssh_host }}"
       register: test1
       ignore_errors: True
 #    - debug: var=test1
@@ -26,10 +22,6 @@
 
     - name: "TEST 2 - Ping Wrong IP"
       juniper_junos_ping:
-        host: "{{ ansible_ssh_host }}"
-        port: "{{ ansible_ssh_port }}"
-        user: "{{ ansible_ssh_user }}"
-        passwd: "{{ ansible_ssh_pass }}"
         dest_ip: 8.8.1.1
       register: test2
       ignore_errors: True
@@ -43,11 +35,7 @@
 
     - name: "TEST 3 - Change nbr packets"
       juniper_junos_ping:
-        host: "{{ ansible_ssh_host }}"
-        port: "{{ ansible_ssh_port }}"
-        user: "{{ ansible_ssh_user }}"
-        passwd: "{{ ansible_ssh_pass }}"
-        dest_ip: 8.8.8.8
+        dest_ip: "{{ ansible_ssh_host }}"
         count: 3
       register: test3
       ignore_errors: True
@@ -62,11 +50,7 @@
 
     - name: "TEST 4 - Ping with DF-bit set"
       juniper_junos_ping:
-        host: "{{ ansible_ssh_host }}"
-        port: "{{ ansible_ssh_port }}"
-        user: "{{ ansible_ssh_user }}"
-        passwd: "{{ ansible_ssh_pass }}"
-        dest_ip: 8.8.8.8
+        dest_ip: "{{ ansible_ssh_host }}"
         count: 3
         do_not_fragment: True
         size: 64
@@ -81,22 +65,4 @@
 
 #################
 
-    - name: "TEST 5 - Ping with DF-bit set and size that well exceeds jumbo sizes"
-      juniper_junos_ping:
-        host: "{{ ansible_ssh_host }}"
-        port: "{{ ansible_ssh_port }}"
-        user: "{{ ansible_ssh_user }}"
-        passwd: "{{ ansible_ssh_pass }}"
-        dest_ip: 8.8.8.8
-        count: 3
-        do_not_fragment: True
-        size: 9999
-      register: test5
-      ignore_errors: True
-#    - debug: var=test5
-
-    - name: Check TEST 5
-      assert:
-        that:
-          - test5.packets_received == '0'
 
