@@ -1,12 +1,12 @@
-FROM juniper/pyez:latest
+FROM juniper/pyez
 
-LABEL net.juniper.image.maintainer="Stephen Steiner <ssteiner@juniper.net>"
+LABEL net.juniper.image.maintainer="Stephen Steiner <ssteiner@juniper.net>" \
+      net.junier.image.description="Lightweight image with Ansible and the Junos roles"
+
+RUN apk add --no-cache build-base python3-dev py3-pip \
+    openssl-dev curl ca-certificates bash
 
 WORKDIR /tmp
-
-RUN apk add --no-cache ca-certificates openssh-client build-base gcc g++ make \
-    bash
-
 COPY requirements.txt .
 RUN pip3 install -r requirements.txt
 
@@ -25,8 +25,8 @@ RUN chmod +x entrypoint.sh
 # Also install the roles, until collections is ready for prime-time
 RUN ansible-galaxy role install Juniper.junos
 
-WORKDIR /playbooks
+WORKDIR /project
 
-VOLUME /playbooks
+VOLUME /project
 
 ENTRYPOINT ["/usr/bin/entrypoint.sh"]
