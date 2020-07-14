@@ -3,17 +3,13 @@
   hosts: all
   connection: local
   gather_facts: no
-  roles:
-    - Juniper.junos
+  collections:
+    - Juniper.junos_collection
 
   tasks:
 #################
     - name: "Execute single RPC get-software-information without any kwargs"
       juniper_junos_rpc:
-        host: "{{ ansible_ssh_host }}"
-        port: "{{ ansible_ssh_port }}"
-        user: "{{ ansible_ssh_user }}"
-        passwd: "{{ ansible_ssh_pass }}"
         rpcs:
           - "get-software-information"
       register: test1
@@ -29,10 +25,6 @@
 #################
     - name: "Get Device Configuration with dest"
       juniper_junos_rpc:
-        host: "{{ ansible_ssh_host }}"
-        port: "{{ ansible_ssh_port }}"
-        user: "{{ ansible_ssh_user }}"
-        passwd: "{{ ansible_ssh_pass }}"
         rpc: get-config
         dest: get_config.conf
       register: test2
@@ -59,10 +51,6 @@
 
     - name: "Get Device Configuration in text"
       juniper_junos_rpc:
-        host: "{{ ansible_ssh_host }}"
-        port: "{{ ansible_ssh_port }}"
-        user: "{{ ansible_ssh_user }}"
-        passwd: "{{ ansible_ssh_pass }}"
         rpc: get-interface-information
         kwargs: "interface_name=em0"
         format: text
@@ -80,10 +68,6 @@
 
     - name: "Execute multiple RPCs without any kwargs"
       juniper_junos_rpc:
-        host: "{{ ansible_ssh_host }}"
-        port: "{{ ansible_ssh_port }}"
-        user: "{{ ansible_ssh_user }}"
-        passwd: "{{ ansible_ssh_pass }}"
         rpcs:
           - "get-software-information"
           - "get-interface-information"
@@ -108,10 +92,6 @@
 
     - name: "Execute multiple RPCs with multiple kwargs"
       juniper_junos_rpc:
-        host: "{{ ansible_ssh_host }}"
-        port: "{{ ansible_ssh_port }}"
-        user: "{{ ansible_ssh_user }}"
-        passwd: "{{ ansible_ssh_pass }}"
         rpcs:
           - "get-software-information"
           - "get-interface-information"
@@ -137,10 +117,6 @@
 
     - name: "Execute multiple RPCs with multiple kwargs and dest-dir"
       juniper_junos_rpc:
-        host: "{{ ansible_ssh_host }}"
-        port: "{{ ansible_ssh_port }}"
-        user: "{{ ansible_ssh_user }}"
-        passwd: "{{ ansible_ssh_pass }}"
         rpcs:
           - "get-software-information"
           - "get-interface-information"
@@ -179,10 +155,6 @@
 #################
     - name: Get Device Configuration for interface
       juniper_junos_rpc:
-        host: "{{ ansible_ssh_host }}"
-        port: "{{ ansible_ssh_port }}"
-        user: "{{ ansible_ssh_user }}"
-        passwd: "{{ ansible_ssh_pass }}"
         rpc: get-config
         filter_xml: "<configuration><interfaces/></configuration>"
       register: test7
@@ -198,10 +170,6 @@
 #################
     - name: "Execute wrong RPC to generate RPC error"
       juniper_junos_rpc:
-        host: "{{ ansible_ssh_host }}"
-        port: "{{ ansible_ssh_port }}"
-        user: "{{ ansible_ssh_user }}"
-        passwd: "{{ ansible_ssh_pass }}"
         rpcs:
           - "wrong-rpc"
       register: test8

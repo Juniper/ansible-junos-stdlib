@@ -47,7 +47,6 @@ extends_documentation_fragment:
   - juniper_junos_common.connection_documentation
   - juniper_junos_common.logging_documentation
 module: juniper_junos_rpc
-version_added: "2.0.0" # of Juniper.junos role
 author: "Juniper Networks - Stacy Smith (@stacywsmith)"
 short_description: Execute one or more NETCONF RPCs on a Junos device
 description:
@@ -190,8 +189,8 @@ EXAMPLES = '''
   hosts: junos-all
   connection: local
   gather_facts: no
-  roles:
-    - Juniper.junos
+  collections:
+    - Juniper.junos_collection
 
   tasks:
     - name: Execute single get-software-information RPC.
@@ -246,8 +245,8 @@ EXAMPLES = '''
 # and use it with rpc_reply
 - name: Get Device Configuration
   hosts: all
-  roles:
-    - Juniper.junos
+  collections:
+    - Juniper.junos_collection
   connection: local
   gather_facts: no
   tasks:
@@ -376,7 +375,7 @@ Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project
 
 # Ansiballz packages module_utils into ansible.module_utils
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.Juniper.junos.plugins.module_utils import juniper_junos_common
+from ansible_collections.Juniper.junos_collection.plugins.module_utils import juniper_junos_common
 
 def main():
     # Create the module instance.
@@ -503,6 +502,9 @@ def main():
 
         # Execute the RPC
         try:
+            #for get-config in case of exception handling it will not display
+            #filters and arguments. To be added in future.
+            rpc = junos_module.etree.Element(rpc_string, format=format)
             if rpc_string == 'get-config':
                 filter = junos_module.params.get('filter')
                 if attr is None:
@@ -521,7 +523,6 @@ def main():
                 junos_module.logger.debug('The "get-config" RPC executed '
                                           'successfully.')
             else:
-                rpc = junos_module.etree.Element(rpc_string, format=format)
                 if kwarg is not None:
                     # Add kwarg
                     for (key, value) in iteritems(kwarg):

@@ -46,7 +46,6 @@ extends_documentation_fragment:
   - juniper_junos_common.connection_documentation
   - juniper_junos_common.logging_documentation
 module: juniper_junos_command
-version_added: "2.0.0" # of Juniper.junos role
 author: "Juniper Networks - Stacy Smith (@stacywsmith)"
 short_description: Execute one or more CLI commands on a Junos device
 description:
@@ -152,8 +151,8 @@ EXAMPLES = '''
   hosts: junos-all
   connection: local
   gather_facts: no
-  roles:
-    - Juniper.junos
+  collections:
+    - Juniper.junos_collection
 
   tasks:
     - name: Execute single "show version" command.
@@ -309,7 +308,7 @@ Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project
 
 # Ansiballz packages module_utils into ansible.module_utils
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.Juniper.junos.plugins.module_utils import juniper_junos_common
+from ansible_collections.Juniper.junos_collection.plugins.module_utils import juniper_junos_common
 
 def main():
     # Create the module instance.
@@ -331,6 +330,9 @@ def main():
                           type='path',
                           aliases=['destination_dir', 'destdir'],
                           default=None),
+            ignore_warning=dict(required=False,
+                                type='list',
+                                default=None),
             return_output=dict(required=False,
                                type='bool',
                                default=True)
@@ -343,6 +345,9 @@ def main():
         supports_check_mode=True,
         min_jxmlease_version=juniper_junos_common.MIN_JXMLEASE_VERSION,
     )
+
+    # Parse ignore_warning value
+    ignore_warning = junos_module.parse_ignore_warning_option()
 
     # Check over commands
     commands = junos_module.params.get('commands')
@@ -412,7 +417,7 @@ def main():
                                       command)
             rpc = junos_module.etree.Element('command', format=format)
             rpc.text = command
-            resp = junos_module.dev.rpc(rpc, normalize=bool(format == 'xml'))
+            resp = junos_module.dev.rpc(rpc, ignore_warning=ignore_warning, normalize=bool(format == 'xml'))
             result['msg'] = 'The command executed successfully.'
             junos_module.logger.debug('Command "%s" executed successfully.',
                                       command)
