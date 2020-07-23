@@ -2,14 +2,14 @@
 
 # Juniper Ansible collection for Junos
 
-The repo is under active development.  If you take a clone, you are getting the latest, and perhaps not entirely stable code.  
+The repo is under active development.  If you take a clone, you are getting the latest, and perhaps not entirely stable code.
 
 ## About
 
-Juniper Networks supports Ansible for managing devices running the Junos operating system (Junos OS). 
-This collection is hosted on the Ansible Galaxy website under the collection 
-[Juniper.junos_collection](https://galaxy.ansible.com/Juniper/junos/). The Juniper.junos_collection collection includes 
-a set of Ansible modules that perform specific operational and configuration tasks on devices running Junos OS. 
+Juniper Networks supports Ansible for managing devices running the Junos operating system (Junos OS).
+This collection is hosted on the Ansible Galaxy website under the collection
+[Juniper.junos_collection](https://galaxy.ansible.com/Juniper/junos/). The Juniper.junos_collection collection includes
+a set of Ansible modules that perform specific operational and configuration tasks on devices running Junos OS.
 These tasks include:
 installing and upgrading Junos OS, provisioning new Junos devices in the network, loading configuration changes,
 retrieving information, and resetting, rebooting, or shutting down managed devices.  Please refer to the
@@ -17,9 +17,9 @@ retrieving information, and resetting, rebooting, or shutting down managed devic
 
 ## Juniper.junos roles by Juniper Networks
 
-Ansible galaxy is upgrading to collections and plans to deprecate roles in future. The master branch will now have 
-Juniper.junos_collection support. Juniper.junos roles have been moved to roles branch. Roles will be supported for now. 
-For more information for roles, check: 
+Ansible galaxy is upgrading to collections and plans to deprecate roles in future. The master branch will now have
+Juniper.junos_collection support. Juniper.junos roles have been moved to roles branch. Roles will be supported for now.
+For more information for roles, check:
 https://github.com/Juniper/ansible-junos-stdlib/tree/roles
 
 ## Two Sets of Ansible Modules for Junos devices
@@ -48,7 +48,7 @@ This Juniper.junos_collection collection includes the following modules:
 - **juniper_junos_table** — Retrieve data from a Junos device using a PyEZ table/view.
 
 ### PyEZ Version Requirement
-For ansible collection junos_collection we will need to install junos-eznc(PyEZ) version 2.5.0 or higher. 
+For ansible collection junos_collection we will need to install junos-eznc(PyEZ) version 2.5.0 or higher.
 
 ### Overview of Plugins
 
@@ -87,13 +87,13 @@ should be added to the Ansible configuration file in order to allow the jsnapy c
 
 ## INSTALLATION
 
-You must have the [DEPENDENCIES](#dependencies) installed on your system.  
+You must have the [DEPENDENCIES](#dependencies) installed on your system.
 
 ### NOTICES
 
 #### Ubuntu 14.04
 
-If you're dealing with Ubuntu 14.04 and faced following error during the installation, it's because the system python 
+If you're dealing with Ubuntu 14.04 and faced following error during the installation, it's because the system python
 which used by Ubuntu 14.04 is locked to 2.7.6 till EOL, as a result, please consider to skip galaxy certification process
 by appending `-c` option of ansible-galaxy. i.e. `ansible-galaxy collection install Juniper.junos_collection -c`
 
@@ -157,7 +157,7 @@ docker run -it --rm juniper/pyez-ansible ash
 Although, you'll probably want to bind mount a host directory (perhaps the directory containing your playbooks and associated files). The following will bind mount the current working directory and start the ash shell.
 
 ```bash
-docker run -it --rm -v $PWD:/project juniper/pyez-ansible ash
+docker run -it --rm -v $PWD:/playbooks juniper/pyez-ansible ash
 ```
 
 You can also use the container as an executable to run your playbooks. Let's assume we have a typical playbook structure as below:
@@ -179,7 +179,7 @@ docker run -it --rm -v $PWD:/playbooks juniper/pyez-ansible ansible-playbook -i 
 You may have noticed that the base command is almost always the same. We can also use an alias to save some keystrokes.
 
 ```bash
-alias pb-ansible="docker run -it --rm -v $PWD:/project juniper/pyez-ansible ansible-playbook"
+alias pb-ansible="docker run -it --rm -v $PWD:/playbooks juniper/pyez-ansible ansible-playbook"
 pb-ansible -i hosts playbook.yml
 ```
 
