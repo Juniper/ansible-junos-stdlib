@@ -306,7 +306,7 @@ def main():
     if action == 'off' or action == 'power_off' or action == 'power-off':
         action = 'shutdown'
 
-    if action == 'reboot' and vmhost is True:
+    if action != 'reboot' and vmhost is True:
         junos_module.fail_json(msg='The vmhost option can only be used when '
                                    'the action option has the value "reboot".')
 
@@ -351,7 +351,7 @@ def main():
         # Execute the RPC.
         try:
             junos_module.logger.debug("Executing RPC")
-
+            junos_module.add_sw()
             if action == 'reboot':
                 got = junos_module.sw.reboot(in_min, at, all_re, None, vmhost, other_re)
             elif action == 'shutdown':

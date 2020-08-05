@@ -725,7 +725,7 @@ class JuniperJunosModule(AnsibleModule):
                self.params.get('mode') == 'serial'):
                self.params['baud'] = 9600
         # Default attempts if serial or telnet mode
-        if self.params.get('attemps') is None:
+        if self.params.get('attempts') is None:
             if (self.params.get('mode') == 'telnet' or
                self.params.get('mode') == 'serial'):
                 self.params['attempts'] = 10
