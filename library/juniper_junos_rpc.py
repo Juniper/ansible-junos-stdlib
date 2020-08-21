@@ -146,6 +146,18 @@ options:
       - format
       - display
       - output
+  ignore_warning:
+    description:
+      - A boolean, string or list of strings. If the value is C(true),
+        ignore all warnings regardless of the warning message. If the value
+        is a string, it will ignore warning(s) if the message of each warning
+        matches the string. If the value is a list of strings, ignore
+        warning(s) if the message of each warning matches at least one of the
+        strings in the list. The value of the I(ignore_warning) option is
+        applied to the load and commit operations performed by this module.
+    required: false
+    default: none
+    type: bool, str, or list of str
   kwargs:
     description:
       - The keyword arguments and values to the RPCs specified by the
@@ -411,6 +423,9 @@ def main():
                           type='path',
                           aliases=['destination_dir', 'destdir'],
                           default=None),
+            ignore_warning=dict(required=False,
+                                type='list',
+                                default=None),
             return_output=dict(required=False,
                                type='bool',
                                default=True)
@@ -429,6 +444,9 @@ def main():
     # Ansible allows users to specify a rpcs argument with no value.
     if rpcs is None:
         junos_module.fail_json(msg="The rpcs option must have a value.")
+
+    # Parse ignore_warning value
+    ignore_warning = junos_module.parse_ignore_warning_option()
 
     # Check over formats
     formats = junos_module.params.get('formats')
@@ -519,6 +537,8 @@ def main():
                                           'filter_xml=%s, options=%s, '
                                           'kwargs=%s',
                                           filter, str(attr), str(kwarg))
+                # not adding ignore_warning as we don't expect to get rpc-error
+                # with severity warning during get_config
                 resp = junos_module.dev.rpc.get_config(filter_xml=filter,
                                                        options=attr, **kwarg)
                 result['msg'] = 'The "get-config" RPC executed successfully.'
@@ -544,7 +564,7 @@ def main():
                                               rpc,
                                               pretty_print=True))
                 resp = junos_module.dev.rpc(rpc,
-                                            normalize=bool(format == 'xml'))
+                                            normalize=bool(format == 'xml'), ignore_warning=ignore_warning)
                 result['msg'] = 'The RPC executed successfully.'
                 junos_module.logger.debug('RPC "%s" executed successfully.',
                                           junos_module.etree.tostring(
