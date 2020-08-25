@@ -341,7 +341,7 @@ def main():
             # </rpc-reply> and therefore might get an RpcTimeout.
             # (This is a known Junos bug.) Set the timeout low so this happens
             # relatively quickly.
-            if (at == 'now' or in_min == 0 or at is None):
+            if at == 'now' or (in_min == 0 and at is None):
                 if junos_module.dev.timeout > 5:
                     junos_module.logger.debug("Decreasing device RPC timeout "
                                               "to 5 seconds.")
