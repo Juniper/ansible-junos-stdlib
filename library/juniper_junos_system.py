@@ -106,7 +106,7 @@ options:
         value of C(zeroize). The I(in_min) option is mutually exclusive with
         the I(at) option.
     required: false
-    default: none
+    default: 0
     type: int
   all_re:
     description:
@@ -273,7 +273,7 @@ def main():
             in_min=dict(type='int',
                         required=False,
                         aliases=['in'],
-                        default=None),
+                        default=0),
             all_re=dict(type='bool',
                         required=False,
                         default=True),
@@ -313,7 +313,7 @@ def main():
     #Four actions are expected - reboot, shutdown, halt and zeroize
     if action not in ['reboot', 'shutdown', 'halt']:
         # at, in_min and other_re option only applies to reboot, shutdown, or halt action.
-        for arg_type,arg_val in {"at":at,"in_min":in_min,"other_re":other_re}:
+        for arg_type, arg_val in {"at": at, "in_min": in_min, "other_re": other_re}:
             if arg_val is not None:
                 junos_module.fail_json(msg='The %s option can only be used when '
                                            'the action option has the value "reboot", '
@@ -341,8 +341,7 @@ def main():
             # </rpc-reply> and therefore might get an RpcTimeout.
             # (This is a known Junos bug.) Set the timeout low so this happens
             # relatively quickly.
-            if (at == 'now' or in_min == 0 or
-               (at is None and in_min is None)):
+            if (at == 'now' or in_min == 0 or at is None):
                 if junos_module.dev.timeout > 5:
                     junos_module.logger.debug("Decreasing device RPC timeout "
                                               "to 5 seconds.")
