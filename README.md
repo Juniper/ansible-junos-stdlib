@@ -1,24 +1,28 @@
 [![Documentation Status](https://readthedocs.org/projects/junos-ansible-modules/badge/?version=stable)](https://junos-ansible-modules.readthedocs.io/en/2.3.0/)
 
+NOTE : The collection for Ansible is under development and changes are expected in the namespace/module implementation.  
+One may use it but it is recommended to currently use juniper.junos roles for professional implementation. 
+Refer - https://github.com/Juniper/ansible-junos-stdlib/tree/roles for more info. 
+
 # Juniper Ansible collection for Junos
 
-The repo is under active development.  If you take a clone, you are getting the latest, and perhaps not entirely stable code.  
+The repo is under active development.  If you take a clone, you are getting the latest, and perhaps not entirely stable code. 
 
 ## About
 
 Juniper Networks supports Ansible for managing devices running the Junos operating system (Junos OS). 
 This collection is hosted on the Ansible Galaxy website under the collection 
-[Juniper.junos_collection](https://galaxy.ansible.com/Juniper/junos/). The Juniper.junos_collection collection includes 
+[juniper.device](https://galaxy.ansible.com/Juniper/junos/). The juniper.device collection includes 
 a set of Ansible modules that perform specific operational and configuration tasks on devices running Junos OS. 
 These tasks include:
 installing and upgrading Junos OS, provisioning new Junos devices in the network, loading configuration changes,
 retrieving information, and resetting, rebooting, or shutting down managed devices.  Please refer to the
 [INSTALLATION](#installation) section for instructions on installing this collection.
 
-## Juniper.junos roles by Juniper Networks
+## juniper.junos roles by Juniper Networks
 
 Ansible galaxy is upgrading to collections and plans to deprecate roles in future. The master branch will now have 
-Juniper.junos_collection support. Juniper.junos roles have been moved to roles branch. Roles will be supported for now. 
+juniper.device collection support. Juniper.junos roles have been moved to roles branch. 
 For more information for roles, check: 
 https://github.com/Juniper/ansible-junos-stdlib/tree/roles
 
@@ -26,14 +30,14 @@ https://github.com/Juniper/ansible-junos-stdlib/tree/roles
 
 Since Ansible version >= 2.1, Ansible also natively includes
 [core modules for Junos](http://docs.ansible.com/ansible/list_of_network_modules.html#junos). The Junos modules included
-in Ansible core have names which begin with the prefix `junos_`. The Junos modules included in this Juniper.junos_collection
+in Ansible core have names which begin with the prefix `junos_`. The Junos modules included in this Juniper.device
 collection have names which begin with the prefix `juniper_junos_`. These two sets of Junos modules can coexist on the same
 Ansible control machine, and an Ansible play may invoke a module from either (or both) sets. Juniper Networks recommends
 using the modules in this collection when writing new playbooks that manage Junos devices.
 
 ## Overview of Modules
 
-This Juniper.junos_collection collection includes the following modules:
+This juniper.device collection includes the following modules:
 
 - **juniper_junos_command** — Execute one or more CLI commands on a Junos device.
 - **juniper_junos_config** — Manipulate the configuration of a Junos device.
@@ -48,7 +52,7 @@ This Juniper.junos_collection collection includes the following modules:
 - **juniper_junos_table** — Retrieve data from a Junos device using a PyEZ table/view.
 
 ### PyEZ Version Requirement
-For ansible collection junos_collection we will need to install junos-eznc(PyEZ) version 2.5.0 or higher. 
+For ansible collection junos we will need to install junos-eznc(PyEZ) version 2.5.0 or higher. 
 
 ### Overview of Plugins
 
@@ -89,31 +93,6 @@ should be added to the Ansible configuration file in order to allow the jsnapy c
 
 You must have the [DEPENDENCIES](#dependencies) installed on your system.  
 
-### NOTICES
-
-#### Ubuntu 14.04
-
-If you're dealing with Ubuntu 14.04 and faced following error during the installation, it's because the system python 
-which used by Ubuntu 14.04 is locked to 2.7.6 till EOL, as a result, please consider to skip galaxy certification process
-by appending `-c` option of ansible-galaxy. i.e. `ansible-galaxy collection install Juniper.junos_collection -c`
-
-    [WARNING]: - Juniper.junos_collection was NOT installed successfully: Failed to get data
-    from the API server (https://galaxy.ansible.com/api/): Failed to validate the
-    SSL certificate for galaxy.ansible.com:443. Make sure your managed systems have
-    a valid CA certificate installed. If the website serving the url uses SNI you
-    need python >= 2.7.9 on your managed machine  (the python executable used
-    (/usr/bin/python) is version: 2.7.6 (default, Nov 23 2017, 15:49:48) [GCC
-    4.8.4]) or you can install the `urllib3`, `pyOpenSSL`, `ndg-httpsclient`, and
-    `pyasn1` python modules to perform SNI verification in python >= 2.6. You can
-    use validate_certs=False if you do not need to confirm the servers identity but
-    this is unsafe and not recommended. Paths checked for this platform:
-    /etc/ssl/certs, /etc/pki/ca-trust/extracted/pem, /etc/pki/tls/certs, /usr/share
-    /ca-certificates/cacert.org, /etc/ansible. The exception msg was: hostname
-    u'galaxy.ansible.com' doesn't match either of
-    '*.c1e4.galaxy.openshiftapps.com', 'c1e4.galaxy.openshiftapps.com'.
-
-    ERROR! - you can use --ignore-errors to skip failed collections and finish processing the list.
-
 ### MacOS Mojave and newer
 
 In MacOS Mojave and newer (>=10.14), ssh keys created with the system `ssh-keygen` are created using the newer 'OPENSSH' key format, even when specifying `-t rsa` during creation. This directly affects the usage of ssh keys, particularly when using the `ssh_private_key_file`. To create/convert/check keys, follow these steps:
@@ -125,10 +104,10 @@ In MacOS Mojave and newer (>=10.14), ssh keys created with the system `ssh-keyge
 ### Ansible Galaxy collection
 
 You can use the ansible-galaxy install command to install the latest
-development version of the junos collection directly from GitHub.
+version of the juniper.device collection.
 
 ```bash
-sudo ansible-galaxy collection install git+https://github.com/Juniper/ansible-junos-stdlib.git,,Juniper.junos_collection
+sudo ansible-galaxy collection install juniper.device
 ```
 
 ### Git clone
@@ -253,7 +232,7 @@ This example outlines how to use Ansible to install or upgrade the software imag
 - name: Install Junos OS
   hosts: dc1
   collections:
-    - Juniper.junos_collection
+    - juniper.device
   connection: local
   gather_facts: no
   vars:
@@ -286,9 +265,9 @@ This example outlines how to use Ansible to install or upgrade the software imag
 
 This modules requires the following to be installed on the Ansible control machine:
 
-- Python >= 2.7
-- [Ansible](http://www.ansible.com) 2.3 or later
-- Junos [py-junos-eznc](https://github.com/Juniper/py-junos-eznc) 2.1.7 or later
+- Python >= 3.5
+- [Ansible](http://www.ansible.com) 2.9 or later
+- Junos [py-junos-eznc](https://github.com/Juniper/py-junos-eznc) 2.5.0 or later
 - [jxmlease](https://github.com/Juniper/jxmlease) 1.0.1 or later
 
 ## LICENSE
@@ -297,8 +276,8 @@ Apache 2.0
 
 ## SUPPORT
 
-Support for this Juniper.junos_collection collection is provided by the community and Juniper Networks. If you have an
-issue with a module in the Juniper.junos_collection collection, you may:
+Support for this juniper.device collection is provided by the community and Juniper Networks. If you have an
+issue with a module in the juniper.device collection, you may:
 
 - Open a [GitHub issue](https://github.com/Juniper/ansible-junos-stdlib/issues).
 - Post a question on our [Google Group](https://groups.google.com/forum/#!forum/junos-python-ez)
