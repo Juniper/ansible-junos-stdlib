@@ -1,8 +1,12 @@
 [![Documentation Status](https://readthedocs.org/projects/junos-ansible-modules/badge/?version=stable)](https://junos-ansible-modules.readthedocs.io/en/2.3.0/)
 
+NOTE : The collection for Ansible is under development and changes are expected in the namespace/module implementation.  
+One may use it but it is recommended to currently use juniper.junos roles for professional implementation. 
+Refer - https://github.com/Juniper/ansible-junos-stdlib/tree/roles for more info. 
+
 # Juniper Ansible collection for Junos
 
-The repo is under active development.  If you take a clone, you are getting the latest, and perhaps not entirely stable code.  
+The repo is under active development.  If you take a clone, you are getting the latest, and perhaps not entirely stable code. 
 
 ## About
 
