@@ -42,7 +42,7 @@ from ansible.module_utils._text import to_bytes
 try:
     from html import escape as html_escape
 except ImportError:
-    # Python-3.2 or later
+    # Python-3.5 or later
     import cgi
 
     def html_escape(text, quote=True):
@@ -67,7 +67,7 @@ _UNDERSCORE = re.compile(r"_")
 DEPRECATED = b" (D)"
 
 MODULE_NAME_STARTS_WITH = "juniper_junos_"
-MODULEDIR = "../library/"
+MODULEDIR = "../plugins/modules/"
 OUTPUTDIR = "./"
 
 #####################################################################################
@@ -199,7 +199,7 @@ def add_fragments(doc, filename):
         else:
             fragment_name, fragment_var = fragment_slug, 'DOCUMENTATION'
 
-        fragment_loader.add_directory('../module_utils/')
+        fragment_loader.add_directory('../plugins/module_utils/')
         fragment_class = fragment_loader.get(fragment_name)
         assert fragment_class is not None
 
@@ -228,7 +228,6 @@ def add_fragments(doc, filename):
                 else:
                     raise Exception("Attempt to extend a documentation fragement (%s) of unknown type: %s" % (fragment_name, filename))
             doc[key] = value
-
 
 
 def get_docstring(filename, verbose=False):
@@ -410,7 +409,7 @@ def main():
 
     index_file_path = os.path.join(OUTPUTDIR, "index.rst")
     index_file = open(index_file_path, "w")
-    index_file.write('Juniper.junos Ansible Modules\n')
+    index_file.write('juniper.device Ansible Modules\n')
     index_file.write('=================================================\n')
     index_file.write('\n')
     index_file.write('Contents:\n')

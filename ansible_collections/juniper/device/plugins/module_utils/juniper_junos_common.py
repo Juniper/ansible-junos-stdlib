@@ -126,7 +126,7 @@ except NameError:
 
 # Constants
 # Minimum PyEZ version required by shared code.
-MIN_PYEZ_VERSION = "2.4.1"
+MIN_PYEZ_VERSION = "2.5.2"
 # Installation URL for PyEZ.
 PYEZ_INSTALLATION_URL = "https://github.com/Juniper/py-junos-eznc#installation"
 # Minimum lxml version required by shared code.
