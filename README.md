@@ -17,10 +17,7 @@ retrieving information, and resetting, rebooting, or shutting down managed devic
 
 ## Juniper.junos roles by Juniper Networks
 
-Ansible galaxy is upgrading to collections and plans to deprecate roles in future. The master branch will now have 
-Juniper.junos_collection support. Juniper.junos roles have been moved to roles branch. Roles will be supported for now. 
-For more information for roles, check: 
-https://github.com/Juniper/ansible-junos-stdlib/tree/roles
+Ansible galaxy is upgrading to collections and plans to deprecate roles in future. The master branch will now have Juniper.junos_collection support. Juniper.junos roles have been moved to roles branch. Roles will be supported for now. For more information for roles, check: [https://github.com/Juniper/ansible-junos-stdlib/tree/roles](https://github.com/Juniper/ansible-junos-stdlib/tree/roles)
 
 ## Two Sets of Ansible Modules for Junos devices
 
@@ -48,6 +45,7 @@ This Juniper.junos_collection collection includes the following modules:
 - **juniper_junos_table** — Retrieve data from a Junos device using a PyEZ table/view.
 
 ### PyEZ Version Requirement
+
 For ansible collection junos_collection we will need to install junos-eznc(PyEZ) version 2.5.0 or higher. 
 
 ### Overview of Plugins
@@ -91,29 +89,6 @@ You must have the [DEPENDENCIES](#dependencies) installed on your system.
 
 ### NOTICES
 
-#### Ubuntu 14.04
-
-If you're dealing with Ubuntu 14.04 and faced following error during the installation, it's because the system python 
-which used by Ubuntu 14.04 is locked to 2.7.6 till EOL, as a result, please consider to skip galaxy certification process
-by appending `-c` option of ansible-galaxy. i.e. `ansible-galaxy collection install Juniper.junos_collection -c`
-
-    [WARNING]: - Juniper.junos_collection was NOT installed successfully: Failed to get data
-    from the API server (https://galaxy.ansible.com/api/): Failed to validate the
-    SSL certificate for galaxy.ansible.com:443. Make sure your managed systems have
-    a valid CA certificate installed. If the website serving the url uses SNI you
-    need python >= 2.7.9 on your managed machine  (the python executable used
-    (/usr/bin/python) is version: 2.7.6 (default, Nov 23 2017, 15:49:48) [GCC
-    4.8.4]) or you can install the `urllib3`, `pyOpenSSL`, `ndg-httpsclient`, and
-    `pyasn1` python modules to perform SNI verification in python >= 2.6. You can
-    use validate_certs=False if you do not need to confirm the servers identity but
-    this is unsafe and not recommended. Paths checked for this platform:
-    /etc/ssl/certs, /etc/pki/ca-trust/extracted/pem, /etc/pki/tls/certs, /usr/share
-    /ca-certificates/cacert.org, /etc/ansible. The exception msg was: hostname
-    u'galaxy.ansible.com' doesn't match either of
-    '*.c1e4.galaxy.openshiftapps.com', 'c1e4.galaxy.openshiftapps.com'.
-
-    ERROR! - you can use --ignore-errors to skip failed collections and finish processing the list.
-
 ### MacOS Mojave and newer
 
 In MacOS Mojave and newer (>=10.14), ssh keys created with the system `ssh-keygen` are created using the newer 'OPENSSH' key format, even when specifying `-t rsa` during creation. This directly affects the usage of ssh keys, particularly when using the `ssh_private_key_file`. To create/convert/check keys, follow these steps:
@@ -127,38 +102,28 @@ In MacOS Mojave and newer (>=10.14), ssh keys created with the system `ssh-keyge
 You can use the ansible-galaxy install command to install the latest
 development version of the junos collection directly from GitHub.
 
-```bash
-sudo ansible-galaxy collection install git+https://github.com/Juniper/ansible-junos-stdlib.git,,Juniper.junos_collection
-```
+  sudo ansible-galaxy collection install git+https://github.com/Juniper/ansible-junos-stdlib.git,,Juniper.junos_collection
 
 ### Git clone
 
 For testing you can `git clone` this repo and run the `env-setup` script in the repo directory:
 
-```bash
-user@ansible-junos-stdlib> source env-setup
-```
+  user@ansible-junos-stdlib> source env-setup
 
 This will set your `$ANSIBLE_LIBRARY` variable to the repo location and the installed Ansible library path.  For example:
 
-```bash
-$ echo $ANSIBLE_LIBRARY
-/home/jeremy/Ansible/ansible-junos-stdlib/library:/usr/share/ansible
-```
+  $ echo $ANSIBLE_LIBRARY
+  /home/jeremy/Ansible/ansible-junos-stdlib/library:/usr/share/ansible
 
 ### Docker
 
 To run this as a Docker container, which includes JSNAPy and PyEZ, simply pull it from the Docker hub and run it. The following will pull the latest image and run it in an interactive ash shell.
 
-```bash
-docker run -it --rm juniper/pyez-ansible
-```
+  docker run -it --rm juniper/pyez-ansible
 
 Although, you'll probably want to bind mount a host directory (perhaps the directory containing your playbooks and associated files). The following will bind mount the current working directory and start the ash shell.
 
-```bash
-docker run -it --rm -v $PWD:/project juniper/pyez-ansible
-```
+  docker run -it --rm -v $PWD:/project juniper/pyez-ansible
 
 You can also use the container as an executable to run your playbooks. Let's assume we have a typical playbook structure as below:
 
@@ -171,23 +136,21 @@ You can also use the container as an executable to run your playbooks. Let's ass
 
 We can move to the example directory and run the playbook with the following command:
 
-```bash
-cd example/
-docker run -it --rm -v $PWD:/playbooks juniper/pyez-ansible ansible-playbook -i hosts playbook.yml
-```
+  cd example/
+  docker run -it --rm -v $PWD:/playbooks juniper/pyez-ansible ansible-playbook -i hosts playbook.yml
+
 You can pass any valid command string after the container name and it will be passed to Bash for execution.
 
 You may have noticed that the base command is almost always the same. We can also use an alias to save some keystrokes.
 
-```text
-alias pb-ansible="docker run -it --rm -v $PWD:/project juniper/pyez-ansible ansible-playbook"
-pb-ansible -i hosts playbook.yml
-```
+  alias pb-ansible="docker run -it --rm -v $PWD:/project juniper/pyez-ansible ansible-playbook"
+  pb-ansible -i hosts playbook.yml
+
 ### Extending the container with additional packages
 
 It's possible to install additional OS (Alpine) packages, Python packages (via pip), and Ansible roles or collections at container instantiation. This can be done by passing in environment variables or bind mounting files.
 
-__OS Packages__
+#### OS Packages
 
 Environment Variable: `$APK`
 Bind Mount: `/extras/apk.txt`
@@ -196,17 +159,13 @@ Examples:
 
 As an environment variable, where the file containing a list of packages is in the current directory.
 
-```text
-docker run -it --rm -v $PWD:/project -e APK="apk.txt" juniper/pyez-ansible
-```
+ docker run -it --rm -v $PWD:/project -e APK="apk.txt" juniper/pyez-ansible
 
 As a bind mount.
 
-```text
-docker run -it --rm -v $PWD/apk.txt:/extras/apk.txt juniper/pyez-ansible
-```
+  docker run -it --rm -v $PWD/apk.txt:/extras/apk.txt juniper/pyez-ansible
 
-__Python Packages__
+#### Python Packages
 
 Environment Variable: `$REQ`
 Bind Mount: `/extras/requirements.txt`
@@ -214,17 +173,13 @@ File Format: pip [requirements](https://pip.pypa.io/en/stable/reference/pip_inst
 
 Examples:
 
-```text
-docker run -it --rm -v $PWD:/project -e REQ="requirements.txt" juniper/pyez-ansible
-```
+  docker run -it --rm -v $PWD:/project -e REQ="requirements.txt" juniper/pyez-ansible
 
 As a bind mount.
 
-```text
-docker run -it --rm -v $PWD/requirements.txt:/extras/requirements.txt juniper/pyez-ansible
-```
+  docker run -it --rm -v $PWD/requirements.txt:/extras/requirements.txt juniper/pyez-ansible
 
-__Ansible Packages__
+#### Ansible Packages
 
 Environment Variable: `$ROLES`
 Bind Mount: `/extras/requirements.yml`
@@ -234,15 +189,11 @@ _NOTE:_ This works for collections as well as roles.
 
 Examples:
 
-```text
-docker run -it --rm -v $PWD:/project -e REQ="requirements.yml" juniper/pyez-ansible
-```
+  docker run -it --rm -v $PWD:/project -e REQ="requirements.yml" juniper/pyez-ansible
 
 As a bind mount.
 
-```text
-docker run -it --rm -v $PWD/requirements.txt:/extras/requirements.yml juniper/pyez-ansible
-```
+  docker run -it --rm -v $PWD/requirements.txt:/extras/requirements.yml juniper/pyez-ansible
 
 ## Example Playbook
 
@@ -314,10 +265,8 @@ Juniper Networks is actively contributing to and maintaining this repo. Please c
 [jnpr-community-netdev@juniper.net](jnpr-community-netdev@juniper.net) for any queries.
 
 *Contributors:*
-[Nitin Kumar](https://github.com/vnitinv), [Rahul Kumar](https://github.com/rahkumar651991)
-
-* v0.1.0: [Rahul Kumar](https://github.com/rahkumar651991)
+[Nitin Kumar](https://github.com/vnitinv), [Rahul Kumar](https://github.com/rahkumar651991), [Stephen Steiner](https://github.com/ntwrkguru)
 
 *Former Contributors:*
 
-[Stacy W Smith](https://github.com/stacywsmith), [Stephen Steiner](https://github.com/ntwrkguru), [Jeremy Schulman](https://github.com/jeremyschulman), [Rick Sherman](https://github.com/shermdog), [Damien Garros](https://github.com/dgarros), [David Gethings](https://github.com/dgjnpr)
+[Stacy W Smith](https://github.com/stacywsmith), [Jeremy Schulman](https://github.com/jeremyschulman), [Rick Sherman](https://github.com/shermdog), [Damien Garros](https://github.com/dgarros), [David Gethings](https://github.com/dgjnpr)
