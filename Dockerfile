@@ -4,7 +4,7 @@ LABEL net.juniper.image.maintainer="Stephen Steiner <ssteiner@juniper.net>" \
       net.juniper.image.description="Lightweight image with Ansible and the Junos roles"
 
 RUN apk add --no-cache build-base python3-dev py3-pip \
-    openssl-dev curl ca-certificates bash
+    openssl-dev curl ca-certificates bash openssh-client
 
 WORKDIR /tmp
 COPY requirements.txt .
