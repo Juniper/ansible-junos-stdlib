@@ -1,7 +1,7 @@
-FROM juniper/pyez
+FROM juniper/pyez:2.4.0
 
 LABEL net.juniper.image.maintainer="Stephen Steiner <ssteiner@juniper.net>" \
-      net.junier.image.description="Lightweight image with Ansible and the Junos roles"
+      net.juniper.image.description="Lightweight image with Ansible and the Junos roles"
 
 RUN apk add --no-cache build-base python3-dev py3-pip \
     openssl-dev curl ca-certificates bash
