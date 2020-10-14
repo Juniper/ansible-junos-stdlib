@@ -310,14 +310,11 @@ def main():
         junos_module.fail_json(msg='The vmhost option can only be used when '
                                    'the action option has the value "reboot".')
 
-    #Four actions are expected - reboot, shutdown, halt and zeroize
-    if action not in ['reboot', 'shutdown', 'halt']:
+    if action == "zeroize" :
         # at, in_min and other_re option only applies to reboot, shutdown, or halt action.
-        for arg_type, arg_val in {"at": at, "in_min": in_min, "other_re": other_re}:
-            if arg_val is not None:
-                junos_module.fail_json(msg='The %s option can only be used when '
-                                           'the action option has the value "reboot", '
-                                           '"shutdown", or "halt".' % arg_type)
+        if (at != None) or (in_min != 0) or (other_re == True):
+            junos_module.fail_json(msg='The options at, in_min and other_re can only be used when '
+                                           'the action option has the value "zeroize"')
 
     elif media is True:       # media option only applies to zeroize action.
         junos_module.fail_json(msg='The media option can only be used when '
