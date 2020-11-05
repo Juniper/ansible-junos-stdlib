@@ -34,117 +34,22 @@
 from __future__ import absolute_import, division, print_function
 
 # Ansible imports
+from ansible.module_utils.connection import Connection
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.basic import boolean
-from ansible.module_utils._text import to_bytes
+from ansible.module_utils._text import to_bytes, to_text
+from ansible_collections.juniper.device.plugins.module_utils import configuration as cfg
+import jnpr
+from jnpr.junos import exception as pyez_exception
 
 # Standard library imports
 from argparse import ArgumentParser
 from distutils.version import LooseVersion
 import json
+import xmltodict
 import logging
 import os
 
-# Non-standard library imports and checks
-try:
-    from jnpr.junos.version import VERSION
-    HAS_PYEZ_VERSION = VERSION
-except ImportError:
-    HAS_PYEZ_VERSION = None
-
-try:
-    import jnpr.junos.device
-    HAS_PYEZ_DEVICE = True
-except ImportError:
-    HAS_PYEZ_DEVICE = False
-
-try:
-    import jnpr.junos.utils.sw
-    HAS_PYEZ_SW = True
-except ImportError:
-    HAS_PYEZ_SW = False
-
-try:
-    import jnpr.junos.utils.config
-    HAS_PYEZ_CONFIG = True
-except ImportError:
-    HAS_PYEZ_CONFIG = False
-
-try:
-    import jnpr.junos.op
-    import jnpr.junos.factory.factory_loader
-    import jnpr.junos.factory.table
-    HAS_PYEZ_OP_TABLE = True
-except ImportError:
-    HAS_PYEZ_OP_TABLE = False
-
-try:
-    import jnpr.junos.exception as pyez_exception
-    HAS_PYEZ_EXCEPTIONS = True
-except ImportError:
-    HAS_PYEZ_EXCEPTIONS = False
-
-try:
-    import ncclient.operations.errors as ncclient_exception
-    HAS_NCCLIENT_EXCEPTIONS = True
-except ImportError:
-    HAS_NCCLIENT_EXCEPTIONS = False
-
-try:
-    import jnpr.jsnapy
-    HAS_JSNAPY_VERSION = jnpr.jsnapy.__version__
-except ImportError:
-    HAS_JSNAPY_VERSION = None
-# Most likely JSNAPy 1.2.0 with https://github.com/Juniper/jsnapy/issues/263
-except TypeError:
-    HAS_JSNAPY_VERSION = 'possibly 1.2.0'
-
-try:
-    from lxml import etree
-    HAS_LXML_ETREE_VERSION = '.'.join(map(str, etree.LXML_VERSION))
-except ImportError:
-    HAS_LXML_ETREE_VERSION = None
-
-try:
-    import jxmlease
-    HAS_JXMLEASE_VERSION = jxmlease.__version__
-except ImportError:
-    HAS_JXMLEASE_VERSION = None
-
-try:
-    import yaml
-    HAS_YAML_VERSION = yaml.__version__
-except ImportError:
-    HAS_YAML_VERSION = None
-
-try:
-    # Python 2
-    basestring
-except NameError:
-    # Python 3
-    basestring = str
-
-# Constants
-# Minimum PyEZ version required by shared code.
-MIN_PYEZ_VERSION = "2.5.2"
-# Installation URL for PyEZ.
-PYEZ_INSTALLATION_URL = "https://github.com/Juniper/py-junos-eznc#installation"
-# Minimum lxml version required by shared code.
-MIN_LXML_ETREE_VERSION = "3.2.4"
-# Installation URL for LXML.
-LXML_ETREE_INSTALLATION_URL = "http://lxml.de/installation.html"
-# Minimum JSNAPy version required by shared code.
-MIN_JSNAPY_VERSION = "1.3.4"
-# Installation URL for JSNAPy.
-JSNAPY_INSTALLATION_URL = "https://github.com/Juniper/jsnapy#installation"
-# Minimum jxmlease version required by shared code.
-MIN_JXMLEASE_VERSION = "1.0.1"
-# Installation URL for jxmlease.
-JXMLEASE_INSTALLATION_URL = \
-    "http://jxmlease.readthedocs.io/en/stable/install.html"
-# Minimum yaml version required by shared code.
-MIN_YAML_VERSION = "3.08"
-YAML_INSTALLATION_URL = "http://pyyaml.org/wiki/PyYAMLDocumentation"
 
 class ModuleDocFragment(object):
     """Documentation fragment for connection-related parameters.
@@ -446,7 +351,7 @@ class ModuleDocFragment(object):
         type: dict
         suboptions:''' + _SUB_CONNECT_DOCUMENTATION + '''
     requirements:
-      - U(junos-eznc|https://github.com/Juniper/py-junos-eznc) >= ''' + MIN_PYEZ_VERSION + '''
+      - U(junos-eznc|https://github.com/Juniper/py-junos-eznc) >= ''' + cfg.MIN_PYEZ_VERSION + '''
       - Python >= 3.5
     notes:
       - The NETCONF system service must be enabled on the target Junos device.
@@ -456,14 +361,14 @@ class ModuleDocFragment(object):
 # The common argument specification for connecting to Junos devices.
 connection_spec = {
     'host': dict(type='str',
-                 # Required either in provider or at top-level.
+                 # Required at top-level.
                  required=False,
                  aliases=['hostname', 'ip'],
                  # See documentation for real default behavior.
                  # Default behavior coded in JuniperJunosActionModule.run()
                  default=None),
     'user': dict(type='str',
-                 # Required either in provider or at top-level.
+                 # Required at top-level.
                  required=False,
                  aliases=['username'],
                  # See documentation for real default behavior.
@@ -477,14 +382,14 @@ connection_spec = {
                    default=None,
                    no_log=True),
     'cs_user': dict(type='str',
-                 aliases=['console_username'],
-                 required=False,
-                 default=None),
+                    aliases=['console_username'],
+                    required=False,
+                    default=None),
     'cs_passwd': dict(type='str',
-                   aliases=['console_password'],
-                   required=False,
-                   default=None,
-                   no_log=True),
+                      aliases=['console_password'],
+                      required=False,
+                      default=None,
+                      no_log=True),
     'ssh_private_key_file': dict(type='path',
                                  required=False,
                                  aliases=['ssh_keyfile'],
@@ -493,8 +398,8 @@ connection_spec = {
                                  # JuniperJunosActionModule.run()
                                  default=None),
     'ssh_config': dict(type='path',
-                                 required=False,
-                                 default=None),
+                       required=False,
+                       default=None),
     'mode': dict(choices=[None, 'telnet', 'serial'],
                  default=None),
     'console': dict(type='str',
@@ -524,21 +429,9 @@ connection_spec = {
 connection_spec_mutually_exclusive = [['mode', 'console'],
                                       ['port', 'console'],
                                       ['baud', 'console'],
-                                      ['attempts','console'],
+                                      ['attempts', 'console'],
                                       ['cs_user', 'console'],
                                       ['cs_passwd', 'console']]
-
-# Specify the provider spec with options matching connection_spec.
-provider_spec = {
-    'provider': dict(type='dict',
-                     options=connection_spec)
-}
-
-# The provider option is mutually exclusive with all top-level connection
-# options.
-provider_spec_mutually_exclusive = []
-for key in connection_spec:
-    provider_spec_mutually_exclusive.append(['provider', key])
 
 # Specify the logging spec.
 logging_spec = {
@@ -553,12 +446,11 @@ logging_spec_mutually_exclusive = ['logfile', 'logdir']
 # Other logging names which should be logged to the logfile
 additional_logger_names = ['ncclient', 'paramiko']
 
-# top_spec is connection_spec + provider_spec + logging_spec
+# top_spec is connection_spec + logging_spec
 top_spec = connection_spec
-top_spec.update(provider_spec)
+
 top_spec.update(logging_spec)
 top_spec_mutually_exclusive = connection_spec_mutually_exclusive
-top_spec_mutually_exclusive += provider_spec_mutually_exclusive
 top_spec_mutually_exclusive += logging_spec_mutually_exclusive
 
 # "Hidden" arguments which are passed between the action plugin and the
@@ -573,6 +465,8 @@ internal_spec = {
     '_inventory_hostname': dict(type='str',
                                 required=True,
                                 default=None),
+    '_connection': dict(type='str',
+                        default=None),
 }
 
 # Known RPC output formats
@@ -589,7 +483,6 @@ CONFIG_ACTION_CHOICES = ['set', 'merge', 'update',
 CONFIG_MODE_CHOICES = ['exclusive', 'private']
 # Supported configuration models
 CONFIG_MODEL_CHOICES = ['openconfig', 'custom', 'ietf', 'True']
-
 
 class JuniperJunosModule(AnsibleModule):
     """A subclass of AnsibleModule used by all juniper_junos_* modules.
@@ -631,8 +524,8 @@ class JuniperJunosModule(AnsibleModule):
     def __init__(self,
                  argument_spec={},
                  mutually_exclusive=[],
-                 min_pyez_version=MIN_PYEZ_VERSION,
-                 min_lxml_etree_version=MIN_LXML_ETREE_VERSION,
+                 min_pyez_version=cfg.MIN_PYEZ_VERSION,
+                 min_lxml_etree_version=cfg.MIN_LXML_ETREE_VERSION,
                  min_jsnapy_version=None,
                  min_jxmlease_version=None,
                  min_yaml_version=None,
@@ -641,8 +534,7 @@ class JuniperJunosModule(AnsibleModule):
 
         Combines module-specific parameters with the common parameters shared
         by all juniper_junos_* modules. Performs additional checks on options.
-        Collapses any provider options to be top-level options. Checks the
-        minimum PyEZ version. Creates and opens the PyEZ Device instance.
+        Checks the minimum PyEZ version. Creates and opens the PyEZ Device instance.
 
         Args:
             agument_spec: Module-specific argument_spec added to top_spec.
@@ -673,10 +565,7 @@ class JuniperJunosModule(AnsibleModule):
         Returns:
             A JuniperJunosModule instance object.
         """
-        # Initialize the dev attribute
-        self.dev = None
-        # Initialize the config attribute
-        self.config = None
+
         # Update argument_spec with the internal_spec
         argument_spec.update(internal_spec)
         # Update argument_spec with the top_spec
@@ -688,20 +577,68 @@ class JuniperJunosModule(AnsibleModule):
             argument_spec=argument_spec,
             mutually_exclusive=mutually_exclusive,
             **kwargs)
-        self.module_name = self.params.get('_module_name')
-        self.inventory_hostname = self.params.get('_inventory_hostname')
+
+        # initialize the parameters
+        self.initialize_params()
+
         # Remove any arguments in internal_spec
         for arg_name in internal_spec:
             self.params.pop(arg_name)
-        # Promote any provider arg_name into params
-        if 'provider' in self.params and self.params['provider'] is not None:
-            for arg_name, arg_value in self.params['provider'].items():
-                if arg_name in self.aliases:
-                    arg_name = self.aliases[arg_name]
-                self.params[arg_name] = arg_value
-            self.params.pop('provider')
+
+        # check software compatibility for various 3rd party tools used
+        ret_output = cfg.check_sw_compatibility(min_pyez_version,
+                                                min_lxml_etree_version,
+                                                min_jsnapy_version,
+                                                min_jxmlease_version,
+                                                min_yaml_version)
+
+        if ret_output != 'success':
+            self.fail_json(msg="%s" % ret_output)
+
+        self.pyez_factory_loader = jnpr.junos.factory.factory_loader
+        self.pyez_factory_table = jnpr.junos.factory.table
+        self.pyez_op_table = jnpr.junos.op
+        self.pyez_exception = pyez_exception
+        self.ncclient_exception = cfg.ncclient_exception
+        self.etree = cfg.etree
+        self.jsnapy = jnpr.jsnapy
+        self.jxmlease = cfg.jxmlease
+        self.yaml = cfg.yaml
+
+        # Setup logging.
+        self.logger = self._setup_logging()
+
+        # Open the PyEZ connection
+        if self.conn_type == "local":
+            self.open()
+        else:
+            self._pyez_conn = self.get_connection()
+
+    def initialize_params(self):
+        """
+        Initalize the parameters in common module
+        """
+        # priority for arguments is inventory < tasks < console
+
+        self.module_name = self.params.get('_module_name')
+        self.inventory_hostname = self.params.get('_inventory_hostname')
+        self.conn_type = self.params.get('_connection')
+
         # Parse the console option
         self._parse_console_options()
+
+        # Initialize the dev attribute
+        self.dev = None
+        # Initialize the config attribute
+        self.config = None
+
+        # Check that we have a user and host
+        if not self.params.get('host'):
+            self.fail_json(msg="missing required arguments: host")
+        if not self.params.get('user'):
+            self.fail_json(msg="missing required arguments: user")
+
+
         # Default port based on mode.
         if self.params.get('port') is None:
             if self.params.get('mode') == 'telnet':
@@ -718,64 +655,51 @@ class JuniperJunosModule(AnsibleModule):
                     self.fail_json(msg="The port option (%s) must be an "
                                        "integer value." %
                                        (self.params['port']))
-        # Default baud if serial or telnet mode
-        if self.params.get('baud') is None:
-            if (self.params.get('mode') == 'telnet' or
-               self.params.get('mode') == 'serial'):
-               self.params['baud'] = 9600
-        # Default attempts if serial or telnet mode
-        if self.params.get('attemps') is None:
-            if (self.params.get('mode') == 'telnet' or
-               self.params.get('mode') == 'serial'):
-                self.params['attempts'] = 10
-        # baud and attempts are only valid if mode != None
-        if (self.params.get('baud') is not None and
-           self.params.get('mode') is None):
-            self.fail_json(msg="The baud option (%s) is not valid when "
-                               "mode == none." % (self.params.get('baud')))
-        if (self.params.get('attempts') is not None and
-           self.params.get('mode') is None):
-            self.fail_json(msg="The attempts option (%s) is not valid when "
-                               "mode == none." % (self.params.get('attempts')))
-        # Check that we have a user and host
-        if not self.params.get('host'):
-            self.fail_json(msg="missing required arguments: host")
-        if not self.params.get('user'):
-            self.fail_json(msg="missing required arguments: user")
-        # Check PyEZ version and add attributes to reach PyEZ components.
-        self.check_pyez(min_pyez_version,
-                        check_device=True,
-                        check_sw=True,
-                        check_config=True,
-                        check_op_table=True,
-                        check_exception=True)
-        self.pyez_factory_loader = jnpr.junos.factory.factory_loader
-        self.pyez_factory_table = jnpr.junos.factory.table
-        self.pyez_op_table = jnpr.junos.op
-        self.pyez_exception = pyez_exception
-        self.ncclient_exception = ncclient_exception
-        # Check LXML Etree.
-        self.check_lxml_etree(min_lxml_etree_version)
-        self.etree = etree
-        # Check jsnapy if needed.
-        if min_jsnapy_version is not None:
-            self.check_jsnapy(min_jsnapy_version)
-            if hasattr(jnpr, 'jsnapy'):
-                self.jsnapy = jnpr.jsnapy
             else:
-                self.fail_json("JSNAPy not available.")
-        # Check jxmlease if needed.
-        if min_jxmlease_version is not None:
-            self.check_jxmlease(min_jxmlease_version)
-            self.jxmlease = jxmlease
-        # Check yaml if needed.
-        if min_yaml_version is not None:
-            self.check_yaml(min_yaml_version)
-            self.yaml = yaml
-        # Setup logging.
-        self.logger = self._setup_logging()
-        # Open the PyEZ connection
-        self.open()
+                self.params['port'] = self.params['port']
+
+        if (self.params.get('mode') == 'telnet' or
+                self.params.get('mode') == 'serial'):
+            if self.params.get('baud') is None:
+                # Default baud if serial or telnet mode
+                self.params['baud'] = 9600
+            if self.params.get('attempts') is None:
+                # Default attempts if serial or telnet mode
+                self.params['attempts'] = 10
+        else:
+            if self.params.get('baud') is not None:
+                self.fail_json(msg="The baud option (%s) is not valid when "
+                                   "mode == none." % (self.params.get('baud')))
+            if self.params.get('attempts') is not None:
+                self.fail_json(msg="The attempts option (%s) is not valid when "
+                                   "mode == none." % (self.params.get('attempts')))
+
+    def get_connection(self):
+        if hasattr(self, "_pyez_connection"):
+            return self._pyez_connection
+        try:
+            capabilities = self.get_capabilities()
+        except ConnectionError as exc:
+            self.logger.debug("Connection might be local")
+            return
+            # module.fail_json(msg=to_text(exc, errors="surrogate_then_replace"))
+        network_api = capabilities.get("network_api")
+        if network_api == "pyez":
+            self._pyez_connection = Connection(self._socket_path)
+        else:
+            self.fail_json(msg="Invalid connection type %s" % network_api)
+        return self._pyez_connection
+
+    def get_capabilities(self):
+        if hasattr(self, "_pyez_junos_capabilities"):
+            return self._pyez_junos_capabilities
+        try:
+            capabilities = Connection(self._socket_path).get_capabilities()
+        except ConnectionError as exc:
+            raise exc
+            # module.fail_json(msg=to_text(exc, errors="surrogate_then_replace"))
+        self._pyez_junos_capabilities = json.loads(capabilities)
+        return self._pyez_junos_capabilities
 
     def exit_json(self, **kwargs):
         """Close self.dev and call parent's exit_json().
@@ -785,7 +709,8 @@ class JuniperJunosModule(AnsibleModule):
                       AnsibleModule.exit_json().
         """
         # Close the connection.
-        self.close()
+        if self.conn_type == "local":
+            self.close()
         self.logger.debug("Exit JSON: %s", kwargs)
         # Call the parent's exit_json()
         super(JuniperJunosModule, self).exit_json(**kwargs)
@@ -800,6 +725,7 @@ class JuniperJunosModule(AnsibleModule):
         # Close the configuration
         self.close_configuration()
         # Close the connection.
+        # if self.conn_type == "local":
         self.close()
         if hasattr(self, 'logger'):
             self.logger.debug("Fail JSON: %s", kwargs)
@@ -852,12 +778,14 @@ class JuniperJunosModule(AnsibleModule):
                     port = con_params.get('port', None)
                     baud = con_params.get('baud', None)
                     attempts = con_params.get('attempts', None)
-                    timeout = con_params.get('timeout', None)
+                    timeout = con_params.get('timeout', None)  # not used
                     self.params['mode'] = 'serial'
                     if port is not None:
                         self.params['port'] = port
                     if baud is not None:
                         self.params['baud'] = baud
+                    if attempts is not None:
+                        self.params['attempts'] = attempts
 
                 # Remove the console option.
                 self.params.pop('console')
@@ -890,10 +818,12 @@ class JuniperJunosModule(AnsibleModule):
         Returns:
             Logger instance object for the name jnpr.ansible_module.<mod_name>.
         """
+
         class CustomAdapter(logging.LoggerAdapter):
             """
             Prepend the hostname, in brackets, to the log message.
             """
+
             def process(self, msg, kwargs):
                 return '[%s] %s' % (self.extra['host'], msg), kwargs
 
@@ -947,162 +877,6 @@ class JuniperJunosModule(AnsibleModule):
                                    (logfile, str(ex)))
         # Use the CustomAdapter to add host information.
         return CustomAdapter(logger, {'host': self.params.get('host')})
-
-    def _check_library(self,
-                       library_name,
-                       installed_version,
-                       installation_url,
-                       minimum=None,
-                       library_nickname=None):
-        """Check if library_name is installed and version is >= minimum.
-
-        Args:
-            library_name: The name of the library to check.
-            installed_version: The currently installed version, or None if it's
-                               not installed.
-            installation_url: The URL with instructions on installing
-                              library_name
-            minimum: The minimum version required.
-                     Default = None which means no version check.
-            library_nickname: The library name with any nickname.
-                     Default = library_name.
-        Failures:
-            - library_name not installed (unable to import).
-            - library_name installed_version < minimum.
-        """
-        if library_nickname is None:
-            library_nickname = library_name
-        if installed_version is None:
-            if minimum is not None:
-                self.fail_json(msg='%s >= %s is required for this module. '
-                                   'However, %s does not appear to be '
-                                   'currently installed. See %s for '
-                                   'details on installing %s.' %
-                                   (library_nickname, minimum, library_name,
-                                    installation_url, library_name))
-            else:
-                self.fail_json(msg='%s is required for this module. However, '
-                                   '%s does not appear to be currently '
-                                   'installed. See %s for details on '
-                                   'installing %s.' %
-                                   (library_nickname, library_name,
-                                    installation_url, library_name))
-        elif installed_version is not None and minimum is not None:
-            if not LooseVersion(installed_version) >= LooseVersion(minimum):
-                self.fail_json(
-                    msg='%s >= %s is required for this module. Version %s of '
-                        '%s is currently installed. See %s for details on '
-                        'upgrading %s.' %
-                        (library_nickname, minimum, installed_version,
-                         library_name, installation_url, library_name))
-
-    def check_pyez(self, minimum=None,
-                   check_device=False,
-                   check_sw=False,
-                   check_config=False,
-                   check_op_table=False,
-                   check_exception=False):
-        """Check PyEZ is available and version is >= minimum.
-
-        Args:
-            minimum: The minimum PyEZ version required.
-                     Default = None which means no version check.
-            check_device: Indicates whether to check for PyEZ Device object.
-            check_exception: Indicates whether to check for PyEZ exceptions.
-
-        Failures:
-            - PyEZ not installed (unable to import).
-            - PyEZ version < minimum.
-            - check_device and PyEZ Device object can't be imported
-            - check_exception and PyEZ exceptions can't be imported
-        """
-        self._check_library('junos-eznc', HAS_PYEZ_VERSION,
-                            PYEZ_INSTALLATION_URL, minimum=minimum,
-                            library_nickname='junos-eznc (aka PyEZ)')
-        if check_device is True:
-            if HAS_PYEZ_DEVICE is False:
-                self.fail_json(msg='junos-eznc (aka PyEZ) is installed, but '
-                                   'the jnpr.junos.device.Device class could '
-                                   'not be imported.')
-        if check_sw is True:
-            if HAS_PYEZ_SW is False:
-                self.fail_json(msg='junos-eznc (aka PyEZ) is installed, but '
-                                   'the jnpr.junos.utils.sw class could '
-                                   'not be imported.')
-        if check_config is True:
-            if HAS_PYEZ_CONFIG is False:
-                self.fail_json(msg='junos-eznc (aka PyEZ) is installed, but '
-                                   'the jnpr.junos.utils.config class could '
-                                   'not be imported.')
-        if check_op_table is True:
-            if HAS_PYEZ_OP_TABLE is False:
-                self.fail_json(msg='junos-eznc (aka PyEZ) is installed, but '
-                                   'the jnpr.junos.op class could not be '
-                                   'imported.')
-        if check_exception is True:
-            if HAS_PYEZ_EXCEPTIONS is False:
-                self.fail_json(msg='junos-eznc (aka PyEZ) is installed, but '
-                                   'the jnpr.junos.exception module could not '
-                                   'be imported.')
-            if HAS_NCCLIENT_EXCEPTIONS is False:
-                self.fail_json(msg='ncclient.operations.errors module could not '
-                                   'be imported.')
-
-    def check_jsnapy(self, minimum=None):
-        """Check jsnapy is available and version is >= minimum.
-
-        Args:
-            minimum: The minimum jsnapy version required.
-                     Default = None which means no version check.
-
-        Failures:
-            - jsnapy not installed.
-            - jsnapy version < minimum.
-        """
-        self._check_library('jsnapy', HAS_JSNAPY_VERSION,
-                            JSNAPY_INSTALLATION_URL, minimum=minimum)
-
-    def check_jxmlease(self, minimum=None):
-        """Check jxmlease is available and version is >= minimum.
-
-        Args:
-            minimum: The minimum jxmlease version required.
-                     Default = None which means no version check.
-
-        Failures:
-            - jxmlease not installed.
-            - jxmlease version < minimum.
-        """
-        self._check_library('jxmlease', HAS_JXMLEASE_VERSION,
-                            JXMLEASE_INSTALLATION_URL, minimum=minimum)
-
-    def check_lxml_etree(self, minimum=None):
-        """Check lxml etree is available and version is >= minimum.
-
-        Args:
-            minimum: The minimum lxml version required.
-                     Default = None which means no version check.
-
-        Failures:
-            - lxml not installed.
-            - lxml version < minimum.
-        """
-        self._check_library('lxml Etree', HAS_LXML_ETREE_VERSION,
-                            LXML_ETREE_INSTALLATION_URL, minimum=minimum)
-
-    def check_yaml(self, minimum=None):
-        """Check yaml is available and version is >= minimum.
-
-        Args:
-            minimum: The minimum PyYAML version required.
-                     Default = None which means no version check.
-
-        Failures:
-            - yaml not installed.
-            - yaml version < minimum.
-        """
-        self._check_library('yaml', HAS_YAML_VERSION,
-                            YAML_INSTALLATION_URL, minimum=minimum)
 
     def parse_arg_to_list_of_dicts(self,
                                    option_name,
@@ -1222,9 +996,9 @@ class JuniperJunosModule(AnsibleModule):
                 if isinstance(ignore_warn_list[0], basestring):
                     return ignore_warn_list[0]
             self.fail_json(msg="The value of the ignore_warning option "
-                                   "(%s) is invalid. Unexpected type (%s)." %
-                                   (ignore_warn_list[0],
-                                    type(ignore_warn_list[0])))
+                               "(%s) is invalid. Unexpected type (%s)." %
+                               (ignore_warn_list[0],
+                                type(ignore_warn_list[0])))
         elif len(ignore_warn_list) > 1:
             for ignore_warn in ignore_warn_list:
                 if not isinstance(ignore_warn, basestring):
@@ -1285,12 +1059,12 @@ class JuniperJunosModule(AnsibleModule):
                 connect_args[key] = self.params.get(key)
 
         try:
-            self.close()
+            #self.close()
             log_connect_args = dict(connect_args)
             log_connect_args['passwd'] = 'NOT_LOGGING_PARAMETER'
-            if 'cs_passwd' in log_connect_args: 
+            if 'cs_passwd' in log_connect_args:
                 log_connect_args['cs_passwd'] = 'NOT_LOGGING_PARAMETER'
-                
+
             self.logger.debug("Creating device parameters: %s",
                               log_connect_args)
             timeout = connect_args.pop('timeout')
@@ -1348,7 +1122,7 @@ class JuniperJunosModule(AnsibleModule):
                         config or an already opened private config.
         """
 
-        ignore_warn=['uncommitted changes will be discarded on exit']
+        ignore_warn = ['uncommitted changes will be discarded on exit']
         # if ignore_warning is a bool, pass the bool
         # if ignore_warning is a string add to the list
         # if ignore_warning is a list, merge them
@@ -1361,6 +1135,13 @@ class JuniperJunosModule(AnsibleModule):
 
         # Already have an open configuration?
         if self.config is None:
+            # configuration check and loading should not be done as peristent connection
+            # with other modules like rpc and command. The mode of connection
+            # will be different along with other additional parameter.
+            # if connection mode is pyez, close the connection.
+            if self.conn_type != "local":
+                self._pyez_conn.close()
+
             if mode not in CONFIG_MODE_CHOICES:
                 self.fail_json(msg='Invalid configuration mode: %s' % (mode))
             if self.dev is None:
@@ -1447,14 +1228,22 @@ class JuniperJunosModule(AnsibleModule):
         options.update({'database': database,
                         'format': format})
 
-        if self.dev is None:
-            self.open()
+        if self.conn_type == "local":
+            if self.dev is None:
+                self.open()
 
         self.logger.debug("Retrieving device configuration. Options: %s  "
                           "Filter %s", str(options), str(filter))
         config = None
         try:
-            config = self.dev.rpc.get_config(options=options,
+            if self.conn_type == "local":
+                config = self.dev.rpc.get_config(options=options,
+                                             filter_xml=filter,
+                                             model=model,
+                                             remove_ns=remove_ns,
+                                             namespace=namespace)
+            else:
+                self.get_config(options=options,
                                              filter_xml=filter,
                                              model=model,
                                              remove_ns=remove_ns,
@@ -1736,7 +1525,11 @@ class JuniperJunosModule(AnsibleModule):
         try:
             self.logger.debug("Executing ping with parameters: %s",
                               str(params))
-            resp = self.dev.rpc.ping(normalize=True, **params)
+            if self.conn_type == "local":
+                resp = self.dev.rpc.ping(normalize=True, **params)
+            else:
+                response = self._pyez_conn.ping_device(normalize=True, **params)
+                resp = self.etree.fromstring(response)
             self.logger.debug("Ping executed.")
         except (self.pyez_exception.RpcError,
                 self.pyez_exception.ConnectError) as ex:
@@ -1749,7 +1542,7 @@ class JuniperJunosModule(AnsibleModule):
 
         # Fail if any errors in the results
         errors = resp.findall(
-                     "rpc-error[error-severity='error']/error-message")
+            "rpc-error[error-severity='error']/error-message")
         if len(errors) != 0:
             # Create a comma-plus-space-seperated string of the errors.
             # Calls the text attribute of each element in the errors list.
@@ -1759,7 +1552,7 @@ class JuniperJunosModule(AnsibleModule):
 
         # Add any warnings into the results
         warnings = resp.findall(
-                       "rpc-error[error-severity='warning']/error-message")
+            "rpc-error[error-severity='warning']/error-message")
         if len(warnings) != 0:
             # Create list of the text attributes of each element in the
             # warnings list.
@@ -1777,7 +1570,7 @@ class JuniperJunosModule(AnsibleModule):
         r_fields['packet_loss'] = probe_summary.findtext('packet-loss')
         r_fields['packets_sent'] = probe_summary.findtext('probes-sent')
         r_fields['packets_received'] = probe_summary.findtext(
-                                           'responses-received')
+            'responses-received')
         o_fields = {}
         o_fields['rtt_minimum'] = probe_summary.findtext('rtt-minimum')
         o_fields['rtt_maximum'] = probe_summary.findtext('rtt-maximum')
@@ -1889,3 +1682,23 @@ class JuniperJunosModule(AnsibleModule):
             except IOError:
                 self.fail_json(msg="Unable to save output. Failed to "
                                    "open the %s file." % (file_path))
+
+    def get_config(self, filter_xml=None, options=None, model=None,
+                         namespace=None, remove_ns=True, **kwarg):
+        response = self._pyez_conn.get_config(filter_xml, options, model, namespace, remove_ns, **kwarg)
+        return self.etree.fromstring(response)
+
+    def get_rpc(self, rpc, ignore_warning=None):
+        rpc_1 = self.etree.tostring(rpc)
+        rpc_str = xmltodict.parse(rpc_1)
+        #json.dumps(rpc_str)
+        response = self._pyez_conn.get_rpc_resp(rpc_str, ignore_warning=ignore_warning)
+        return self.etree.fromstring(response)
+
+    def get_facts(self):
+        facts = self._pyez_conn.get_facts()
+        return facts
+
+    def get_chassis_inventory(self):
+        chassis = self._pyez_conn.get_chassis_inventory()
+        return chassis

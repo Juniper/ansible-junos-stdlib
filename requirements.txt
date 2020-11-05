@@ -2,3 +2,4 @@ ansible >= 2.9
 junos-eznc >= 2.5.2
 jsnapy>=1.3.4
 jxmlease
+xmltodict
