@@ -21,7 +21,6 @@ retrieving information, and resetting, rebooting, or shutting down managed devic
 
 ## juniper.junos roles by Juniper Networks
 
-Ansible galaxy is upgrading to collections and plans to deprecate roles in future. The master branch will now have Juniper.junos_collection support. Juniper.junos roles have been moved to roles branch. Roles will be supported for now. For more information for roles, check: [https://github.com/Juniper/ansible-junos-stdlib/tree/roles](https://github.com/Juniper/ansible-junos-stdlib/tree/roles)
 Ansible galaxy is upgrading to collections and plans to deprecate roles in future. The master branch will now have 
 juniper.device collection support. Juniper.junos roles have been moved to roles branch. 
 For more information for roles, check: 
@@ -54,8 +53,7 @@ This juniper.device collection includes the following modules:
 
 ### PyEZ Version Requirement
 
-For ansible collection junos_collection we will need to install junos-eznc(PyEZ) version 2.5.0 or higher. 
-For ansible collection junos we will need to install junos-eznc(PyEZ) version 2.5.0 or higher. 
+For ansible collection juniper.device we will need to install junos-eznc(PyEZ) version 2.5.0 or higher. 
 
 ### Overview of Plugins
 
@@ -110,8 +108,6 @@ In MacOS Mojave and newer (>=10.14), ssh keys created with the system `ssh-keyge
 
 You can use the ansible-galaxy install command to install the latest
 version of the juniper.device collection.
-
-  sudo ansible-galaxy collection install git+https://github.com/Juniper/ansible-junos-stdlib.git,,Juniper.junos_collection
 
   sudo ansible-galaxy collection install juniper.device
 
