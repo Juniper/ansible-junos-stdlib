@@ -52,7 +52,8 @@ This juniper.device collection includes the following modules:
 - **juniper_junos_table** — Retrieve data from a Junos device using a PyEZ table/view.
 
 ### PyEZ Version Requirement
-For ansible collection junos we will need to install junos-eznc(PyEZ) version 2.5.0 or higher. 
+
+For ansible collection juniper.device we will need to install junos-eznc(PyEZ) version 2.5.0 or higher. 
 
 ### Overview of Plugins
 
@@ -93,6 +94,8 @@ should be added to the Ansible configuration file in order to allow the jsnapy c
 
 You must have the [DEPENDENCIES](#dependencies) installed on your system.  
 
+### NOTICES
+
 ### MacOS Mojave and newer
 
 In MacOS Mojave and newer (>=10.14), ssh keys created with the system `ssh-keygen` are created using the newer 'OPENSSH' key format, even when specifying `-t rsa` during creation. This directly affects the usage of ssh keys, particularly when using the `ssh_private_key_file`. To create/convert/check keys, follow these steps:
@@ -106,38 +109,28 @@ In MacOS Mojave and newer (>=10.14), ssh keys created with the system `ssh-keyge
 You can use the ansible-galaxy install command to install the latest
 version of the juniper.device collection.
 
-```bash
-sudo ansible-galaxy collection install juniper.device
-```
+  sudo ansible-galaxy collection install juniper.device
 
 ### Git clone
 
 For testing you can `git clone` this repo and run the `env-setup` script in the repo directory:
 
-```bash
-user@ansible-junos-stdlib> source env-setup
-```
+  user@ansible-junos-stdlib> source env-setup
 
 This will set your `$ANSIBLE_LIBRARY` variable to the repo location and the installed Ansible library path.  For example:
 
-```bash
-$ echo $ANSIBLE_LIBRARY
-/home/jeremy/Ansible/ansible-junos-stdlib/library:/usr/share/ansible
-```
+  $ echo $ANSIBLE_LIBRARY
+  /home/jeremy/Ansible/ansible-junos-stdlib/library:/usr/share/ansible
 
 ### Docker
 
 To run this as a Docker container, which includes JSNAPy and PyEZ, simply pull it from the Docker hub and run it. The following will pull the latest image and run it in an interactive ash shell.
 
-```bash
-docker run -it --rm juniper/pyez-ansible
-```
+  docker run -it --rm juniper/pyez-ansible
 
 Although, you'll probably want to bind mount a host directory (perhaps the directory containing your playbooks and associated files). The following will bind mount the current working directory and start the ash shell.
 
-```bash
-docker run -it --rm -v $PWD:/project juniper/pyez-ansible
-```
+  docker run -it --rm -v $PWD:/project juniper/pyez-ansible
 
 You can also use the container as an executable to run your playbooks. Let's assume we have a typical playbook structure as below:
 
@@ -150,23 +143,21 @@ You can also use the container as an executable to run your playbooks. Let's ass
 
 We can move to the example directory and run the playbook with the following command:
 
-```bash
-cd example/
-docker run -it --rm -v $PWD:/playbooks juniper/pyez-ansible ansible-playbook -i hosts playbook.yml
-```
+  cd example/
+  docker run -it --rm -v $PWD:/playbooks juniper/pyez-ansible ansible-playbook -i hosts playbook.yml
+
 You can pass any valid command string after the container name and it will be passed to Bash for execution.
 
 You may have noticed that the base command is almost always the same. We can also use an alias to save some keystrokes.
 
-```text
-alias pb-ansible="docker run -it --rm -v $PWD:/project juniper/pyez-ansible ansible-playbook"
-pb-ansible -i hosts playbook.yml
-```
+  alias pb-ansible="docker run -it --rm -v $PWD:/project juniper/pyez-ansible ansible-playbook"
+  pb-ansible -i hosts playbook.yml
+
 ### Extending the container with additional packages
 
 It's possible to install additional OS (Alpine) packages, Python packages (via pip), and Ansible roles or collections at container instantiation. This can be done by passing in environment variables or bind mounting files.
 
-__OS Packages__
+#### OS Packages
 
 Environment Variable: `$APK`
 Bind Mount: `/extras/apk.txt`
@@ -175,17 +166,13 @@ Examples:
 
 As an environment variable, where the file containing a list of packages is in the current directory.
 
-```text
-docker run -it --rm -v $PWD:/project -e APK="apk.txt" juniper/pyez-ansible
-```
+ docker run -it --rm -v $PWD:/project -e APK="apk.txt" juniper/pyez-ansible
 
 As a bind mount.
 
-```text
-docker run -it --rm -v $PWD/apk.txt:/extras/apk.txt juniper/pyez-ansible
-```
+  docker run -it --rm -v $PWD/apk.txt:/extras/apk.txt juniper/pyez-ansible
 
-__Python Packages__
+#### Python Packages
 
 Environment Variable: `$REQ`
 Bind Mount: `/extras/requirements.txt`
@@ -193,17 +180,13 @@ File Format: pip [requirements](https://pip.pypa.io/en/stable/reference/pip_inst
 
 Examples:
 
-```text
-docker run -it --rm -v $PWD:/project -e REQ="requirements.txt" juniper/pyez-ansible
-```
+  docker run -it --rm -v $PWD:/project -e REQ="requirements.txt" juniper/pyez-ansible
 
 As a bind mount.
 
-```text
-docker run -it --rm -v $PWD/requirements.txt:/extras/requirements.txt juniper/pyez-ansible
-```
+  docker run -it --rm -v $PWD/requirements.txt:/extras/requirements.txt juniper/pyez-ansible
 
-__Ansible Packages__
+#### Ansible Packages
 
 Environment Variable: `$ROLES`
 Bind Mount: `/extras/requirements.yml`
@@ -213,15 +196,11 @@ _NOTE:_ This works for collections as well as roles.
 
 Examples:
 
-```text
-docker run -it --rm -v $PWD:/project -e REQ="requirements.yml" juniper/pyez-ansible
-```
+  docker run -it --rm -v $PWD:/project -e REQ="requirements.yml" juniper/pyez-ansible
 
 As a bind mount.
 
-```text
-docker run -it --rm -v $PWD/requirements.txt:/extras/requirements.yml juniper/pyez-ansible
-```
+  docker run -it --rm -v $PWD/requirements.txt:/extras/requirements.yml juniper/pyez-ansible
 
 ## Example Playbook
 
@@ -293,10 +272,8 @@ Juniper Networks is actively contributing to and maintaining this repo. Please c
 [jnpr-community-netdev@juniper.net](jnpr-community-netdev@juniper.net) for any queries.
 
 *Contributors:*
-[Nitin Kumar](https://github.com/vnitinv), [Rahul Kumar](https://github.com/rahkumar651991)
-
-* v0.1.0: [Rahul Kumar](https://github.com/rahkumar651991)
+[Nitin Kumar](https://github.com/vnitinv), [Rahul Kumar](https://github.com/rahkumar651991), [Stephen Steiner](https://github.com/ntwrkguru)
 
 *Former Contributors:*
 
-[Stacy W Smith](https://github.com/stacywsmith), [Stephen Steiner](https://github.com/ntwrkguru), [Jeremy Schulman](https://github.com/jeremyschulman), [Rick Sherman](https://github.com/shermdog), [Damien Garros](https://github.com/dgarros), [David Gethings](https://github.com/dgjnpr)
+[Stacy W Smith](https://github.com/stacywsmith), [Jeremy Schulman](https://github.com/jeremyschulman), [Rick Sherman](https://github.com/shermdog), [Damien Garros](https://github.com/dgarros), [David Gethings](https://github.com/dgjnpr)
