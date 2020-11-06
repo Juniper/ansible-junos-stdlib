@@ -23,7 +23,7 @@ COPY entrypoint.sh .
 RUN chmod +x entrypoint.sh
 
 # Also install the roles, until collections is ready for prime-time
-RUN ansible-galaxy role install Juniper.junos
+RUN ansible-galaxy role install Juniper.junos==2.4.3
 
 WORKDIR /project
 
