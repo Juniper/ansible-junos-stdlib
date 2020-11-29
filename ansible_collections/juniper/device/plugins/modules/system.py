@@ -332,68 +332,65 @@ def main():
                'vmhost': vmhost,
                'failed': True}
 
-    # for these scenario, persistent connection is not expected.
-    # there is also limitation of JSON for persistent connection.
-    # closing the persistent connection and creating a normal connection.
-    if junos_module.conn_type != "local":
-        junos_module._pyez_conn.close()
-        junos_module.open()
-
     if not junos_module.check_mode:
-        if action != 'zeroize':
-            # If we're going to do a shutdown, reboot, or halt right away then
-            # try to deal with the fact that we might not get the closing
-            # </rpc-reply> and therefore might get an RpcTimeout.
-            # (This is a known Junos bug.) Set the timeout low so this happens
-            # relatively quickly.
-            if (at == 'now' or (in_min == 0 and at is None)):
-                if junos_module.dev.timeout > 5:
-                    junos_module.logger.debug("Decreasing device RPC timeout "
-                                              "to 5 seconds.")
-                    junos_module.dev.timeout = 5
+        if junos_module.conn_type != "local":
+            results['msg'] = junos_module._pyez_conn.system_api(action, in_min, at, all_re, vmhost, other_re, media)
+            results['failed'] = False
+        else:
+            if action != 'zeroize':
+                # If we're going to do a shutdown, reboot, or halt right away then
+                # try to deal with the fact that we might not get the closing
+                # </rpc-reply> and therefore might get an RpcTimeout.
+                # (This is a known Junos bug.) Set the timeout low so this happens
+                # relatively quickly.
+                if (at == 'now' or (in_min == 0 and at is None)):
+                    if junos_module.dev.timeout > 5:
+                        junos_module.logger.debug("Decreasing device RPC timeout "
+                                                  "to 5 seconds.")
+                        junos_module.dev.timeout = 5
 
-        # Execute the RPC.
-        try:
-            junos_module.logger.debug("Executing RPC")
-            junos_module.add_sw()
-            if action == 'reboot':
-                got = junos_module.sw.reboot(in_min, at, all_re, None, vmhost, other_re)
-            elif action == 'shutdown':
-                got = junos_module.sw.poweroff(in_min, at, None, all_re, other_re)
-            elif action == 'halt':
-                got = junos_module.sw.halt(in_min, at, all_re, other_re)
-            elif action == 'zeroize':
-                got = junos_module.sw.zeroize(all_re, media)
-            else:
-                junos_module.fail_json(msg='Relevant action not found')
-
-            junos_module.logger.debug("RPC executed")
-            if got is None:
-                results['msg'] = 'Did not find expected RPC response.'
-                results['changed'] = False
-            else:
-                results['msg'] = '%s successfully initiated. Response got %s' % (action, got)
-                results['failed'] = False
-        except (junos_module.pyez_exception.RpcTimeoutError) as ex:
-            # This might be OK. It might just indicate the device didn't
-            # send the closing </rpc-reply> (known Junos bug).
-            # Try to close the device. If it closes cleanly, then it was
-            # still reachable, which probably indicates there was a problem.
+            # Execute the RPC.
             try:
-                junos_module.close(raise_exceptions=True)
-                # This means the device wasn't already disconnected.
-                results['changed'] = False
-                results['msg'] = '%s failed. %s may not have been ' \
-                                 'initiated.' % (action, action)
+                junos_module.logger.debug("Executing RPC")
+                junos_module.add_sw()
+                if action == 'reboot':
+                    got = junos_module.sw.reboot(in_min, at, all_re, None, vmhost, other_re)
+                elif action == 'shutdown':
+                    got = junos_module.sw.poweroff(in_min, at, None, all_re, other_re)
+                elif action == 'halt':
+                    got = junos_module.sw.halt(in_min, at, all_re, other_re)
+                elif action == 'zeroize':
+                    got = junos_module.sw.zeroize(all_re, media)
+                else:
+                    junos_module.fail_json(msg='Relevant action not found')
+
+                junos_module.logger.debug("RPC executed")
+                if got is None:
+                    results['msg'] = 'Did not find expected RPC response.'
+                    results['changed'] = False
+                else:
+                    results['msg'] = '%s successfully initiated. Response got %s' % (action, got)
+                    results['failed'] = False
+            except (junos_module.pyez_exception.RpcTimeoutError) as ex:
+                # This might be OK. It might just indicate the device didn't
+                # send the closing </rpc-reply> (known Junos bug).
+                # Try to close the device. If it closes cleanly, then it was
+                # still reachable, which probably indicates there was a problem.
+                try:
+                    junos_module.close(raise_exceptions=True)
+                    # This means the device wasn't already disconnected.
+                    results['changed'] = False
+                    results['msg'] = '%s failed. %s may not have been ' \
+                                     'initiated.' % (action, action)
+                except (junos_module.pyez_exception.RpcError,
+                        junos_module.pyez_exception.ConnectError):
+                    # This is expected. The device has already disconnected.
+                    results['msg'] = '%s succeeded.' % (action)
+                    results['failed'] = False
             except (junos_module.pyez_exception.RpcError,
-                    junos_module.pyez_exception.ConnectError):
-                # This is expected. The device has already disconnected.
-                results['msg'] = '%s succeeded.' % (action)
-                results['failed'] = False
-        except (junos_module.pyez_exception.RpcError,
-                junos_module.pyez_exception.ConnectError) as ex:
-            results['changed'] = False
-            results['msg'] = '%s failed. Error: %s' % (action, str(ex))
+                    junos_module.pyez_exception.ConnectError) as ex:
+                results['changed'] = False
+                results['msg'] = '%s failed. Error: %s' % (action, str(ex))
 
     # Return results.
     junos_module.exit_json(**results)

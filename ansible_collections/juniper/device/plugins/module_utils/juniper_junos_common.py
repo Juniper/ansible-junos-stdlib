@@ -1133,15 +1133,11 @@ class JuniperJunosModule(AnsibleModule):
         elif ignore_warning != None and isinstance(ignore_warning, list):
             ignore_warn = ignore_warn + ignore_warning
 
-        # Already have an open configuration?
-        if self.config is None:
-            # configuration check and loading should not be done as peristent connection
-            # with other modules like rpc and command. The mode of connection
-            # will be different along with other additional parameter.
-            # if connection mode is pyez, close the connection.
-            if self.conn_type != "local":
-                self._pyez_conn.close()
+        if self.conn_type != "local":
+            self._pyez_conn.open_configuration(mode,ignore_warn)
+            return
 
+        if self.config is None:
             if mode not in CONFIG_MODE_CHOICES:
                 self.fail_json(msg='Invalid configuration mode: %s' % (mode))
             if self.dev is None:
@@ -1168,6 +1164,10 @@ class JuniperJunosModule(AnsibleModule):
             - ConnectError: When there's a problem with the PyEZ connection.
             - RpcError: When there's a RPC problem closing the config.
         """
+        if self.conn_type != "local":
+            self._pyez_conn.close_configuration()
+            return
+
         if self.config is not None:
             # Because self.fail_json() calls self.close_configuration(), we
             # must set self.config = None BEFORE closing the config in order to
@@ -1305,6 +1305,10 @@ class JuniperJunosModule(AnsibleModule):
             - Unable to rollback the configuration due to an RpcError or
               ConnectError.
         """
+        if self.conn_type != "local":
+            self._pyez_conn.rollback_configuration(id)
+            return
+
         if self.dev is None or self.config is None:
             self.fail_json(msg='The device or configuration is not open.')
 
@@ -1340,10 +1344,14 @@ class JuniperJunosModule(AnsibleModule):
         Failures:
             - An error returned from checking the configuration.
         """
+        self.logger.debug("Checking the configuration.")
+        if self.conn_type != "local":
+            self._pyez_conn.check_configuration()
+            return
+
         if self.dev is None or self.config is None:
             self.fail_json(msg='The device or configuration is not open.')
 
-        self.logger.debug("Checking the configuration.")
         try:
             self.config.commit_check()
             self.logger.debug("Configuration checked.")
@@ -1363,10 +1371,13 @@ class JuniperJunosModule(AnsibleModule):
         Failures:
             - An error returned from diffing the configuration.
         """
+        self.logger.debug("Diffing candidate and committed configurations.")
+        if self.conn_type != "local":
+            diff = self._pyez_conn.diff_configuration(ignore_warning)
+            return diff
         if self.dev is None or self.config is None:
             self.fail_json(msg='The device or configuration is not open.')
 
-        self.logger.debug("Diffing candidate and committed configurations.")
         try:
             diff = self.config.diff(rb_id=0, ignore_warning=ignore_warning)
             self.logger.debug("Configuration diff completed.")
@@ -1406,8 +1417,9 @@ class JuniperJunosModule(AnsibleModule):
         Failures:
             - An error returned from loading the configuration.
         """
-        if self.dev is None or self.config is None:
-            self.fail_json(msg='The device or configuration is not open.')
+        if self.conn_type == "local":
+            if self.dev is None or self.config is None:
+                self.fail_json(msg='The device or configuration is not open.')
 
         load_args = {}
         config = None
@@ -1440,6 +1452,10 @@ class JuniperJunosModule(AnsibleModule):
             load_args['url'] = url
             self.logger.debug("Loading the configuration from %s.", url)
 
+        if self.conn_type != "local":
+            self._pyez_conn.load_configuration(config, load_args)
+            return
+
         try:
             if config is not None:
                 self.config.load(config, **load_args)
@@ -1466,6 +1482,10 @@ class JuniperJunosModule(AnsibleModule):
         Failures:
             - An error returned from committing the configuration.
         """
+        if self.conn_type != "local":
+            self._pyez_conn.commit_configuration(ignore_warning, comment, confirmed)
+            return
+
         if self.dev is None or self.config is None:
             self.fail_json(msg='The device or configuration is not open.')
 

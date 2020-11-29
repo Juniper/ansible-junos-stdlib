@@ -205,7 +205,10 @@ def main():
     current_cluster_id = junos_module.dev.facts['srx_cluster_id']
     if current_cluster_id is not None:
         current_cluster_id = int(current_cluster_id)
-    current_node_name = junos_module.dev.re_name
+    if junos_module.conn_type == "local":
+        current_node_name = junos_module.dev.re_name
+    else:
+        current_node_name = junos_module._pyez_conn.get_re_name()
     current_node_id = None
     if current_node_name is not None:
         (_, _, current_node_id) = current_node_name.partition('node')
@@ -262,14 +265,22 @@ def main():
             try:
                 output = None
                 if enable is True:
-                    resp = junos_module.dev.rpc.set_chassis_cluster_enable(
-                        cluster_id=str(cluster_id), node=str(node_id),
-                        reboot=True, normalize=True
-                    )
+                    if junos_module.conn_type == "local":
+                        resp = junos_module.dev.rpc.set_chassis_cluster_enable(
+                            cluster_id=str(cluster_id), node=str(node_id),
+                            reboot=True, normalize=True
+                        )
+                    else:
+                        resp = junos_module._pyez_conn.set_chassis_cluster_enable(
+                            cluster_id=str(cluster_id), node=str(node_id))
                 else:
-                    resp = junos_module.dev.rpc.set_chassis_cluster_disable(
-                        reboot=True, normalize=True
-                    )
+                    if junos_module.conn_type == "local":
+                        resp = junos_module.dev.rpc.set_chassis_cluster_disable(
+                            reboot=True, normalize=True
+                        )
+                    else:
+                        resp = junos_module._pyez_conn.set_chassis_cluster_disable()
+
                 if resp is not None:
                     output = resp.getparent().findtext('.//output')
                     if output is None:
@@ -287,7 +298,6 @@ def main():
 
     # Return response.
     junos_module.exit_json(**results)
-
 
 if __name__ == '__main__':
     main()

@@ -209,6 +209,7 @@ Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project
 # Ansiballz packages module_utils into ansible.module_utils
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.juniper.device.plugins.module_utils import juniper_junos_common
+from ansible_collections.juniper.device.plugins.module_utils import configuration as cfg
 
 def main():
     JSNAPY_ACTION_CHOICES = ['check', 'snapcheck', 'snap_pre', 'snap_post']
@@ -235,7 +236,7 @@ def main():
         # One of test_files or config_file is required.
         required_one_of=[['test_files', 'config_file']],
         supports_check_mode=True,
-        min_jsnapy_version=juniper_junos_common.MIN_JSNAPY_VERSION,
+        min_jsnapy_version=cfg.MIN_JSNAPY_VERSION,
     )
 
     # Straight from params
@@ -283,33 +284,29 @@ def main():
         junos_module.fail_json(msg="No config_file or test_files specified.")
 
     try:
-        if junos_module.conn_type == "local":
-            junos_module.logger.debug('Creating jnpr.jsnapy.SnapAdmin instance.')
-            jsa = junos_module.jsnapy.SnapAdmin()
-            junos_module.logger.debug('Executing %s action.', action)
-            if action == 'check':
-                responses = jsa.check(data=data,
-                                      dev=junos_module.dev,
-                                      pre_file='PRE',
-                                      post_file='POST')
-            elif action == 'snapcheck':
-                responses = jsa.snapcheck(data=data,
-                                          dev=junos_module.dev)
-            elif action == 'snap_pre':
-                responses = jsa.snap(data=data,
-                                     dev=junos_module.dev,
-                                     file_name='PRE')
-            elif action == 'snap_post':
-                responses = jsa.snap(data=data,
-                                     dev=junos_module.dev,
-                                     file_name='POST')
-            else:
-                junos_module.fail_json(msg="Unexpected action: %s." % (action))
-            junos_module.logger.debug('The %s action executed successfully.',
-                                  action)
+        junos_module.logger.debug('Creating jnpr.jsnapy.SnapAdmin instance.')
+        jsa = junos_module.jsnapy.SnapAdmin()
+        junos_module.logger.debug('Executing %s action.', action)
+        if action == 'check':
+            responses = jsa.check(data=data,
+                                  dev=junos_module.dev,
+                                  pre_file='PRE',
+                                  post_file='POST')
+        elif action == 'snapcheck':
+            responses = jsa.snapcheck(data=data,
+                                      dev=junos_module.dev)
+        elif action == 'snap_pre':
+            responses = jsa.snap(data=data,
+                                 dev=junos_module.dev,
+                                 file_name='PRE')
+        elif action == 'snap_post':
+            responses = jsa.snap(data=data,
+                                 dev=junos_module.dev,
+                                 file_name='POST')
         else:
-            conn = junos_module.get_connection()
-            responses = json.loads(conn.invoke_jsnapy(data, action))
+            junos_module.fail_json(msg="Unexpected action: %s." % (action))
+        junos_module.logger.debug('The %s action executed successfully.',
+                                  action)
     except (junos_module.pyez_exception.RpcError,
             junos_module.pyez_exception.ConnectError) as ex:
         junos_module.fail_json(msg="Error communicating with the device: %s" %

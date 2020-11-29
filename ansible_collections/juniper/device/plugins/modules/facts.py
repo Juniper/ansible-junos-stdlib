@@ -196,7 +196,7 @@ def get_facts_dict(junos_module):
     Returns:
         A dict containing the device facts.
     """
-    if junos_module.conn_type == "local" :
+    if junos_module.conn_type == "local":
         dev = junos_module.dev
         # Retrieve all PyEZ-supported facts and copy to a standard dict.
         facts = dict(dev.facts)

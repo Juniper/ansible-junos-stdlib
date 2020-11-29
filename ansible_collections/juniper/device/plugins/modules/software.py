@@ -625,11 +625,7 @@ def main():
     else:
         facts = junos_module.get_facts()
         # facts checking has been done as part of persitent connection itself.
-        # for these scenario, persistent connection is not expected.
-        # there is also limitation of JSON for persistent connection.
-        # closing the persistent connection and creating a normal connection.
-        junos_module._pyez_conn.close()
-        junos_module.open()
+
     # Check version info to see if we need to do the install.
     if target_version is not None:
         if all_re is True:
@@ -648,7 +644,10 @@ def main():
                                                           target_version)
         else:
             current_version = facts['version']
-            re_name = junos_module.dev.re_name
+            if junos_module.conn_type == "local":
+                re_name = junos_module.dev.re_name
+            else:
+                re_name = junos_module._pyez_conn.get_re_name()
             if target_version != current_version:
                 junos_module.logger.debug("Current version on %s: %s. "
                                           "Target version: %s.",
@@ -690,86 +689,92 @@ def main():
                 install_params[key] = value
         if kwargs is not None:
             install_params.update(kwargs)
-        try:
-            junos_module.logger.debug("Install parameters are: %s",
-                                       str(install_params))
-            junos_module.add_sw()
-            ok, msg_ret = junos_module.sw.install(**install_params)
-            if ok is not True:
-                results['msg'] = 'Unable to install the software %s', msg_ret
-                junos_module.fail_json(**results)
-            msg = 'Package %s successfully installed. Response from device is: %s' % (
-                        install_params.get('package') or
-                        install_params.get('pkg_set'),
-                        msg_ret)
-            results['msg'] = msg
-            junos_module.logger.debug(msg)
-        except (junos_module.pyez_exception.ConnectError,
-                junos_module.pyez_exception.RpcError) as ex:
-            results['msg'] = 'Installation failed. Error: %s' % str(ex)
-            junos_module.fail_json(**results)
-        if reboot is True:
+
+        junos_module.logger.debug("Install parameters are: %s",
+                                  str(install_params))
+        if junos_module.conn_type != "local":
+            results['msg'] = junos_module._pyez_conn.software_api(install_params)
+        else:
             try:
-                # Try to deal with the fact that we might not get the closing
-                # </rpc-reply> and therefore might get an RpcTimeout.
-                # (This is a known Junos bug.) Set the timeout low so this
-                # happens relatively quickly.
-                restore_timeout = junos_module.dev.timeout
-                if junos_module.dev.timeout > 5:
-                    junos_module.logger.debug("Decreasing device RPC timeout "
-                                              "to 5 seconds.")
-                    junos_module.dev.timeout = 5
-                junos_module.logger.debug('Initiating reboot.')
-                try:
-
-                    got = junos_module.sw.reboot(0, None, all_re, None, install_params.get('vmhost'))
-                    junos_module.dev.timeout = restore_timeout
-                except Exception:  # pylint: disable=broad-except
-                    junos_module.dev.timeout = restore_timeout
-                    raise
-                junos_module.logger.debug("Reboot RPC executed.")
-
-                if got is not None:
-                    results['msg'] += ' Reboot successfully initiated. ' \
-                                              'Reboot message: %s' % got
-                else:
-                    # This is the else clause of the for loop.
-                    # It only gets executed if the loop finished without
-                    # hitting the break.
-                    results['msg'] += ' Did not find expected response ' \
-                                          'from reboot RPC. '
+                junos_module.add_sw()
+                ok, msg_ret = junos_module.sw.install(**install_params)
+                if ok is not True:
+                    results['msg'] = 'Unable to install the software %s', msg_ret
                     junos_module.fail_json(**results)
-            except (junos_module.pyez_exception.RpcTimeoutError) as ex:
-                # This might be OK. It might just indicate the device didn't
-                # send the closing </rpc-reply> (known Junos bug).
-                # Try to close the device. If it closes cleanly, then it was
-                # still reachable, which probably indicates a problem.
-                try:
-                    junos_module.close(raise_exceptions=True)
-                    # This means the device wasn't already disconnected.
-                    results['msg'] += ' Reboot failed. It may not have been ' \
-                                      'initiated.'
-                    junos_module.fail_json(**results)
-                except (junos_module.pyez_exception.RpcError,
-                        junos_module.pyez_exception.RpcTimeoutError,
-                        junos_module.pyez_exception.ConnectError):
-                    # This is expected. The device has already disconnected.
-                    results['msg'] += ' Reboot succeeded.'
-                except (junos_module.ncclient_exception.TimeoutExpiredError):
-                    # This is not really expected. Still consider reboot success as
-                    # Looks like rpc was consumed but no response as its rebooting.
-                    results['msg'] += ' Reboot succeeded. Ignoring close error.'
-            except (junos_module.pyez_exception.RpcError,
-                    junos_module.pyez_exception.ConnectError) as ex:
-                results['msg'] += ' Reboot failed. Error: %s' % (str(ex))
+                msg = 'Package %s successfully installed. Response from device is: %s' % (
+                            install_params.get('package') or
+                            install_params.get('pkg_set'),
+                            msg_ret)
+                results['msg'] = msg
+                junos_module.logger.debug(msg)
+            except (junos_module.pyez_exception.ConnectError,
+                    junos_module.pyez_exception.RpcError) as ex:
+                results['msg'] = 'Installation failed. Error: %s' % str(ex)
                 junos_module.fail_json(**results)
+        if reboot is True:
+            junos_module.logger.debug('Initiating reboot.')
+            if junos_module.conn_type != "local":
+                results['msg'] += junos_module._pyez_conn.reboot_api(all_re, install_params.get('vmhost'))
             else:
                 try:
-                    junos_module.close()
-                except (junos_module.ncclient_exception.TimeoutExpiredError):
-                    junos_module.logger.debug("Ignoring TimeoutError for close call")
+                    # Try to deal with the fact that we might not get the closing
+                    # </rpc-reply> and therefore might get an RpcTimeout.
+                    # (This is a known Junos bug.) Set the timeout low so this
+                    # happens relatively quickly.
+                    restore_timeout = junos_module.dev.timeout
+                    if junos_module.dev.timeout > 5:
+                        junos_module.logger.debug("Decreasing device RPC timeout "
+                                                  "to 5 seconds.")
+                        junos_module.dev.timeout = 5
+                    try:
+                        got = junos_module.sw.reboot(0, None, all_re, None, install_params.get('vmhost'))
+                        junos_module.dev.timeout = restore_timeout
+                    except Exception:  # pylint: disable=broad-except
+                        junos_module.dev.timeout = restore_timeout
+                        raise
+                    junos_module.logger.debug("Reboot RPC executed.")
 
-            junos_module.logger.debug("Reboot RPC successfully initiated.")
+                    if got is not None:
+                        results['msg'] += ' Reboot successfully initiated. ' \
+                                                  'Reboot message: %s' % got
+                    else:
+                        # This is the else clause of the for loop.
+                        # It only gets executed if the loop finished without
+                        # hitting the break.
+                        results['msg'] += ' Did not find expected response ' \
+                                              'from reboot RPC. '
+                        junos_module.fail_json(**results)
+                except (junos_module.pyez_exception.RpcTimeoutError) as ex:
+                    # This might be OK. It might just indicate the device didn't
+                    # send the closing </rpc-reply> (known Junos bug).
+                    # Try to close the device. If it closes cleanly, then it was
+                    # still reachable, which probably indicates a problem.
+                    try:
+                        junos_module.close(raise_exceptions=True)
+                        # This means the device wasn't already disconnected.
+                        results['msg'] += ' Reboot failed. It may not have been ' \
+                                          'initiated.'
+                        junos_module.fail_json(**results)
+                    except (junos_module.pyez_exception.RpcError,
+                            junos_module.pyez_exception.RpcTimeoutError,
+                            junos_module.pyez_exception.ConnectError):
+                        # This is expected. The device has already disconnected.
+                        results['msg'] += ' Reboot succeeded.'
+                    except (junos_module.ncclient_exception.TimeoutExpiredError):
+                        # This is not really expected. Still consider reboot success as
+                        # Looks like rpc was consumed but no response as its rebooting.
+                        results['msg'] += ' Reboot succeeded. Ignoring close error.'
+                except (junos_module.pyez_exception.RpcError,
+                        junos_module.pyez_exception.ConnectError) as ex:
+                    results['msg'] += ' Reboot failed. Error: %s' % (str(ex))
+                    junos_module.fail_json(**results)
+                else:
+                    try:
+                        junos_module.close()
+                    except (junos_module.ncclient_exception.TimeoutExpiredError):
+                        junos_module.logger.debug("Ignoring TimeoutError for close call")
+
+                junos_module.logger.debug("Reboot RPC successfully initiated.")
             if reboot_pause > 0:
                 junos_module.logger.debug("Sleeping for %d seconds",
                                           reboot_pause)
