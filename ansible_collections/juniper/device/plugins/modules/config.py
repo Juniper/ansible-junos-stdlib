@@ -46,7 +46,7 @@ DOCUMENTATION = '''
 extends_documentation_fragment: 
   - juniper_junos_common.connection_documentation
   - juniper_junos_common.logging_documentation
-module: juniper_junos_config
+module: config
 author: "Juniper Networks - Stacy Smith (@stacywsmith)"
 short_description: Manipulate the configuration of a Junos device
 description:
@@ -515,46 +515,50 @@ options:
 
 EXAMPLES = '''
 ---
-- name: Manipulate the configuration of Junos devices
-  hosts: junos-all
+- name: 'Explicit host argument'
+  hosts: junos
   connection: local
   gather_facts: no
   collections:
     - juniper.device
+
   tasks:
     - name: Retrieve the committed configuration
-      juniper_junos_config:
+      config:
         retrieve: 'committed'
         diff: false
         check: false
         commit: false
       register: response
+
     - name: Print the lines in the config.
       debug:
         var: response.config_lines
 
     - name: Append .foo to the hostname using private config mode.
-      juniper_junos_config:
+      config:
         config_mode: 'private'
         load: 'merge'
         lines:
           - "set system host-name {{ inventory_hostname }}.foo"
       register: response
+
     - name: Print the config changes.
       debug:
         var: response.diff_lines
 
     - name: Rollback to the previous config.
-      juniper_junos_config:
+      config:
         config_mode: 'private'
         rollback: 1
       register: response
+
     - name: Print the config changes.
       debug:
         var: response.diff_lines
 
     - name: Rollback to the rescue config.
-      juniper_junos_config:
+      config:
         rollback: 'rescue'
       register: response
     - name: Print the complete response.
@@ -562,16 +566,17 @@ EXAMPLES = '''
         var: response
 
     - name: Load override from a file.
-      juniper_junos_config:
+      config:
         load: 'override'
         src: "{{ inventory_hostname }}.conf"
       register: response
+
     - name: Print the complete response.
       debug:
         var: response
 
     - name: Load from a Jinja2 template.
-      juniper_junos_config:
+      config:
         load: 'merge'
         format: 'xml'
         template: "{{ inventory_hostname }}.j2"
@@ -583,7 +588,7 @@ EXAMPLES = '''
         var: response
 
     - name: Load from a file on the Junos device.
-      juniper_junos_config:
+      config:
         load: 'merge'
         url: "{{ inventory_hostname }}.conf"
       register: response
@@ -592,7 +597,7 @@ EXAMPLES = '''
         var: response
 
     - name: Load from a file on the Junos device, skip the commit check
-      juniper_junos_config:
+      config:
         load: 'merge'
         url: "{{ inventory_hostname }}.conf"
         check: false
@@ -602,30 +607,32 @@ EXAMPLES = '''
         var: response.msg
 
     - name: Print diff between current and rollback 10. No check. No commit.
-      juniper_junos_config:
+      config:
         rollback: 11
         diff: true
         check: false
         commit: false
       register: response
+
     - name: Print the msg.
       debug:
         var: response
 
     - name: Retrieve [edit system services] of current committed config.
-      juniper_junos_config:
+      config:
         retrieve: 'committed'
         filter: 'system/services'
         diff: true
         check: false
         commit: false
       register: response
+
     - name: Print the resulting config lines.
       debug:
         var: response.config_lines
 
     - name: Enable NETCONF SSH and traceoptions, save config, and diffs.
-      juniper_junos_config:
+      config:
         load: 'merge'
         lines:
           - 'set system services netconf ssh'
@@ -637,29 +644,49 @@ EXAMPLES = '''
         comment: 'Enable NETCONF with traceoptions'
         dest_dir: './output'
       register: response
+
     - name: Print the complete response
       debug:
         var: response
 
     - name: Load conf. Confirm within 5 min. Wait 3 secs between chk and commit
-      juniper_junos_config:
+      config:
         load: 'merge'
         url: "{{ inventory_hostname }}.conf"
         confirm: 5
         check_commit_wait: 3
       register: response
+
     - name: Print the complete response
       debug:
         var: response
+
     - name: Confirm the previous commit with a commit check (but no commit)
-      juniper_junos_config:
+      config:
         check: true
         diff: false
         commit: false
       register: response
+
     - name: Print the complete response
       debug:
         var: response
+
+    - name: fetch config from the device with filter and login credentials
+      config:
+        host: "10.x.x.x"
+        user: "user"
+        passwd: "user123"
+        port: "22"
+        retrieve: 'committed'
+        format: xml
+        commit: no
+        check: no
+        diff: no
+        dest_dir: "/tmp/"
+        filter: <configuration><groups><name>re0</name></groups></configuration>
+        return_output: True
+      register: config_output
 '''
 
 RETURN = '''

@@ -45,7 +45,7 @@ DOCUMENTATION = '''
 extends_documentation_fragment: 
   - juniper_junos_common.connection_documentation
   - juniper_junos_common.logging_documentation
-module: juniper_junos_pmtud
+module: pmtud
 author:
   - Martin Komon (@mkomon)
   - Juniper Networks - Stacy Smith (@stacywsmith)
@@ -136,11 +136,11 @@ EXAMPLES = '''
 
   tasks:
     - name: Perform PMTUD to 192.68.1.1 with default parameters.
-      juniper_junos_pmtud:
+      pmtud:
         dest: "192.68.1.1"
 
     - name: Perform PMTUD to 192.68.1.1. Register response.
-      juniper_junos_pmtud:
+      pmtud:
         dest: "192.68.1.1"
       register: response
     - name: Print the discovered MTU.
@@ -148,7 +148,7 @@ EXAMPLES = '''
         var: response.inet_mtu
 
     - name: Perform PMTUD to 192.68.1.1. Search all possible MTU values.
-      juniper_junos_pmtud:
+      pmtud:
         dest: "192.68.1.1"
         max_size: 65496
         max_range: 65536
@@ -158,7 +158,7 @@ EXAMPLES = '''
         var: response.inet_mtu
 
     - name: Perform PMTUD to 192.68.1.1. Source from ge-0/0/0.0 interface.
-      juniper_junos_pmtud:
+      pmtud:
         dest: "192.68.1.1"
         interface: "ge-0/0/0.0"
       register: response
@@ -167,7 +167,7 @@ EXAMPLES = '''
         var: response.inet_mtu
 
     - name: Perform PMTUD to 192.68.1.1. Source from 192.168.1.2.
-      juniper_junos_pmtud:
+      pmtud:
         dest: "192.68.1.1"
         source: "192.168.1.2"
       register: response
@@ -176,7 +176,7 @@ EXAMPLES = '''
         var: response.inet_mtu
 
     - name: Perform PMTUD to 192.68.1.1. Source from the red routing-instance.
-      juniper_junos_pmtud:
+      pmtud:
         dest: "192.68.1.1"
         routing_instance: "red"
       register: response

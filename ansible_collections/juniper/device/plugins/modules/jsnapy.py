@@ -45,7 +45,7 @@ DOCUMENTATION = '''
 extends_documentation_fragment: 
   - juniper_junos_common.connection_documentation
   - juniper_junos_common.logging_documentation
-module: juniper_junos_jsnapy
+module: jsnapy
 author:
   - Juniper Networks
   - Roslan Zaki
@@ -61,7 +61,7 @@ description:
     fails to execute the JSNAPy tests. If does NOT report C(failed) if one or
     more of the JSNAPy tests fail. To check the test results, register the
     module's response and use the assert module to verify the expected result
-    in the response. (See :ref:`juniper_junos_jsnapy-examples-label`.)
+    in the response. (See :ref:`jsnapy-examples-label`.)
   - A callback plugin which formats and prints JSNAPy test results for human
     consumption is also available. This callback plugin is enabled by adding
     C(callback_whitelist = jsnapy) to the Ansible configuration file.
@@ -110,7 +110,7 @@ options:
 
 EXAMPLES = '''
 ---
-- name: Examples of juniper_junos_jsnapy
+- name: Examples of jsnapy
   hosts: junos-all
   connection: local
   gather_facts: no
@@ -119,7 +119,7 @@ EXAMPLES = '''
 
   tasks:
     - name: JUNOS Post Checklist
-      juniper_junos_jsnapy:
+      jsnapy:
         action: "snap_post"
         config_file: "first_test.yml"
         logfile: "migration_post.log"
@@ -133,7 +133,7 @@ EXAMPLES = '''
         var: test1
 
     - name: Test based on a test_file directly
-      juniper_junos_jsnapy:
+      jsnapy:
        action: "snapcheck"
        test_files: "tests/test_junos_interface.yaml"
       register: test2
@@ -146,17 +146,17 @@ EXAMPLES = '''
         var: test2
 
     - name: "Collect Pre Snapshot"
-      juniper_junos_jsnapy:
+      jsnapy:
         action: "snap_pre"
         test_files: "tests/test_loopback.yml"
 
     - name: "Collect Post Snapshot"
-      juniper_junos_jsnapy:
+      jsnapy:
         action: "snap_post"
         test_files: "tests/test_loopback.yml"
 
     - name: "Check after Pre and Post Snapshots"
-      juniper_junos_jsnapy:
+      jsnapy:
         action: "check"
         test_files: "tests/test_loopback.yml"
       register: test3

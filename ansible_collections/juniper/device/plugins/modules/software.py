@@ -45,7 +45,7 @@ DOCUMENTATION = '''
 extends_documentation_fragment: 
   - juniper_junos_common.connection_documentation
   - juniper_junos_common.logging_documentation
-module: juniper_junos_software
+module: software
 author:
   - Jeremy Schulman
   - "Juniper Networks - Stacy Smith (@stacywsmith)"
@@ -317,8 +317,8 @@ notes:
 
 EXAMPLES = '''
 ---
-- name: Examples of juniper_junos_software
-  hosts: junos-all
+- name: 'Explicit host argument'
+  hosts: junos
   connection: local
   gather_facts: no
   collections:
@@ -326,20 +326,24 @@ EXAMPLES = '''
 
   tasks:
     - name: Execute a basic Junos software upgrade.
-      juniper_junos_software:
+      software:
         local_package: "./images/"
       register: response
+
     - name: Print the complete response.
       debug:
         var: response
 
-###### OLD EXAMPLES ##########
-    - junos_install_os:
-        host={{ inventory_hostname }}
-        version=12.1X46-D10.2
-        package=/usr/local/junos/images/junos-vsrx-12.1X46-D10.2-domestic.tgz
-        logfile=/usr/local/junos/log/software.log
-###### OLD EXAMPLES ##########
+    - name: Upgrade Junos OS from package copied at device
+      software:
+        host: "10.x.x.x"
+        user: "user"
+        passwd: "user123"
+        remote_package: "/var/tmp/junos-install-mx-x86-64-20.1R1.5.tgz"
+        no_copy: false
+        cleanfs: false
+        validate: true
+      register: response
 '''
 
 

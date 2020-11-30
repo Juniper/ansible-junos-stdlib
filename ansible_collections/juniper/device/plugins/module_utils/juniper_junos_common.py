@@ -50,6 +50,12 @@ import xmltodict
 import logging
 import os
 
+try:
+    # Python 2
+    basestring
+except NameError:
+    # Python 3
+    basestring = str
 
 class ModuleDocFragment(object):
     """Documentation fragment for connection-related parameters.
@@ -1280,9 +1286,9 @@ class JuniperJunosModule(AnsibleModule):
             if model is None and config.tag != 'configuration':
                 self.fail_json(msg='Unexpected XML tag returned. '
                                    'Configuration is: %s' %
-                                   (etree.tostring(config, pretty_print=True)))
-            return_val = (etree.tostring(config, pretty_print=True),
-                          jxmlease.parse_etree(config))
+                                   (self.etree.tostring(config, pretty_print=True)))
+            return_val = (self.etree.tostring(config, pretty_print=True),
+                          self.jxmlease.parse_etree(config))
         elif format == 'json':
             return_val = (json.dumps(config), config)
         else:

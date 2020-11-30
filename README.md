@@ -110,6 +110,12 @@ version of the juniper.device collection.
 sudo ansible-galaxy collection install juniper.device
 ```
 
+You can also use the ansible-galaxy install command to install the latest development version of the junos role directly from GitHub.
+
+```bash
+sudo ansible-galaxy collection install git+https://github.com/Juniper/ansible-junos-stdlib.git#/ansible_collections/juniper/device
+```
+
 ### Git clone
 
 For testing you can `git clone` this repo and run the `env-setup` script in the repo directory:

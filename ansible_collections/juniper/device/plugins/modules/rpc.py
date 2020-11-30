@@ -45,7 +45,7 @@ DOCUMENTATION = '''
 extends_documentation_fragment: 
   - juniper_junos_common.connection_documentation
   - juniper_junos_common.logging_documentation
-module: juniper_junos_rpc
+module: rpc
 author: "Juniper Networks - Stacy Smith (@stacywsmith)"
 short_description: Execute one or more NETCONF RPCs on a Junos device
 description:
@@ -166,7 +166,7 @@ options:
         I(kwargs) list and the RPCs in the I(rpcs) list. In other words, the
         two lists must always contain the same number of elements. For RPC
         arguments which do not require a value, specify the value of True as
-        shown in the :ref:`juniper_junos_rpc-examples-label`.
+        shown in the :ref:`rpc-examples-label`.
     required: false
     default: none
     type: dict or list of dict
@@ -196,86 +196,67 @@ options:
 
 EXAMPLES = '''
 ---
-- name: Examples of juniper_junos_rpc
-  hosts: junos-all
+- name: 'Explicit host argument'
+  hosts: junos
   connection: local
   gather_facts: no
   collections:
     - juniper.device
 
   tasks:
-    - name: Execute single get-software-information RPC.
-      juniper_junos_rpc:
-        rpcs: "get-software-information"
-      register: response
-    - name: Print the RPC's output as a single multi-line string.
+    - name: "Execute RPC with filters"
+      rpc:
+        rpcs:
+           - "get-config"
+        format: xml
+        filter: <configuration><groups><name>re0</name></groups></configuration>
+        attr: name=re0
+      register: test1
+      ignore_errors: True
+
+    - name: Check TEST 1
       debug:
-        var: response.stdout
+        var: test1
 
-###### OLD EXAMPLES ##########
-- junos_rpc:
-  host={{ inventory_hostname }}
-  rpc=get-interface-information
-  dest=get_interface_information.conf
-  register=junos
+    - name: "Execute RPC with host data and store logging"
+      rpc:
+        host: "10.x.x.x"
+        user: "user"
+        passwd: "user123"
+        port: "22"
+        rpcs:
+          - "get-software-information"
+        logfile: "/var/tmp/rpc.log"
+        ignore_warning: true
+      register: test1
+      ignore_errors: True
 
-- junos_rpc:
-  host={{ inventory_hostname }}
-  rpc=get-interface-information
-  kwargs="interface_name=em0"
-  format=xml/text/json
-  dest=get_interface_information.conf
-  register=junos
+    - name: "Print results - summary"
+      debug:
+        var: test1.stdout_lines
 
-# Example to fetch device configuration
-- name: Get Device Configuration
-  junos_rpc:
-    host={{ inventory_hostname }}
-    rpc=get-config
-    dest=get_config.conf
+    - name: "Execute multiple RPC"
+      rpc:
+        rpcs:
+          - "get-config"
+          - "get-software-information"
 
-# Fetch configuration over console server connection using PyEZ >= 2.0
-- name: Get Device Configuration
-  junos_rpc:
-    host={{ inventory_hostname }}
-    port=7005
-    mode='telnet'
-    rpc=get-config
-    dest=get_config.conf
+    - name: Get Device Configuration for vlan - 1
+      rpc:
+        rpc: "get-config"
+        filter_xml: "<configuration><vlans/></configuration>"
+        dest: "get_config_vlan.conf"
+      register: junos
 
-# Example to fetch device configuration
-- name: Get Device Configuration for interface
-  junos_rpc:
-    host={{ inventory_hostname }}
-    rpc=get-config
-    filter_xml="<configuration><interfaces/></configuration>"
-    dest=get_config.conf
-  register: junos
-
-# Example to fetch configuration in json for >=14.2
-# and use it with rpc_reply
-- name: Get Device Configuration
-  hosts: all
-  collections:
-    - juniper.device
-  connection: local
-  gather_facts: no
-  tasks:
-    - name: Get interface information
-      junos_rpc:
-        host: "{{ inventory_hostname }}"
+    - name: Get interface information with kwargs
+      rpc:
         rpc: get-interface-information
         kwargs:
-          interface_name: em0
+          interface_name: em1
           media: True
         format: json
         dest: get_interface_information.conf
-      register: junos
-
-    - name: Print configuration
-      debug: msg="{{ junos.rpc_reply }}"
-###### OLD EXAMPLES ##########
-'''
+      register: junos'''
 
 RETURN = '''
 attrs:

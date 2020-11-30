@@ -45,7 +45,7 @@ DOCUMENTATION = '''
 extends_documentation_fragment: 
   - juniper_junos_common.connection_documentation
   - juniper_junos_common.logging_documentation
-module: juniper_junos_facts
+module: facts
 author: "Juniper Networks - Stacy Smith (@stacywsmith)"
 short_description: Retrieve facts from a Junos device
 description:
@@ -85,15 +85,32 @@ options:
 
 EXAMPLES = '''
 ---
-- name: Gather facts from Junos devices
-  hosts: junos-all
+- name: 'Explicit host argument'
+  hosts: junos
   connection: local
   gather_facts: no
   collections:
     - juniper.device
+
   tasks:
-    - name: Gather Junos facts with no configuration
-      juniper_junos_facts:
+    - name: "Get facts"
+      facts:
+      register: response
+
+    - name: Facts with login credentials
+      facts:
+        host: "10.x.x.x"
+        user: "user"
+        passwd: "user123"
+        port: "22"
+
+    - name: Facts in telnet mode
+      facts:
+        host: "10.x.x.x"
+        user: "user"
+        passwd: "user123"
+        port: "23"
+        mode: "telnet"
 
 # Print a fact
 

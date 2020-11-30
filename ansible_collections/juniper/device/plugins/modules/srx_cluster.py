@@ -46,7 +46,7 @@ DOCUMENTATION = '''
 extends_documentation_fragment: 
   - juniper_junos_common.connection_documentation
   - juniper_junos_common.logging_documentation
-module: juniper_junos_srx_cluster
+module: srx_cluster
 author: "Juniper Networks - Stacy Smith (@stacywsmith)"
 short_description: Add or remove SRX chassis cluster configuration
 description:
@@ -98,7 +98,7 @@ EXAMPLES = '''
     - juniper.device
   tasks:
     - name: Enable an SRX cluster
-      juniper_junos_srx_cluster:
+      srx_cluster:
         enable: true
         cluster_id: 4
         node_id: 0
@@ -108,7 +108,7 @@ EXAMPLES = '''
         var: response.config_lines
 
     - name: Disable an SRX cluster
-      juniper_junos_srx_cluster:
+      srx_cluster:
         enable: false
       register: response
     - name: Print the response.

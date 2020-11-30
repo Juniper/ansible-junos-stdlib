@@ -47,7 +47,7 @@ DOCUMENTATION = '''
 extends_documentation_fragment: 
   - juniper_junos_common.connection_documentation
   - juniper_junos_common.logging_documentation
-module: juniper_junos_table
+module: table
 author:
   - Jason Edelman (@jedelman8)
   - Updated by Juniper Networks - Stacy Smith (@stacywsmith)
@@ -132,7 +132,7 @@ EXAMPLES = '''
 
   tasks:
     - name: Retrieve LLDP Neighbor Information Using PyEZ-included Table
-      juniper_junos_table:
+      table:
         file: "lldp.yml"
       register: response
     - name: Print response
@@ -140,7 +140,7 @@ EXAMPLES = '''
         var: response
 
     - name: Retrieve routes within 192.68.1/8
-      juniper_junos_table:
+      table:
         file: "routes.yml"
         table: "RouteTable"
         kwargs:
@@ -152,7 +152,7 @@ EXAMPLES = '''
         var: response
 
     - name: Retrieve from custom table in playbook directory
-      juniper_junos_table:
+      table:
         file: "fpc.yaml"
         path: "."
       register: response

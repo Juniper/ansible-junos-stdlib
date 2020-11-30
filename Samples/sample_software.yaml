@@ -1,0 +1,28 @@
+- name: 'Explicit host argument'
+  hosts: junos
+  connection: local
+  gather_facts: no
+  collections:
+    - juniper.device
+
+  tasks:
+    - name: Execute a basic Junos software upgrade.
+      software:
+        local_package: "./images/"
+      register: response
+
+    - name: Print the complete response.
+      debug:
+        var: response
+
+    - name: Upgrade Junos OS from package copied at device
+      software:
+        host: "10.x.x.x"
+        user: "user"
+        passwd: "user123"
+        remote_package: "/var/tmp/junos-install-mx-x86-64-20.1R1.5.tgz"
+        no_copy: false
+        cleanfs: false
+        validate: true
+      register: response
+

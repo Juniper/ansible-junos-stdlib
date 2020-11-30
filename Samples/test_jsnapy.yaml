@@ -1,0 +1,12 @@
+tests_include:
+  - test_rpc_version
+
+test_rpc_version:
+  - rpc: get-software-information
+  - iterate:
+      xpath: package-information
+      id: './name'
+      tests:
+        - no-diff: comment
+          info: "Test Succeeded!!, comment is <{{post['comment']}}>"
+          err: "Test Failed!!!, comment is <{{post['comment']}}>"

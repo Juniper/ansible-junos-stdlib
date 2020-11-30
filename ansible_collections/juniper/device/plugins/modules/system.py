@@ -45,7 +45,7 @@ DOCUMENTATION = '''
 extends_documentation_fragment: 
   - juniper_junos_common.connection_documentation
   - juniper_junos_common.logging_documentation
-module: juniper_junos_system
+module: system
 author: "Juniper Networks - Stacy Smith (@stacywsmith)"
 short_description: Initiate operational actions on the Junos system
 description:
@@ -158,8 +158,8 @@ notes:
 
 EXAMPLES = '''
 ---
-- name: Examples of juniper_junos_system
-  hosts: junos-all
+- name: 'Explicit host argument'
+  hosts: junos
   connection: local
   gather_facts: no
   collections:
@@ -167,42 +167,42 @@ EXAMPLES = '''
 
   tasks:
     - name: Reboot all REs of the device
-      juniper_junos_system:
+      system:
         action: "reboot"
 
     - name: Power off the other RE of the device.
-      juniper_junos_system:
+      system:
         action: "shutdown"
         othe_re: True
 
     - name: Reboot this RE at 8pm today.
-      juniper_junos_system:
+      system:
         action: "reboot"
         all_re: False
         at: "20:00"
 
     - name: Halt the system on 25 January 2018 at 4pm.
-      juniper_junos_system:
+      system:
         action: "halt"
         at: "1801251600"
 
     - name: Reboot the system in 30 minutes.
-      juniper_junos_system:
+      system:
         action: "reboot"
         in_min: 30
 
     - name: Reboot the system in 30 minutes.
-      juniper_junos_system:
+      system:
         action: "reboot"
         at: "+30m"
 
     - name: Zeroize the local RE only.
-      juniper_junos_system:
+      system:
         action: "zeroize"
         all_re: False
 
     - name: Zeroize all REs and overwrite medea.
-      juniper_junos_system:
+      system:
         action: "zeroize"
         media: True
 '''

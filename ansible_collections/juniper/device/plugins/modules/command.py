@@ -45,7 +45,7 @@ DOCUMENTATION = '''
 extends_documentation_fragment: 
   - juniper_junos_common.connection_documentation
   - juniper_junos_common.logging_documentation
-module: juniper_junos_command
+module: command
 author: "Juniper Networks - Stacy Smith (@stacywsmith)"
 short_description: Execute one or more CLI commands on a Junos device
 description:
@@ -147,26 +147,30 @@ options:
 '''
 
 EXAMPLES = '''
----
-- name: Examples of juniper_junos_command
-  hosts: junos-all
+- name: 'Explicit host argument'
+  hosts: junos
   connection: local
   gather_facts: no
   collections:
     - juniper.device
 
   tasks:
-    - name: Execute single "show version" command.
-      juniper_junos_command:
-        commands: "show version"
-      register: response
+    - name: "Execute single command in text format"
+      command:
+        commands: "show configuration system services netconf traceoptions"
+        format: text
 
-    - name: Print the command output
-      debug:
-        var: response.stdout
+    - name: "Execute command with login credentials"
+      command:
+        host: "10.x.x.x."
+        user: "user"
+        passwd: "user123"
+        commands:
+          - "show system storage"
+      register: junos_result
 
     - name: Execute three commands.
-      juniper_junos_command:
+      command:
         commands:
           - "show version"
           - "show system uptime"
@@ -178,15 +182,8 @@ EXAMPLES = '''
         var: item.stdout
       with_items: "{{ response.results }}"
 
-    - name: Two commands with XML output.
-      juniper_junos_command:
-        commands:
-          - "show route"
-          - "show lldp neighbors"
-        format: xml
-
     - name: show route with XML output - show version with JSON output
-      juniper_junos_command:
+      command:
         commands:
           - "show route"
           - "show version"
@@ -194,35 +191,22 @@ EXAMPLES = '''
           - "xml"
           - "json"
 
-    - name: save outputs in dest_dir
-      juniper_junos_command:
+    - name: Multiple commands, save outputs, but don't return them
+      command:
         commands:
           - "show route"
           - "show version"
-        dest_dir: "./output"
+        formats:
+          - "xml"
+        dest_dir: "../Output"
+        return_output: false
 
     - name: save output to dest
-      juniper_junos_command:
-        command: "show system uptime"
-        dest: "/tmp/{{ inventory_hostname }}.uptime.output"
-
-    - name: save output to dest
-      juniper_junos_command:
+      command:
         command:
           - "show route"
           - "show lldp neighbors"
         dest: "/tmp/{{ inventory_hostname }}.commands.output"
-
-    - name: Multiple commands, save outputs, but don't return them
-      juniper_junos_command:
-        commands:
-          - "show route"
-          - "show version"
-        formats:
-          - "xml"
-          - "json"
-        dest_dir: "/tmp/outputs/"
-        return_output: false
 '''
 
 RETURN = '''

@@ -45,7 +45,7 @@ DOCUMENTATION = '''
 extends_documentation_fragment: 
   - juniper_junos_common.connection_documentation
   - juniper_junos_common.logging_documentation
-module: juniper_junos_ping
+module: ping
 author: Juniper Networks - Stacy Smith (@stacywsmith)
 short_description: Execute ping from a Junos device
 description:
@@ -141,7 +141,7 @@ options:
 
 EXAMPLES = '''
 ---
-- name: Examples of juniper_junos_ping
+- name: Examples of ping
   hosts: junos-all
   connection: local
   gather_facts: no
@@ -150,11 +150,11 @@ EXAMPLES = '''
 
   tasks:
     - name: Ping 192.68.1.1 with default parameters. Fails if any packets lost.
-      juniper_junos_ping:
+      ping:
         dest: "192.68.1.1"
 
     - name: Ping 192.68.1.1 Allow 50% packet loss. Register response.
-      juniper_junos_ping:
+      ping:
         dest: "192.68.1.1"
         acceptable_percent_loss: 50
       register: response
@@ -163,7 +163,7 @@ EXAMPLES = '''
         var: response
 
     - name: Ping 192.68.1.1. Send 20 packets. Register response.
-      juniper_junos_ping:
+      ping:
         dest: "192.68.1.1"
         count: 20
       register: response
@@ -172,7 +172,7 @@ EXAMPLES = '''
         var: response.packets_sent
 
     - name: Ping 192.68.1.1. Send 10 packets wihtout rapid. Register response.
-      juniper_junos_ping:
+      ping:
         dest: "192.68.1.1"
         count: 10
         rapid: false
@@ -182,7 +182,7 @@ EXAMPLES = '''
         var: response.rtt_average
 
     - name: Ping www.juniper.net with ttl 15. Register response.
-      juniper_junos_ping:
+      ping:
         dest: "www.juniper.net"
         ttl: 15
       register: response
@@ -191,7 +191,7 @@ EXAMPLES = '''
         var: response.packet_loss
 
     - name: Ping 192.68.1.1 with IP packet size of 1500. Register response.
-      juniper_junos_ping:
+      ping:
         dest: "192.68.1.1"
         size: 1472
       register: response
@@ -200,7 +200,7 @@ EXAMPLES = '''
         var: response.packets_received
 
     - name: Ping 192.68.1.1 with do-not-fragment bit set. Register response.
-      juniper_junos_ping:
+      ping:
         dest: "192.68.1.1"
         do_not_fragment: true
       register: response
@@ -209,7 +209,7 @@ EXAMPLES = '''
         var: response.rtt_maximum
 
     - name: Ping 192.68.1.1 with source set to 192.68.1.2. Register response.
-      juniper_junos_ping:
+      ping:
         dest: "192.68.1.1"
         source: "192.68.1.2"
       register: response
@@ -218,12 +218,12 @@ EXAMPLES = '''
         var: response.source
 
     - name: Ping 192.168.1.1 from the red routing-instance.
-      juniper_junos_ping:
+      ping:
         dest: "192.168.1.1"
         routing_instance: "red"
 
     - name: Ping the all-hosts multicast address from the ge-0/0/0.0 interface
-      juniper_junos_ping:
+      ping:
         dest: "224.0.0.1"
         interface: "ge-0/0/0.0"
 '''
