@@ -1,10 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 1999-2018, Juniper Networks Inc.
-#               2014, Jeremy Schulman
-#
-# All rights reserved.
+# Copyright (c) 2017-2018, Juniper Networks Inc. All rights reserved.
 #
 # License: Apache 2.0
 #
@@ -340,7 +337,7 @@ def main():
             if junos_module.conn_type == "local":
                 inventory = junos_module.dev.rpc.get_chassis_inventory()
             else:
-                junos_module.get_chassis_inventory()
+                inventory = junos_module.get_chassis_inventory()
             junos_module.logger.debug("Inventory gathered.")
             save_inventory(junos_module,
                            junos_module.etree.tostring(inventory,

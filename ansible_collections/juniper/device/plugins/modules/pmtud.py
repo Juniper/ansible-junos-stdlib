@@ -1,10 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 1999-2018, Juniper Networks Inc.
-#               2017, Martin Komon
-#
-# All rights reserved.
+# Copyright (c) 2017-2018, Juniper Networks Inc. All rights reserved.
 #
 # License: Apache 2.0
 #
@@ -127,7 +124,7 @@ options:
 
 EXAMPLES = '''
 ---
-- name: Examples of juniper_junos_mtud
+- name: Examples of pmtud
   hosts: junos-all
   connection: local
   gather_facts: no

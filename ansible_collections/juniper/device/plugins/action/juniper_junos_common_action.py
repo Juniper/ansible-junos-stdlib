@@ -37,9 +37,9 @@ import os
 
 # The Ansible core engine will call ActionModule.run()
 class ActionModule(ExtractData, ActionNormal):
-    """A subclass of ansible.plugins.action.network.ActionModule used by all juniper_junos_* modules.
+    """A subclass of ansible.plugins.action.network.ActionModule used by all modules.
 
-    All juniper_junos_* modules share common behavior which is implemented in
+    All modules share common behavior which is implemented in
     this class. This includes specific option fallback/default behavior and
     passing the "hidden" _module_utils_path option to the module.
 

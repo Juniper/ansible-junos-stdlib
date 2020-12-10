@@ -4,9 +4,7 @@
 # Copyright 2016 Jason Edelman <jason@networktocode.com>
 # Network to Code, LLC
 #
-# Copyright (c) 2017-2018, Juniper Networks Inc.
-#
-# All rights reserved.
+# Copyright (c) 2017-2018, Juniper Networks Inc. All rights reserved.
 #
 # License: Apache 2.0
 #
@@ -292,6 +290,7 @@ Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project
 # Ansiballz packages module_utils into ansible.module_utils
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.juniper.device.plugins.module_utils import juniper_junos_common
+from ansible_collections.juniper.device.plugins.module_utils import configuration as cfg
 
 def expand_items(module, data):
     """Recursively expand any table items
@@ -359,7 +358,7 @@ def main():
         ),
         # Check mode is implemented.
         supports_check_mode=True,
-        min_yaml_version=juniper_junos_common.MIN_YAML_VERSION,
+        min_yaml_version=cfg.MIN_YAML_VERSION,
     )
 
     # Straight from params

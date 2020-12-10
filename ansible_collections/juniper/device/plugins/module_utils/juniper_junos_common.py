@@ -60,16 +60,16 @@ except NameError:
 class ModuleDocFragment(object):
     """Documentation fragment for connection-related parameters.
 
-    All juniper_junos_* modules share a common set of connection parameters
+    All modules share a common set of connection parameters
     which are documented in this class.
 
     Attributes:
         CONNECTION_DOCUMENTATION: The documentation string defining the
                                   connection-related parameters for the
-                                  juniper_junos_* modules.
+                                  modules.
         LOGGING_DOCUMENTATION: The documentation string defining the
                                logging-related parameters for the
-                               juniper_junos_* modules.
+                               modules.
     """
 
     # The connection-specific options. Defined here so it can be re-used as
@@ -491,9 +491,9 @@ CONFIG_MODE_CHOICES = ['exclusive', 'private']
 CONFIG_MODEL_CHOICES = ['openconfig', 'custom', 'ietf', 'True']
 
 class JuniperJunosModule(AnsibleModule):
-    """A subclass of AnsibleModule used by all juniper_junos_* modules.
+    """A subclass of AnsibleModule used by all modules.
 
-    All juniper_junos_* modules share common behavior which is implemented in
+    All modules share common behavior which is implemented in
     this class.
 
     Attributes:
@@ -539,7 +539,7 @@ class JuniperJunosModule(AnsibleModule):
         """Initialize a new JuniperJunosModule instance.
 
         Combines module-specific parameters with the common parameters shared
-        by all juniper_junos_* modules. Performs additional checks on options.
+        by all modules. Performs additional checks on options.
         Checks the minimum PyEZ version. Creates and opens the PyEZ Device instance.
 
         Args:
@@ -607,9 +607,11 @@ class JuniperJunosModule(AnsibleModule):
         self.pyez_exception = pyez_exception
         self.ncclient_exception = cfg.ncclient_exception
         self.etree = cfg.etree
-        self.jsnapy = jnpr.jsnapy
         self.jxmlease = cfg.jxmlease
         self.yaml = cfg.yaml
+
+        if min_jsnapy_version is not None:
+            self.jsnapy = jnpr.jsnapy
 
         # Setup logging.
         self.logger = self._setup_logging()
@@ -1727,4 +1729,4 @@ class JuniperJunosModule(AnsibleModule):
 
     def get_chassis_inventory(self):
         chassis = self._pyez_conn.get_chassis_inventory()
-        return chassis
+        return self.etree.fromstring(chassis)

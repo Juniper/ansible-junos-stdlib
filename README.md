@@ -31,7 +31,7 @@ https://github.com/Juniper/ansible-junos-stdlib/tree/roles
 Since Ansible version >= 2.1, Ansible also natively includes
 [core modules for Junos](http://docs.ansible.com/ansible/list_of_network_modules.html#junos). The Junos modules included
 in Ansible core have names which begin with the prefix `junos_`. The Junos modules included in this Juniper.device
-collection have names which begin with the prefix `juniper_junos_`. These two sets of Junos modules can coexist on the same
+collection have names startinng with module types. These two sets of Junos modules can coexist on the same
 Ansible control machine, and an Ansible play may invoke a module from either (or both) sets. Juniper Networks recommends
 using the modules in this collection when writing new playbooks that manage Junos devices.
 
@@ -39,24 +39,24 @@ using the modules in this collection when writing new playbooks that manage Juno
 
 This juniper.device collection includes the following modules:
 
-- **juniper_junos_command** — Execute one or more CLI commands on a Junos device.
-- **juniper_junos_config** — Manipulate the configuration of a Junos device.
-- **juniper_junos_facts** — Retrieve facts from a Junos device.
-- **juniper_junos_jsnapy** — Execute JSNAPy tests on a Junos device.
-- **juniper_junos_ping** — Execute ping from a Junos device.
-- **juniper_junos_pmtud** — Perform path MTU discovery from a Junos device to a destination.
-- **juniper_junos_rpc** — Execute one or more NETCONF RPCs on a Junos device.
-- **juniper_junos_software** — Install software on a Junos device.
-- **juniper_junos_srx_cluster** — Add or remove SRX chassis cluster configuration.
-- **juniper_junos_system** — Initiate operational actions on the Junos system.
-- **juniper_junos_table** — Retrieve data from a Junos device using a PyEZ table/view.
+- **command** — Execute one or more CLI commands on a Junos device.
+- **config** — Manipulate the configuration of a Junos device.
+- **facts** — Retrieve facts from a Junos device.
+- **jsnapy** — Execute JSNAPy tests on a Junos device.
+- **ping** — Execute ping from a Junos device.
+- **pmtud** — Perform path MTU discovery from a Junos device to a destination.
+- **rpc** — Execute one or more NETCONF RPCs on a Junos device.
+- **software** — Install software on a Junos device.
+- **srx_cluster** — Add or remove SRX chassis cluster configuration.
+- **system** — Initiate operational actions on the Junos system.
+- **table** — Retrieve data from a Junos device using a PyEZ table/view.
 
 ### PyEZ Version Requirement
 For ansible collection junos we will need to install junos-eznc(PyEZ) version 2.5.0 or higher. 
 
 ### Overview of Plugins
 
-In addition to the modules listed above, a callback_plugin `jsnapy` is available for the module `juniper_junos_jsnapy`.
+In addition to the modules listed above, a callback_plugin `jsnapy` is available for the module `jsnapy`.
 
 The callback_plugin `jsnapy` helps to print on the screen additional information regarding jsnapy failed tests.
 For each failed test, a log will be printed after the RECAP of the playbook as shown in this example:
@@ -252,7 +252,7 @@ This example outlines how to use Ansible to install or upgrade the software imag
     - name: Checking NETCONF connectivity
       wait_for: host={{ inventory_hostname }} port=830 timeout=5
     - name: Install Junos OS package
-      juniper_junos_software:
+      software:
         reboot: yes
         version: "{{ OS_version }}"
         package: "{{ pkg_dir }}/{{ OS_package }}"

@@ -1,9 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 1999-2018, Juniper Networks Inc.
-#               2016, Nitin Kumar
-#
-# All rights reserved.
+# Copyright (c) 2017-2018, Juniper Networks Inc. All rights reserved.
 #
 # License: Apache 2.0
 #

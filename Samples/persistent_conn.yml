@@ -8,6 +8,10 @@
   collections:
     - juniper.device
 
+# The example here uses inventory file for user-authentication.
+# the command to be used will look something like below
+# ansible-playbook persistent_conn.yml -i inventory
+
   tasks:
     # Command module executed
     - name: show version with command

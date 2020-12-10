@@ -1,11 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 
-# Copyright (c) 1999-2018, Juniper Networks Inc.
-#               2014, Jeremy Schulman
-#               2015, Rick Sherman
-#
-# All rights reserved.
+# Copyright (c) 2017-2018, Juniper Networks Inc. All rights reserved.
 #
 # License: Apache 2.0
 #
