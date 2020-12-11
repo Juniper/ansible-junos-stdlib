@@ -31,7 +31,7 @@ https://github.com/Juniper/ansible-junos-stdlib/tree/roles
 Since Ansible version >= 2.1, Ansible also natively includes
 [core modules for Junos](http://docs.ansible.com/ansible/list_of_network_modules.html#junos). The Junos modules included
 in Ansible core have names which begin with the prefix `junos_`. The Junos modules included in this Juniper.device
-collection have names startinng with module types. These two sets of Junos modules can coexist on the same
+collection have names starting with module types. These two sets of Junos modules can coexist on the same
 Ansible control machine, and an Ansible play may invoke a module from either (or both) sets. Juniper Networks recommends
 using the modules in this collection when writing new playbooks that manage Junos devices.
 

@@ -170,6 +170,3 @@
           filter: <configuration><groups><name>re0</name></groups></configuration>
           return_output: True
         register: config_output
-
-
-
