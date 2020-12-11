@@ -29,6 +29,10 @@
           - "show interface terse"
       register: response
 
+    - name: "Print the response"
+      debug:
+        var: response
+
     - name: Print the command output of each.
       debug:
         var: item.stdout

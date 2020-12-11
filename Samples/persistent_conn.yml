@@ -61,3 +61,4 @@
         action: "reboot"
       register: response
 
+# close connection

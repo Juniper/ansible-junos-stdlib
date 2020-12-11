@@ -116,6 +116,9 @@ You can also use the ansible-galaxy install command to install the latest develo
 sudo ansible-galaxy collection install git+https://github.com/Juniper/ansible-junos-stdlib.git#/ansible_collections/juniper/device
 ```
 
+For more information visit - https://docs.ansible.com/ansible/latest/user_guide/collections_using.html#specifying-the-location-to-search-for-collections
+
+
 ### Git clone
 
 For testing you can `git clone` this repo and run the `env-setup` script in the repo directory:

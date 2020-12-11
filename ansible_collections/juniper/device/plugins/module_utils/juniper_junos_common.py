@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Copyright (c) 2017-2018, Juniper Networks Inc. All rights reserved.
+# Copyright (c) 2017-2020, Juniper Networks Inc. All rights reserved.
 #
 # License: Apache 2.0
 #
@@ -40,7 +40,7 @@ from ansible.module_utils.basic import boolean
 from ansible.module_utils._text import to_bytes, to_text
 from ansible_collections.juniper.device.plugins.module_utils import configuration as cfg
 import jnpr
-from jnpr.junos.utils import sw as Sw
+from jnpr.junos.utils.sw import SW
 from jnpr.junos import exception as pyez_exception
 
 # Standard library imports
@@ -1120,7 +1120,7 @@ class JuniperJunosModule(AnsibleModule):
     def add_sw(self):
         """Add an instance of jnpr.junos.utils.sw.SW() to self.
         """
-        self.sw = Sw.SW(self.dev)
+        self.sw = SW(self.dev)
 
     def open_configuration(self, mode, ignore_warning=None):
         """Open candidate configuration database in exclusive or private mode.

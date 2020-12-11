@@ -25,3 +25,7 @@
         cleanfs: false
         validate: true
       register: response
+
+    - name: "Print the response"
+      debug:
+        var: response

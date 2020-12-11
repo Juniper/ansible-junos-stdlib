@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 #
-# Copyright (c) 2017-2018, Juniper Networks Inc. All rights reserved.
+# Copyright (c) 2017-2020, Juniper Networks Inc. All rights reserved.
 #
 # License: Apache 2.0
 #
@@ -36,7 +36,7 @@ import xmltodict
 
 __metaclass__ = type
 
-DOCUMENTATION = """author: Ansible Networking Team
+DOCUMENTATION = """author: Juniper Automation Team
 connection: pyez
 short_description: Use pyez to run command on JUNOS appliances
 description:

@@ -4,7 +4,7 @@
 # Copyright 2016 Jason Edelman <jason@networktocode.com>
 # Network to Code, LLC
 #
-# Copyright (c) 2017-2018, Juniper Networks Inc. All rights reserved.
+# Copyright (c) 2017-2020, Juniper Networks Inc. All rights reserved.
 #
 # License: Apache 2.0
 #
