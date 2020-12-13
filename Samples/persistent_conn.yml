@@ -1,0 +1,64 @@
+---
+- name: 'Explicit host argument'
+  hosts: junos
+#  connection: local
+  connection: juniper.device.pyez
+
+  gather_facts: no
+  collections:
+    - juniper.device
+
+# The example here uses inventory file for user-authentication.
+# the command to be used will look something like below
+# ansible-playbook persistent_conn.yml -i inventory
+
+  tasks:
+    # Command module executed
+    - name: show version with command
+      command:
+        commands:
+          - "show version"
+      register: junos_result
+
+    # Jsnapy module executed
+    - name: 'Performa a snap_check of storage'
+      jsnapy:
+        action: "check"
+        test_files: "test_jsnapy.yaml"
+      register: response
+
+    - name: "Print the response"
+      debug:
+        var: response
+
+    # Facts module executed
+    - name: "Get facts"
+      facts:
+      register: response
+
+    # Rpc module executed
+    - name: "Test RPC"
+      rpc:
+        rpcs:
+          - "get-config"
+          - "get-software-information"
+
+    # Config module executed
+    - name: SET JUNOS CONFIG
+      config:
+        load: "set"
+        format: "set"
+        lines: 'set system login message "This is login message"'
+        comment: "comment"
+        ignore_warning: "True"
+        config_mode: private
+      register: junos_response
+
+    # System module executed
+    - name: Reboot switch after upgrade
+      system:
+        all_re: false
+        action: "reboot"
+      register: response
+
+# close connection

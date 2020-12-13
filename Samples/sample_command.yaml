@@ -1,0 +1,65 @@
+- name: 'Explicit host argument'
+  hosts: junos
+  connection: local
+  gather_facts: no
+  collections:
+    - juniper.device
+
+  tasks:
+    - name: "Execute single command in text format"
+      command:
+        commands: "show configuration system services netconf traceoptions"
+        format: text
+
+    - name: "Execute command with login credentials"
+      command:
+        host: "10.x.x.x"
+        user: "user"
+        passwd: "user123"
+        port: "22"
+        commands:
+          - "show system storage"
+      register: junos_result
+
+    - name: Execute three commands.
+      command:
+        commands:
+          - "show version"
+          - "show system uptime"
+          - "show interface terse"
+      register: response
+
+    - name: "Print the response"
+      debug:
+        var: response
+
+    - name: Print the command output of each.
+      debug:
+        var: item.stdout
+      with_items: "{{ response.results }}"
+
+    - name: show route with XML output - show version with JSON output
+      command:
+        commands:
+          - "show route"
+          - "show version"
+        formats:
+          - "xml"
+          - "json"
+
+    - name: Multiple commands, save outputs, but don't return them
+      command:
+        commands:
+          - "show route"
+          - "show version"
+        formats:
+          - "xml"
+        dest_dir: "../Output"
+        return_output: false
+
+    - name: save output to dest
+      command:
+        command:
+          - "show route"
+          - "show lldp neighbors"
+        dest: "/tmp/{{ inventory_hostname }}.commands.output"

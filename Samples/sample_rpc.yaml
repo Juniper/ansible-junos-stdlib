@@ -1,0 +1,64 @@
+- name: 'Explicit host argument'
+  hosts: junos
+  connection: local
+  gather_facts: no
+  collections:
+    - juniper.device
+
+  tasks:
+    - name: "Execute RPC with filters"
+      rpc:
+        rpcs:
+           - "get-config"
+        format: xml
+        filter: <configuration><groups><name>re0</name></groups></configuration>
+        attr: name=re0
+      register: test1
+      ignore_errors: True
+
+    - name: Check TEST 1
+      debug:
+        var: test1
+
+    - name: "Execute RPC with host data and store logging"
+      rpc:
+        host: "10.x.x.x"
+        user: "user"
+        passwd: "user123"
+        port: "22"
+        rpcs:
+          - "get-software-information"
+        logfile: "/var/tmp/rpc.log"
+        ignore_warning: true
+      register: test1
+      ignore_errors: True
+
+    - name: "Print results - summary"
+      debug:
+        var: test1.stdout_lines
+
+    - name: "Execute multiple RPC"
+      rpc:
+        rpcs:
+          - "get-config"
+          - "get-software-information"
+
+    - name: Get Device Configuration for vlan - 1
+      rpc:
+        rpc: "get-config"
+        filter_xml: "<configuration><vlans/></configuration>"
+        dest: "get_config_vlan.conf"
+      register: junos
+
+    - name: "Print the response"
+      debug:
+        var: junos
+
+    - name: Get interface information with kwargs
+      rpc:
+        rpc: get-interface-information
+        kwargs:
+          interface_name: em1
+          media: True
+        format: json
+        dest: get_interface_information.conf
