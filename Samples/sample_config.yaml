@@ -5,6 +5,16 @@
   collections:
     - juniper.device
 
+# the user-credentials and other task specific parameter can be specified with vars
+# which will be applicable to all the tasks.
+# Uncomment the below lines to use them.
+
+#  vars:
+#    host: 10.x.x.x
+#    user: user
+#    passwd: user123
+#    timeout: 300
+
   tasks:
     - name: Retrieve the committed configuration
       config:

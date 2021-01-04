@@ -49,8 +49,8 @@ options:
     default: inventory_hostname
     vars:
     - name: ansible_host
+    - name: host
   port:
-    type: int
     description:
     - Specifies the port on the remote device that listens for connections when establishing
       the SSH connection.
@@ -61,6 +61,22 @@ options:
     - name: ANSIBLE_REMOTE_PORT
     vars:
     - name: ansible_port
+    - name: port
+  mode:
+    description:
+    - Specifies the mode for the remote device connections.
+    vars:
+    - name: mode
+  baud:
+    description:
+    - The serial baud rate.
+    vars:
+    - name: baud
+  attempts:
+    description:
+    - The number of times to try connecting and logging in to the Junos device.
+    vars:
+    - name: attempts
   remote_user:
     description:
     - The username used to authenticate to the remote device when the SSH connection
@@ -74,6 +90,7 @@ options:
     - name: ANSIBLE_REMOTE_USER
     vars:
     - name: ansible_user
+    - name: user
   password:
     description:
     - Configures the user password used to authenticate to the remote device when
@@ -82,6 +99,7 @@ options:
     - name: ansible_password
     - name: ansible_ssh_pass
     - name: ansible_ssh_password
+    - name: passwd
   pyez_console:
     description:
     - console option.
@@ -103,6 +121,7 @@ options:
     - name: ANSIBLE_PRIVATE_KEY_FILE
     vars:
     - name: ansible_private_key_file
+    - name: ssh_private_key_file
   host_key_auto_add:
     type: boolean
     description:
@@ -132,6 +151,7 @@ options:
     - name: ANSIBLE_PERSISTENT_CONNECT_TIMEOUT
     vars:
     - name: ansible_connect_timeout
+    - name: timeout
   persistent_command_timeout:
     type: int
     description:
@@ -176,6 +196,7 @@ options:
     - name: ANSIBLE_PYEZ_SSH_CONFIG
     vars:
     - name: ansible_pyez_ssh_config
+    
 """
 import pickle
 
@@ -323,8 +344,29 @@ class Connection(NetworkConnectionBase):
         """
         # Move all of the connection arguments into connect_args
         connect_args = {}
+
+        # check for mode
+        if self.get_option('port') is None:
+            if self.get_option('mode') == 'telnet':
+                connect_args['port'] = 23
+            elif self.get_option('mode') == 'serial':
+                connect_args['port'] = '/dev/ttyUSB0'
+            else:
+                connect_args['port'] = 830
+        else:
+            connect_args['port'] = self.get_option('port')
+
+        if (self.get_option('mode') == 'telnet' or
+                self.get_option('mode') == 'serial'):
+            if self.get_option('baud') is None:
+                # Default baud if serial or telnet mode
+                connect_args['baud'] = 9600
+            if self.get_option('attempts') is None:
+                # Default attempts if serial or telnet mode
+                connect_args['attempts'] = 10
+
         connect_args['host'] = self.get_option('host')
-        connect_args['port'] = self.get_option('port')
+        # connect_args['port'] = self.get_option('port')
         connect_args['user'] = self.get_option('remote_user')
         connect_args['passwd'] = self.get_option('password')
         connect_args['ssh_private_key_file'] = self.get_option('private_key_file')
