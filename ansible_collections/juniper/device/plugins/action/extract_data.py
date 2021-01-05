@@ -35,12 +35,20 @@ from __future__ import absolute_import, division, print_function
 import os
 
 connection_spec_fallbacks = {
-    'host': ['ansible_host', 'inventory_hostname'],
-    'user': ['ansible_connection_user', 'ansible_ssh_user', 'ansible_user'],
-    'passwd': ['ansible_ssh_pass', 'ansible_pass'],
-    'port': ['ansible_ssh_port', 'ansible_port'],
-    'ssh_private_key_file': ['ansible_ssh_private_key_file',
-                             'ansible_private_key_file']
+    'host': ['host', 'ansible_host', 'inventory_hostname'],
+    'user': ['user', 'ansible_connection_user', 'ansible_ssh_user', 'ansible_user'],
+    'passwd': ['passwd', 'ansible_ssh_pass', 'ansible_pass'],
+    'port': ['port', 'ansible_ssh_port', 'ansible_port'],
+    'ssh_private_key_file': ['ssh_private_key_file', 'ansible_ssh_private_key_file',
+                             'ansible_private_key_file'],
+    'ssh_config': ['ssh_config'],
+    'cs_user': ['cs_user'],
+    'cs_passwd': ['cs_passwd'],
+    'attempts': ['attempts'],
+    'baud': ['baud'],
+    'console': ['console'],
+    'mode': ['mode'],
+    'timeout': ['timeout', 'ansible_timeout']
 }
 
 class ExtractData:
