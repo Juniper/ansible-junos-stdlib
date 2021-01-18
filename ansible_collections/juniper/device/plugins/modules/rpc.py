@@ -547,7 +547,7 @@ def main():
                                        normalize=bool(format == 'xml'))
                 else:
                     resp = junos_module.get_rpc(rpc,
-                                       ignore_warning=ignore_warning)
+                                       ignore_warning=ignore_warning, format=format)
                 result['msg'] = 'The RPC executed successfully.'
                 junos_module.logger.debug('RPC "%s" executed successfully.',
                                           junos_module.etree.tostring(

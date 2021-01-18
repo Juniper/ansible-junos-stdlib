@@ -422,13 +422,15 @@ class Connection(NetworkConnectionBase):
         resp = self.dev.rpc.get_config(filter_xml, options, model, namespace, remove_ns, **kwarg)
         return etree.tostring(resp)
    
-    def get_rpc_resp(self,rpc, ignore_warning=None):
+    def get_rpc_resp(self,rpc, ignore_warning, format):
         # data comes in JSON format, needs to be converted 
         rpc_val = xmltodict.unparse(rpc) 
         rpc_val = rpc_val.encode('utf-8')
         parser = etree.XMLParser(ns_clean=True, recover=True, encoding='utf-8')
         rpc_etree = etree.fromstring(rpc_val, parser=parser)
         resp = self.dev.rpc(rpc_etree, normalize=bool(format == 'xml'), ignore_warning=ignore_warning)
+        if(format == 'json'):
+            return resp
         return etree.tostring(resp)
    
     def get_facts(self):
@@ -467,7 +469,8 @@ class Connection(NetworkConnectionBase):
                                       post_file='POST')
             elif action == 'snapcheck':
                 responses = jsa.snapcheck(data=data,
-                                          dev=self.dev)
+                                          dev=self.dev,
+                                          file_name='PRE')
             elif action == 'snap_pre':
                 responses = jsa.snap(data=data,
                                      dev=self.dev,
@@ -482,22 +485,39 @@ class Connection(NetworkConnectionBase):
         except (pyez_exception.RpcError, pyez_exception.ConnectError) as ex:
             raise AnsibleError("Error communicating with the device: %s" % str(ex))
 
+        results = {}
         if isinstance(responses, list) and len(responses) == 1:
             if action in ('snapcheck', 'check'):
-                results = []
-                for response in to_list(responses):
-                    result = {}
-                    result['device'] = response.device
-                    result['result'] = response.result
-                    result['no_passed'] = response.no_passed
-                    result['no_failed'] = response.no_failed
-                    result['test_results'] = response.test_results
-                    results.append(result)
-            else:
-                results = [to_text(responses)]
+                for response in responses:
+                    results['device'] = response.device
+                    results['router'] = response.device
+                    results['final_result'] = response.result
+                    results['total_passed'] = response.no_passed
+                    results['total_failed'] = response.no_failed
+                    results['test_results'] = response.test_results
+                    total_tests = int(response.no_passed) + int(response.no_failed)
+                    results['total_tests'] = total_tests
+                pass_percentage = 0
+                if total_tests > 0:
+                    pass_percentage = ((int(response.no_passed) * 100) //
+                                       total_tests)
+                results['passPercentage'] = pass_percentage
+                results['pass_percentage'] = pass_percentage
+                if results['final_result'] == 'Failed':
+                    results['msg'] = 'Test Failed: Passed %s, Failed %s' % \
+                                     (results['total_passed'],
+                                      results['total_failed'])
+                else:
+                    results['msg'] = 'Test Passed: Passed %s, Failed %s' % \
+                                     (results['total_passed'],
+                                      results['total_failed'])
+            elif action in ('snap_pre', 'snap_post'):
+                results['msg'] = "The %s action successfully executed." % (action)
         else:
-            results = responses
-        return json.dumps(results)
+            raise AnsibleError("Unexpected JSNAPy responses. Type: %s."
+                                   "Responses: %s" %
+                                   (type(responses), str(responses)))
+        return results
 
     def open_configuration(self, mode, ignore_warn=None):
         if self.config is None:
