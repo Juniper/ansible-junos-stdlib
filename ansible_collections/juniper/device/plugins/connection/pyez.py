@@ -122,6 +122,7 @@ options:
     vars:
     - name: ansible_private_key_file
     - name: ssh_private_key_file
+    - name: ssh_keyfile
   host_key_auto_add:
     type: boolean
     description:
@@ -316,7 +317,10 @@ class Connection(NetworkConnectionBase):
         return self.dev
 
     def _connect(self):
+        """Connect with the device.
 
+        Establish the connection with the device.
+        """
         self.queue_message("log", "ssh connection done, starting junos-eznc")
         self.open()
         if not self.dev.connected:
@@ -415,14 +419,51 @@ class Connection(NetworkConnectionBase):
 
     @ensure_connect
     def get_capabilities(self):
+        """Get the capabilities for network api..
+        """
         return json.dumps({'network_api': 'pyez'})
 
     def get_config(self, filter_xml=None, options=None, model=None,
                          namespace=None, remove_ns=True, **kwarg):
+        """Get Configuration.
+
+        Args:
+            filter_xml: A string of XML, or '/'-separated configuration hierarchies,
+                which specifies a filter used to restrict the portions of the
+                configuration which are retrieved.
+            options: Additional options, specified as a dictionary of key/value pairs, used
+                when retrieving the configuration.
+            model: the model of the configuration
+            namespace: namespace to be used.
+            remove_ns: if namespace is to be removed from the end output.
+
+        Returns:
+            - The configuration in the requested format as a single
+              multi-line string. Returned for all formats.
+
+        Fails:
+            - Invalid database.
+            - Invalid filter.
+            - Format not understood by device.
+        """
         resp = self.dev.rpc.get_config(filter_xml, options, model, namespace, remove_ns, **kwarg)
         return etree.tostring(resp)
    
     def get_rpc_resp(self,rpc, ignore_warning, format):
+        """Execute rpc on the device and get response.
+
+        Args:
+            rpc: the rpc to be executed on the device
+            ignore_warning: flag to check if warning received by device are to be ignored or not.
+            format: the format of the response received.
+
+        Returns:
+            - Response in the requested format as a single multi-line string.
+            - if format is json then return in json format
+
+        Fails:
+            - If the RPC produces an exception.
+        """
         # data comes in JSON format, needs to be converted 
         rpc_val = xmltodict.unparse(rpc) 
         rpc_val = rpc_val.encode('utf-8')
@@ -434,30 +475,55 @@ class Connection(NetworkConnectionBase):
         return etree.tostring(resp)
    
     def get_facts(self):
+        """Get device facts.
+        """
         return dict(self.dev.facts)
 
     def ping_device(self, normalize=True, **params):
+        """Ping the device.
+
+        Args:
+            params: dict of parameters passed directly to the ping RPC.
+            normalize: flag to check if to normalize the results.
+
+        Returns:
+            Response in the requested format as a single multi-line string.
+
+        Fails:
+            - If the ping RPC produces an exception.
+        """
         resp = self.dev.rpc.ping(normalize, **params)
         rpc_str = etree.tostring(resp)
         return rpc_str
 
     def get_chassis_inventory(self):
+        """Get chassis inventory details from the device.
+        """
+
         resp = self.dev.rpc.get_chassis_inventory()
         return etree.tostring(resp)
 
     def get_re_name(self):
+        """Get re name from the device.
+        """
         return self.dev.re_name
 
     def set_chassis_cluster_enable(self, cluster_id, node_id):
+        """send set chassis cluster enable rpc to the device.
+        """
         return self.dev.rpc.set_chassis_cluster_enable(
                             cluster_id=cluster_id, node=node_id,
                             reboot=True, normalize=True)
 
     def set_chassis_cluster_disable(self):
+        """send set chassis cluster disable rpc to the device.
+        """
         return self.dev.rpc.set_chassis_cluster_disable(
                             reboot=True, normalize=True)
 
     def invoke_jsnapy(self, data, action):
+        """invoke jsnapy for persistent connection.
+        """
         try:
             self.queue_message("vvvv", "Creating jnpr.jsnapy.SnapAdmin instance.")
             jsa = jnpr.jsnapy.SnapAdmin()
@@ -520,6 +586,13 @@ class Connection(NetworkConnectionBase):
         return results
 
     def open_configuration(self, mode, ignore_warn=None):
+        """Open candidate configuration database in exclusive or private mode.
+
+        Failures:
+            - When there's a problem with the PyEZ connection.
+            - When there's a RPC problem including an already locked
+                        config or an already opened private config.
+        """
         if self.config is None:
             if mode not in CONFIG_MODE_CHOICES:
                 raise AnsibleError("Invalid configuration mode: %s" % mode)
@@ -541,6 +614,12 @@ class Connection(NetworkConnectionBase):
             self.queue_message("log", "Configuration opened in %s mode."% config.mode)
 
     def close_configuration(self):
+        """Close candidate configuration database.
+
+        Failures:
+            - When there's a problem with the PyEZ connection.
+            - When there's a RPC problem closing the config.
+        """
         if self.config is not None:
             config = self.config
             self.config = None
@@ -556,6 +635,19 @@ class Connection(NetworkConnectionBase):
                                    (str(ex)))
 
     def rollback_configuration(self, id):
+        """Rollback the device configuration to the specified id.
+
+        Rolls back the configuration to the specified id. Assumes the
+        configuration is already opened. Does NOT commit the configuration.
+
+        Args:
+            id: The id to which the configuration should be rolled back. Either
+                an integer rollback value or the string 'rescue' to roll back
+                to the previously saved rescue configuration.
+
+        Failures:
+            - Unable to rollback the configuration due to an RpcError or ConnectError
+        """
         if self.dev is None or self.config is None:
             raise AnsibleError('The device or configuration is not open.')
 
@@ -582,6 +674,13 @@ class Connection(NetworkConnectionBase):
                                % (id))
 
     def check_configuration(self):
+        """Check the candidate configuration. Assumes the configuration is already opened.
+        Performs the equivalent of a "commit check", but does NOT commit the
+        configuration.
+
+        Failures:
+            - An error returned from checking the configuration.
+        """
         try:
             self.config.commit_check()
             self.queue_message("log", "Configuration checked.")
@@ -591,6 +690,14 @@ class Connection(NetworkConnectionBase):
                                (str(ex)))
 
     def diff_configuration(self, ignore_warning=False):
+        """Diff the candidate and committed configurations.
+
+        Returns:
+            A string with the configuration differences in text "diff" format.
+
+        Failures:
+            - An error returned from diffing the configuration.
+        """
         try:
             diff = self.config.diff(rb_id=0, ignore_warning=ignore_warning)
             self.queue_message("log", "Configuration diff completed.")
@@ -601,6 +708,12 @@ class Connection(NetworkConnectionBase):
                                (str(ex)))
 
     def load_configuration(self, config, load_args):
+        """Load the candidate configuration from the specified src file using the
+        specified action.
+
+        Failures:
+            - An error returned from loading the configuration.
+        """
         try:
             if config is not None:
                 self.config.load(config, **load_args)
@@ -615,6 +728,17 @@ class Connection(NetworkConnectionBase):
 
     def commit_configuration(self, ignore_warning=None, comment=None,
                              confirmed=None):
+        """Commit the candidate configuration.
+        Assumes the configuration is already opened.
+
+        Args:
+            ignore_warning - Which warnings to ignore.
+            comment - The commit comment
+            confirmed - Number of minutes for commit confirmed.
+
+        Failures:
+            - An error returned from committing the configuration.
+        """
         try:
             self.config.commit(ignore_warning=ignore_warning,
                                comment=comment,
@@ -626,6 +750,8 @@ class Connection(NetworkConnectionBase):
                                (str(ex)))
 
     def system_api(self, action, in_min, at, all_re, vmhost, other_re, media):
+        """Triggers the system calls like reboot, shutdown, halt and zeroize to device.
+        """
         msg = None
         if action != 'zeroize':
             if (at == 'now' or (in_min == 0 and at is None)):
@@ -667,6 +793,8 @@ class Connection(NetworkConnectionBase):
         return msg
 
     def software_api(self, install_params):
+        """Installs package to device.
+        """
         try:
             self.sw = jnpr.junos.utils.sw.SW(self.dev)
             ok, msg_ret = self.sw.install(**install_params)
@@ -683,6 +811,8 @@ class Connection(NetworkConnectionBase):
             raise AnsibleError('Installation failed. Error: %s' % str(ex))
 
     def reboot_api(self, all_re, vmhost):
+        """reboots the device.
+        """
         msg = None
         try:
             restore_timeout = self.dev.timeout

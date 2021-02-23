@@ -66,7 +66,7 @@ _CONST = re.compile(r"C\(([^)]+)\)")
 _UNDERSCORE = re.compile(r"_")
 DEPRECATED = b" (D)"
 
-MODULE_NAME_STARTS_WITH = "juniper_junos_"
+MODULE_NAME_STARTS_WITH = ""
 MODULEDIR = "../plugins/modules/"
 OUTPUTDIR = "./"
 

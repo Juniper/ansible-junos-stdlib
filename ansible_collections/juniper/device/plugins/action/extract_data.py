@@ -40,7 +40,7 @@ connection_spec_fallbacks = {
     'passwd': ['passwd', 'ansible_ssh_pass', 'ansible_pass'],
     'port': ['port', 'ansible_ssh_port', 'ansible_port'],
     'ssh_private_key_file': ['ssh_private_key_file', 'ansible_ssh_private_key_file',
-                             'ansible_private_key_file'],
+                             'ansible_private_key_file', 'ssh_keyfile'],
     'ssh_config': ['ssh_config'],
     'cs_user': ['cs_user'],
     'cs_passwd': ['cs_passwd'],
