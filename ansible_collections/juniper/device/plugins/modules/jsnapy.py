@@ -291,7 +291,8 @@ def main():
                                   post_file='POST')
         elif action == 'snapcheck':
             responses = jsa.snapcheck(data=data,
-                                      dev=junos_module.dev)
+                                      dev=junos_module.dev,
+                                      pre_file='PRE')
         elif action == 'snap_pre':
             responses = jsa.snap(data=data,
                                  dev=junos_module.dev,

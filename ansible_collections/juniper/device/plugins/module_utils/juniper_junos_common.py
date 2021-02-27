@@ -1252,7 +1252,7 @@ class JuniperJunosModule(AnsibleModule):
                                              remove_ns=remove_ns,
                                              namespace=namespace)
             else:
-                self.get_config(options=options,
+                config = self.get_config(options=options,
                                              filter_xml=filter,
                                              model=model,
                                              remove_ns=remove_ns,
@@ -1717,11 +1717,13 @@ class JuniperJunosModule(AnsibleModule):
         response = self._pyez_conn.get_config(filter_xml, options, model, namespace, remove_ns, **kwarg)
         return self.etree.fromstring(response)
 
-    def get_rpc(self, rpc, ignore_warning=None):
+    def get_rpc(self, rpc, ignore_warning=None, format=None):
         rpc_1 = self.etree.tostring(rpc)
         rpc_str = xmltodict.parse(rpc_1)
         #json.dumps(rpc_str)
-        response = self._pyez_conn.get_rpc_resp(rpc_str, ignore_warning=ignore_warning)
+        response = self._pyez_conn.get_rpc_resp(rpc_str, ignore_warning=ignore_warning, format=format)
+        if format == 'json':
+            return response
         return self.etree.fromstring(response)
 
     def get_facts(self):

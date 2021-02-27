@@ -92,7 +92,8 @@ should be added to the Ansible configuration file in order to allow the jsnapy c
 
 ## INSTALLATION
 
-You must have the [DEPENDENCIES](#dependencies) installed on your system.  
+You must have the [DEPENDENCIES](#dependencies) installed on your system.
+Check requirements.txt for the dependencies.
 
 ### NOTICES
 
@@ -109,7 +110,9 @@ In MacOS Mojave and newer (>=10.14), ssh keys created with the system `ssh-keyge
 You can use the ansible-galaxy install command to install the latest
 version of the juniper.device collection.
 
-  sudo ansible-galaxy collection install juniper.device
+```bash
+sudo ansible-galaxy collection install juniper.device
+```
 
 You can also use the ansible-galaxy install command to install the latest development version of the junos role directly from GitHub.
 
