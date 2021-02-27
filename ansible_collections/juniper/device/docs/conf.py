@@ -266,7 +266,7 @@ man_pages = [
 # (source start file, target name, title, author,
 #  dir menu entry, description, category)
 texinfo_documents = [
-  ('index', 'JunosAnsibleModules', u'Junos Ansible Collectionn Modules Documentation',
+  ('index', 'JunosAnsibleModules', u'Junos Ansible Collection Modules Documentation',
    u'Juniper Networks, Inc.', 'JunosAnsibleModules', 'Ansible Collection Modules for '
                                                      'Junos',
    'Miscellaneous'),
