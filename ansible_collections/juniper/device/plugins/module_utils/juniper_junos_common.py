@@ -1252,7 +1252,7 @@ class JuniperJunosModule(AnsibleModule):
                                              remove_ns=remove_ns,
                                              namespace=namespace)
             else:
-                self.get_config(options=options,
+                config = self.get_config(options=options,
                                              filter_xml=filter,
                                              model=model,
                                              remove_ns=remove_ns,
