@@ -292,7 +292,7 @@ def main():
         elif action == 'snapcheck':
             responses = jsa.snapcheck(data=data,
                                       dev=junos_module.dev,
-                                      file_name='PRE')
+                                      pre_file='PRE')
         elif action == 'snap_pre':
             responses = jsa.snap(data=data,
                                  dev=junos_module.dev,
