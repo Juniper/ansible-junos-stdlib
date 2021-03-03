@@ -11,7 +11,7 @@ setup(
     license="Apache 2.0",
     keywords="Ansible Junos NETCONF networking automation",
     url="http://www.github.com/Juniper/ansible-junos-stdlib",
-    packages=['ansible_collections/juniper/device/plugins/modules'],
+    packages=['ansible_collections/juniper/device/plugins/modules', 'ansible_collections/juniper/device/plugins/module_utils' ],
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Environment :: Console',
