@@ -3,3 +3,5 @@ ansible
 six
 jxmlease
 xmltodict
+junos-eznc >= 2.5.4
+jsnapy>=1.3.4
