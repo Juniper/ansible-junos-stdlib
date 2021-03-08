@@ -404,7 +404,7 @@ def main():
                 resp = junos_module.dev.rpc(rpc, ignore_warning=ignore_warning, normalize=bool(format == 'xml'))
             else:
                 resp = junos_module.get_rpc(rpc,
-                                   ignore_warning=ignore_warning)
+                                   ignore_warning=ignore_warning, format=format)
             result['msg'] = 'The command executed successfully.'
             junos_module.logger.debug('Command "%s" executed successfully.',
                                       command)
