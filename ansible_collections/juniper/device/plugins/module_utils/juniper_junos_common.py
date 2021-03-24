@@ -344,19 +344,6 @@ class ModuleDocFragment(object):
     # Build actual DOCUMENTATION string by putting the pieces together.
     CONNECTION_DOCUMENTATION = '''
     connection_options:''' + _CONNECT_DOCUMENTATION + '''
-      provider:
-        description:
-          - An alternative syntax for specifying the connection options. Rather
-            than specifying each connection-related top-level option, the
-            connection-related options may be specified as a dictionary of
-            suboptions to the I(provider) option. All connection-related options
-            must either be specified as top-level options or as suboptions of
-            the I(provider) option. You can not combine the two methods of
-            specifying connection-related options.
-        required: false
-        default: none
-        type: dict
-        suboptions:''' + _SUB_CONNECT_DOCUMENTATION + '''
     requirements:
       - U(junos-eznc|https://github.com/Juniper/py-junos-eznc) >= ''' + cfg.MIN_PYEZ_VERSION + '''
       - Python >= 3.5
