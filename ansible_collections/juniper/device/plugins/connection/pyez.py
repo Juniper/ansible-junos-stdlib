@@ -50,6 +50,8 @@ options:
     vars:
     - name: ansible_host
     - name: host
+    - name: hostname
+    - name: ip
   port:
     description:
     - Specifies the port on the remote device that listens for connections when establishing
@@ -91,6 +93,7 @@ options:
     vars:
     - name: ansible_user
     - name: user
+    - name: username
   password:
     description:
     - Configures the user password used to authenticate to the remote device when
@@ -100,6 +103,7 @@ options:
     - name: ansible_ssh_pass
     - name: ansible_ssh_password
     - name: passwd
+    - name: password
   pyez_console:
     description:
     - console option.
@@ -197,6 +201,7 @@ options:
     - name: ANSIBLE_PYEZ_SSH_CONFIG
     vars:
     - name: ansible_pyez_ssh_config
+    - name: ssh_config
     
 """
 import pickle

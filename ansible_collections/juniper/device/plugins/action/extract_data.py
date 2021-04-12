@@ -37,7 +37,7 @@ import os
 connection_spec_fallbacks = {
     'host': ['host', 'hostname', 'ip', 'ansible_host', 'inventory_hostname'],
     'user': ['user', 'username', 'ansible_connection_user', 'ansible_ssh_user', 'ansible_user'],
-    'passwd': ['passwd', 'ansible_ssh_pass', 'ansible_pass'],
+    'passwd': ['passwd', 'password', 'ansible_ssh_pass', 'ansible_pass'],
     'port': ['port', 'ansible_ssh_port', 'ansible_port'],
     'ssh_private_key_file': ['ssh_private_key_file', 'ansible_ssh_private_key_file',
                              'ansible_private_key_file', 'ssh_keyfile'],
