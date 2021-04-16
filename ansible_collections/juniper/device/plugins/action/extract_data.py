@@ -35,15 +35,15 @@ from __future__ import absolute_import, division, print_function
 import os
 
 connection_spec_fallbacks = {
-    'host': ['host', 'ansible_host', 'inventory_hostname'],
-    'user': ['user', 'ansible_connection_user', 'ansible_ssh_user', 'ansible_user'],
-    'passwd': ['passwd', 'ansible_ssh_pass', 'ansible_pass'],
+    'host': ['host', 'hostname', 'ip', 'ansible_host', 'inventory_hostname'],
+    'user': ['user', 'username', 'ansible_connection_user', 'ansible_ssh_user', 'ansible_user'],
+    'passwd': ['passwd', 'password', 'ansible_ssh_pass', 'ansible_pass'],
     'port': ['port', 'ansible_ssh_port', 'ansible_port'],
     'ssh_private_key_file': ['ssh_private_key_file', 'ansible_ssh_private_key_file',
                              'ansible_private_key_file', 'ssh_keyfile'],
     'ssh_config': ['ssh_config'],
-    'cs_user': ['cs_user'],
-    'cs_passwd': ['cs_passwd'],
+    'cs_user': ['cs_user', 'console_username'],
+    'cs_passwd': ['cs_passwd', 'console_password'],
     'attempts': ['attempts'],
     'baud': ['baud'],
     'console': ['console'],
@@ -85,6 +85,12 @@ class ExtractData:
                 for task_var_key in connection_spec_fallbacks[key]:
                     if task_var_key in task_vars:
                         new_connection_args[key] = task_vars[task_var_key]
+                        # check if the value is in form of a variable {{var}}
+                        # In case of variables, resolve it to the value
+                        index = str(new_connection_args[key]).find('{{')
+                        if index == 0:
+                            tempKey = new_connection_args[key][2:-2].strip()
+                            new_connection_args[key] = task_vars[tempKey]
                         break
 
         # Backwards compatible behavior to fallback to USER env. variable.

@@ -238,8 +238,8 @@ def get_docstring(filename, verbose=False):
     data = read_docstring(filename, verbose=verbose)
 
     # add fragments to documentation
-    if data.get('doc', False):
-        add_fragments(data['doc'], filename)
+    # if data.get('doc', False):
+    #     add_fragments(data['doc'], filename)
 
     return data['doc'], data['plainexamples'], data['returndocs'], data['metadata']
 
@@ -392,7 +392,7 @@ def process_module(fname, template, outputname, aliases=None):
 
     # here is where we build the table of contents...
     text = template.render(doc)
-    write_data(text, outputname, module_name, OUTPUTDIR)
+    # write_data(text, outputname, module_name, OUTPUTDIR)
 
 #####################################################################################
 
@@ -410,7 +410,7 @@ def main():
     index_file_path = os.path.join(OUTPUTDIR, "index.rst")
     index_file = open(index_file_path, "w")
     index_file.write('juniper.device Ansible Modules\n')
-    index_file.write('=================================================\n')
+    index_file.write('==============================\n')
     index_file.write('\n')
     index_file.write('Contents:\n')
     index_file.write('\n')
