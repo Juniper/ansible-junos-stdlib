@@ -53,7 +53,7 @@ This juniper.device collection includes the following modules:
 
 ### PyEZ Version Requirement
 
-For ansible collection juniper.device we will need to install junos-eznc(PyEZ) version 2.5.0 or higher. 
+For ansible collection juniper.device we will need to install junos-eznc(PyEZ) version 2.6.0 or higher. 
 
 ### Overview of Plugins
 
@@ -258,7 +258,7 @@ This modules requires the following to be installed on the Ansible control machi
 
 - Python >= 3.5
 - [Ansible](http://www.ansible.com) 2.9 or later
-- Junos [py-junos-eznc](https://github.com/Juniper/py-junos-eznc) 2.5.0 or later
+- Junos [py-junos-eznc](https://github.com/Juniper/py-junos-eznc) 2.6.0 or later
 - [jxmlease](https://github.com/Juniper/jxmlease) 1.0.1 or later
 
 ## LICENSE
