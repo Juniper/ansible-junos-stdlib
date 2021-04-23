@@ -9,7 +9,7 @@ namespace: juniper
 name: device
 
 # The version of the collection. Must be compatible with semantic versioning
-version: 0.1.0
+version: 1.0.0
 
 # The path to the Markdown (.md) readme file. This path is relative to the root of the collection
 readme: README.md
@@ -27,13 +27,9 @@ description: set of Ansible modules that perform specific operational and config
 license:
 - Apache-2.0
 
-# The path to the license file for the collection. This path is relative to the root of the collection. This key is
-# mutually exclusive with 'license'
-license_file: 'LICENSE'
-
 # A list of tags you want to associate with the collection for indexing/searching. A tag name has the same character
 # requirements as 'namespace' and 'name'
-tags: ['Juniper', 'junos', 'network']
+tags: ['juniper', 'junos', 'network']
 
 # Collections that this collection requires to be installed for it to be usable. The key of the dict is the
 # collection label 'namespace.name'. The value is a version range
