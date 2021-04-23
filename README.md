@@ -256,7 +256,7 @@ This example outlines how to use Ansible to install or upgrade the software imag
 
 This modules requires the following to be installed on the Ansible control machine:
 
-- Python >= 3.5
+- Python >= 3.7
 - [Ansible](http://www.ansible.com) 2.9 or later
 - Junos [py-junos-eznc](https://github.com/Juniper/py-junos-eznc) 2.6.0 or later
 - [jxmlease](https://github.com/Juniper/jxmlease) 1.0.1 or later
