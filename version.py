@@ -1,2 +1,2 @@
-VERSION = "1.0.0"
-DATE = "2021-Apr-22"
+VERSION = "v1.0.0-collections"
+DATE = "2021-Apr-23"
