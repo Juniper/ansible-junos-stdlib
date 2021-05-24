@@ -1175,6 +1175,11 @@ class JuniperJunosModule(AnsibleModule):
                                    "invalid. Unable to translate into a list "
                                    "of dicts." %
                                    (option_name, string_val))
+
+            # check if allow_bool_values passed in kwargs
+            if "allow_bool_values" in kwarg:
+                allow_bool_values = kwarg.pop("allow_bool_values")
+
             # Now we just need to make sure the key is a string and the value
             # is a string or bool.
             return_item = {}
