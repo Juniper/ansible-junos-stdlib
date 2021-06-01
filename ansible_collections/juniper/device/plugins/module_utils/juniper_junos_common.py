@@ -1258,7 +1258,7 @@ class JuniperJunosModule(AnsibleModule):
             if model is None and config.tag != 'configuration-text':
                 self.fail_json(msg='Unexpected XML tag returned. '
                                    'Configuration is: %s' %
-                                   (etree.tostring(config, pretty_print=True)))
+                                   (self.etree.tostring(config, pretty_print=True)))
             return_val = (config.text, None)
         elif format == 'set':
             if not isinstance(config, self.etree._Element):
@@ -1267,7 +1267,7 @@ class JuniperJunosModule(AnsibleModule):
             if model is None and config.tag != 'configuration-set':
                 self.fail_json(msg='Unexpected XML tag returned. '
                                    'Configuration is: %s' %
-                                   (etree.tostring(config, pretty_print=True)))
+                                   (self.etree.tostring(config, pretty_print=True)))
             return_val = (config.text, config.text.splitlines())
         elif format == 'xml':
             if not isinstance(config, self.etree._Element):
