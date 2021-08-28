@@ -560,6 +560,15 @@ class JuniperJunosModule(AnsibleModule):
             A JuniperJunosModule instance object.
         """
 
+        #initialize default values here for error scenario while super is called
+
+        # by default local
+        self.conn_type = "local"
+        # Initialize the dev attribute
+        self.dev = None
+        # Initialize the config attribute
+        self.config = None
+
         # Update argument_spec with the internal_spec
         argument_spec.update(internal_spec)
         # Update argument_spec with the top_spec
@@ -622,11 +631,6 @@ class JuniperJunosModule(AnsibleModule):
 
         # Parse the console option
         self._parse_console_options()
-
-        # Initialize the dev attribute
-        self.dev = None
-        # Initialize the config attribute
-        self.config = None
 
         # Check that we have a user and host
         if not self.params.get('host'):
@@ -944,6 +948,10 @@ class JuniperJunosModule(AnsibleModule):
                                    "invalid. Unable to translate into a list "
                                    "of dicts." %
                                    (option_name, string_val))
+            # check if allow_bool_values passed in kwargs
+            if "allow_bool_values" in kwarg:
+                allow_bool_values = kwarg.pop("allow_bool_values")
+
             # Now we just need to make sure the key is a string and the value
             # is a string or bool.
             return_item = {}

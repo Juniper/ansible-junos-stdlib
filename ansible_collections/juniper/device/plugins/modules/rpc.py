@@ -164,6 +164,13 @@ options:
         two lists must always contain the same number of elements. For RPC
         arguments which do not require a value, specify the value of True as
         shown in the :ref:`rpc-examples-label`.
+      - By default "0" and "1" will be converted to boolean values. In case 
+        it doesn't need to be transformed to boolean pass first kwargs as 
+        allow_bool_values : "0"
+        example - 
+        kwargs:
+          allow_bool_values: "0"
+          data: "1"
     required: false
     default: none
     type: dict or list of dict
