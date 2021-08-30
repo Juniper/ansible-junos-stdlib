@@ -15,7 +15,7 @@ RUN apk del -r --purge gcc make g++ &&\
     rm -rf /var/cache/apk/* &&\
     rm -rf /tmp/*
 
-WORKDIR /usr/share/ansible/collections/
+WORKDIR /usr/share/ansible/collections/ansible_collections/
 COPY ansible_collections/ .
 
 WORKDIR /usr/bin
