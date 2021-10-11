@@ -42,6 +42,7 @@ from ansible_collections.juniper.device.plugins.module_utils import configuratio
 import jnpr
 from jnpr.junos.utils.sw import SW
 from jnpr.junos import exception as pyez_exception
+from ncclient.operations.errors import TimeoutExpiredError
 
 # Standard library imports
 from argparse import ArgumentParser
@@ -245,6 +246,12 @@ class ModuleDocFragment(object):
         type: str
         aliases:
           - console_password
+      huge_tree:
+        description:
+          - Parse XML with very deep trees and long text content.
+        required: false
+        type: bool
+        default: false
 '''
 
     LOGGING_DOCUMENTATION = '''
@@ -417,6 +424,9 @@ connection_spec = {
     'timeout': dict(type='int',
                     required=False,
                     default=30),
+    'huge_tree': dict(type='bool',
+                      required=False,
+                      default=False),
 }
 
 # Connection arguments which are mutually exclusive.
@@ -710,8 +720,13 @@ class JuniperJunosModule(AnsibleModule):
         """
         # Close the connection.
         if self.conn_type == "local":
-            self.close()
-        self.logger.debug("Exit JSON: %s", kwargs)
+            try:
+                self.close()
+            except TimeoutExpiredError:
+                if hasattr(self, 'logger'):
+                    self.logger.debug("Ignoring dev.close() timeout error")
+        if hasattr(self, 'logger'):
+            self.logger.debug("Exit JSON: %s", kwargs)
         # Call the parent's exit_json()
         super(JuniperJunosModule, self).exit_json(**kwargs)
 
@@ -726,7 +741,11 @@ class JuniperJunosModule(AnsibleModule):
         self.close_configuration()
         # Close the connection.
         # if self.conn_type == "local":
-        self.close()
+        try:
+            self.close()
+        except TimeoutExpiredError:
+            if hasattr(self, 'logger'):
+                self.logger.debug("Ignoring dev.close() timeout error")
         if hasattr(self, 'logger'):
             self.logger.debug("Fail JSON: %s", kwargs)
         # Call the parent's fail_json()
@@ -1204,6 +1223,17 @@ class JuniperJunosModule(AnsibleModule):
                       in CONFIG_DATABASE_CHOICES.
             format: The format of the configuration to return. Choices are
                     defined in CONFIG_FORMAT_CHOICES.
+            model: The namespace of the configuration to return. Choices are defined
+                    in CONFIG_MODEL_CHOICES.
+            namespace:  User can have their own defined namespace in the
+                    custom yang models, In such cases they need to provide that
+                    namespace so that it can be used to fetch yang modeled configs
+            remove_ns: Flag to check if namespaces should be removed or not.
+            filter: A string of XML, or '/'-separated configuration hierarchies,
+                    which specifies a filter used to restrict the portions of the
+                    configuration which are retrieved.
+            options: Additional options, specified as a dictionary of key/value pairs, used
+                        `when retrieving the configuration.
         Returns:
             A tuple containing:
             - The configuration in the requested format as a single
@@ -1473,7 +1503,7 @@ class JuniperJunosModule(AnsibleModule):
                                (str(ex)))
 
     def commit_configuration(self, ignore_warning=None, comment=None,
-                             confirmed=None):
+                             confirmed=None, full=False):
         """Commit the candidate configuration.
 
         Commit the configuration. Assumes the configuration is already opened.
@@ -1482,6 +1512,7 @@ class JuniperJunosModule(AnsibleModule):
             ignore_warning - Which warnings to ignore.
             comment - The commit comment
             confirmed - Number of minutes for commit confirmed.
+            full - apply full commit
 
         Failures:
             - An error returned from committing the configuration.
@@ -1497,7 +1528,8 @@ class JuniperJunosModule(AnsibleModule):
         try:
             self.config.commit(ignore_warning=ignore_warning,
                                comment=comment,
-                               confirm=confirmed)
+                               confirm=confirmed,
+                               full=full)
             self.logger.debug("Configuration committed.")
         except (self.pyez_exception.RpcError,
                 self.pyez_exception.ConnectError) as ex:
