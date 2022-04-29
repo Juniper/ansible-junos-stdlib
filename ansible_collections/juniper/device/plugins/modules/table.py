@@ -386,7 +386,7 @@ def main():
             try:
                 junos_module.logger.debug("Attempting to parse YAML from : "
                                           "%s.", file_name)
-                table_view = junos_module.yaml.load(fp)
+                table_view = junos_module.yaml.safe_load(fp)
                 junos_module.logger.debug("YAML from %s successfully parsed.",
                                           file_name)
             except junos_module.yaml.YAMLError as ex:
