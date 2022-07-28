@@ -1518,7 +1518,7 @@ class JuniperJunosModule(AnsibleModule):
                                (str(ex)))
 
     def commit_configuration(self, ignore_warning=None, comment=None,
-                             confirmed=None, timeout=30, full=False):
+                             confirmed=None, full=False):
         """Commit the candidate configuration.
 
         Commit the configuration. Assumes the configuration is already opened.
@@ -1527,14 +1527,13 @@ class JuniperJunosModule(AnsibleModule):
             ignore_warning - Which warnings to ignore.
             comment - The commit comment
             confirmed - Number of minutes for commit confirmed.
-            timeout - Timeout for commit configuration. Default timeout value is 30s.
             full - apply full commit
 
         Failures:
             - An error returned from committing the configuration.
         """
         if self.conn_type != "local":
-            self._pyez_conn.commit_configuration(ignore_warning, comment, timeout, confirmed)
+            self._pyez_conn.commit_configuration(ignore_warning, comment, self.params.get('timeout'), confirmed)
             return
 
         if self.dev is None or self.config is None:
@@ -1545,7 +1544,7 @@ class JuniperJunosModule(AnsibleModule):
             self.config.commit(ignore_warning=ignore_warning,
                                comment=comment,
                                confirm=confirmed,
-                               timeout=timeout,
+                               timeout=self.params.get('timeout'),
                                full=full)
             self.logger.debug("Configuration committed.")
         except (self.pyez_exception.RpcError,
