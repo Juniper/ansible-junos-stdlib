@@ -388,14 +388,14 @@ def main():
                          default=None),
             kwargs=dict(required=False,
                         aliases=['kwarg', 'args', 'arg'],
-                        type='str',
+                        type='list',
                         default=None),
             attrs=dict(required=False,
-                       type='str',
+                       type='list',
                        aliases=['attr'],
                        default=None),
             filter=dict(required=False,
-                        type='str',
+                        type='list',
                         aliases=['filter_xml'],
                         default=None),
             dest=dict(required=False,
@@ -532,13 +532,16 @@ def main():
                                           'successfully.')
             else:
                 if kwarg is not None:
-                    # Add kwarg
-                    for (key, value) in iteritems(kwarg):
-                        # Replace underscores with dashes in key name.
-                        key = key.replace('_', '-')
-                        sub_element = junos_module.etree.SubElement(rpc, key)
-                        if not isinstance(value, bool):
-                            sub_element.text = value
+                    def iterdict(d, parent):
+                        for (key, value) in iteritems(d):
+                            # Replace underscores with dashes in key name.
+                            key = key.replace('_', '-')
+                            sub_element = junos_module.etree.SubElement(parent, key)
+                            if isinstance(value, dict):
+                                iterdict(value, sub_element)
+                            elif not isinstance(value, bool):
+                                sub_element.text = value
+                    iterdict(kwarg, rpc)
                 if attr is not None:
                     # Add attr
                     for (key, value) in iteritems(attr):

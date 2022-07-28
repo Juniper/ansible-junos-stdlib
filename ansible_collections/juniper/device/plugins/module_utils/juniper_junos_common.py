@@ -34,6 +34,11 @@
 from __future__ import absolute_import, division, print_function
 
 # Ansible imports
+try:
+    from ansible.module_utils.common.validation import check_type_dict
+except ImportError:
+    pass
+
 from ansible.module_utils.connection import Connection
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.basic import boolean
@@ -629,6 +634,12 @@ class JuniperJunosModule(AnsibleModule):
         else:
             self._pyez_conn = self.get_connection()
 
+        # Support Ansible 4+ as well as 2.9
+        if 'check_type_dict' not in globals():
+            self.check_type_dict = self._check_type_dict
+        else:
+            self.check_type_dict = check_type_dict
+
     def initialize_params(self):
         """
         Initalize the parameters in common module
@@ -925,15 +936,19 @@ class JuniperJunosModule(AnsibleModule):
         if string_val is None:
             return None
 
-        # Evaluate the string
-        kwargs = self.safe_eval(string_val)
+        kwargs = string_val
+        
+        if isinstance(string_val, basestring):
+            # Evaluate the string
+            kwargs = self.safe_eval(string_val)
 
         if isinstance(kwargs, basestring):
-            # This might be a keyword1=value1 keyword2=value2 type string.
-            # The _check_type_dict method will parse this into a dict for us.
+            # If it's still a string, this might be a keyword1=value1 
+            # keyword2=value2 type string.
+            # The check_type_dict method will parse this into a dict for us.
             try:
-                kwargs = self._check_type_dict(kwargs)
-            except TypeError as exc:
+                kwargs = self.check_type_dict(kwargs)
+            except (TypeError, ValueError)  as exc:
                 self.fail_json(msg="The value of the %s option (%s) is "
                                    "invalid. Unable to translate into "
                                    "a list of dicts." %
@@ -953,9 +968,9 @@ class JuniperJunosModule(AnsibleModule):
             # If it's now a string, see if it can be parsed into a dictionary.
             if isinstance(kwarg, basestring):
                 # This might be a keyword1=value1 keyword2=value2 type string.
-                # The _check_type_dict method will parse this into a dict.
+                # The check_type_dict method will parse this into a dict.
                 try:
-                    kwarg = self._check_type_dict(kwarg)
+                    kwarg = self.check_type_dict(kwarg)
                 except TypeError as exc:
                     self.fail_json(msg="The value of the %s option (%s) is "
                                        "invalid. Unable to translate into a "
@@ -1503,7 +1518,7 @@ class JuniperJunosModule(AnsibleModule):
                                (str(ex)))
 
     def commit_configuration(self, ignore_warning=None, comment=None,
-                             confirmed=None, timeout=30, full=False):
+                             confirmed=None, full=False):
         """Commit the candidate configuration.
 
         Commit the configuration. Assumes the configuration is already opened.
@@ -1512,14 +1527,13 @@ class JuniperJunosModule(AnsibleModule):
             ignore_warning - Which warnings to ignore.
             comment - The commit comment
             confirmed - Number of minutes for commit confirmed.
-            timeout - Timeout for commit configuration. Default timeout value is 30s.
             full - apply full commit
 
         Failures:
             - An error returned from committing the configuration.
         """
         if self.conn_type != "local":
-            self._pyez_conn.commit_configuration(ignore_warning, comment, timeout, confirmed)
+            self._pyez_conn.commit_configuration(ignore_warning, comment, self.params.get('timeout'), confirmed)
             return
 
         if self.dev is None or self.config is None:
@@ -1530,7 +1544,7 @@ class JuniperJunosModule(AnsibleModule):
             self.config.commit(ignore_warning=ignore_warning,
                                comment=comment,
                                confirm=confirmed,
-                               timeout=timeout,
+                               timeout=self.params.get('timeout'),
                                full=full)
             self.logger.debug("Configuration committed.")
         except (self.pyez_exception.RpcError,
