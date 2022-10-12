@@ -1503,7 +1503,8 @@ class JuniperJunosModule(AnsibleModule):
                                (str(ex)))
 
     def commit_configuration(self, ignore_warning=None, comment=None,
-                             confirmed=None, timeout=30, full=False):
+                             confirmed=None, timeout=30, full=False,
+                             sync=False, force_sync=False):
         """Commit the candidate configuration.
 
         Commit the configuration. Assumes the configuration is already opened.
@@ -1514,6 +1515,8 @@ class JuniperJunosModule(AnsibleModule):
             confirmed - Number of minutes for commit confirmed.
             timeout - Timeout for commit configuration. Default timeout value is 30s.
             full - apply full commit
+            sync - Check for commit syntax and sync between RE's
+            force_sync - Ignore syntax check and force to sync between RE's
 
         Failures:
             - An error returned from committing the configuration.
@@ -1531,7 +1534,9 @@ class JuniperJunosModule(AnsibleModule):
                                comment=comment,
                                confirm=confirmed,
                                timeout=timeout,
-                               full=full)
+                               full=full,
+                               force_sync=force_sync,
+                               sync=sync)
             self.logger.debug("Configuration committed.")
         except (self.pyez_exception.RpcError,
                 self.pyez_exception.ConnectError) as ex:
