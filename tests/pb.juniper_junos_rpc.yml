@@ -1,5 +1,5 @@
 ---
-- name: Test juniper_junos_rpc module
+- name: Test juniper.device.rpc module
   hosts: all
   connection: local
   gather_facts: no
@@ -9,7 +9,7 @@
   tasks:
 #################
     - name: "Execute single RPC get-software-information without any kwargs"
-      juniper_junos_rpc:
+      rpc:
         rpcs:
           - "get-software-information"
       register: test1
@@ -24,7 +24,7 @@
 
 #################
     - name: "Get Device Configuration with dest"
-      juniper_junos_rpc:
+      rpc:
         rpc: get-config
         dest: get_config.conf
       register: test2
@@ -50,7 +50,7 @@
 #################
 
     - name: "Get Device Configuration in text"
-      juniper_junos_rpc:
+      rpc:
         rpc: get-interface-information
         kwargs: "interface_name=em0"
         format: text
@@ -67,7 +67,7 @@
 #################
 
     - name: "Execute multiple RPCs without any kwargs"
-      juniper_junos_rpc:
+      rpc:
         rpcs:
           - "get-software-information"
           - "get-interface-information"
@@ -91,7 +91,7 @@
 #################
 
     - name: "Execute multiple RPCs with multiple kwargs"
-      juniper_junos_rpc:
+      rpc:
         rpcs:
           - "get-software-information"
           - "get-interface-information"
@@ -116,7 +116,7 @@
         state: directory
 
     - name: "Execute multiple RPCs with multiple kwargs and dest-dir"
-      juniper_junos_rpc:
+      rpc:
         rpcs:
           - "get-software-information"
           - "get-interface-information"
@@ -154,7 +154,7 @@
 
 #################
     - name: Get Device Configuration for interface
-      juniper_junos_rpc:
+      rpc:
         rpc: get-config
         filter_xml: "<configuration><interfaces/></configuration>"
       register: test7
@@ -169,7 +169,7 @@
 
 #################
     - name: "Execute wrong RPC to generate RPC error"
-      juniper_junos_rpc:
+      rpc:
         rpcs:
           - "wrong-rpc"
       register: test8

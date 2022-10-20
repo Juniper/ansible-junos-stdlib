@@ -1,5 +1,5 @@
 ---
-- name: Test juniper_junos_pmtud module
+- name: Test juniper.device.pmtud module
   hosts: all
   connection: local
   gather_facts: no
@@ -7,7 +7,7 @@
     - juniper.device
   tasks:
     - name: "TEST 1 - Check path MTU to host DNS"
-      juniper_junos_pmtud:
+      pmtud:
         dest_ip: "{{ ansible_ssh_host }}"
       register: test1
       ignore_errors: True
@@ -19,7 +19,7 @@
           - 768 <= test1.inet_mtu <= 1500
 
     - name: "TEST 2 - Configure and check inet.mtu to host DNS"
-      juniper_junos_pmtud:
+      pmtud:
         dest_ip: "{{ ansible_ssh_host }}"
         max_size: 700
       register: test1

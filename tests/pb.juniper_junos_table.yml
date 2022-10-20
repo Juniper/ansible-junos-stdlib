@@ -1,0 +1,46 @@
+---
+- name: Test juniper.device.table PyEZ table/view module.
+  hosts: all
+  connection: local
+  gather_facts: no
+  collections:
+    - juniper.device
+
+  tasks:
+    - name: Retrieve LLDP Neighbor Information Using PyEZ-included Table
+      table:
+        file: "lldp.yml"
+      register: test1
+      ignore_errors: True
+      tags: [ test1 ]
+
+    - name: check TEST 1
+      assert:
+        that:
+          - test1.msg == "Successfully retrieved 0 items from LLDPNeighborTable."
+
+    - name: Retrieve routes within 192.68.1/8
+      table:
+        file: "routes.yml"
+        table: "RouteTable"
+        kwargs:
+          destination: "192.68.1.0/8"
+        response_type: "juniper_items"
+      register: test2
+
+    - name: check TEST 2
+      assert:
+        that:
+          - test2.msg == "Successfully retrieved 1 items from RouteTable."
+
+    - name: Retrieve ethernet devices
+      table:
+        file: "ethport.yml"
+        table: "EthPortTable"
+        kwargs:
+          interface_name: ge-0/0/0
+      register: test3
+    - name: check TEST 3
+      assert:
+        that:
+          - test3.msg == "Successfully retrieved 1 items from EthPortTable."
