@@ -23,11 +23,20 @@
         version: "{{ OS_version }}"
         package: "{{ pkg_dir }}/{{ OS_package }}"
         logfile: "{{ log_dir }}/software.log"
-      register: sw
+      register: test1
       notify:
         - wait_reboot
+
+    - name: Print response
+      debug:
+        var: test1
+
+    - name: Check TEST - 1
+      assert:
+        that:
+          - test1.failed == "false"
 
   handlers:
     - name: wait_reboot
       wait_for: host={{ ansible_ssh_host }} port=830 timeout={{ wait_time }}
-      when: not sw.check_mode
+      when: not test.check_mode
