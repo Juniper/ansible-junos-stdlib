@@ -14,19 +14,19 @@
       register: test1
       tags: [ test1 ]
 
-    - name: Check TEST 1
-      assert:
-        that:
-          - test1.msg
-      tags: [ test1 ]
-
     - name: Print the response.
       debug:
         var: test1
 
+    - name: Check TEST 1
+      assert:
+        that:
+          - test1.failed == false
+      tags: [ test1 ]
+
     - name: Sleep for 300 seconds and continue with play
       ansible.builtin.wait_for:
-        timeout: 600
+        timeout: 300
       delegate_to: localhost
 
     - name: TEST 2 - Disable an SRX cluster
@@ -35,12 +35,12 @@
       register: test2
       tags: [ test2 ]
 
-    - name: Check TEST 2
-      assert:
-        that:
-          - test2.msg
-      tags: [ test2 ]
-
     - name: Print the response.
       debug:
         var: test2
+
+    - name: Check TEST 2
+      assert:
+        that:
+          - test2.failed == false
+      tags: [ test2 ]
