@@ -121,6 +121,7 @@
         that:
           - test6.changed == False
 
+
 #################
 
     - name: Confirm the commit with a commit sync
