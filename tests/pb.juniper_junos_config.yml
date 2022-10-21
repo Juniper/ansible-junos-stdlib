@@ -149,5 +149,5 @@
     - name: Check TEST 8
       assert:
         that:
-          - test8.changed == False
+          test8.changed == False
 
