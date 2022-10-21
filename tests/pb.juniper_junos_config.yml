@@ -119,8 +119,7 @@
     - name: Check TEST 6
       assert:
         that:
-          - test6.changed == False
-
+          test6.changed == False
 
 #################
 
