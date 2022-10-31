@@ -1,0 +1,21 @@
+---
+- name: Test juniper.device.system module
+  hosts: all
+  connection: local
+  gather_facts: no
+  collections:
+    - juniper.device
+
+  tasks:
+    - name: Reboot all REs of the device
+      system:
+        action: "reboot"
+      register: test1
+      ignore_errors: True
+      tags: [ test1 ]
+
+    - name: CHECK TEST 1
+      assert:
+        that:
+          - test1.reboot == true
+      tags: [ test1 ]
