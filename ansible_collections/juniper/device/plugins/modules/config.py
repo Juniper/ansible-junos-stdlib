@@ -184,6 +184,21 @@ options:
     required: false
     default: false
     type: bool
+  commit_sync:
+    description:
+      - On dual control plane systems, requests that the candidate configuration
+        on one control plane be copied to the other control plane, checked for
+        correct syntax, and committed on both Routing engines.
+    required: false
+    default: false
+    type: bool
+  commit_force_sync:
+    description:
+      - On dual control plane systems, forces the candidate configuration
+        on one control plane to be copied to the other control plane.
+    required: false
+    default: false
+    type: bool
   config_mode:
     description:
       - The mode used to access the candidate configuration database.
@@ -893,6 +908,12 @@ def main():
             commit_full=dict(required=False,
                              type='bool',
                              default=False),
+            commit_sync=dict(required=False,
+                             type='bool',
+                             default=False),
+            commit_force_sync=dict(required=False,
+                                   type='bool',
+                                   default=False),
             confirmed=dict(required=False,
                            type='int',
                            aliases=['confirm'],
@@ -946,6 +967,8 @@ def main():
     commit = junos_module.params.get('commit')
     commit_empty_changes = junos_module.params.get('commit_empty_changes')
     commit_full = junos_module.params.get('commit_full')
+    commit_sync = junos_module.params.get('commit_sync')
+    commit_force_sync = junos_module.params.get('commit_force_sync')
     confirmed = junos_module.params.get('confirmed')
     comment = junos_module.params.get('comment')
     check_commit_wait = junos_module.params.get('check_commit_wait')
@@ -1174,7 +1197,9 @@ def main():
             junos_module.commit_configuration(ignore_warning=ignore_warning,
                                               comment=comment,
                                               confirmed=confirmed,
-                                              full=commit_full)
+                                              full=commit_full,
+                                              sync=commit_sync,
+                                              force_sync=commit_force_sync)
             results['msg'] += ', committed'
         else:
             junos_module.logger.debug("Skipping commit. Nothing changed.")
