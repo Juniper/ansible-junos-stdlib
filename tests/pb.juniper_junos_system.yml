@@ -19,3 +19,7 @@
         that:
           - test1.reboot == true
       tags: [ test1 ]
+
+    - name: Checking NETCONF connectivity
+      wait_for: host={{ ansible_ssh_host }} port=830 timeout=360
+

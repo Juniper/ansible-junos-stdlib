@@ -91,6 +91,14 @@
 #        path: out
 #        state: absent
 ################
+    - name: Append .foo to the hostname using private config mode.
+      config:
+        config_mode: 'private'
+        load: 'merge'
+        lines:
+          - "set system services netconf ssh"
+        comment: "Configured system services"
+
     - name: Retrieve [edit system services] of current committed config.
       config:
         retrieve: 'committed'
