@@ -91,7 +91,7 @@
 #        path: out
 #        state: absent
 ################
-    - name: Append .foo to the hostname using private config mode.
+    - name: Configure system services.
       config:
         config_mode: 'private'
         load: 'merge'

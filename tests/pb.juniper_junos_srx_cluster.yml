@@ -29,6 +29,9 @@
         timeout: 300
       delegate_to: localhost
 
+    - name: Checking NETCONF connectivity
+      wait_for: host={{ ansible_ssh_host }} port=830 timeout=360
+
     - name: TEST 2 - Disable an SRX cluster
       srx_cluster:
         enable: false
