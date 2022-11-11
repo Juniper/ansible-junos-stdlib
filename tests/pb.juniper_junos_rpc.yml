@@ -215,3 +215,25 @@
           - test9.results[2].msg == "The RPC executed successfully."
       tags: [ test9 ]
 
+#################
+    - name: "Check huge xml/text data"
+      rpc:
+        rpcs:
+          - get-support-information
+          - file-archive
+        kwargs:
+          - {}
+          - destination: "support_info"
+            source: /var/log/*
+            compress: True
+        formats: text
+        timeout: 1200
+        huge_tree: True
+      register: test10
+      tags: [ test10 ]
+
+    - name: Check TEST 10
+      assert:
+        that:
+          test10.results[0].msg == "The RPC executed successfully."
+      tags: [ test10 ]
