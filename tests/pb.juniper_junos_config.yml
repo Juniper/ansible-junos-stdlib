@@ -91,6 +91,14 @@
 #        path: out
 #        state: absent
 ################
+    - name: Configure system services.
+      config:
+        config_mode: 'private'
+        load: 'merge'
+        lines:
+          - "set system services netconf ssh"
+        comment: "Configured system services"
+
     - name: Retrieve [edit system services] of current committed config.
       config:
         retrieve: 'committed'

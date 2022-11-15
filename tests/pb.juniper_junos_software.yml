@@ -34,9 +34,9 @@
     - name: Check TEST - 1
       assert:
         that:
-          - test1.failed == "false"
+          - test1.failed == false
 
   handlers:
     - name: wait_reboot
       wait_for: host={{ ansible_ssh_host }} port=830 timeout={{ wait_time }}
-      when: not test.check_mode
+      when: not test1.check_mode

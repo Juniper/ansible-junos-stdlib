@@ -138,8 +138,10 @@
       ignore_errors: True
       tags: [ test7 ]
 
-    - name: Wait for loopback to come up
-      pause: seconds=15
+    - name: Sleep for 15 seconds for loopback to come up
+      ansible.builtin.wait_for:
+        timeout: 15
+      delegate_to: localhost
 
     - name: "TEST 7 - SNAP_POST with additional loopback"
       jsnapy:
