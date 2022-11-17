@@ -237,3 +237,34 @@
         that:
           test10.results[0].msg == "The RPC executed successfully."
       tags: [ test10 ]
+
+    - name: Check rollback info
+      rpc:
+        rpc: get-rollback-information
+        kwargs:
+          rollback: "3"
+          compare: "2"
+      register: test11
+      tags: [ test11 ]
+
+    - name: Check TEST 11
+      assert:
+        that:
+          test11.msg == "The RPC executed successfully."
+      tags: [ test11 ]
+
+    - name: Check rollback info with boolean values
+      rpc:
+        rpc: get-rollback-information
+        kwargs:
+          allow_bool_values : "0"
+          rollback: "1"
+          compare: "0"
+      register: test12
+      tags: [ test12 ]
+
+    - name: Check TEST 12
+      assert:
+        that:
+          test12.msg == "The RPC executed successfully."
+      tags: [ test12 ]
