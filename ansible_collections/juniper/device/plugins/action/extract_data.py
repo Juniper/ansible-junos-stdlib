@@ -93,6 +93,20 @@ class ExtractData:
                             new_connection_args[key] = task_vars[tempKey]
                         break
 
+        # Fix for ansible-core>=2.13 when -u, -k or --private-key are command line arguments
+        if 'user' not in connection_args:
+            if self._play_context.remote_user is not None:
+                new_connection_args['user'] = self._play_context.remote_user
+                connection_args['user'] = self._play_context.remote_user
+        if 'passwd' not in connection_args:
+            if self._play_context.password is not None:
+                new_connection_args['passwd'] = self._play_context.password
+                connection_args['passwd'] = self._play_context.password
+        if 'ssh_private_key_file' not in connection_args:
+            if self._play_context.private_key_file is not None:
+                new_connection_args['ssh_private_key_file'] = self._play_context.private_key_file
+                connection_args['ssh_private_key_file'] = self._play_context.private_key_file
+
         # Backwards compatible behavior to fallback to USER env. variable.
         if 'user' not in connection_args and 'user' not in new_connection_args:
             user = os.getenv('USER')
