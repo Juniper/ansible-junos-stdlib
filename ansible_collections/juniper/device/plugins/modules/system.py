@@ -273,6 +273,9 @@ def main():
             all_re=dict(type='bool',
                         required=False,
                         default=True),
+            member_id=dict(type='list',
+                        required=False,
+                        default=None),
             other_re=dict(type='bool',
                           required=False,
                           default=False),
@@ -297,6 +300,7 @@ def main():
     other_re = params.get('other_re')
     media = params.get('media')
     vmhost = params.get('vmhost')
+    member_id = params.get('member_id')
 
     # Synonymn for shutdown
     if action == 'off' or action == 'power_off' or action == 'power-off':
@@ -331,7 +335,11 @@ def main():
 
     if not junos_module.check_mode:
         if junos_module.conn_type != "local":
-            results['msg'] = junos_module._pyez_conn.system_api(action, in_min, at, all_re, vmhost, other_re, media)
+            if member_id is not None:
+                for m_id in member_id:
+                    results['msg'] = junos_module._pyez_conn.system_api(action, in_min, at, all_re, vmhost, other_re, media, member_id=m_id)
+            else:
+                results['msg'] = junos_module._pyez_conn.system_api(action, in_min, at, all_re, vmhost, other_re, media)
             results['failed'] = False
         else:
             if action != 'zeroize':
@@ -351,7 +359,11 @@ def main():
                 junos_module.logger.debug("Executing RPC")
                 junos_module.add_sw()
                 if action == 'reboot':
-                    got = junos_module.sw.reboot(in_min, at, all_re, None, vmhost, other_re)
+                    if member_id is not None:
+                        for m_id in member_id:
+                            got = junos_module.sw.reboot(in_min, at, all_re, None, vmhost, other_re, member_id=m_id)
+                    else:
+                        got = junos_module.sw.reboot(in_min, at, all_re, None, vmhost, other_re)
                 elif action == 'shutdown':
                     got = junos_module.sw.poweroff(in_min, at, None, all_re, other_re)
                 elif action == 'halt':

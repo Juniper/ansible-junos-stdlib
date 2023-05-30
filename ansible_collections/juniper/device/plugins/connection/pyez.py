@@ -754,7 +754,7 @@ class Connection(NetworkConnectionBase):
             raise AnsibleError('Failure committing the configuraton: %s' %
                                (str(ex)))
 
-    def system_api(self, action, in_min, at, all_re, vmhost, other_re, media):
+    def system_api(self, action, in_min, at, all_re, vmhost, other_re, media, member_id):
         """Triggers the system calls like reboot, shutdown, halt and zeroize to device.
         """
         msg = None
@@ -767,7 +767,11 @@ class Connection(NetworkConnectionBase):
         try:
             self.sw = jnpr.junos.utils.sw.SW(self.dev)
             if action == 'reboot':
-                got = self.sw.reboot(in_min, at, all_re, None, vmhost, other_re)
+                if member_id is not None:
+                    for m_id in member_id:
+                        got = self.sw.reboot(in_min, at, all_re, None, vmhost, other_re, member_id=m_id)
+                else:
+                    got = self.sw.reboot(in_min, at, all_re, None, vmhost, other_re)
             elif action == 'shutdown':
                 got = self.sw.poweroff(in_min, at, None, all_re, other_re)
             elif action == 'halt':
@@ -815,7 +819,7 @@ class Connection(NetworkConnectionBase):
                 self.pyez_exception.RpcError) as ex:
             raise AnsibleError('Installation failed. Error: %s' % str(ex))
 
-    def reboot_api(self, all_re, vmhost):
+    def reboot_api(self, all_re, vmhost, member_id):
         """reboots the device.
         """
         msg = None
@@ -824,7 +828,11 @@ class Connection(NetworkConnectionBase):
             if self.dev.timeout > 5:
                 self.dev.timeout = 5
             try:
-                got = self.sw.reboot(0, None, all_re, None, vmhost)
+                if member_id is not None:
+                    for m_id in member_id:
+                        got = self.sw.reboot(0, None, all_re, None, vmhost, member_id=m_id)
+                else:
+                    got = self.sw.reboot(0, None, all_re, None, vmhost)
                 self.dev.timeout = restore_timeout
             except Exception:  # pylint: disable=broad-except
                 self.dev.timeout = restore_timeout

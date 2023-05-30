@@ -726,7 +726,11 @@ def main():
         if reboot is True:
             junos_module.logger.debug('Initiating reboot.')
             if junos_module.conn_type != "local":
-                results['msg'] += junos_module._pyez_conn.reboot_api(all_re, install_params.get('vmhost'))
+                if member_id is not None:
+                    for m_id in member_id:
+                        results['msg'] += junos_module._pyez_conn.reboot_api(all_re, install_params.get('vmhost'), member_id=m_id)
+                else:
+                    results['msg'] += junos_module._pyez_conn.reboot_api(all_re, install_params.get('vmhost'))
             else:
                 try:
                     # Try to deal with the fact that we might not get the closing
@@ -739,7 +743,11 @@ def main():
                                                   "to 5 seconds.")
                         junos_module.dev.timeout = 5
                     try:
-                        got = junos_module.sw.reboot(0, None, all_re, None, install_params.get('vmhost'))
+                        if member_id is not None:
+                            for m_id in member_id:
+                                got = junos_module.sw.reboot(0, None, all_re, None, install_params.get('vmhost'), member_id=m_id)
+                        else:
+                            got = junos_module.sw.reboot(0, None, all_re, None, install_params.get('vmhost'))
                         junos_module.dev.timeout = restore_timeout
                     except Exception:  # pylint: disable=broad-except
                         junos_module.dev.timeout = restore_timeout
