@@ -88,6 +88,12 @@ options:
     required: false
     default: true
     type: bool
+  member_id:
+    description:
+      -  install software on the specified members ids of VC.
+    required: false
+    default: none 
+    type: list 
   checksum:
     description:
       - The pre-calculated checksum, using the I(checksum_algorithm) of the
@@ -492,6 +498,9 @@ def main():
         all_re=dict(required=False,
                     type='bool',
                     default=True),
+        member_id=dict(required=False,
+                    type='list',
+                    default=None),
         vmhost=dict(required=False,
                     type='bool',
                     default=False),
@@ -541,6 +550,7 @@ def main():
     install_timeout = junos_module.params.pop('install_timeout')
     cleanfs = junos_module.params.pop('cleanfs')
     all_re = junos_module.params.pop('all_re')
+    member_id = junos_module.params.pop('member_id')
     kwargs = junos_module.params.pop('kwargs')
 
     url = None
@@ -684,6 +694,7 @@ def main():
         install_params['no_copy'] = no_copy
         install_params['timeout'] = install_timeout
         install_params['all_re'] = all_re
+        install_params['member_id'] = member_id
         for key in option_keys:
             value = junos_module.params.get(key)
             if value is not None:
@@ -715,7 +726,11 @@ def main():
         if reboot is True:
             junos_module.logger.debug('Initiating reboot.')
             if junos_module.conn_type != "local":
-                results['msg'] += junos_module._pyez_conn.reboot_api(all_re, install_params.get('vmhost'))
+                if member_id is not None:
+                    for m_id in member_id:
+                        results['msg'] += junos_module._pyez_conn.reboot_api(all_re, install_params.get('vmhost'), member_id=m_id)
+                else:
+                    results['msg'] += junos_module._pyez_conn.reboot_api(all_re, install_params.get('vmhost'))
             else:
                 try:
                     # Try to deal with the fact that we might not get the closing
@@ -728,7 +743,11 @@ def main():
                                                   "to 5 seconds.")
                         junos_module.dev.timeout = 5
                     try:
-                        got = junos_module.sw.reboot(0, None, all_re, None, install_params.get('vmhost'))
+                        if member_id is not None:
+                            for m_id in member_id:
+                                got = junos_module.sw.reboot(0, None, all_re, None, install_params.get('vmhost'), member_id=m_id)
+                        else:
+                            got = junos_module.sw.reboot(0, None, all_re, None, install_params.get('vmhost'))
                         junos_module.dev.timeout = restore_timeout
                     except Exception:  # pylint: disable=broad-except
                         junos_module.dev.timeout = restore_timeout
