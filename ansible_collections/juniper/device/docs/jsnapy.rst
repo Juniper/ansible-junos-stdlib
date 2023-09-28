@@ -15,7 +15,7 @@ Synopsis
 --------
 
 
-* Execute Junos SNAPshot Adminsitrator (JSNAPy) tests against a Junos device. JSNAPy is documented on `Github <https://github.com/Juniper/jsnapy>`_ and this `Day One Book <https://www.juniper.net/uk/en/training/jnbooks/day-one/automation-series/jsnapy/>`_
+* Execute Junos SNAPshot Adminsitrator (JSNAPy) tests against a Junos device. JSNAPy is documented on `Github <https://github.com/Juniper/jsnapy>`_ and this `Day One Book <https://www.juniper.net/documentation/en_US/day-one-books/DO_JSNAPy.zip>`_
 * This module only reports ``failed`` if the module encounters an error and fails to execute the JSNAPy tests. If does NOT report ``failed`` if one or more of the JSNAPy tests fail. To check the test results, register the module's response and use the assert module to verify the expected result in the response. (See :ref:`jsnapy-examples-label`.)
 * A callback plugin which formats and prints JSNAPy test results for human consumption is also available. This callback plugin is enabled by adding ``callback_whitelist = jsnapy`` to the Ansible configuration file.
 
