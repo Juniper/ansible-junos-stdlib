@@ -18,7 +18,7 @@ import sphinx_bootstrap_theme
 
 
 def setup(app):
-    app.add_stylesheet("juniper-junos-modules.css")
+    app.add_css_file("juniper-junos-modules.css")
 
 
 # If extensions (or modules to document with autodoc) are in another directory,
