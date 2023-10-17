@@ -8,8 +8,8 @@
   vars:
     wait_time: 3600
     pkg_dir: /var/tmp/
-    OS_version: 12.3
-    OS_package: jinstall-ex-4200-12.3-20180426.0-domestic.tgz
+    OS_version: 22.4
+    OS_package: junos-install-ex-x86-64-22.4I62500TB237700_cd-builder.tgz
     log_dir: /var/log/
 
   tasks:
@@ -23,7 +23,7 @@
         package: "{{ pkg_dir }}/{{ OS_package }}"
         logfile: "{{ log_dir }}/software.log"
         all_re: False
-        member_id: ['0']
+        member_id: ['1']
       register: test1
       notify:
         - wait_reboot
