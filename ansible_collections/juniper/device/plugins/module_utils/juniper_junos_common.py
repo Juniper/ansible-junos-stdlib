@@ -43,6 +43,7 @@ import jnpr
 from jnpr.junos.utils.sw import SW
 from jnpr.junos import exception as pyez_exception
 from ncclient.operations.errors import TimeoutExpiredError
+from ansible.module_utils.common.validation import check_type_dict
 
 # Standard library imports
 from argparse import ArgumentParser
@@ -932,7 +933,7 @@ class JuniperJunosModule(AnsibleModule):
             # This might be a keyword1=value1 keyword2=value2 type string.
             # The _check_type_dict method will parse this into a dict for us.
             try:
-                kwargs = self._check_type_dict(kwargs)
+                kwargs = check_type_dict(kwargs)
             except TypeError as exc:
                 self.fail_json(msg="The value of the %s option (%s) is "
                                    "invalid. Unable to translate into "
@@ -955,7 +956,7 @@ class JuniperJunosModule(AnsibleModule):
                 # This might be a keyword1=value1 keyword2=value2 type string.
                 # The _check_type_dict method will parse this into a dict.
                 try:
-                    kwarg = self._check_type_dict(kwarg)
+                    kwarg = check_type_dict(kwarg)
                 except TypeError as exc:
                     self.fail_json(msg="The value of the %s option (%s) is "
                                        "invalid. Unable to translate into a "
