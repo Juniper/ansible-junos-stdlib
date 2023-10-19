@@ -23,7 +23,7 @@
         package: "{{ pkg_dir }}/{{ OS_package }}"
         logfile: "{{ log_dir }}/software.log"
         all_re: False
-        member_id: ['1']
+        member_id: ['1','2']
       register: test1
       notify:
         - wait_reboot
