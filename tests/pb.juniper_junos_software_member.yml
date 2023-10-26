@@ -1,0 +1,43 @@
+---
+- name: Test juniper.device.software module
+  hosts: all
+  collections:
+    - juniper.device
+  connection: local
+  gather_facts: no
+  vars:
+    wait_time: 3600
+    pkg_dir: /var/tmp/
+    OS_version: 22.4
+    OS_package: junos-install-ex-x86-64-22.4I62500TB237700_cd-builder.tgz
+    log_dir: /var/log/
+
+  tasks:
+    - name: Checking NETCONF connectivity
+      wait_for: host={{ ansible_ssh_host }} port=830 timeout=5
+    - name: Install Junos OS package on VC member
+      software:
+        reboot: False
+        no_copy: True
+        version: "{{ OS_version }}"
+        package: "{{ pkg_dir }}/{{ OS_package }}"
+        logfile: "{{ log_dir }}/software.log"
+        all_re: False
+        member_id: ['1','2']
+      register: test1
+      notify:
+        - wait_reboot
+
+    - name: Print response
+      debug:
+        var: test1
+
+    - name: Check TEST - 1
+      assert:
+        that:
+          - test1.failed == false
+
+  handlers:
+    - name: wait_reboot
+      wait_for: host={{ ansible_ssh_host }} port=830 timeout={{ wait_time }}
+      when: not test1.check_mode
