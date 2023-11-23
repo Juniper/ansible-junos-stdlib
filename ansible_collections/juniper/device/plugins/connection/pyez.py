@@ -113,7 +113,7 @@ options:
     env:
     - name: ANSIBLE_PYEZ_CONSOLE
     vars:
-    - name: ansible_pyez_console    
+    - name: ansible_pyez_console
   private_key_file:
     description:
     - The private SSH key or certificate file used to authenticate to the remote device
@@ -202,7 +202,17 @@ options:
     vars:
     - name: ansible_pyez_ssh_config
     - name: ssh_config
-    
+  force_agent:
+    description:
+    - This flag will request that only the SSH agent (if found) will be queried for keys.
+    ini:
+    - section: defaults
+      key: force_agent
+    env:
+    - name: ANSIBLE_FORCE_AGENT
+    vars:
+    - name: ansible_force_agent
+    - name: force_agent
 """
 import pickle
 
@@ -381,6 +391,7 @@ class Connection(NetworkConnectionBase):
         connect_args['ssh_private_key_file'] = self.get_option('private_key_file')
         connect_args['ssh_config'] = self.get_option('pyez_ssh_config')
         connect_args['timeout'] = self.get_option('persistent_connect_timeout')
+        connect_args['allow_agent'] = self.get_option('force_agent')
         try:
             log_connect_args = dict(connect_args)
             log_connect_args["passwd"] = "NOT_LOGGING_PARAMETER"
