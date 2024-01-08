@@ -485,7 +485,7 @@ CONFIG_DATABASE_CHOICES = ['candidate', 'committed']
 CONFIG_ACTION_CHOICES = ['set', 'merge', 'update',
                          'replace', 'override', 'overwrite', 'patch']
 # Supported configuration modes
-CONFIG_MODE_CHOICES = ['exclusive', 'private']
+CONFIG_MODE_CHOICES = ['exclusive', 'private', 'dynamic', 'batch', 'ephemeral']
 # Supported configuration models
 CONFIG_MODEL_CHOICES = ['openconfig', 'custom', 'ietf', 'True']
 
@@ -513,7 +513,7 @@ class JuniperJunosModule(AnsibleModule):
         open: Open self.dev.
         close: Close self.dev.
         add_sw: Add an instance of jnp.junos.utils.sw.SW() to self.
-        open_configuration: Open cand. conf. db in exclusive or private mode.
+        open_configuration: Open cand. conf. db in exclusive/private/dynamic/batch/ephemeral mode.
         close_configuration: Close candidate configuration database.
         get_configuration: Return the device config. in the specified format.
         rollback_configuration: Rollback device config. to the specified id.
@@ -1137,7 +1137,7 @@ class JuniperJunosModule(AnsibleModule):
         """
         self.sw = SW(self.dev)
 
-    def open_configuration(self, mode, ignore_warning=None):
+    def open_configuration(self, mode, ignore_warning=None, ephemeral_instance=None):
         """Open candidate configuration database in exclusive or private mode.
 
         Failures:
@@ -1164,6 +1164,8 @@ class JuniperJunosModule(AnsibleModule):
         if self.config is None:
             if mode not in CONFIG_MODE_CHOICES:
                 self.fail_json(msg='Invalid configuration mode: %s' % (mode))
+            if mode != 'ephemeral' and ephemeral_instance is not None:
+                self.fail_json(msg='configuration mode ephemeral is required')
             if self.dev is None:
                 self.open()
             config = jnpr.junos.utils.config.Config(self.dev, mode=mode)
@@ -1174,6 +1176,23 @@ class JuniperJunosModule(AnsibleModule):
                     self.dev.rpc.open_configuration(
                         private=True,
                         ignore_warning=ignore_warn)
+                elif config.mode == 'dynamic':
+                    self.dev.rpc.open_configuration(
+                        dynamic=True,
+                        ignore_warning=ignore_warn)
+                elif config.mode == 'batch':
+                    self.dev.rpc.open_configuration(
+                        batch=True,
+                        ignore_warning=ignore_warn)
+                elif config.mode == 'ephemeral':
+                    if ephemeral_instance is None:
+                        self.dev.rpc.open_configuration(
+                           ephemeral=True,
+                           ignore_warning=ignore_warn)
+                    else:
+                        self.dev.rpc.open_configuration(
+                           ephemeral_instance = ephemeral_instance,
+                           ignore_warning=ignore_warn)
             except (pyez_exception.ConnectError,
                     pyez_exception.RpcError) as ex:
                 self.fail_json(msg='Unable to open the configuration in %s '
@@ -1202,7 +1221,7 @@ class JuniperJunosModule(AnsibleModule):
             try:
                 if config.mode == 'exclusive':
                     config.unlock()
-                elif config.mode == 'private':
+                elif config.mode in ['batch', 'dynamic', 'private', 'ephemeral']:
                     self.dev.rpc.close_configuration()
                 self.logger.debug("Configuration closed.")
             except (pyez_exception.ConnectError,
