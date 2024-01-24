@@ -39,7 +39,7 @@ ANSIBLE_METADATA = {'metadata_version': '1.1',
 
 DOCUMENTATION = '''
 ---
-extends_documentation_fragment: 
+extends_documentation_fragment:
   - juniper_junos_common.connection_documentation
   - juniper_junos_common.logging_documentation
 module: system
@@ -81,7 +81,7 @@ options:
       - power_off
   at:
     description:
-      - The time at which to shutdown, halt, or reboot the system. 
+      - The time at which to shutdown, halt, or reboot the system.
       - >
         The value may be specified in one of the following ways:
       - B(now) - The action takes effect immediately.
@@ -365,7 +365,7 @@ def main():
                     else:
                         got = junos_module.sw.reboot(in_min, at, all_re, None, vmhost, other_re)
                 elif action == 'shutdown':
-                    got = junos_module.sw.poweroff(in_min, at, None, all_re, other_re)
+                    got = junos_module.sw.poweroff(in_min, at, None, all_re, other_re, vmhost)
                 elif action == 'halt':
                     got = junos_module.sw.halt(in_min, at, all_re, other_re)
                 elif action == 'zeroize':

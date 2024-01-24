@@ -113,7 +113,7 @@ options:
     env:
     - name: ANSIBLE_PYEZ_CONSOLE
     vars:
-    - name: ansible_pyez_console    
+    - name: ansible_pyez_console
   private_key_file:
     description:
     - The private SSH key or certificate file used to authenticate to the remote device
@@ -202,7 +202,7 @@ options:
     vars:
     - name: ansible_pyez_ssh_config
     - name: ssh_config
-    
+
 """
 import pickle
 
@@ -453,7 +453,7 @@ class Connection(NetworkConnectionBase):
         """
         resp = self.dev.rpc.get_config(filter_xml, options, model, namespace, remove_ns, **kwarg)
         return etree.tostring(resp)
-   
+
     def get_rpc_resp(self,rpc, ignore_warning, format):
         """Execute rpc on the device and get response.
 
@@ -469,8 +469,8 @@ class Connection(NetworkConnectionBase):
         Fails:
             - If the RPC produces an exception.
         """
-        # data comes in JSON format, needs to be converted 
-        rpc_val = xmltodict.unparse(rpc) 
+        # data comes in JSON format, needs to be converted
+        rpc_val = xmltodict.unparse(rpc)
         rpc_val = rpc_val.encode('utf-8')
         parser = etree.XMLParser(ns_clean=True, recover=True, encoding='utf-8')
         rpc_etree = etree.fromstring(rpc_val, parser=parser)
@@ -478,7 +478,7 @@ class Connection(NetworkConnectionBase):
         if(format == 'json'):
             return resp
         return etree.tostring(resp)
-   
+
     def get_facts(self):
         """Get device facts.
         """
@@ -773,7 +773,7 @@ class Connection(NetworkConnectionBase):
                 else:
                     got = self.sw.reboot(in_min, at, all_re, None, vmhost, other_re)
             elif action == 'shutdown':
-                got = self.sw.poweroff(in_min, at, None, all_re, other_re)
+                got = self.sw.poweroff(in_min, at, None, all_re, other_re, vmhost)
             elif action == 'halt':
                 got = self.sw.halt(in_min, at, all_re, other_re)
             elif action == 'zeroize':
