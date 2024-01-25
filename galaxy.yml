@@ -34,7 +34,8 @@ tags:
  - ansible
  - juniper
  - device
- - jnpr 
+ - jnpr
+ - junos
 
 # Collections that this collection requires to be installed for it to be usable. The key of the dict is the
 # collection label 'namespace.name'. The value is a version range
@@ -49,10 +50,10 @@ repository: https://github.com/Juniper/ansible-junos-stdlib
 documentation: https://readthedocs.org/projects/ansible-juniper-collection  
 
 # The URL to the homepage of the collection/project
-homepage: https://readthedocs.org/projects/ansible-juniper-collection/ 
+homepage: https://galaxy.ansible.com/ui/repo/published/juniper/device/  
 
 # The URL to the collection issue tracker
-issues: https://readthedocs.org/projects/ansible-juniper-collection/issues 
+issues: https://github.com/Juniper/ansible-junos-stdlib/issues 
 
 # Ignore files and directories matching the following patterns
 build_ignore:
