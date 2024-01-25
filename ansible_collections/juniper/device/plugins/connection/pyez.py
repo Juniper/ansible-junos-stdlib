@@ -302,7 +302,7 @@ from ansible_collections.ansible.netcommon.plugins.module_utils.network.common.u
 )
 
 # Supported configuration modes
-CONFIG_MODE_CHOICES = ['exclusive', 'private']
+CONFIG_MODE_CHOICES = ['exclusive', 'private', 'dynamic', 'batch', 'ephemeral']
 
 
 class Connection(NetworkConnectionBase):
@@ -590,7 +590,7 @@ class Connection(NetworkConnectionBase):
                                    (type(responses), str(responses)))
         return results
 
-    def open_configuration(self, mode, ignore_warn=None):
+    def open_configuration(self, mode, ignore_warn=None, ephemeral_instance=None):
         """Open candidate configuration database in exclusive or private mode.
 
         Failures:
@@ -601,6 +601,8 @@ class Connection(NetworkConnectionBase):
         if self.config is None:
             if mode not in CONFIG_MODE_CHOICES:
                 raise AnsibleError("Invalid configuration mode: %s" % mode)
+            if mode != 'ephemeral' and ephemeral_instance is not None:
+                self.fail_json(msg='configuration mode ephemeral is required')
             if self.dev is None:
                 self.open()
             config = jnpr.junos.utils.config.Config(self.dev, mode=mode)
@@ -611,6 +613,23 @@ class Connection(NetworkConnectionBase):
                     self.dev.rpc.open_configuration(
                         private=True,
                         ignore_warning=ignore_warn)
+                elif config.mode == 'dynamic':
+                    self.dev.rpc.open_configuration(
+                        dynamic=True,
+                        ignore_warning=ignore_warn)
+                elif config.mode == 'batch':
+                    self.dev.rpc.open_configuration(
+                        batch=True,
+                        ignore_warning=ignore_warn)
+                elif config.mode == 'ephemeral':
+                    if ephemeral_instance is None:
+                        self.dev.rpc.open_configuration(
+                           ephemeral=True,
+                           ignore_warning=ignore_warn)
+                    else:
+                        self.dev.rpc.open_configuration(
+                           ephemeral_instance = ephemeral_instance,
+                           ignore_warning=ignore_warn)
             except (pyez_exception.ConnectError,
                     pyez_exception.RpcError) as ex:
                 raise AnsibleError('Unable to open the configuration in %s '
@@ -631,7 +650,7 @@ class Connection(NetworkConnectionBase):
             try:
                 if config.mode == 'exclusive':
                     config.unlock()
-                elif config.mode == 'private':
+                elif config.mode in ['batch', 'dynamic', 'private', 'ephemeral']:
                     self.dev.rpc.close_configuration()
                 self.queue_message("log", "Configuration closed.")
             except (pyez_exception.ConnectError,
@@ -723,7 +742,7 @@ class Connection(NetworkConnectionBase):
             if config is not None:
                 self.config.load(config, **load_args)
             else:
-                self.queue_message("log", "Load args %s.", str(load_args))
+                self.queue_message("log", "Load args %s." %str(load_args))
                 self.config.load(**load_args)
             self.queue_message("log", "Configuration loaded.")
         except (self.pyez_exception.RpcError,
@@ -732,7 +751,8 @@ class Connection(NetworkConnectionBase):
                                (str(ex)))
 
     def commit_configuration(self, ignore_warning=None, comment=None,
-                             confirmed=None):
+                             confirmed=None, timeout=30, full=False,
+                             force_sync=False, sync=False):
         """Commit the candidate configuration.
         Assumes the configuration is already opened.
 
@@ -747,7 +767,11 @@ class Connection(NetworkConnectionBase):
         try:
             self.config.commit(ignore_warning=ignore_warning,
                                comment=comment,
-                               confirm=confirmed)
+                               confirm=confirmed,
+                               timeout=timeout,
+                               full=full,
+                               force_sync=force_sync,
+                               sync=sync)
             self.queue_message("log", "Configuration committed.")
         except (self.pyez_exception.RpcError,
                 self.pyez_exception.ConnectError) as ex:
