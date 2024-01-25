@@ -602,13 +602,9 @@ class Connection(NetworkConnectionBase):
             if mode not in CONFIG_MODE_CHOICES:
                 raise AnsibleError("Invalid configuration mode: %s" % mode)
             if mode != 'ephemeral' and ephemeral_instance is not None:
-<<<<<<< HEAD
-                self.fail_json(msg='configuration mode ephemeral is required')
-=======
-                self.fail_json(msg='Ephemeral instance is specified while the mode
-                                   is not ephemeral. Specify the mode as 'ephemeral'
-                                   or do not specify the instance.')
->>>>>>> 7236406 (Issue:  commit_configuration API parameters are missing in ansible PyEZ connection API  and also formatted error was noticed.)
+                self.fail_json(msg='Ephemeral instance is specified while the mode '
+                                   'is not ephemeral. Specify the mode as ephemeral '
+                                   'or do not specify the instance.')
             if self.dev is None:
                 self.open()
             config = jnpr.junos.utils.config.Config(self.dev, mode=mode)
