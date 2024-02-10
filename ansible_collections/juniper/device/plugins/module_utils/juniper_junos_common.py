@@ -43,6 +43,7 @@ import jnpr
 from jnpr.junos.utils.sw import SW
 from jnpr.junos import exception as pyez_exception
 from ncclient.operations.errors import TimeoutExpiredError
+from ansible.module_utils.common.validation import check_type_dict
 
 # Standard library imports
 from argparse import ArgumentParser
@@ -160,7 +161,7 @@ class ModuleDocFragment(object):
           - password
       port:
         description:
-          - The TCP port number or serial device port used to establish the 
+          - The TCP port number or serial device port used to establish the
             connection. Mutually exclusive with the I(console) option.
         required: false
         default: C(830) if C(mode = none), C(23) if C(mode = 'telnet'),
@@ -230,7 +231,7 @@ class ModuleDocFragment(object):
           - username
       cs_user:
         description:
-          - The username used to authenticate with the console server over SSH. 
+          - The username used to authenticate with the console server over SSH.
             This option is only required if you want to connect to a device over console
              using SSH as transport. Mutually exclusive with the I(console) option.
         required: false
@@ -239,7 +240,7 @@ class ModuleDocFragment(object):
           - console_username
       cs_passwd:
         description:
-          - The password used to authenticate with the console server over SSH. 
+          - The password used to authenticate with the console server over SSH.
             This option is only required if you want to connect to a device over console
              using SSH as transport. Mutually exclusive with the I(console) option.
         required: false
@@ -338,7 +339,7 @@ class ModuleDocFragment(object):
         choices:
           - INFO
           - DEBUG
-               
+
 
 '''
 
@@ -484,7 +485,7 @@ CONFIG_DATABASE_CHOICES = ['candidate', 'committed']
 CONFIG_ACTION_CHOICES = ['set', 'merge', 'update',
                          'replace', 'override', 'overwrite', 'patch']
 # Supported configuration modes
-CONFIG_MODE_CHOICES = ['exclusive', 'private']
+CONFIG_MODE_CHOICES = ['exclusive', 'private', 'dynamic', 'batch', 'ephemeral']
 # Supported configuration models
 CONFIG_MODEL_CHOICES = ['openconfig', 'custom', 'ietf', 'True']
 
@@ -512,7 +513,7 @@ class JuniperJunosModule(AnsibleModule):
         open: Open self.dev.
         close: Close self.dev.
         add_sw: Add an instance of jnp.junos.utils.sw.SW() to self.
-        open_configuration: Open cand. conf. db in exclusive or private mode.
+        open_configuration: Open cand. conf. db in exclusive/private/dynamic/batch/ephemeral mode.
         close_configuration: Close candidate configuration database.
         get_configuration: Return the device config. in the specified format.
         rollback_configuration: Rollback device config. to the specified id.
@@ -932,7 +933,7 @@ class JuniperJunosModule(AnsibleModule):
             # This might be a keyword1=value1 keyword2=value2 type string.
             # The _check_type_dict method will parse this into a dict for us.
             try:
-                kwargs = self._check_type_dict(kwargs)
+                kwargs = check_type_dict(kwargs)
             except TypeError as exc:
                 self.fail_json(msg="The value of the %s option (%s) is "
                                    "invalid. Unable to translate into "
@@ -955,7 +956,7 @@ class JuniperJunosModule(AnsibleModule):
                 # This might be a keyword1=value1 keyword2=value2 type string.
                 # The _check_type_dict method will parse this into a dict.
                 try:
-                    kwarg = self._check_type_dict(kwarg)
+                    kwarg = check_type_dict(kwarg)
                 except TypeError as exc:
                     self.fail_json(msg="The value of the %s option (%s) is "
                                        "invalid. Unable to translate into a "
@@ -1136,7 +1137,7 @@ class JuniperJunosModule(AnsibleModule):
         """
         self.sw = SW(self.dev)
 
-    def open_configuration(self, mode, ignore_warning=None):
+    def open_configuration(self, mode, ignore_warning=None, ephemeral_instance=None):
         """Open candidate configuration database in exclusive or private mode.
 
         Failures:
@@ -1163,6 +1164,10 @@ class JuniperJunosModule(AnsibleModule):
         if self.config is None:
             if mode not in CONFIG_MODE_CHOICES:
                 self.fail_json(msg='Invalid configuration mode: %s' % (mode))
+            if mode != 'ephemeral' and ephemeral_instance is not None:
+                self.fail_json(msg='Ephemeral instance is specified while the mode '
+                               'is not ephemeral.Specify the mode as ephemeral or '
+                               'do not specify the instance.')
             if self.dev is None:
                 self.open()
             config = jnpr.junos.utils.config.Config(self.dev, mode=mode)
@@ -1173,6 +1178,23 @@ class JuniperJunosModule(AnsibleModule):
                     self.dev.rpc.open_configuration(
                         private=True,
                         ignore_warning=ignore_warn)
+                elif config.mode == 'dynamic':
+                    self.dev.rpc.open_configuration(
+                        dynamic=True,
+                        ignore_warning=ignore_warn)
+                elif config.mode == 'batch':
+                    self.dev.rpc.open_configuration(
+                        batch=True,
+                        ignore_warning=ignore_warn)
+                elif config.mode == 'ephemeral':
+                    if ephemeral_instance is None:
+                        self.dev.rpc.open_configuration(
+                           ephemeral=True,
+                           ignore_warning=ignore_warn)
+                    else:
+                        self.dev.rpc.open_configuration(
+                           ephemeral_instance = ephemeral_instance,
+                           ignore_warning=ignore_warn)
             except (pyez_exception.ConnectError,
                     pyez_exception.RpcError) as ex:
                 self.fail_json(msg='Unable to open the configuration in %s '
@@ -1201,7 +1223,7 @@ class JuniperJunosModule(AnsibleModule):
             try:
                 if config.mode == 'exclusive':
                     config.unlock()
-                elif config.mode == 'private':
+                elif config.mode in ['batch', 'dynamic', 'private', 'ephemeral']:
                     self.dev.rpc.close_configuration()
                 self.logger.debug("Configuration closed.")
             except (pyez_exception.ConnectError,
@@ -1503,7 +1525,8 @@ class JuniperJunosModule(AnsibleModule):
                                (str(ex)))
 
     def commit_configuration(self, ignore_warning=None, comment=None,
-                             confirmed=None, full=False):
+                             confirmed=None, timeout=30, full=False,
+                             sync=False, force_sync=False):
         """Commit the candidate configuration.
 
         Commit the configuration. Assumes the configuration is already opened.
@@ -1512,13 +1535,19 @@ class JuniperJunosModule(AnsibleModule):
             ignore_warning - Which warnings to ignore.
             comment - The commit comment
             confirmed - Number of minutes for commit confirmed.
+            timeout - Timeout for commit configuration. Default timeout value is 30s.
             full - apply full commit
+            sync - Check for commit syntax and sync between RE's
+            force_sync - Ignore syntax check and force to sync between RE's
 
         Failures:
             - An error returned from committing the configuration.
         """
+        if self.dev.timeout:
+            timeout = self.dev.timeout
+
         if self.conn_type != "local":
-            self._pyez_conn.commit_configuration(ignore_warning, comment, confirmed)
+            self._pyez_conn.commit_configuration(ignore_warning, comment, timeout, confirmed, full, sync, force_sync)
             return
 
         if self.dev is None or self.config is None:
@@ -1529,7 +1558,10 @@ class JuniperJunosModule(AnsibleModule):
             self.config.commit(ignore_warning=ignore_warning,
                                comment=comment,
                                confirm=confirmed,
-                               full=full)
+                               timeout=timeout,
+                               full=full,
+                               force_sync=force_sync,
+                               sync=sync)
             self.logger.debug("Configuration committed.")
         except (self.pyez_exception.RpcError,
                 self.pyez_exception.ConnectError) as ex:
