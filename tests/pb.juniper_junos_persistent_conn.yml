@@ -1,0 +1,25 @@
+---
+- name: Test juniper.device.rpc module
+  hosts: all
+  connection: juniper.device.pyez
+  gather_facts: no
+  collections:
+    - juniper.device
+
+  tasks:
+#################
+    - name: Get Device Configuration with filter and attr
+      rpc:
+        rpc: get-config
+        format: xml
+        filter: <configuration><groups><name>re0</name></groups></configuration>
+        attr: name=re0
+      register: test7
+      ignore_errors: True
+      tags: [ test7 ]
+
+    - name: Check TEST 7
+      assert:
+        that:
+          - test7.msg == "The \"get-config\" RPC executed successfully."
+      tags: [ test7 ]

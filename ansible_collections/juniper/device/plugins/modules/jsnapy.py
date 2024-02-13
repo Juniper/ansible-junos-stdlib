@@ -53,7 +53,7 @@ description:
   - Execute Junos SNAPshot Adminsitrator (JSNAPy) tests against a Junos device.
     JSNAPy is documented on U(Github|https://github.com/Juniper/jsnapy) and
     this
-    U(Day One Book|https://www.juniper.net/uk/en/training/jnbooks/day-one/automation-series/jsnapy/)
+    U(Day One Book|https://www.juniper.net/documentation/en_US/day-one-books/DO_JSNAPy.zip)
   - This module only reports C(failed) if the module encounters an error and
     fails to execute the JSNAPy tests. If does NOT report C(failed) if one or
     more of the JSNAPy tests fail. To check the test results, register the

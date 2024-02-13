@@ -60,6 +60,20 @@ description:
        * If the I(config_mode) option has a value of C(private), open a private
          candidate configuration database. If opening the private configuration
          database fails the module fails and reports an error.
+       * If the I(config_mode) option has a value of C(dynamic), open a dynamic
+         candidate configuration database. If opening the dynamic configuration
+         database fails the module fails and reports an error.
+       * If the I(config_mode) option has a value of C(batch), open a batch
+         candidate configuration database. If opening the batch configuration
+         database fails the module fails and reports an error.
+       * If the I(config_mode) option has a value of C(ephemeral), open a default
+         ephemeral candidate configuration database. If opening the ephemeral
+         configuration database fails the module fails and reports an error.
+       * If the I(ephemeral_instance) option has a value of C(ephemeral instance
+         name) along with I(config_mode) option has a value of C(ephemeral), open
+         a user defined ephemeral instance candidate configuration database. If
+         opening the ephemeral onfiguration database fails the module fails
+         and reports an error.
     #. Load configuration data into the candidate configuration database.
        
        * Configuration data may be loaded using the I(load) or I(rollback)
@@ -184,6 +198,21 @@ options:
     required: false
     default: false
     type: bool
+  commit_sync:
+    description:
+      - On dual control plane systems, requests that the candidate configuration
+        on one control plane be copied to the other control plane, checked for
+        correct syntax, and committed on both Routing engines.
+    required: false
+    default: false
+    type: bool
+  commit_force_sync:
+    description:
+      - On dual control plane systems, forces the candidate configuration
+        on one control plane to be copied to the other control plane.
+    required: false
+    default: false
+    type: bool
   config_mode:
     description:
       - The mode used to access the candidate configuration database.
@@ -193,10 +222,19 @@ options:
     choices:
       - exclusive
       - private
+      - dynamic
+      - batch
+      - ephemeral
     aliases:
       - config_access
       - edit_mode
       - edit_access
+  ephemeral_instance:
+    description:
+      - To open a user-defined instance of the ephemeral database
+    required: false
+    default: None
+    type: str
   confirmed:
     description:
       - Provide a confirmed timeout, in minutes, to be used with the commit
@@ -811,6 +849,9 @@ def main():
                              aliases=['config_access', 'edit_mode',
                                       'edit_access'],
                              default='exclusive'),
+            ephemeral_instance=dict(type='str',
+                                    required=False,
+                                    default=None),
             rollback=dict(type='str',
                           required=False,
                           default=None),
@@ -893,6 +934,12 @@ def main():
             commit_full=dict(required=False,
                              type='bool',
                              default=False),
+            commit_sync=dict(required=False,
+                             type='bool',
+                             default=False),
+            commit_force_sync=dict(required=False,
+                                   type='bool',
+                                   default=False),
             confirmed=dict(required=False,
                            type='int',
                            aliases=['confirm'],
@@ -922,6 +969,7 @@ def main():
 
     # Straight from params
     config_mode = junos_module.params.get('config_mode')
+    ephemeral_instance = junos_module.params.get('ephemeral_instance')
 
     # Parse rollback value
     rollback = junos_module.parse_rollback_option()
@@ -946,6 +994,8 @@ def main():
     commit = junos_module.params.get('commit')
     commit_empty_changes = junos_module.params.get('commit_empty_changes')
     commit_full = junos_module.params.get('commit_full')
+    commit_sync = junos_module.params.get('commit_sync')
+    commit_force_sync = junos_module.params.get('commit_force_sync')
     confirmed = junos_module.params.get('confirmed')
     comment = junos_module.params.get('comment')
     check_commit_wait = junos_module.params.get('check_commit_wait')
@@ -953,6 +1003,10 @@ def main():
     remove_ns = junos_module.params.get('remove_ns')
     namespace = junos_module.params.get('namespace')
 
+    # Ephemeral database doesn't support "show | compare",
+    # so setting diff to False.
+    if config_mode == 'ephemeral':
+        diff = False
 
     # If retrieve is set and load and rollback are not set, then
     # check, diff, and commit default to False.
@@ -1069,7 +1123,8 @@ def main():
 
     junos_module.logger.debug("Step 1 - Open a candidate configuration "
                               "database.")
-    junos_module.open_configuration(mode=config_mode, ignore_warning=ignore_warning)
+    junos_module.open_configuration(mode=config_mode, ignore_warning=ignore_warning,
+                                              ephemeral_instance=ephemeral_instance)
     results['msg'] += 'opened'
 
     junos_module.logger.debug("Step 2 - Load configuration data into the "
@@ -1174,7 +1229,9 @@ def main():
             junos_module.commit_configuration(ignore_warning=ignore_warning,
                                               comment=comment,
                                               confirmed=confirmed,
-                                              full=commit_full)
+                                              full=commit_full,
+                                              sync=commit_sync,
+                                              force_sync=commit_force_sync)
             results['msg'] += ', committed'
         else:
             junos_module.logger.debug("Skipping commit. Nothing changed.")

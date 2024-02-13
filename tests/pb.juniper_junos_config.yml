@@ -1,5 +1,5 @@
 ---
-- name: Test juniper_junos_config module
+- name: Test juniper.device.config module
   hosts: all
   connection: local
   gather_facts: no
@@ -8,7 +8,7 @@
   tasks:
 #################
     - name: Retrieve the committed configuration
-      juniper_junos_config:
+      config:
         retrieve: 'committed'
         diff: false
         check: false
@@ -23,7 +23,7 @@
           - test1.config
 #################
     - name: Append .foo to the hostname using private config mode.
-      juniper_junos_config:
+      config:
         config_mode: 'private'
         load: 'merge'
         lines:
@@ -39,7 +39,7 @@
           - test2.diff_lines
 #################
     - name: Rollback to the previous config.
-      juniper_junos_config:
+      config:
         config_mode: 'private'
         rollback: "1"
       register: test3
@@ -91,8 +91,16 @@
 #        path: out
 #        state: absent
 ################
+    - name: Configure system services.
+      config:
+        config_mode: 'private'
+        load: 'merge'
+        lines:
+          - "set system services netconf ssh"
+        comment: "Configured system services"
+
     - name: Retrieve [edit system services] of current committed config.
-      juniper_junos_config:
+      config:
         retrieve: 'committed'
         filter: 'system/services'
         diff: true
@@ -110,7 +118,7 @@
 #################
 
     - name: Confirm the previous commit with a commit check (but no commit)
-      juniper_junos_config:
+      config:
         check: true
         diff: false
         commit: false
@@ -119,4 +127,35 @@
     - name: Check TEST 6
       assert:
         that:
-          - test6.changed == False
+          test6.changed == False
+
+#################
+
+    - name: Confirm the commit with a commit sync
+      config:
+        check: true
+        diff: false
+        comment: "Juniper Networks"
+        commit_sync: True
+      register: test7
+
+    - name: Check TEST 7
+      assert:
+        that:
+          - test7.changed == False
+
+#################
+
+    - name: Confirm the commit with a commit sync force
+      config:
+        check: true
+        diff: false
+        comment: "Juniper Networks"
+        commit_force_sync: True
+      register: test8
+
+    - name: Check TEST 8
+      assert:
+        that:
+          test8.changed == False
+

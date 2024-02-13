@@ -1,5 +1,5 @@
 ---
-- name: Test juniper_junos_rpc module
+- name: Test juniper.device.rpc module
   hosts: all
   connection: local
   gather_facts: no
@@ -9,7 +9,7 @@
   tasks:
 #################
     - name: "Execute single RPC get-software-information without any kwargs"
-      juniper_junos_rpc:
+      rpc:
         rpcs:
           - "get-software-information"
       register: test1
@@ -24,7 +24,7 @@
 
 #################
     - name: "Get Device Configuration with dest"
-      juniper_junos_rpc:
+      rpc:
         rpc: get-config
         dest: get_config.conf
       register: test2
@@ -50,9 +50,10 @@
 #################
 
     - name: "Get Device Configuration in text"
-      juniper_junos_rpc:
+      rpc:
         rpc: get-interface-information
-        kwargs: "interface_name=em0"
+        kwargs:
+          interface_name: "lo0.0"
         format: text
       register: test3
       ignore_errors: True
@@ -67,7 +68,7 @@
 #################
 
     - name: "Execute multiple RPCs without any kwargs"
-      juniper_junos_rpc:
+      rpc:
         rpcs:
           - "get-software-information"
           - "get-interface-information"
@@ -91,13 +92,13 @@
 #################
 
     - name: "Execute multiple RPCs with multiple kwargs"
-      juniper_junos_rpc:
+      rpc:
         rpcs:
           - "get-software-information"
           - "get-interface-information"
         kwargs:
           - {}
-          - "interface_name=em0"
+          - interface_name: "lo0.0"
       register: test5
       ignore_errors: True
       tags: [ test5 ]
@@ -116,13 +117,13 @@
         state: directory
 
     - name: "Execute multiple RPCs with multiple kwargs and dest-dir"
-      juniper_junos_rpc:
+      rpc:
         rpcs:
           - "get-software-information"
           - "get-interface-information"
         kwargs:
           - {}
-          - "interface_name=em0"
+          - interface_name: "lo0.0"
         dest_dir: "out"
       register: test6
       ignore_errors: True
@@ -130,12 +131,12 @@
 
     - name: Check get-interface-information.xml exists
       stat:
-        path: "out/{{ ansible_ssh_host }}_get-interface-information.xml"
+        path: "out/test_get-interface-information.xml"
       register: stat_result_1
 
     - name: Check get-software-information.xml exists
       stat:
-        path: "out/{{ ansible_ssh_host }}_get-software-information.xml"
+        path: "out/test_get-software-information.xml"
       register: stat_result_2
 
     - name: Check TEST 6
@@ -154,7 +155,7 @@
 
 #################
     - name: Get Device Configuration for interface
-      juniper_junos_rpc:
+      rpc:
         rpc: get-config
         filter_xml: "<configuration><interfaces/></configuration>"
       register: test7
@@ -169,7 +170,7 @@
 
 #################
     - name: "Execute wrong RPC to generate RPC error"
-      juniper_junos_rpc:
+      rpc:
         rpcs:
           - "wrong-rpc"
       register: test8
@@ -183,3 +184,87 @@
       tags: [ test8 ]
 
 #################
+    - name: "Check configuration for errors"
+      rpc:
+        rpcs:
+          - "open-configuration"
+          - "load-configuration"
+          - "close-configuration"
+        attrs:
+          - {}
+          - action: 'set'
+            format: 'text'
+          - {}
+        kwargs:
+          - private: true
+          - configuration_set: 'set system syslog file test1 any any'
+          - {}
+      register: test9
+      tags: [ test9 ]
+
+    - name: Check TEST 9
+      debug:
+        var: test9
+      tags: [ test9 ]
+
+    - name: Check TEST 9
+      assert:
+        that:
+          - test9.results[0].msg == "The RPC executed successfully."
+          - test9.results[1].msg == "The RPC executed successfully."
+          - test9.results[2].msg == "The RPC executed successfully."
+      tags: [ test9 ]
+
+#################
+    - name: "Check huge xml/text data"
+      rpc:
+        rpcs:
+          - get-support-information
+          - file-archive
+        kwargs:
+          - {}
+          - destination: "support_info"
+            source: /var/log/*
+            compress: True
+        formats: text
+        timeout: 1200
+        huge_tree: True
+      register: test10
+      tags: [ test10 ]
+
+    - name: Check TEST 10
+      assert:
+        that:
+          test10.results[0].msg == "The RPC executed successfully."
+      tags: [ test10 ]
+
+    - name: Check rollback info
+      rpc:
+        rpc: get-rollback-information
+        kwargs:
+          rollback: "3"
+          compare: "2"
+      register: test11
+      tags: [ test11 ]
+
+    - name: Check TEST 11
+      assert:
+        that:
+          test11.msg == "The RPC executed successfully."
+      tags: [ test11 ]
+
+    - name: Check rollback info with boolean values
+      rpc:
+        rpc: get-rollback-information
+        kwargs:
+          allow_bool_values : "0"
+          rollback: "1"
+          compare: "0"
+      register: test12
+      tags: [ test12 ]
+
+    - name: Check TEST 12
+      assert:
+        that:
+          test12.msg == "The RPC executed successfully."
+      tags: [ test12 ]

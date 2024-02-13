@@ -1,0 +1,49 @@
+---
+- name: Test juniper.device.srx_cluster module
+  hosts: all
+  connection: local
+  gather_facts: no
+  collections:
+    - juniper.device
+  tasks:
+    - name: TEST 1 - Enable an SRX cluster
+      srx_cluster:
+        enable: true
+        cluster_id: 4
+        node_id: 0
+      register: test1
+      tags: [ test1 ]
+
+    - name: Print the response.
+      debug:
+        var: test1
+
+    - name: Check TEST 1
+      assert:
+        that:
+          - test1.failed == false
+      tags: [ test1 ]
+
+    - name: Sleep for 300 seconds and continue with play
+      ansible.builtin.wait_for:
+        timeout: 300
+      delegate_to: localhost
+
+    - name: Checking NETCONF connectivity
+      wait_for: host={{ ansible_ssh_host }} port=830 timeout=360
+
+    - name: TEST 2 - Disable an SRX cluster
+      srx_cluster:
+        enable: false
+      register: test2
+      tags: [ test2 ]
+
+    - name: Print the response.
+      debug:
+        var: test2
+
+    - name: Check TEST 2
+      assert:
+        that:
+          - test2.failed == false
+      tags: [ test2 ]

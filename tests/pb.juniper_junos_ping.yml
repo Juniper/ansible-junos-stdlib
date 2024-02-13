@@ -1,5 +1,5 @@
 ---
-- name: Test juniper_junos_ping module
+- name: Test juniper.device.ping module
   hosts: all
   connection: local
   gather_facts: no
@@ -7,7 +7,7 @@
     - juniper.device
   tasks:
     - name: "TEST 1 - Ping Host DNS"
-      juniper_junos_ping:
+      ping:
         dest_ip: "{{ ansible_ssh_host }}"
       register: test1
       ignore_errors: True
@@ -21,7 +21,7 @@
 ############
 
     - name: "TEST 2 - Ping Wrong IP"
-      juniper_junos_ping:
+      ping:
         dest_ip: 8.8.1.1
       register: test2
       ignore_errors: True
@@ -34,7 +34,7 @@
 #################
 
     - name: "TEST 3 - Change nbr packets"
-      juniper_junos_ping:
+      ping:
         dest_ip: "{{ ansible_ssh_host }}"
         count: 3
       register: test3
@@ -49,7 +49,7 @@
 #################
 
     - name: "TEST 4 - Ping with DF-bit set"
-      juniper_junos_ping:
+      ping:
         dest_ip: "{{ ansible_ssh_host }}"
         count: 3
         do_not_fragment: True
