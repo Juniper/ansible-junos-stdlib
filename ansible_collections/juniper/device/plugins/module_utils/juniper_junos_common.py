@@ -161,7 +161,7 @@ class ModuleDocFragment(object):
           - password
       port:
         description:
-          - The TCP port number or serial device port used to establish the 
+          - The TCP port number or serial device port used to establish the
             connection. Mutually exclusive with the I(console) option.
         required: false
         default: C(830) if C(mode = none), C(23) if C(mode = 'telnet'),
@@ -231,7 +231,7 @@ class ModuleDocFragment(object):
           - username
       cs_user:
         description:
-          - The username used to authenticate with the console server over SSH. 
+          - The username used to authenticate with the console server over SSH.
             This option is only required if you want to connect to a device over console
              using SSH as transport. Mutually exclusive with the I(console) option.
         required: false
@@ -240,7 +240,7 @@ class ModuleDocFragment(object):
           - console_username
       cs_passwd:
         description:
-          - The password used to authenticate with the console server over SSH. 
+          - The password used to authenticate with the console server over SSH.
             This option is only required if you want to connect to a device over console
              using SSH as transport. Mutually exclusive with the I(console) option.
         required: false
@@ -339,7 +339,7 @@ class ModuleDocFragment(object):
         choices:
           - INFO
           - DEBUG
-               
+
 
 '''
 
@@ -1543,6 +1543,9 @@ class JuniperJunosModule(AnsibleModule):
         Failures:
             - An error returned from committing the configuration.
         """
+        if self.dev.timeout:
+            timeout = self.dev.timeout
+
         if self.conn_type != "local":
             self._pyez_conn.commit_configuration(ignore_warning, comment, timeout, confirmed, full, sync, force_sync)
             return
