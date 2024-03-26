@@ -1,0 +1,7 @@
+[junos]
+local_connection_testcases  ansible_host=x.x.x.x  ansible_user=xxxx  ansible_pass=xxxx ansible_port=22 ansible_connection=local
+
+#pyez_connection_testcases  ansible_host=x.x.x.x  ansible_user=xxx  ansible_ssh_pass=xxxx ansible_port=22 ansible_connection=juniper.device.pyez
+
+[all:vars]
+ansible_python_interpreter=/Users/babud/automation_dev/ansible_dev/ansible_vir_envir/bin/python3.10
