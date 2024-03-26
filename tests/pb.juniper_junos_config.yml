@@ -120,7 +120,7 @@
         check: true
         diff: false
         comment: "Juniper Networks"
-        commit_sync: False
+        commit_sync: True
       register: test7
 
     - name: Check TEST 7
@@ -135,7 +135,7 @@
         check: true
         diff: false
         comment: "Juniper Networks"
-        commit_force_sync: False
+        commit_force_sync: True
       register: test8
 
     - name: Check TEST 8
