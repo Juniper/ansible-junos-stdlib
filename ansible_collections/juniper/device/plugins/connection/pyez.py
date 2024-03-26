@@ -691,8 +691,8 @@ class Connection(NetworkConnectionBase):
             try:
                 self.config.rollback(rb_id=id)
                 self.queue_message("log", "Rollback {} configuration loaded.".format(id))
-            except (self.pyez_exception.ConnectError,
-                    self.pyez_exception.RpcError) as ex:
+            except (self.pyez_exception.RpcError,
+                    self.pyez_exception.ConnectError) as ex:
                 raise AnsibleError('Unable to load the rollback %d '
                                    'configuraton: %s' % (id, str(ex)))
         else:
