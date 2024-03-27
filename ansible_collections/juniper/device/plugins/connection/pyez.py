@@ -499,7 +499,7 @@ class Connection(NetworkConnectionBase):
         """
         resp = self.dev.rpc.ping(normalize, **params)
         rpc_str = etree.tostring(resp)
-        return rpc_str
+        return str(rpc_str, encoding='utf-8').replace("\n","") 
 
     def get_chassis_inventory(self):
         """Get chassis inventory details from the device.
