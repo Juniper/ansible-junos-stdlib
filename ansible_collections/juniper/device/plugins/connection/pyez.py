@@ -484,7 +484,7 @@ class Connection(NetworkConnectionBase):
         """
         return dict(self.dev.facts)
 
-    def ping_device(self, normalize=True, **params):
+    def ping_device(self, normalize, **params):
         """Ping the device.
 
         Args:
@@ -497,7 +497,7 @@ class Connection(NetworkConnectionBase):
         Fails:
             - If the ping RPC produces an exception.
         """
-        resp = self.dev.rpc.ping(normalize, **params)
+        resp = self.dev.rpc.ping(normalize=normalize, **params)
         rpc_str = etree.tostring(resp)
         return rpc_str
 
