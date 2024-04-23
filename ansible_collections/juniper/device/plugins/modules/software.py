@@ -728,6 +728,7 @@ def main():
             if junos_module.conn_type != "local":
                 try:
                     try:
+                        #Handling reboot of specific VC members
                         if member_id is not None:
                             results['msg'] += junos_module._pyez_conn.reboot_api(all_re,
                                                                                  install_params.get('vmhost'),
