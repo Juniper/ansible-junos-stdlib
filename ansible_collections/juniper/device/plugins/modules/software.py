@@ -726,11 +726,48 @@ def main():
         if reboot is True:
             junos_module.logger.debug('Initiating reboot.')
             if junos_module.conn_type != "local":
-                if member_id is not None:
-                    for m_id in member_id:
-                        results['msg'] += junos_module._pyez_conn.reboot_api(all_re, install_params.get('vmhost'), member_id=m_id)
+                try:
+                    try:
+                        if member_id is not None:
+                            results['msg'] += junos_module._pyez_conn.reboot_api(all_re,
+                                                                                 install_params.get('vmhost'),
+                                                                                 member_id=member_id)
+                        else:
+                            results['msg'] += junos_module._pyez_conn.reboot_api(all_re, install_params.get('vmhost'))
+                    except Exception:  # pylint: disable=broad-except
+                        junos_module.logger.debug("Reboot RPC executed.")
+                    results['msg'] += ' Reboot succeeded.'
+                except (junos_module.pyez_exception.RpcTimeoutError) as ex:
+                    # This might be OK. It might just indicate the device didn't
+                    # send the closing </rpc-reply> (known Junos bug).
+                    # Try to close the device. If it closes cleanly, then it was
+                    # still reachable, which probably indicates a problem.
+                    try:
+                        junos_module.close(raise_exceptions=True)
+                        # This means the device wasn't already disconnected.
+                        results['msg'] += ' Reboot failed. It may not have been ' \
+                                          'initiated.'
+                        junos_module.fail_json(**results)
+                    except (junos_module.pyez_exception.RpcError,
+                            junos_module.pyez_exception.RpcTimeoutError,
+                            junos_module.pyez_exception.ConnectError):
+                        # This is expected. The device has already disconnected.
+                        results['msg'] += ' Reboot succeeded.'
+                    except (junos_module.ncclient_exception.TimeoutExpiredError):
+                        # This is not really expected. Still consider reboot success as
+                        # Looks like rpc was consumed but no response as its rebooting.
+                        results['msg'] += ' Reboot succeeded. Ignoring close error.'
+                except (junos_module.pyez_exception.RpcError,
+                        junos_module.pyez_exception.ConnectError) as ex:
+                    results['msg'] += ' Reboot failed. Error: %s' % (str(ex))
+                    junos_module.fail_json(**results)
                 else:
-                    results['msg'] += junos_module._pyez_conn.reboot_api(all_re, install_params.get('vmhost'))
+                    try:
+                        junos_module.close()
+                    except (junos_module.ncclient_exception.TimeoutExpiredError):
+                        junos_module.logger.debug("Ignoring TimeoutError for close call")
+
+                junos_module.logger.debug("Reboot RPC successfully initiated.")
             else:
                 try:
                     # Try to deal with the fact that we might not get the closing
@@ -744,8 +781,12 @@ def main():
                         junos_module.dev.timeout = 5
                     try:
                         if member_id is not None:
-                            for m_id in member_id:
-                                got = junos_module.sw.reboot(0, None, all_re, None, install_params.get('vmhost'), member_id=m_id)
+                            got = junos_module.sw.reboot(0,
+                                                         None,
+                                                         all_re,
+                                                         None,
+                                                         install_params.get('vmhost'),
+                                                         member_id=member_id)
                         else:
                             got = junos_module.sw.reboot(0, None, all_re, None, install_params.get('vmhost'))
                         junos_module.dev.timeout = restore_timeout

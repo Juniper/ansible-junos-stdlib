@@ -780,7 +780,7 @@ class Connection(NetworkConnectionBase):
             raise AnsibleError('Failure committing the configuraton: %s' %
                                (str(ex)))
 
-    def system_api(self, action, in_min, at, all_re, vmhost, other_re, media, member_id):
+    def system_api(self, action, in_min, at, all_re, vmhost, other_re, media, member_id=None):
         """Triggers the system calls like reboot, shutdown, halt and zeroize to device.
         """
         msg = None
@@ -845,7 +845,7 @@ class Connection(NetworkConnectionBase):
                 self.pyez_exception.RpcError) as ex:
             raise AnsibleError('Installation failed. Error: %s' % str(ex))
 
-    def reboot_api(self, all_re, vmhost, member_id):
+    def reboot_api(self, all_re, vmhost, member_id=None):
         """reboots the device.
         """
         msg = None
