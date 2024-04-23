@@ -730,9 +730,7 @@ def main():
                     try:
                         #Handling reboot of specific VC members
                         if member_id is not None:
-                            results['msg'] += junos_module._pyez_conn.reboot_api(all_re,
-                                                                                 install_params.get('vmhost'),
-                                                                                 member_id=member_id)
+                            results['msg'] += junos_module._pyez_conn.reboot_api(all_re, install_params.get('vmhost'), member_id=member_id)
                         else:
                             results['msg'] += junos_module._pyez_conn.reboot_api(all_re, install_params.get('vmhost'))
                     except Exception:  # pylint: disable=broad-except
