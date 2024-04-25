@@ -733,9 +733,16 @@ def main():
                             results['msg'] += junos_module._pyez_conn.reboot_api(all_re, install_params.get('vmhost'), member_id=member_id)
                         else:
                             results['msg'] += junos_module._pyez_conn.reboot_api(all_re, install_params.get('vmhost'))
-                    except Exception:  # pylint: disable=broad-except
-                        junos_module.logger.debug("Reboot RPC executed.")
-                    results['msg'] += ' Reboot succeeded.'
+                    except Exception as err:  # pylint: disable=broad-except
+                        if "ConnectionError" in str(type(err)):
+                            # If Exception is ConnectionError, it is excpected
+                            # Device got rebooted succesfull
+                            junos_module.logger.debug("Reboot RPC executed.")
+                            results['msg'] += ' Reboot succeeded.'
+                        else:
+                            # If exception is not ConnectionError
+                            # we need to handle
+                            raise
                 except (junos_module.pyez_exception.RpcTimeoutError) as ex:
                     # This might be OK. It might just indicate the device didn't
                     # send the closing </rpc-reply> (known Junos bug).
@@ -760,12 +767,6 @@ def main():
                         junos_module.pyez_exception.ConnectError) as ex:
                     results['msg'] += ' Reboot failed. Error: %s' % (str(ex))
                     junos_module.fail_json(**results)
-                else:
-                    try:
-                        junos_module.close()
-                    except (junos_module.ncclient_exception.TimeoutExpiredError):
-                        junos_module.logger.debug("Ignoring TimeoutError for close call")
-
                 junos_module.logger.debug("Reboot RPC successfully initiated.")
             else:
                 try:
