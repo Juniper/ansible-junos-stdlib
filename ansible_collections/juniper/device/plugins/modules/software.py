@@ -727,46 +727,21 @@ def main():
             junos_module.logger.debug('Initiating reboot.')
             if junos_module.conn_type != "local":
                 try:
-                    try:
-                        #Handling reboot of specific VC members
-                        if member_id is not None:
-                            results['msg'] += junos_module._pyez_conn.reboot_api(all_re, install_params.get('vmhost'), member_id=member_id)
-                        else:
-                            results['msg'] += junos_module._pyez_conn.reboot_api(all_re, install_params.get('vmhost'))
-                    except Exception as err:  # pylint: disable=broad-except
-                        if "ConnectionError" in str(type(err)):
-                            # If Exception is ConnectionError, it is excpected
-                            # Device got rebooted succesfull
-                            junos_module.logger.debug("Reboot RPC executed.")
-                            results['msg'] += ' Reboot succeeded.'
-                        else:
-                            # If exception is not ConnectionError
-                            # we need to handle
-                            raise
-                except (junos_module.pyez_exception.RpcTimeoutError) as ex:
-                    # This might be OK. It might just indicate the device didn't
-                    # send the closing </rpc-reply> (known Junos bug).
-                    # Try to close the device. If it closes cleanly, then it was
-                    # still reachable, which probably indicates a problem.
-                    try:
-                        junos_module.close(raise_exceptions=True)
-                        # This means the device wasn't already disconnected.
-                        results['msg'] += ' Reboot failed. It may not have been ' \
-                                          'initiated.'
-                        junos_module.fail_json(**results)
-                    except (junos_module.pyez_exception.RpcError,
-                            junos_module.pyez_exception.RpcTimeoutError,
-                            junos_module.pyez_exception.ConnectError):
-                        # This is expected. The device has already disconnected.
+                    #Handling reboot of specific VC members
+                    if member_id is not None:
+                        results['msg'] += junos_module._pyez_conn.reboot_api(all_re, install_params.get('vmhost'), member_id=member_id)
+                    else:
+                        results['msg'] += junos_module._pyez_conn.reboot_api(all_re, install_params.get('vmhost'))
+                except Exception as err:  # pylint: disable=broad-except
+                    if "ConnectionError" in str(type(err)):
+                        # If Exception is ConnectionError, it is excpected
+                        # Device reboot inititated succesfully
+                        junos_module.logger.debug("Reboot RPC executed.")
                         results['msg'] += ' Reboot succeeded.'
-                    except (junos_module.ncclient_exception.TimeoutExpiredError):
-                        # This is not really expected. Still consider reboot success as
-                        # Looks like rpc was consumed but no response as its rebooting.
-                        results['msg'] += ' Reboot succeeded. Ignoring close error.'
-                except (junos_module.pyez_exception.RpcError,
-                        junos_module.pyez_exception.ConnectError) as ex:
-                    results['msg'] += ' Reboot failed. Error: %s' % (str(ex))
-                    junos_module.fail_json(**results)
+                    else:
+                        # If exception is not ConnectionError
+                        # we will raise the exception
+                        raise
                 junos_module.logger.debug("Reboot RPC successfully initiated.")
             else:
                 try:
