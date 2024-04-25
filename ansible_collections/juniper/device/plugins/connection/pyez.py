@@ -541,7 +541,7 @@ class Connection(NetworkConnectionBase):
             elif action == 'snapcheck':
                 responses = jsa.snapcheck(data=data,
                                           dev=self.dev,
-                                          file_name='PRE')
+                                          pre_file='PRE')
             elif action == 'snap_pre':
                 responses = jsa.snap(data=data,
                                      dev=self.dev,
