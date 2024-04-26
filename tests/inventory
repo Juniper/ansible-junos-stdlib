@@ -1,7 +1,7 @@
 [junos]
-local_connection_testcases  ansible_host=x.x.x.x  ansible_user=xxxx  ansible_pass=xxxx ansible_port=22 ansible_connection=local
+local_connection_testcases  ansible_host=x.x.x.x  ansible_user=xxxx  ansible_pass=xxxx ansible_port=22 ansible_connection=local ansible_command_timeout=300
 
-pyez_connection_testcases  ansible_host=x.x.x.x  ansible_user=xxx  ansible_ssh_pass=xxxx ansible_port=22 ansible_connection=juniper.device.pyez
+pyez_connection_testcases  ansible_host=x.x.x.x  ansible_user=xxx  ansible_ssh_pass=xxxx ansible_port=22 ansible_connection=juniper.device.pyez ansible_command_timeout=300
 
 [all:vars]
 ansible_python_interpreter=<python interpreter path>
