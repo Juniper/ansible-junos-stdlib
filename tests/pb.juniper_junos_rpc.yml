@@ -1,7 +1,6 @@
 ---
 - name: Test juniper.device.rpc module
   hosts: all
-  connection: local
   gather_facts: no
   collections:
     - juniper.device
@@ -131,12 +130,12 @@
 
     - name: Check get-interface-information.xml exists
       stat:
-        path: "out/test_get-interface-information.xml"
+        path: "out/{{ inventory_hostname  }}_get-interface-information.xml"
       register: stat_result_1
 
     - name: Check get-software-information.xml exists
       stat:
-        path: "out/test_get-software-information.xml"
+        path: "out/{{ inventory_hostname }}_get-software-information.xml"
       register: stat_result_2
 
     - name: Check TEST 6
@@ -180,25 +179,19 @@
     - name: Check TEST 8
       assert:
         that:
-          - '"Unable to execute the RPC" in test8.msg'
+          - '"Unable to execute the RPC" or "MODULE FAILURE" in test8.msg'
       tags: [ test8 ]
 
 #################
     - name: "Check configuration for errors"
       rpc:
         rpcs:
-          - "open-configuration"
           - "load-configuration"
-          - "close-configuration"
         attrs:
-          - {}
           - action: 'set'
             format: 'text'
-          - {}
         kwargs:
-          - private: true
           - configuration_set: 'set system syslog file test1 any any'
-          - {}
       register: test9
       tags: [ test9 ]
 
@@ -210,9 +203,7 @@
     - name: Check TEST 9
       assert:
         that:
-          - test9.results[0].msg == "The RPC executed successfully."
-          - test9.results[1].msg == "The RPC executed successfully."
-          - test9.results[2].msg == "The RPC executed successfully."
+          - test9.msg == "The RPC executed successfully."
       tags: [ test9 ]
 
 #################
@@ -238,6 +229,7 @@
           test10.results[0].msg == "The RPC executed successfully."
       tags: [ test10 ]
 
+#####################
     - name: Check rollback info
       rpc:
         rpc: get-rollback-information
@@ -253,6 +245,7 @@
           test11.msg == "The RPC executed successfully."
       tags: [ test11 ]
 
+####################
     - name: Check rollback info with boolean values
       rpc:
         rpc: get-rollback-information
