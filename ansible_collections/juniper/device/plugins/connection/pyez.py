@@ -687,10 +687,10 @@ class Connection(NetworkConnectionBase):
                 raise AnsibleError('Unable to load the rescue configuraton: '
                                    '%s' % (str(ex)))
         elif id >= 0 and id <= 49:
-            self.queue_message("log", "Loading rollback %d configuration.", id)
+            self.queue_message("log", "Loading rollback {} configuration.".format(id))
             try:
                 self.config.rollback(rb_id=id)
-                self.queue_message("log", "Rollback %d configuration loaded.", id)
+                self.queue_message("log", "Rollback {} configuration loaded.".format(id))
             except (self.pyez_exception.RpcError,
                     self.pyez_exception.ConnectError) as ex:
                 raise AnsibleError('Unable to load the rollback %d '
@@ -839,7 +839,7 @@ class Connection(NetworkConnectionBase):
                 install_params.get('package') or
                 install_params.get('pkg_set'),
                 msg_ret)
-            self.queue_message("log", "%s" % msg)
+            self.queue_message("log",str(msg))
             return msg
         except (self.pyez_exception.ConnectError,
                 self.pyez_exception.RpcError) as ex:

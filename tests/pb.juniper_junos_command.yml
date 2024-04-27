@@ -1,7 +1,6 @@
 ---
 - name: Test juniper.device.command module
   hosts: all
-  connection: local
   gather_facts: no
   collections:
     - juniper.device
@@ -111,7 +110,7 @@
       command:
         command:
           - "show route"
-          - "show lldp neighbors"
+          - "show version"
         dest: "./out/{{ inventory_hostname }}.commands.output"
       register: test7
 
@@ -120,7 +119,7 @@
         that:
           - test7.results[0].command == "show route"
           - test7.results[0].msg == "The command executed successfully."
-          - test7.results[1].command == "show lldp neighbors"
+          - test7.results[1].command == "show version"
           - test7.results[1].msg == "The command executed successfully."
 
     - name: TEST 8 - Multiple commands, save outputs, but don't return them
