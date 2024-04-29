@@ -689,7 +689,10 @@ def main():
             install_params['package'] = remote_filename
         if remote_dir is not None:
             install_params['remote_path'] = remote_dir
-        install_params['progress'] = define_progress_callback(junos_module)
+        if junos_module.conn_type != "local":
+            install_params['progress'] = True
+        else:
+            install_params['progress'] = define_progress_callback(junos_module)
         install_params['cleanfs'] = cleanfs
         install_params['no_copy'] = no_copy
         install_params['timeout'] = install_timeout
