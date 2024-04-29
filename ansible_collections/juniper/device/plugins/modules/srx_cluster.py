@@ -196,9 +196,14 @@ def main():
                'reboot': False,
                'failed': True}
 
+    if junos_module.conn_type == "local":
+        facts = dict(junos_module.dev.facts)
+    else:
+        facts = junos_module.get_facts()
+        # facts checking has been done as part of persitent connection itself.
     junos_module.logger.debug("Check current SRX cluster operational state.")
-    current_cluster_state = junos_module.dev.facts['srx_cluster']
-    current_cluster_id = junos_module.dev.facts['srx_cluster_id']
+    current_cluster_state = facts['srx_cluster']
+    current_cluster_id = facts['srx_cluster_id']
     if current_cluster_id is not None:
         current_cluster_id = int(current_cluster_id)
     if junos_module.conn_type == "local":
@@ -275,8 +280,14 @@ def main():
                             reboot=True, normalize=True
                         )
                     else:
-                        resp = junos_module._pyez_conn.set_chassis_cluster_disable()
-
+                        try:
+                            resp = junos_module._pyez_conn.set_chassis_cluster_disable()
+                        except Exception as err:
+                            # Reboot initiated
+                            # We got Exception ConnectionError
+                            # so handling the exception
+                            resp = None
+                            output = None
                 if resp is not None:
                     output = resp.getparent().findtext('.//output')
                     if output is None:

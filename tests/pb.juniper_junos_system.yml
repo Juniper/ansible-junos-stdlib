@@ -1,7 +1,6 @@
 ---
 - name: Test juniper.device.system module
   hosts: all
-  connection: local
   gather_facts: no
   collections:
     - juniper.device

@@ -3,7 +3,6 @@
   hosts: all
   collections:
     - juniper.device
-  connection: local
   gather_facts: no
   vars:
     wait_time: 3600
