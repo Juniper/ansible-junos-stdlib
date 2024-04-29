@@ -726,11 +726,23 @@ def main():
         if reboot is True:
             junos_module.logger.debug('Initiating reboot.')
             if junos_module.conn_type != "local":
-                if member_id is not None:
-                    for m_id in member_id:
-                        results['msg'] += junos_module._pyez_conn.reboot_api(all_re, install_params.get('vmhost'), member_id=m_id)
-                else:
-                    results['msg'] += junos_module._pyez_conn.reboot_api(all_re, install_params.get('vmhost'))
+                try:
+                    #Handling reboot of specific VC members
+                    if member_id is not None:
+                        results['msg'] += junos_module._pyez_conn.reboot_api(all_re, install_params.get('vmhost'), member_id=member_id)
+                    else:
+                        results['msg'] += junos_module._pyez_conn.reboot_api(all_re, install_params.get('vmhost'))
+                except Exception as err:  # pylint: disable=broad-except
+                    if "ConnectionError" in str(type(err)):
+                        # If Exception is ConnectionError, it is excpected
+                        # Device reboot inititated succesfully
+                        junos_module.logger.debug("Reboot RPC executed.")
+                        results['msg'] += ' Reboot succeeded.'
+                    else:
+                        # If exception is not ConnectionError
+                        # we will raise the exception
+                        raise
+                junos_module.logger.debug("Reboot RPC successfully initiated.")
             else:
                 try:
                     # Try to deal with the fact that we might not get the closing
@@ -744,8 +756,12 @@ def main():
                         junos_module.dev.timeout = 5
                     try:
                         if member_id is not None:
-                            for m_id in member_id:
-                                got = junos_module.sw.reboot(0, None, all_re, None, install_params.get('vmhost'), member_id=m_id)
+                            got = junos_module.sw.reboot(0,
+                                                         None,
+                                                         all_re,
+                                                         None,
+                                                         install_params.get('vmhost'),
+                                                         member_id=member_id)
                         else:
                             got = junos_module.sw.reboot(0, None, all_re, None, install_params.get('vmhost'))
                         junos_module.dev.timeout = restore_timeout
