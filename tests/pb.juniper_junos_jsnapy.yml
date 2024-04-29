@@ -1,7 +1,6 @@
 ---
 - name: Test juniper.device.jsnapy module
   hosts: all
-  connection: local
   gather_facts: no
   collections:
     - juniper.device
@@ -128,12 +127,29 @@
       tags: [ test6 ]
 
 ##################################################
+####    TEST 7 PREREQUSITE                      ##
+##################################################
+    - name: "PRE-TEST 7 - Add loopback address"
+      config:
+        load: 'merge'
+        lines:
+          - "set routing-instances LO10 interface lo0.10"
+          - "set routing-instances LO10 instance-type virtual-router"
+          - "set interfaces lo0 unit 10 family inet"
+      register: test7_0
+      ignore_errors: True
+      tags: [ test7 ]
+
+##################################################
 ####    TEST 7                                  ##
 ##################################################
     - name: "PRE-TEST 7 - Add loopback address"
       config:
         load: 'merge'
-        file: junos_jsnapy/add_loopback.set
+        lines:
+          - "set routing-instances LO10 interface lo0.10"
+          - "set routing-instances LO10 instance-type virtual-router"
+          - "set interfaces lo0 unit 10 family inet"
       register: test7_1
       ignore_errors: True
       tags: [ test7 ]
@@ -163,11 +179,18 @@
 
     - name: "TEST 7 - Cleanup"
       config:
-        file: junos_jsnapy/delete_loopback.set
         load: 'merge'
+        lines:
+          - "delete routing-instances LO10"
+          - "delete interfaces lo0 unit 10"
       register: test7_3
       ignore_errors: True
       tags: [ test7 ]
+
+    - name: Sleep for 15 seconds for loopback to come up
+      ansible.builtin.wait_for:
+        timeout: 15
+      delegate_to: localhost
 
     - name: Check TEST 7
       assert:

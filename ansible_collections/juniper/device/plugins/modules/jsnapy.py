@@ -285,22 +285,38 @@ def main():
         jsa = junos_module.jsnapy.SnapAdmin()
         junos_module.logger.debug('Executing %s action.', action)
         if action == 'check':
-            responses = jsa.check(data=data,
-                                  dev=junos_module.dev,
-                                  pre_file='PRE',
-                                  post_file='POST')
-        elif action == 'snapcheck':
-            responses = jsa.snapcheck(data=data,
+            if junos_module.conn_type != "local":
+                responses = junos_module._pyez_conn.invoke_jsnapy(data=data,
+                                                                  action='check')
+            else:
+                responses = jsa.check(data=data,
                                       dev=junos_module.dev,
-                                      pre_file='PRE')
+                                      pre_file='PRE',
+                                      post_file='POST')
+        elif action == 'snapcheck':
+            if junos_module.conn_type != "local":
+                responses = junos_module._pyez_conn.invoke_jsnapy(data=data,
+                                                                  action='snapcheck')
+            else:
+                responses = jsa.snapcheck(data=data,
+                                          dev=junos_module.dev,
+                                          pre_file='PRE')
         elif action == 'snap_pre':
-            responses = jsa.snap(data=data,
-                                 dev=junos_module.dev,
-                                 file_name='PRE')
+            if junos_module.conn_type != "local":
+                responses = junos_module._pyez_conn.invoke_jsnapy(data=data,
+                                                                  action='snap_pre')
+            else:
+                responses = jsa.snap(data=data,
+                                     dev=junos_module.dev,
+                                     file_name='PRE')
         elif action == 'snap_post':
-            responses = jsa.snap(data=data,
-                                 dev=junos_module.dev,
-                                 file_name='POST')
+            if junos_module.conn_type != "local":
+                responses = junos_module._pyez_conn.invoke_jsnapy(data=data,
+                                                                  action='snap_post')
+            else:
+                responses = jsa.snap(data=data,
+                                     dev=junos_module.dev,
+                                     file_name='POST')
         else:
             junos_module.fail_json(msg="Unexpected action: %s." % (action))
         junos_module.logger.debug('The %s action executed successfully.',
@@ -327,6 +343,32 @@ def main():
             pass_percentage = 0
             if total_tests > 0:
                 pass_percentage = ((int(response.no_passed) * 100) //
+                                   total_tests)
+            results['passPercentage'] = pass_percentage
+            results['pass_percentage'] = pass_percentage
+            if results['final_result'] == 'Failed':
+                results['msg'] = 'Test Failed: Passed %s, Failed %s' % \
+                                 (results['total_passed'],
+                                  results['total_failed'])
+            else:
+                results['msg'] = 'Test Passed: Passed %s, Failed %s' % \
+                                 (results['total_passed'],
+                                  results['total_failed'])
+        elif action in ('snap_pre', 'snap_post'):
+            results['msg'] = "The %s action successfully executed." % (action)
+    elif isinstance(responses, dict) and len(responses) >= 1:
+        if action in ('snapcheck', 'check'):
+            results['device'] = responses["device"]
+            results['router'] = responses["router"]
+            results['final_result'] = responses["final_result"]
+            results['total_passed'] = responses["total_passed"]
+            results['total_failed'] = responses["total_failed"]
+            results['test_results'] = responses["test_results"]
+            total_tests = int(responses["total_passed"]) + int(responses["total_failed"])
+            results['total_tests'] = total_tests
+            pass_percentage = 0
+            if total_tests > 0:
+                pass_percentage = ((int(responses["total_passed"]) * 100) //
                                    total_tests)
             results['passPercentage'] = pass_percentage
             results['pass_percentage'] = pass_percentage
