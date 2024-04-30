@@ -8,7 +8,7 @@ Juniper Networks supports Ansible for managing devices running the Junos operati
 This collection is hosted on the Ansible Galaxy website under the collection 
 [juniper.device](https://galaxy.ansible.com/ui/repo/published/juniper/device/). 
 
-The juniper.device collection includes a set of Ansible modules that perform specific operational and configuration tasks on devices running Junos OS. 
+The `juniper.device` collection includes a set of Ansible modules that perform specific operational and configuration tasks on devices running Junos OS. 
 These tasks include: installing and upgrading Junos OS, provisioning new Junos devices in the network, loading configuration changes,
 retrieving information, and resetting, rebooting, or shutting down managed devices.  Please refer to the
 [INSTALLATION](#installation) section for instructions on installing this collection.
@@ -17,14 +17,14 @@ retrieving information, and resetting, rebooting, or shutting down managed devic
 
 Since Ansible version >= 2.1, Ansible also natively includes
 [core modules for Junos](https://docs.ansible.com/ansible/latest/collections/junipernetworks/junos/index.html#plugins-in-junipernetworks-junos). The Junos modules included
-in Ansible core have names which begin with the prefix `junos_`. The Junos modules included in this Juniper.device
+in Ansible core have names which begin with the prefix `junos_`. The Junos modules included in this `Juniper.device`
 collection have names starting with module types. These two sets of Junos modules can coexist on the same
-Ansible control machine, and an Ansible play may invoke a module from either (or both) sets. Juniper Networks recommends
-using the modules in this collection when writing new playbooks that manage Junos devices.
+Ansible control machine, and an Ansible playbook may invoke a module from either (or both) sets. Juniper Networks recommends
+using the modules in `juniper.device` collection when writing new playbooks that manage Junos devices.
 
 ## Overview of Modules
 
-This juniper.device collection includes the following modules:
+This `juniper.device` collection includes the following modules:
 
 - **command** — Execute one or more CLI commands on a Junos device.
 - **config** — Manipulate the configuration of a Junos device.
@@ -40,11 +40,11 @@ This juniper.device collection includes the following modules:
 
 ### PyEZ Version Requirement
 
-For ansible collection juniper.device we will need to install junos-eznc(PyEZ) version 2.6.0 or higher. 
+For ansible collection `juniper.device` we will need to install [junos-eznc](https://github.com/Juniper/py-junos-eznc) version 2.6.0 or higher. 
 
 ### Overview of Plugins
 
-In addition to the modules listed above, a callback_plugin `jsnapy` is available for the module `jsnapy`.
+In addition to the modules listed above, a callback_plugin `jsnapy` is available for the module [jsnapy](https://github.com/Juniper/jsnapy).
 
 The callback_plugin `jsnapy` helps to print on the screen additional information regarding jsnapy failed tests.
 For each failed test, a log will be printed after the RECAP of the playbook as shown in this example:
@@ -93,7 +93,7 @@ In MacOS Mojave and newer (>=10.14), ssh keys created with the system `ssh-keyge
 ### Ansible Galaxy collection
 
 You can use the ansible-galaxy install command to install the latest
-version of the juniper.device collection.
+version of the `juniper.device` collection.
 
 ```bash
 sudo ansible-galaxy collection install juniper.device
@@ -152,7 +152,7 @@ You may have noticed that the base command is almost always the same. We can als
 
 ### Extending the container with additional packages
 
-It's possible to install additional OS (Alpine) packages, Python packages (via pip), and Ansible collections at container instantiation. This can be done by passing in environment variables or bind mounting files.
+It's possible to install additional OS (Alpine) packages, Python packages (via pip), and Ansible collections at container instantiation. This can be done by passing in environment variables or binding mount files.
 
 #### OS Packages
 
@@ -254,8 +254,8 @@ Apache 2.0
 
 ## SUPPORT
 
-Support for this juniper.device collection is provided by the community and Juniper Networks. If you have an
-issue with a module in the juniper.device collection, you may:
+Support for this `juniper.device` collection is provided by the community and Juniper Networks. If you have an
+issue with a module in the `juniper.device` collection, you may:
 
 - Open a [GitHub issue](https://github.com/Juniper/ansible-junos-stdlib/issues).
 - Post a question on our [Google Group](https://groups.google.com/forum/#!forum/junos-python-ez)
