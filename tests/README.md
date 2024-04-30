@@ -47,9 +47,11 @@ ansible-playbook pb.juniper_junos_system.yml
 ### NOTE: 
 
 To execute pb.juniper_junos_software_member.yml playbook, you have to use the following devices
+
 Virtual Chassis - EX-VC, MX-VC 
 
 To execute pb.juniper_junos_srx_cluster.yml playbook, you have to use the following devices
+
 SRX HA Cluster enabled devices
 
 ### Ansible Fixes :
