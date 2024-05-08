@@ -1544,7 +1544,13 @@ class JuniperJunosModule(AnsibleModule):
             - An error returned from committing the configuration.
         """
         if self.conn_type != "local":
-            self._pyez_conn.commit_configuration(ignore_warning, comment, timeout, confirmed, full, sync, force_sync)
+            self._pyez_conn.commit_configuration(ignore_warning=ignore_warning,
+                                                 comment=comment,
+                                                 confirm=confirmed,
+                                                 timeout=timeout,
+                                                 full=full,
+                                                 force_sync=force_sync,
+                                                 sync=sync)
             return
 
         if self.dev is None or self.config is None:
