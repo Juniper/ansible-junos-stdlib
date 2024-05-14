@@ -708,7 +708,19 @@ def main():
         junos_module.logger.debug("Install parameters are: %s",
                                   str(install_params))
         if junos_module.conn_type != "local":
-            results['msg'] = junos_module._pyez_conn.software_api(install_params)
+            try:
+                results['msg'] = junos_module._pyez_conn.software_api(install_params)
+            except Exception as err:  # pylint: disable=broad-except
+                if "ConnectionError" in str(type(err)):
+                    # If Exception is ConnectionError, it is excpected
+                    # Device installation inititated succesfully
+                    junos_module.logger.debug("Package successfully installed.")
+                    results['msg'] += 'Package successfully installed.'
+                else:
+                    # If exception is not ConnectionError
+                    # we will raise the exception
+                    raise
+            junos_module.logger.debug("Package successfully installed")
         else:
             try:
                 junos_module.add_sw()
