@@ -1497,7 +1497,8 @@ class JuniperJunosModule(AnsibleModule):
             config = '\n'.join(map(lambda line: line.rstrip('\n'), lines))
             self.logger.debug("Loading the supplied configuration.")
         if src is not None:
-            load_args['path'] = src
+            abs_path_src = os.path.abspath(src)  # For PyEZ persistent
+            load_args['path'] = abs_path_src
             self.logger.debug("Loading the configuration from: %s.", src)
         if template is not None:
             load_args['template_path'] = template
