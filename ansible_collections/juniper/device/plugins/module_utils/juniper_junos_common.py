@@ -1544,7 +1544,7 @@ class JuniperJunosModule(AnsibleModule):
         if self.conn_type != "local":
             self._pyez_conn.commit_configuration(ignore_warning=ignore_warning,
                                                  comment=comment,
-                                                 confirm=confirmed,
+                                                 confirmed=confirmed,
                                                  timeout=timeout,
                                                  full=full,
                                                  force_sync=force_sync,
