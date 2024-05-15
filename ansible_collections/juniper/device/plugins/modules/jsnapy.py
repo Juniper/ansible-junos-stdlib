@@ -110,60 +110,58 @@ EXAMPLES = '''
 - name: Examples of jsnapy
   hosts: junos-all
   connection: local
-  gather_facts: no
-  collections:
-    - juniper.device
+  gather_facts: false
 
   tasks:
     - name: JUNOS Post Checklist
-      jsnapy:
+      juniper.device.jsnapy:
         action: "snap_post"
         config_file: "first_test.yml"
         logfile: "migration_post.log"
       register: test1
     - name: Verify all JSNAPy tests passed
-      assert:
+      ansible.builtin.assert:
         that:
           - "test1.passPercentage == 100"
     - name: Print the full test response
-      debug:
+      ansible.builtin.debug:
         var: test1
 
     - name: Test based on a test_file directly
-      jsnapy:
+      juniper.device.jsnapy:
        action: "snapcheck"
        test_files: "tests/test_junos_interface.yaml"
       register: test2
     - name: Verify all JSNAPy tests passed
-      assert:
+      ansible.builtin.assert:
         that:
           - "test2.passPercentage == 100"
     - name: Print the full test response
-      debug:
+      ansible.builtin.debug:
         var: test2
 
     - name: "Collect Pre Snapshot"
-      jsnapy:
+      juniper.device.jsnapy:
         action: "snap_pre"
         test_files: "tests/test_loopback.yml"
 
     - name: "Collect Post Snapshot"
-      jsnapy:
+      juniper.device.jsnapy:
         action: "snap_post"
         test_files: "tests/test_loopback.yml"
 
     - name: "Check after Pre and Post Snapshots"
-      jsnapy:
+      juniper.device.jsnapy:
         action: "check"
         test_files: "tests/test_loopback.yml"
       register: test3
     - name: Verify all JSNAPy tests passed
-      assert:
+      ansible.builtin.assert:
         that:
           - "test3.|succeeded"
           - "test3.passPercentage == 100"
     - name: Print the full test response
-      debug:
+      ansible.builtin.debug:
         var: test3
 '''
 

@@ -1,24 +1,24 @@
 ---
 - name: Test juniper.device.system module
   hosts: all
-  gather_facts: no
-  collections:
-    - juniper.device
+  gather_facts: false
 
   tasks:
     - name: Reboot all REs of the device
-      system:
+      juniper.device.system:
         action: "reboot"
       register: test1
-      ignore_errors: True
-      tags: [ test1 ]
+      ignore_errors: true
+      tags: [test1]
 
     - name: CHECK TEST 1
-      assert:
+      ansible.builtin.assert:
         that:
           - test1.reboot == true
-      tags: [ test1 ]
+      tags: [test1]
 
     - name: Checking NETCONF connectivity
-      wait_for: host={{ ansible_ssh_host }} port=830 timeout=360
-
+      ansible.builtin.wait_for:
+        host: "{{ inventory_hostname }}"
+        port: 830
+        timeout: 5

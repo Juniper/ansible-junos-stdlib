@@ -141,86 +141,84 @@ EXAMPLES = '''
 - name: Examples of ping
   hosts: junos-all
   connection: local
-  gather_facts: no
-  collections:
-    - juniper.device
+  gather_facts: false
 
   tasks:
     - name: Ping 192.68.1.1 with default parameters. Fails if any packets lost.
-      ping:
+      juniper.device.ping:
         dest: "192.68.1.1"
 
     - name: Ping 192.68.1.1 Allow 50% packet loss. Register response.
-      ping:
+      juniper.device.ping:
         dest: "192.68.1.1"
         acceptable_percent_loss: 50
       register: response
     - name: Print all keys in the response.
-      debug:
+      ansible.builtin.debug:
         var: response
 
     - name: Ping 192.68.1.1. Send 20 packets. Register response.
-      ping:
+      juniper.device.ping:
         dest: "192.68.1.1"
         count: 20
       register: response
     - name: Print packet sent from the response.
-      debug:
+      ansible.builtin.debug:
         var: response.packets_sent
 
     - name: Ping 192.68.1.1. Send 10 packets wihtout rapid. Register response.
-      ping:
+      juniper.device.ping:
         dest: "192.68.1.1"
         count: 10
         rapid: false
       register: response
     - name: Print the average round-trip-time from the response.
-      debug:
+      ansible.builtin.debug:
         var: response.rtt_average
 
     - name: Ping www.juniper.net with ttl 15. Register response.
-      ping:
+      juniper.device.ping:
         dest: "www.juniper.net"
         ttl: 15
       register: response
     - name: Print the packet_loss percentage from the response.
-      debug:
+      ansible.builtin.debug:
         var: response.packet_loss
 
     - name: Ping 192.68.1.1 with IP packet size of 1500. Register response.
-      ping:
+      juniper.device.ping:
         dest: "192.68.1.1"
         size: 1472
       register: response
     - name: Print the packets_received from the response.
-      debug:
+      ansible.builtin.debug:
         var: response.packets_received
 
     - name: Ping 192.68.1.1 with do-not-fragment bit set. Register response.
-      ping:
+      juniper.device.ping:
         dest: "192.68.1.1"
         do_not_fragment: true
       register: response
     - name: Print the maximum round-trip-time from the response.
-      debug:
+      ansible.builtin.debug:
         var: response.rtt_maximum
 
     - name: Ping 192.68.1.1 with source set to 192.68.1.2. Register response.
-      ping:
+      juniper.device.ping:
         dest: "192.68.1.1"
         source: "192.68.1.2"
       register: response
     - name: Print the source from the response.
-      debug:
+      ansible.builtin.debug:
         var: response.source
 
     - name: Ping 192.168.1.1 from the red routing-instance.
-      ping:
+      juniper.device.ping:
         dest: "192.168.1.1"
         routing_instance: "red"
 
     - name: Ping the all-hosts multicast address from the ge-0/0/0.0 interface
-      ping:
+      juniper.device.ping:
         dest: "224.0.0.1"
         interface: "ge-0/0/0.0"
 '''

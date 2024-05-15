@@ -127,58 +127,56 @@ EXAMPLES = '''
 - name: Examples of pmtud
   hosts: junos-all
   connection: local
-  gather_facts: no
-  collections:
-    - juniper.device
+  gather_facts: false
 
   tasks:
     - name: Perform PMTUD to 192.68.1.1 with default parameters.
-      pmtud:
+      juniper.device.pmtud:
         dest: "192.68.1.1"
 
     - name: Perform PMTUD to 192.68.1.1. Register response.
-      pmtud:
+      juniper.device.pmtud:
         dest: "192.68.1.1"
       register: response
     - name: Print the discovered MTU.
-      debug:
+      ansible.builtin.debug:
         var: response.inet_mtu
 
     - name: Perform PMTUD to 192.68.1.1. Search all possible MTU values.
-      pmtud:
+      juniper.device.pmtud:
         dest: "192.68.1.1"
         max_size: 65496
         max_range: 65536
       register: response
     - name: Print the discovered MTU.
-      debug:
+      ansible.builtin.debug:
         var: response.inet_mtu
 
     - name: Perform PMTUD to 192.68.1.1. Source from ge-0/0/0.0 interface.
-      pmtud:
+      juniper.device.pmtud:
         dest: "192.68.1.1"
         interface: "ge-0/0/0.0"
       register: response
     - name: Print the discovered MTU.
-      debug:
+      ansible.builtin.debug:
         var: response.inet_mtu
 
     - name: Perform PMTUD to 192.68.1.1. Source from 192.168.1.2.
-      pmtud:
+      juniper.device.pmtud:
         dest: "192.68.1.1"
         source: "192.168.1.2"
       register: response
     - name: Print the discovered MTU.
-      debug:
+      ansible.builtin.debug:
         var: response.inet_mtu
 
     - name: Perform PMTUD to 192.68.1.1. Source from the red routing-instance.
-      pmtud:
+      juniper.device.pmtud:
         dest: "192.68.1.1"
         routing_instance: "red"
       register: response
     - name: Print the discovered MTU.
-      debug:
+      ansible.builtin.debug:
         var: response.inet_mtu
 '''
 

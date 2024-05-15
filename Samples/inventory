@@ -1,5 +1,0 @@
-[junos]
-vm ansible_host=10.x.x.x ansible_user=user ansible_password=user123 ansible_port=22
-
-[all:vars]
-ansible_python_interpreter=/usr/local/bin/python3.8

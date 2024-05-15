@@ -1,31 +1,27 @@
 ---
 - name: Test juniper.device.pmtud module
   hosts: all
-  gather_facts: no
-  collections:
-    - juniper.device
+  gather_facts: false
   tasks:
     - name: "TEST 1 - Check path MTU to host DNS"
-      pmtud:
+      juniper.device.pmtud:
         dest_ip: "{{ ansible_ssh_host }}"
       register: test1
-      ignore_errors: True
-    - debug: var=test1
+      ignore_errors: true
 
     - name: Check TEST 1
-      assert:
+      ansible.builtin.assert:
         that:
           - 768 <= test1.inet_mtu <= 1500
 
     - name: "TEST 2 - Configure and check inet.mtu to host DNS"
-      pmtud:
+      juniper.device.pmtud:
         dest_ip: "{{ ansible_ssh_host }}"
         max_size: 700
       register: test1
-      ignore_errors: True
-    - debug: var=test1
+      ignore_errors: true
 
     - name: Check TEST 2
-      assert:
+      ansible.builtin.assert:
         that:
           - test1.inet_mtu <= 700

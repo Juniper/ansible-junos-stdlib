@@ -207,33 +207,37 @@ This example outlines how to use Ansible to install or upgrade the software imag
 ---
 - name: Install Junos OS
   hosts: dc1
-  collections:
-    - juniper.device
   connection: local
-  gather_facts: no
+  gather_facts: false
   vars:
     wait_time: 3600
     pkg_dir: /var/tmp/junos-install
-    OS_version: 14.1R1.10
-    OS_package: jinstall-14.1R1.10-domestic-signed.tgz
+    os_version: 14.1R1.10
+    os_package: jinstall-14.1R1.10-domestic-signed.tgz
     log_dir: /var/log/ansible
 
   tasks:
     - name: Checking NETCONF connectivity
-      wait_for: host={{ inventory_hostname }} port=830 timeout=5
+      ansible.builtin.wait_for:
+        host: "{{ inventory_hostname }}"
+        port: 830
+        timeout: 5
     - name: Install Junos OS package
-      software:
-        reboot: yes
-        version: "{{ OS_version }}"
-        package: "{{ pkg_dir }}/{{ OS_package }}"
+      juniper.device.software:
+        reboot: true
+        version: "{{ os_version }}"
+        package: "{{ pkg_dir }}/{{ os_package }}"
         logfile: "{{ log_dir }}/software.log"
       register: sw
       notify:
-        - wait_reboot
+        - Wait_reboot
 
   handlers:
-    - name: wait_reboot
-      wait_for: host={{ inventory_hostname }} port=830 timeout={{ wait_time }}
+    - name: Wait_reboot
+      ansible.builtin.wait_for:
+        host: "{{ inventory_hostname }}"
+        port: 830
+        timeout: "{{ wait_time }}"
       when: not sw.check_mode
 ```
 

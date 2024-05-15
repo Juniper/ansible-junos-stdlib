@@ -462,13 +462,10 @@ top_spec_mutually_exclusive += logging_spec_mutually_exclusive
 # Junos module, but which should not be visible to users.
 internal_spec = {
     '_module_utils_path': dict(type='path',
-                               required=True,
                                default=None),
     '_module_name': dict(type='str',
-                         required=True,
                          default=None),
     '_inventory_hostname': dict(type='str',
-                                required=True,
                                 default=None),
     '_connection': dict(type='str',
                         default=None),
