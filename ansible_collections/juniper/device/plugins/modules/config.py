@@ -942,6 +942,9 @@ def main():
                            type='int',
                            aliases=['confirm'],
                            default=None),
+            timeout=dict(required=False,
+                           type='int',
+                           default=30),
             comment=dict(required=False,
                          type='str',
                          default=None),
@@ -995,6 +998,7 @@ def main():
     commit_sync = junos_module.params.get('commit_sync')
     commit_force_sync = junos_module.params.get('commit_force_sync')
     confirmed = junos_module.params.get('confirmed')
+    timeout = junos_module.params.get('timeout')
     comment = junos_module.params.get('comment')
     check_commit_wait = junos_module.params.get('check_commit_wait')
     model = junos_module.params.get('model')
@@ -1227,6 +1231,7 @@ def main():
             junos_module.commit_configuration(ignore_warning=ignore_warning,
                                               comment=comment,
                                               confirmed=confirmed,
+                                              timeout=timeout,
                                               full=commit_full,
                                               sync=commit_sync,
                                               force_sync=commit_force_sync)
