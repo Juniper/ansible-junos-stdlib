@@ -90,25 +90,23 @@ EXAMPLES = '''
   hosts: junos-all
   connection: local
   gather_facts: no
-  collections:
-    - juniper.device
   tasks:
     - name: Enable an SRX cluster
-      srx_cluster:
+      juniper.device.srx_cluster:
         enable: true
         cluster_id: 4
         node_id: 0
       register: response
     - name: Print the response.
-      debug:
+      ansible.builtin.debug:
         var: response.config_lines
 
     - name: Disable an SRX cluster
-      srx_cluster:
+      juniper.device.srx_cluster:
         enable: false
       register: response
     - name: Print the response.
-      debug:
+      ansible.builtin.debug:
         var: response.config_lines
 '''
 

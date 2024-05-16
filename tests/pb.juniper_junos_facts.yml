@@ -1,19 +1,16 @@
 ---
 - name: Test juniper.device.facts module
   hosts: all
-  gather_facts: no
-  collections:
-    - juniper.device
+  gather_facts: false
   tasks:
     - name: "TEST 1 - Gather Facts"
-      facts:
-      ignore_errors: True
+      juniper.device.facts:
+      ignore_errors: true
       register: test1
 
-  #  - debug: var=test1
 
     - name: Check TEST 1
-      assert:
+      ansible.builtin.assert:
         that:
           - test1.facts.hostname
           - test1.facts.serialnumber
@@ -21,11 +18,11 @@
           - test1.facts.fqdn
 
     - name: TEST 2 - get facts in xml format
-      facts:
+      juniper.device.facts:
         config_format: xml
       register: test2
 
     - name: Check TEST 2
-      assert:
+      ansible.builtin.assert:
         that:
           - "'<configuration' in test2.facts.config"

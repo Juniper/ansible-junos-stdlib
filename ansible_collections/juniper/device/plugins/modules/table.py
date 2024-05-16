@@ -124,21 +124,19 @@ EXAMPLES = '''
 - name: Retrieve data from a Junos device using a PyEZ table/view.
   hosts: junos-all
   connection: local
-  gather_facts: no
-  collections:
-    - juniper.device
+  gather_facts: false
 
   tasks:
     - name: Retrieve LLDP Neighbor Information Using PyEZ-included Table
-      table:
+      juniper.device.table:
         file: "lldp.yml"
       register: response
     - name: Print response
-      debug:
+      ansible.builtin.debug:
         var: response
 
     - name: Retrieve routes within 192.68.1/8
-      table:
+      juniper.device.table:
         file: "routes.yml"
         table: "RouteTable"
         kwargs:
@@ -146,16 +144,16 @@ EXAMPLES = '''
         response_type: "juniper_items"
       register: response
     - name: Print response
-      debug:
+      ansible.builtin.debug:
         var: response
 
     - name: Retrieve from custom table in playbook directory
-      table:
+      juniper.device.table:
         file: "fpc.yaml"
         path: "."
       register: response
     - name: Print response
-      debug:
+      ansible.builtin.debug:
         var: response
 '''
 

@@ -198,27 +198,25 @@ EXAMPLES = '''
 - name: 'Explicit host argument'
   hosts: junos
   connection: local
-  gather_facts: no
-  collections:
-    - juniper.device
+  gather_facts: false
 
   tasks:
     - name: "Execute RPC with filters"
-      rpc:
+      juniper.device.rpc:
         rpcs:
            - "get-config"
         format: xml
         filter: <configuration><groups><name>re0</name></groups></configuration>
         attr: name=re0
       register: test1
-      ignore_errors: True
+      ignore_errors: true
 
     - name: Check TEST 1
-      debug:
+      ansible.builtin.debug:
         var: test1
 
     - name: "Execute RPC with host data and store logging"
-      rpc:
+      juniper.device.rpc:
         host: "10.x.x.x"
         user: "user"
         passwd: "user123"
@@ -228,27 +226,27 @@ EXAMPLES = '''
         logfile: "/var/tmp/rpc.log"
         ignore_warning: true
       register: test1
-      ignore_errors: True
+      ignore_errors: true
 
     - name: "Print results - summary"
-      debug:
+      ansible.builtin.debug:
         var: test1.stdout_lines
 
     - name: "Execute multiple RPC"
-      rpc:
+      juniper.device.rpc:
         rpcs:
           - "get-config"
           - "get-software-information"
 
     - name: Get Device Configuration for vlan - 1
-      rpc:
+      juniper.device.rpc:
         rpc: "get-config"
         filter_xml: "<configuration><vlans/></configuration>"
         dest: "get_config_vlan.conf"
       register: junos
 
     - name: Get interface information with kwargs
-      rpc:
+      juniper.device.rpc:
         rpc: get-interface-information
         kwargs:
           interface_name: em1

@@ -1,25 +1,23 @@
 ---
 - name: Test juniper.device.table PyEZ table/view module.
   hosts: all
-  gather_facts: no
-  collections:
-    - juniper.device
+  gather_facts: false
 
   tasks:
     - name: Retrieve LLDP Neighbor Information Using PyEZ-included Table
-      table:
+      juniper.device.table:
         file: "lldp.yml"
       register: test1
-      ignore_errors: True
-      tags: [ test1 ]
+      ignore_errors: true
+      tags: [test1]
 
-    - name: check TEST 1
-      assert:
+    - name: Check TEST 1
+      ansible.builtin.assert:
         that:
           - test1.msg == "Successfully retrieved 0 items from LLDPNeighborTable."
 
     - name: Retrieve routes within 192.68.1/8
-      table:
+      juniper.device.table:
         file: "routes.yml"
         table: "RouteTable"
         kwargs:
@@ -27,19 +25,19 @@
         response_type: "juniper_items"
       register: test2
 
-    - name: check TEST 2
-      assert:
+    - name: Check TEST 2
+      ansible.builtin.assert:
         that:
           - test2.msg == "Successfully retrieved 1 items from RouteTable."
 
     - name: Retrieve ethernet devices
-      table:
+      juniper.device.table:
         file: "ethport.yml"
         table: "EthPortTable"
         kwargs:
           interface_name: ge-0/0/0
       register: test3
-    - name: check TEST 3
-      assert:
+    - name: Check TEST 3
+      ansible.builtin.assert:
         that:
           - test3.msg == "Successfully retrieved 1 items from EthPortTable."

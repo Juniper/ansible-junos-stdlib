@@ -323,22 +323,20 @@ EXAMPLES = '''
 - name: 'Explicit host argument'
   hosts: junos
   connection: local
-  gather_facts: no
-  collections:
-    - juniper.device
+  gather_facts: false
 
   tasks:
     - name: Execute a basic Junos software upgrade.
-      software:
+      juniper.device.software:
         local_package: "./images/"
       register: response
 
     - name: Print the complete response.
-      debug:
+      ansible.builtin.debug:
         var: response
 
     - name: Upgrade Junos OS from package copied at device
-      software:
+      juniper.device.software:
         host: "10.x.x.x"
         user: "user"
         passwd: "user123"

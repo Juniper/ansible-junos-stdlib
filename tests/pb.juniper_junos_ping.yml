@@ -1,67 +1,59 @@
 ---
 - name: Test juniper.device.ping module
   hosts: all
-  gather_facts: no
-  collections:
-    - juniper.device
+  gather_facts: false
   tasks:
     - name: "TEST 1 - Ping Host DNS"
-      ping:
+      juniper.device.ping:
         dest_ip: "{{ ansible_ssh_host }}"
       register: test1
-      ignore_errors: True
-#    - debug: var=test1
+      ignore_errors: true
 
     - name: Check TEST 1
-      assert:
+      ansible.builtin.assert:
         that:
           - test1.packet_loss == '0'
 
 ############
 
     - name: "TEST 2 - Ping Wrong IP"
-      ping:
+      juniper.device.ping:
         dest_ip: 8.8.1.1
       register: test2
-      ignore_errors: True
-#    - debug: var=test2
+      ignore_errors: true
 
     - name: Check TEST 2
-      assert:
+      ansible.builtin.assert:
         that:
           - test2.packet_loss == '100'
 #################
 
     - name: "TEST 3 - Change nbr packets"
-      ping:
+      juniper.device.ping:
         dest_ip: "{{ ansible_ssh_host }}"
         count: 3
       register: test3
-      ignore_errors: True
-#    - debug: var=test3
+      ignore_errors: true
 
     - name: Check TEST 3
-      assert:
+      ansible.builtin.assert:
         that:
           - test3.packets_sent == '3'
 
 #################
 
     - name: "TEST 4 - Ping with DF-bit set"
-      ping:
+      juniper.device.ping:
         dest_ip: "{{ ansible_ssh_host }}"
         count: 3
-        do_not_fragment: True
+        do_not_fragment: true
         size: 64
       register: test4
-      ignore_errors: True
-#    - debug: var=test4
+      ignore_errors: true
 
     - name: Check TEST 4
-      assert:
+      ansible.builtin.assert:
         that:
           - test4.packets_received == '3'
 
 #################
-
-

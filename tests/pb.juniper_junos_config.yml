@@ -1,82 +1,81 @@
 ---
 - name: Test juniper.device.config module
   hosts: all
-  gather_facts: no
-  collections:
-    - juniper.device
+  gather_facts: false
+
   tasks:
 ################
     - name: Retrieve the committed configuration
-      config:
+      juniper.device.config:
         retrieve: 'committed'
         diff: false
         check: false
         commit: false
       register: test1
-      ignore_errors: True
-      tags: [ test1 ]
+      ignore_errors: true
+      tags: [test1]
 
     - name: Check TEST 1
-      assert:
+      ansible.builtin.assert:
         that:
           - test1.config
 ################
     - name: Append .foo to the hostname using private config mode.
-      config:
+      juniper.device.config:
         config_mode: 'private'
         load: 'merge'
         lines:
           - "set system host-name {{ inventory_hostname }}.foo"
         comment: "Append .foo to the hostname"
       register: test2
-      ignore_errors: True
-      tags: [ test2 ]
+      ignore_errors: true
+      tags: [test2]
 
     - name: Check TEST 2
-      assert:
+      ansible.builtin.assert:
         that:
           - test2.diff_lines
 ################
     - name: Rollback to the previous config.
-      config:
+      juniper.device.config:
         config_mode: 'private'
         rollback: 1
       register: test3
-      ignore_errors: True
-      tags: [ test3 ]
+      ignore_errors: true
+      tags: [test3]
 
     - name: Check TEST 3
-      assert:
+      ansible.builtin.assert:
         that:
           - test3.diff_lines
 #################
     - name: Save rescue configuration
-      command:
+      juniper.device.command:
         commands: "request system configuration rescue save"
 
 
     - name: Configure syslog configuration
-      config:
+      juniper.device.config:
         load: 'merge'
         lines:
           - "set system syslog file TEST any any"
         comment: "Configured system services"
 
     - name: Rollback to the rescue config.
-      config:
+      juniper.device.config:
         rollback: 'rescue'
       register: test4
     - name: Check TEST 4
-      assert:
+      ansible.builtin.assert:
         that:
           - test4.diff_lines
     - name: Clean up TEST 4
-      file:
+      ansible.builtin.file:
         path: out
         state: absent
 ###############
     - name: Configure system services.
-      config:
+      juniper.device.config:
         config_mode: 'private'
         load: 'merge'
         lines:
@@ -84,62 +83,61 @@
         comment: "Configured system services"
 
     - name: Retrieve [edit system services] of current committed config.
-      config:
+      juniper.device.config:
         retrieve: 'committed'
         filter: 'system/services'
         diff: true
         check: false
         commit: false
       register: test5
-      ignore_errors: True
-      tags: [ test5 ]
+      ignore_errors: true
+      tags: [test5]
 
     - name: Check TEST 5
-      assert:
+      ansible.builtin.assert:
         that:
           - test5.failed == False
           - "'system {' in test5.config_lines"
 #################
 
     - name: Confirm the previous commit with a commit check (but no commit)
-      config:
+      juniper.device.config:
         check: true
         diff: false
         commit: false
       register: test6
 
     - name: Check TEST 6
-      assert:
+      ansible.builtin.assert:
         that:
           test6.changed == False
 
 #################
 
     - name: Confirm the commit with a commit sync
-      config:
+      juniper.device.config:
         check: true
         diff: false
         comment: "Juniper Networks"
-        commit_sync: True
+        commit_sync: true
       register: test7
 
     - name: Check TEST 7
-      assert:
+      ansible.builtin.assert:
         that:
           - test7.changed == False
 
 #################
 
     - name: Confirm the commit with a commit sync force
-      config:
+      juniper.device.config:
         check: true
         diff: false
         comment: "Juniper Networks"
-        commit_force_sync: True
+        commit_force_sync: true
       register: test8
 
     - name: Check TEST 8
-      assert:
+      ansible.builtin.assert:
         that:
           test8.changed == False
-

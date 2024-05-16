@@ -147,18 +147,16 @@ EXAMPLES = '''
 - name: 'Explicit host argument'
   hosts: junos
   connection: local
-  gather_facts: no
-  collections:
-    - juniper.device
+  gather_facts: false
 
   tasks:
     - name: "Execute single command in text format"
-      command:
+      juniper.device.command:
         commands: "show configuration system services netconf traceoptions"
         format: text
 
     - name: "Execute command with login credentials"
-      command:
+      juniper.device.command:
         host: "10.x.x.x."
         user: "user"
         passwd: "user123"
@@ -167,7 +165,7 @@ EXAMPLES = '''
       register: junos_result
 
     - name: Execute three commands.
-      command:
+      juniper.device.command:
         commands:
           - "show version"
           - "show system uptime"
@@ -175,12 +173,12 @@ EXAMPLES = '''
       register: response
 
     - name: Print the command output of each.
-      debug:
+      ansible.builtin.debug:
         var: item.stdout
       with_items: "{{ response.results }}"
 
     - name: show route with XML output - show version with JSON output
-      command:
+      juniper.device.command:
         commands:
           - "show route"
           - "show version"
@@ -189,7 +187,7 @@ EXAMPLES = '''
           - "json"
 
     - name: Multiple commands, save outputs, but don't return them
-      command:
+      juniper.device.command:
         commands:
           - "show route"
           - "show version"
@@ -199,7 +197,7 @@ EXAMPLES = '''
         return_output: false
 
     - name: save output to dest
-      command:
+      juniper.device.command:
         command:
           - "show route"
           - "show lldp neighbors"

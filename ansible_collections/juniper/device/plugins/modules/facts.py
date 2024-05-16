@@ -85,24 +85,22 @@ EXAMPLES = '''
 - name: 'Explicit host argument'
   hosts: junos
   connection: local
-  gather_facts: no
-  collections:
-    - juniper.device
+  gather_facts: false
 
   tasks:
     - name: "Get facts"
-      facts:
+      juniper.device.facts:
       register: response
 
     - name: Facts with login credentials
-      facts:
+      juniper.device.facts:
         host: "10.x.x.x"
         user: "user"
         passwd: "user123"
         port: "22"
 
     - name: Facts in telnet mode
-      facts:
+      juniper.device.facts:
         host: "10.x.x.x"
         user: "user"
         passwd: "user123"

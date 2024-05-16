@@ -578,13 +578,11 @@ EXAMPLES = '''
 - name: 'Explicit host argument'
   hosts: junos
   connection: local
-  gather_facts: no
-  collections:
-    - juniper.device
+  gather_facts: false
 
   tasks:
     - name: Retrieve the committed configuration
-      config:
+      juniper.device.config:
         retrieve: 'committed'
         diff: false
         check: false
@@ -592,11 +590,11 @@ EXAMPLES = '''
       register: response
 
     - name: Print the lines in the config.
-      debug:
+      ansible.builtin.debug:
         var: response.config_lines
 
     - name: Append .foo to the hostname using private config mode.
-      config:
+      juniper.device.config:
         config_mode: 'private'
         load: 'merge'
         lines:
@@ -604,39 +602,39 @@ EXAMPLES = '''
       register: response
 
     - name: Print the config changes.
-      debug:
+      ansible.builtin.debug:
         var: response.diff_lines
 
     - name: Rollback to the previous config.
-      config:
+      juniper.device.config:
         config_mode: 'private'
         rollback: 1
       register: response
 
     - name: Print the config changes.
-      debug:
+      ansible.builtin.debug:
         var: response.diff_lines
 
     - name: Rollback to the rescue config.
-      config:
+      juniper.device.config:
         rollback: 'rescue'
       register: response
     - name: Print the complete response.
-      debug:
+      ansible.builtin.debug:
         var: response
 
     - name: Load override from a file.
-      config:
+      juniper.device.config:
         load: 'override'
         src: "{{ inventory_hostname }}.conf"
       register: response
 
     - name: Print the complete response.
-      debug:
+      ansible.builtin.debug:
         var: response
 
     - name: Load from a Jinja2 template.
-      config:
+      juniper.device.config:
         load: 'merge'
         format: 'xml'
         template: "{{ inventory_hostname }}.j2"
@@ -644,30 +642,30 @@ EXAMPLES = '''
           host: "{{ inventory_hostname }}"
       register: response
     - name: Print the complete response.
-      debug:
+      ansible.builtin.debug:
         var: response
 
     - name: Load from a file on the Junos device.
-      config:
+      juniper.device.config:
         load: 'merge'
         url: "{{ inventory_hostname }}.conf"
       register: response
     - name: Print the complete response.
-      debug:
+      ansible.builtin.debug:
         var: response
 
     - name: Load from a file on the Junos device, skip the commit check
-      config:
+      juniper.device.config:
         load: 'merge'
         url: "{{ inventory_hostname }}.conf"
         check: false
       register: response
     - name: Print the msg.
-      debug:
+      ansible.builtin.debug:
         var: response.msg
 
     - name: Print diff between current and rollback 10. No check. No commit.
-      config:
+      juniper.device.config:
         rollback: 11
         diff: true
         check: false
@@ -675,11 +673,11 @@ EXAMPLES = '''
       register: response
 
     - name: Print the msg.
-      debug:
+      ansible.builtin.debug:
         var: response
 
     - name: Retrieve [edit system services] of current committed config.
-      config:
+      juniper.device.config:
         retrieve: 'committed'
         filter: 'system/services'
         diff: true
@@ -688,11 +686,11 @@ EXAMPLES = '''
       register: response
 
     - name: Print the resulting config lines.
-      debug:
+      ansible.builtin.debug:
         var: response.config_lines
 
     - name: Enable NETCONF SSH and traceoptions, save config, and diffs.
-      config:
+      juniper.device.config:
         load: 'merge'
         lines:
           - 'set system services netconf ssh'
@@ -706,11 +704,11 @@ EXAMPLES = '''
       register: response
 
     - name: Print the complete response
-      debug:
+      ansible.builtin.debug:
         var: response
 
     - name: Load conf. Confirm within 5 min. Wait 3 secs between chk and commit
-      config:
+      juniper.device.config:
         load: 'merge'
         url: "{{ inventory_hostname }}.conf"
         confirm: 5
@@ -718,22 +716,22 @@ EXAMPLES = '''
       register: response
 
     - name: Print the complete response
-      debug:
+      ansible.builtin.debug:
         var: response
 
     - name: Confirm the previous commit with a commit check (but no commit)
-      config:
+      juniper.device.config:
         check: true
         diff: false
         commit: false
       register: response
 
     - name: Print the complete response
-      debug:
+      ansible.builtin.debug:
         var: response
 
     - name: fetch config from the device with filter and login credentials
-      config:
+      juniper.device.config:
         host: "10.x.x.x"
         user: "user"
         passwd: "user123"
