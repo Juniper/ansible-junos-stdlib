@@ -235,6 +235,13 @@ except ImportError:
     HAS_PYEZ_SW = False
 
 try:
+    from jnpr.junos.utils.scp import SCP
+
+    HAS_PYEZ_SCP = True
+except ImportError:
+    HAS_PYEZ_SCP = False
+
+try:
     import jnpr.junos.utils.config
 
     HAS_PYEZ_CONFIG = True
@@ -506,6 +513,11 @@ class Connection(NetworkConnectionBase):
         """
 
         resp = self.dev.rpc.get_chassis_inventory()
+        return etree.tostring(resp)
+
+    def get_checksum_information(self, remote_file):
+        """Get checksum information of the file"""
+        resp = self.dev.rpc.get_checksum_information(path=remote_file)
         return etree.tostring(resp)
 
     def get_re_name(self):
@@ -898,3 +910,33 @@ class Connection(NetworkConnectionBase):
         self.queue_message("log", "Reboot RPC successfully initiated.")
 
         return msg
+
+    def scp_file_copy_put(self, local_file, remote_file):
+        """Copy the file using scp.
+
+        Args:
+            local_file local file path/name.
+            remote_file: remote file path/name.
+        """
+        try:
+            with SCP(self.dev, progress=True) as scp:
+                scp.put(local_file, remote_file)
+        except (self.pyez_exception.RpcError, self.pyez_exception.ConnectError) as ex:
+            raise AnsibleError(
+                "Failure checking the configuraton: {0}".format(str(ex))
+            ) from ex
+
+    def scp_file_copy_get(self, remote_file, local_file):
+        """Copy the file using scp.
+
+        Args:
+            local_file local file path/name.
+            remote_file: remote file path/name.
+        """
+        try:
+            with SCP(self.dev, progress=True) as scp:
+                scp.get(remote_file, local_file)
+        except (self.pyez_exception.RpcError, self.pyez_exception.ConnectError) as ex:
+            raise AnsibleError(
+                "Failure checking the configuraton: {0}".format(str(ex))
+           ) from ex

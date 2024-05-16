@@ -41,6 +41,8 @@ from ansible.module_utils._text import to_bytes, to_text
 from ansible_collections.juniper.device.plugins.module_utils import configuration as cfg
 import jnpr
 from jnpr.junos.utils.sw import SW
+from jnpr.junos.utils.scp import SCP
+
 from jnpr.junos import exception as pyez_exception
 from ncclient.operations.errors import TimeoutExpiredError
 from ansible.module_utils.common.validation import check_type_dict
@@ -52,6 +54,7 @@ import json
 import xmltodict
 import logging
 import os
+import hashlib
 
 try:
     # Python 2
@@ -1793,3 +1796,118 @@ class JuniperJunosModule(AnsibleModule):
     def get_chassis_inventory(self):
         chassis = self._pyez_conn.get_chassis_inventory()
         return self.etree.fromstring(chassis)
+
+    def _hashfile(self, afile, hasher, blocksize=65536):
+        buf = afile.read(blocksize)
+        while len(buf) > 0:
+            hasher.update(buf)
+            buf = afile.read(blocksize)
+        return hasher.hexdigest()
+
+    def local_md5(self, package, action):
+        """
+        Computes the MD5 checksum value on the local package file.
+        :param str package:
+            File-path to the package (\*.tgz) file on the local server
+        :returns: MD5 checksum (str)
+        :raises IOError: when **package** file does not exist
+        """
+        try:
+            checksum= self._hashfile(open(package, 'rb'), hashlib.md5())
+        except Exception as err:
+            self.logger.error("unable to get the hash due to:{0}".format(err))
+            if (("No such file" in format(err)) and action == "get"):
+                checksum="no_file"
+            else:
+                raise err
+            return checksum
+
+        self.logger.info("local hash calculated")
+        return checksum
+
+    def remote_md5(self, remote_file, action):
+        try:
+            if self.conn_type == "local":
+                rpc_reply = self.dev.rpc.get_checksum_information(path=remote_file)
+                checksum = rpc_reply.findtext('.//checksum').strip()
+            else:
+                rpc_reply = self._pyez_conn.get_checksum_information(remote_file)
+                resp = self.etree.fromstring(rpc_reply)
+                checksum = resp.findtext('.//checksum').strip()
+        except Exception as err:
+            self.logger.error("unable to get rpc due to:{0}".format(str(err)))
+            if (("No such file or directory" in format(err)) and (action=="put")):
+                checksum="no_file"
+            else:
+                raise err
+            return checksum
+        self.logger.info("rpc response received")
+        return checksum
+
+    def scp_file_copy_put(self, local_file, remote_file):
+        self.logger.info("Computing local MD5 checksum on: {0}".format(local_file))
+        local_checksum = self.local_md5(local_file, "put")
+        self.logger.info("Local checksum: {0}".format(local_checksum))
+        remote_checksum = self.remote_md5(remote_file, "put")
+        if remote_checksum == "no_file" or remote_checksum != local_checksum:
+            status = "File not present, need to transfer"
+            self.logger.info(status)
+            if self.conn_type == "local":
+                with SCP(self.dev, progress=True) as scp1:
+                    scp1.put(local_file, remote_file)
+            else:
+                self._pyez_conn.scp_file_copy_put(local_file, remote_file)
+            self.logger.info("computing remote MD5 checksum on: {0}".format(remote_file))
+            remote_checksum = self.remote_md5(remote_file, "put")
+            self.logger.info("Remote checksum: {0}".format(remote_checksum))
+            if remote_checksum != local_checksum:
+                status = "Transfer failed (different MD5 between local and remote) {0} | {1}".format(
+                    local_checksum,
+                    remote_checksum
+                )
+                self.logger.error(status)
+                self.fail_json(msg=status)
+                return [status, False]
+            else:
+                status = "File pushed OK"
+                self.logger.info("Checksum check passed.")
+                self.logger.info(status)
+                return [status, True]
+        else:
+            status = "File already present, skipping the scp"
+            self.logger.info(status)
+            return [status, False]
+
+    def scp_file_copy_get(self, remote_file, local_file):
+        self.logger.info("Computing remote MD5 checksum on: {0}".format(remote_file))
+        remote_checksum = self.remote_md5(remote_file, "get")
+        self.logger.info("Remote checksum: {0}".format(remote_checksum))
+        local_checksum = self.local_md5(local_file, "get")
+        if (local_checksum == "no_file" or local_checksum != remote_checksum):
+            status = "File not present, need to transfer"
+            self.logger.info(status)
+            if self.conn_type == "local":
+                with SCP(self.dev, progress=True) as scp1:
+                    scp1.get(remote_file, local_file)
+            else:
+                self._pyez_conn.scp_file_copy_get(remote_file, local_file)
+            self.logger.info("computing local MD5 checksum on: {0}".format(local_file))
+            local_checksum = self.local_md5(local_file, "get")
+            self.logger.info("Local checksum: {0}".format(local_checksum))
+            if remote_checksum != local_checksum:
+                status = "Transfer failed (different MD5 between local and remote) {0} | {1}".format(
+                    local_checksum,
+                    remote_checksum
+                )
+                self.logger.error(status)
+                self.fail_json(msg=status)
+                return [status, False]
+            else:
+                status = "File pushed OK"
+                self.logger.info("Checksum check passed.")
+                self.logger.info(status)
+                return [status, True]
+        else:
+            status = "File already present, skipping the scp"
+            self.logger.info(status)
+            return [status, False]
