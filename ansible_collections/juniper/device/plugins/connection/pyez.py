@@ -766,6 +766,8 @@ class Connection(NetworkConnectionBase):
         Failures:
             - An error returned from committing the configuration.
         """
+        if self.dev.timeout:
+            timeout = self.dev.timeout
         try:
             self.config.commit(ignore_warning=ignore_warning,
                                comment=comment,

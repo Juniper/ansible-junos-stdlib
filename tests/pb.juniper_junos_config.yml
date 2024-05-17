@@ -141,3 +141,19 @@
       ansible.builtin.assert:
         that:
           test8.changed == False
+################
+    - name: Test commit timeout .
+      juniper.device.config:
+        load: 'merge'
+        lines:
+          - "set system host-name {{ inventory_hostname }}.foo"
+        comment: "Append .foo to the hostname"
+        timeout: 300
+      register: test2
+      ignore_errors: true
+      tags: [test2]
+
+    - name: Check TEST 2
+      ansible.builtin.assert:
+        that:
+          - test2.diff_lines

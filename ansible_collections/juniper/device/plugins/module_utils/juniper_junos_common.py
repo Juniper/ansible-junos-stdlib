@@ -1541,6 +1541,10 @@ class JuniperJunosModule(AnsibleModule):
         Failures:
             - An error returned from committing the configuration.
         """
+        if self.conn_type == "local":
+            if self.dev.timeout:
+                timeout = self.dev.timeout
+
         if self.conn_type != "local":
             self._pyez_conn.commit_configuration(ignore_warning=ignore_warning,
                                                  comment=comment,
