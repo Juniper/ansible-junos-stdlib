@@ -1,0 +1,31 @@
+---
+- name: Test juniper.device.file_copy module
+  hosts: all
+  gather_facts: false
+  tasks:
+    - name: "File copy"
+      juniper.device.file_copy:
+        local_dir: /var/tmp
+        remote_dir: /var/log
+        file: log.txt
+        action: put
+      register: test1
+      ignore_errors: true
+
+    - name: Check file copy put
+      ansible.builtin.assert:
+        that:
+          - test1.msg == 'File pushed OK'
+
+    - name: "File copy get"
+      juniper.device.file_copy:
+        local_dir: /tmp
+        remote_dir: /var/log
+        file: log.txt
+        action: get
+      register: test2
+
+    - name: Check file copy get
+      ansible.builtin.assert:
+        that:
+          - test2.msg == 'File pushed OK'

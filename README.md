@@ -29,6 +29,7 @@ This `juniper.device` collection includes the following modules:
 - **command** — Execute one or more CLI commands on a Junos device.
 - **config** — Manipulate the configuration of a Junos device.
 - **facts** — Retrieve facts from a Junos device.
+- **file_copy** - Copy the files from and to a Junos device.
 - **jsnapy** — Execute JSNAPy tests on a Junos device.
 - **ping** — Execute ping from a Junos device.
 - **pmtud** — Perform path MTU discovery from a Junos device to a destination.
