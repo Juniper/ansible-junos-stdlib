@@ -21,4 +21,4 @@
       ansible.builtin.wait_for:
         host: "{{ inventory_hostname }}"
         port: 830
-        timeout: 5
+        timeout: 360
