@@ -18,7 +18,4 @@
       tags: [test1]
 
     - name: Checking NETCONF connectivity
-      ansible.builtin.wait_for:
-        host: "{{ inventory_hostname }}"
-        port: 830
-        timeout: 360
+      wait_for: host={{ ansible_ssh_host }} port=830 timeout=360
