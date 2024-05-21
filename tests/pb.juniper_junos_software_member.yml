@@ -5,8 +5,8 @@
   vars:
     wait_time: 3600
     pkg_dir: /var/tmp/
-    os_version: 22.4
-    os_package: junos-install-ex-x86-64-22.4I62500TB237700_cd-builder.tgz
+    OS_version: 22.4
+    OS_package: junos-install-ex-x86-64-22.4I62500TB237700_cd-builder.tgz
     log_dir: /var/log/
 
   tasks:
