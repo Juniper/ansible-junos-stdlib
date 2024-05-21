@@ -3,6 +3,17 @@
   hosts: all
   gather_facts: false
   tasks:
+    - name: Creates file log.txt
+      ansible.builtin.file:
+        path: /var/tmp/log.txt
+        state: touch
+        mode: '0644'
+
+    - name: Delete local file log.txt
+      ansible.builtin.file:
+        path: /tmp/log.txt
+        state: absent
+
     - name: "File copy"
       juniper.device.file_copy:
         local_dir: /var/tmp
