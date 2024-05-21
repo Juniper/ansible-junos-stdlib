@@ -12,7 +12,7 @@
   tasks:
     - name: Checking NETCONF connectivity
       ansible.builtin.wait_for:
-        host: "{{ inventory_hostname }}"
+        host: "{{ ansible_ssh_host }}"
         port: 830
         timeout: 5
     - name: Install Junos OS package on VC member
@@ -40,7 +40,7 @@
   handlers:
     - name: Wait_reboot
       ansible.builtin.wait_for:
-        host: "{{ inventory_hostname }}"
+        host: "{{ ansible_ssh_host }}"
         port: 830
         timeout: "{{ wait_time }}"
       when: not test1.check_mode
