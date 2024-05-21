@@ -21,4 +21,4 @@
       ansible.builtin.wait_for:
         host: "{{ ansible_ssh_host }}"
         port: 830
-        timeout: 5
+        timeout: 360
