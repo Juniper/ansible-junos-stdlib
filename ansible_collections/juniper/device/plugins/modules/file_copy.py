@@ -51,23 +51,23 @@ options:
   local_dir:
     description:
       - path of the local directory where the file is located
-        or needs to be copied to 
+        or needs to be copied to
     required: true
-    type: str 
+    type: str
   remote_dir:
     description:
       - path of the directory on the remote device where the file is located 
-        or needs to be copied to 
+        or needs to be copied to
     required: true
-    type: str 
+    type: str
   file:
     description:
-      - Name of the file to copy to/from the remote device 
+      - Name of the file to copy to/from the remote device
     required: true
-    type: str 
+    type: str
   action:
     description:
-      - Type of operation to execute, currently only support get and put 
+      - Type of operation to execute, currently only support get and put
     required: true
     type: str
 '''
