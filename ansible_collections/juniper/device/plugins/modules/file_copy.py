@@ -43,44 +43,32 @@ extends_documentation_fragment:
   - juniper_junos_common.connection_documentation
   - juniper_junos_common.logging_documentation
 module: file_copy 
-author: Juniper Networks - Dinesh babu (@dineshbaburam91)
+author: "Juniper Networks - Dinesh Babu (@dineshbaburam91)"
+short_description: File put and get over SCP module 
 description:
-  - Copy file over SCP to and from a Juniper device
+  - Copy file over SCP to and from a Juniper device 
 options:
-        local_dir=dict(type='str',
-                  required=True,
-                  default=None),
-        remote_dir=dict(type='str',
-                  required=True,
-                  default=None),
-        file=dict(type='str',
-                  required=True,
-                  default=None), 
-        action=dict(type='str',
-                  choices=['put', 'get'], 
-                  required=True,
-                  default=None)
   local_dir:
     description:
-        - path of the local directory where the file is located 
-          or needs to be copied to
-    required: True
-    type: str
+      - path of the local directory where the file is located
+        or needs to be copied to 
+    required: true
+    type: str 
   remote_dir:
     description:
-        - path of the directory on the remote device where the file is located 
-          or needs to be copied to
-    required: True
-    type: str
+      - path of the directory on the remote device where the file is located 
+        or needs to be copied to 
+    required: true
+    type: str 
   file:
     description:
-      - Name of the file to copy to/from the remote device.
+      - Name of the file to copy to/from the remote device 
     required: true
-    type: str
-  Action:
+    type: str 
+  action:
     description:
-      - Type of operation to execute, currently only support get and put
-    required: True
+      - Type of operation to execute, currently only support get and put 
+    required: true
     type: str
 '''
 
