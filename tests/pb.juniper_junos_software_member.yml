@@ -5,14 +5,14 @@
   vars:
     wait_time: 3600
     pkg_dir: /var/tmp/
-    os_version: 22.4
-    os_package: junos-install-ex-x86-64-22.4I62500TB237700_cd-builder.tgz
+    OS_version: 22.4
+    OS_package: junos-install-ex-x86-64-22.4I62500TB237700_cd-builder.tgz
     log_dir: /var/log/
 
   tasks:
     - name: Checking NETCONF connectivity
       ansible.builtin.wait_for:
-        host: "{{ inventory_hostname }}"
+        host: "{{ ansible_ssh_host }}"
         port: 830
         timeout: 5
     - name: Install Junos OS package on VC member
@@ -40,7 +40,7 @@
   handlers:
     - name: Wait_reboot
       ansible.builtin.wait_for:
-        host: "{{ inventory_hostname }}"
+        host: "{{ ansible_ssh_host }}"
         port: 830
         timeout: "{{ wait_time }}"
       when: not test1.check_mode
