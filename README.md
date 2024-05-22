@@ -74,7 +74,7 @@ should be added to the Ansible configuration file in order to allow the jsnapy c
 
 [Official Juniper documentation](http://www.juniper.net/techpubs/en_US/release-independent/junos-ansible/information-products/pathway-pages/index.html) (detailed information, including examples)
 
-[Ansible style documentation](https://ansible-juniper-collection.readthedocs.io/en/latest/)
+[Ansible style documentation](https://ansible-juniper-collection.readthedocs.io)
 
 ## INSTALLATION
 
