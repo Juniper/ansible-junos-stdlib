@@ -1686,7 +1686,8 @@ class JuniperJunosModule(AnsibleModule):
         packet_loss = 100
         if results['packet_loss'] is not None:
             try:
-                packet_loss = int(results['packet_loss'])
+                packet_loss = float(results['packet_loss'])
+                packet_loss = round(packet_loss)
             except ValueError:
                 results['msg'] = 'Packet loss %s not an integer. ' \
                                  'Response: %s' % \
