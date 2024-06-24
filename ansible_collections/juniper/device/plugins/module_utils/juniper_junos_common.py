@@ -1812,7 +1812,7 @@ class JuniperJunosModule(AnsibleModule):
         """
         Computes the MD5 checksum value on the local package file.
         :param str package:
-            File-path to the package (\*.tgz) file on the local server
+            File-path to the package (tgz) file on the local server
         :returns: MD5 checksum (str)
         :raises IOError: when **package** file does not exist
         """
