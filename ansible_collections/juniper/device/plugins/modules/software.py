@@ -423,7 +423,7 @@ def parse_version_from_filename(filename):
             # Assumes the version string will be prefixed by -.
             # Assume major version will begin with two digits followed by dot.
             # Assume the version string ends with the last digit in filename.
-            match = re.search('-(\d{2}\..*\d).*', filename)
+            match = re.search(r'-(\d{2}\..*\d).*', filename)
             if match is not None:
                 return match.group(1)
     # Not a known Junos package name.
