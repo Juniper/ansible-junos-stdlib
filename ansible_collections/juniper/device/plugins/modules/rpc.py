@@ -546,8 +546,14 @@ def main():
                     resp = junos_module.dev.rpc(rpc,
                                        normalize=bool(format == 'xml'))
                 else:
-                    resp = junos_module.get_rpc(rpc,
+                    try:
+                        resp = junos_module.get_rpc(rpc,
                                        ignore_warning=ignore_warning, format=format)
+                    except Exception as ex:
+                        if "RpcError" in (str(ex)):
+                            raise junos_module.pyez_exception.RpcError
+                        if "ConnectError" in (str(ex)):
+                            raise junos_module.pyez_exception.ConnectError
                 result['msg'] = 'The RPC executed successfully.'
                 junos_module.logger.debug('RPC "%s" executed successfully.',
                                           junos_module.etree.tostring(
