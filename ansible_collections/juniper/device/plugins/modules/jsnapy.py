@@ -222,6 +222,10 @@ def main():
             config_file=dict(required=False,
                              type='path',
                              default=None),
+            dest_dir=dict(required=False,
+                          type='path',
+                          aliases=['destination_dir', 'destdir'],
+                          default=None),
             dir=dict(required=False,
                      type='path',
                      aliases=['directory'],
@@ -387,6 +391,19 @@ def main():
 
     # If we made it this far, it's success.
     results['failed'] = False
+
+    # To write failed test details to dest_dir
+    if action in ('snapcheck', 'check'):
+        if junos_module.conn_type == "local":
+            for response in responses:
+                results = response.test_details
+                for cmd, data in results.items():
+                    for data1 in data:
+                        if (('test_name' in data1.keys()) and ('result' in data1.keys())):
+                            if data1['result'] == False:
+                                test_name = str(data1['test_name']) + "_" + str(data1['result'])
+                                text_msg = str(data)
+                                junos_module.save_text_output(test_name, "text", text_msg)
 
     junos_module.exit_json(**results)
 
