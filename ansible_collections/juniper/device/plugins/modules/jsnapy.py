@@ -285,36 +285,44 @@ def main():
         if action == 'check':
             if junos_module.conn_type != "local":
                 responses = junos_module._pyez_conn.invoke_jsnapy(data=data,
-                                                                  action='check')
+                                                                  action='check',
+                                                                  folder=dir)
             else:
                 responses = jsa.check(data=data,
                                       dev=junos_module.dev,
                                       pre_file='PRE',
-                                      post_file='POST')
+                                      post_file='POST',
+                                      folder=dir)
         elif action == 'snapcheck':
             if junos_module.conn_type != "local":
                 responses = junos_module._pyez_conn.invoke_jsnapy(data=data,
-                                                                  action='snapcheck')
+                                                                  action='snapcheck',
+                                                                  folder=dir)
             else:
                 responses = jsa.snapcheck(data=data,
                                           dev=junos_module.dev,
-                                          pre_file='PRE')
+                                          pre_file='PRE',
+                                          folder=dir)
         elif action == 'snap_pre':
             if junos_module.conn_type != "local":
                 responses = junos_module._pyez_conn.invoke_jsnapy(data=data,
-                                                                  action='snap_pre')
+                                                                  action='snap_pre',
+                                                                  folder=dir)
             else:
                 responses = jsa.snap(data=data,
                                      dev=junos_module.dev,
-                                     file_name='PRE')
+                                     file_name='PRE',
+                                     folder=dir)
         elif action == 'snap_post':
             if junos_module.conn_type != "local":
                 responses = junos_module._pyez_conn.invoke_jsnapy(data=data,
-                                                                  action='snap_post')
+                                                                  action='snap_post',
+                                                                  folder=dir)
             else:
                 responses = jsa.snap(data=data,
                                      dev=junos_module.dev,
-                                     file_name='POST')
+                                     file_name='POST',
+                                     folder=dir)
         else:
             junos_module.fail_json(msg="Unexpected action: %s." % (action))
         junos_module.logger.debug('The %s action executed successfully.',
