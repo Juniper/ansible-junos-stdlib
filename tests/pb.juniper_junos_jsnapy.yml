@@ -2,6 +2,10 @@
 - name: Test juniper.device.jsnapy module
   hosts: all
   gather_facts: false
+
+  vars:
+    backup_dir: "{{ playbook_dir }}/backup_dir"
+
   tasks:
 ##################################################
 ####    TEST 1                                  ##
