@@ -1,0 +1,11 @@
+tests_include:
+  - test_snmp_config
+
+test_snmp_config:
+  - rpc: get-configuration
+  - iterate:
+      xpath: /configuration/snmp
+      tests:
+        - exists: community[name='mycommunity']
+          info: SNMP community ''mycommunity' is configured.
+          err: SNMP community ''mycommunity' is not configured!
