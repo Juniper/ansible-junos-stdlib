@@ -6,6 +6,7 @@
   vars:
     backup_dir: "{{ playbook_dir }}/backup_dir"
 
+
   tasks:
 ##################################################
 ####    TEST 1                                  ##
