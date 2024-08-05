@@ -2,6 +2,11 @@
 - name: Test juniper.device.jsnapy module
   hosts: all
   gather_facts: false
+
+  vars:
+    backup_dir: "{{ playbook_dir }}/backup_dir"
+
+
   tasks:
 ##################################################
 ####    TEST 1                                  ##
@@ -188,3 +193,35 @@
           - test7.passPercentage == 50
           - test7.total_tests == 2
       tags: [test7]
+
+##################################################
+####    TEST 8                                  ##
+##################################################
+    - name: Create local directory if it does not exist
+      ansible.builtin.file:
+        path: "{{ backup_dir }}"
+        state: directory
+      register: local_dir
+      delegate_to: localhost
+
+    - name: "TEST 8 - Execute SNAPCHECK with test file & dest_dir"
+      juniper.device.jsnapy:
+        test_files:
+          - test_snmp.yml
+        dir: junos_jsnapy
+        dest_dir: "{{ backup_dir }}"
+        action: snapcheck
+      register: test8
+      ignore_errors: true
+      tags: [test2]
+
+    - debug: var=test8
+
+    - name: Check TEST 8
+      ansible.builtin.assert:
+        that:
+          - test8.passPercentage == 0
+          - test8.total_failed == 1
+          - test8.total_passed == 0
+          - test8.total_tests == 1
+      tags: [test8]
