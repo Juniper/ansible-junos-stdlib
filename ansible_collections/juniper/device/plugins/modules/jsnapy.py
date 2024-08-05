@@ -222,6 +222,10 @@ def main():
             config_file=dict(required=False,
                              type='path',
                              default=None),
+            dest_dir=dict(required=False,
+                          type='path',
+                          aliases=['destination_dir', 'destdir'],
+                          default=None),
             dir=dict(required=False,
                      type='path',
                      aliases=['directory'],
@@ -239,6 +243,7 @@ def main():
     test_files = junos_module.params.get('test_files')
     config_file = junos_module.params.get('config_file')
     dir = junos_module.params.get('dir')
+    dest_dir = junos_module.params.get('dest_dir')
 
     # Initialize the results. Assume failure until we know otherwise.
     results = {'msg': '',
@@ -387,6 +392,31 @@ def main():
 
     # If we made it this far, it's success.
     results['failed'] = False
+
+    # To save the failed test_name details to dest_dir
+    # for connection local
+    if dest_dir is not None:
+        if action in ('snapcheck', 'check'):
+            if junos_module.conn_type == "local":
+                for response_loc in responses:
+                    results_loc = response_loc.test_details
+                    for cmd, data in results.items():
+                        for data1 in data:
+                            if (('test_name' in data1.keys()) and ('result' in data1.keys())):
+                                if data1['result'] == False:
+                                    test_name = str(data1['test_name']) + "_" + str(data1['result'])
+                                    text_msg = str(data)
+                                    junos_module.save_text_output(test_name, "text", text_msg)
+            else:
+                # For connection pyez
+                for res in results["test_results"]:
+                    for data in results['test_results'][res]:
+                        for key, value in data.items():
+                            if (('test_name' in data.keys()) and ('result' in data.keys())):
+                                if data['result'] == False:
+                                    test_name = str(data['test_name']) + "_" + str(data['result'])
+                                    text_msg = str(data)
+                                    junos_module.save_text_output(test_name, "text", text_msg)
 
     junos_module.exit_json(**results)
 
