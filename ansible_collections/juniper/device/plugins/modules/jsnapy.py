@@ -400,7 +400,7 @@ def main():
             if junos_module.conn_type == "local":
                 for response_loc in responses:
                     results_loc = response_loc.test_details
-                    for cmd, data in results.items():
+                    for cmd, data in results_loc.items():
                         for data1 in data:
                             if (('test_name' in data1.keys()) and ('result' in data1.keys())):
                                 if data1['result'] == False:
