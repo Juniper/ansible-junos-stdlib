@@ -31,7 +31,11 @@ from jinja2 import Environment, FileSystemLoader
 import yaml
 from six import print_
 
-from collections import MutableMapping, MutableSet, MutableSequence
+try:
+    from collections import MutableMapping, MutableSet, MutableSequence
+except ImportError:
+    # Python-3.8 or later
+    from collections.abc import MutableMapping, MutableSet, MutableSequence
 
 from ansible.module_utils.six import iteritems, string_types
 from ansible.parsing.plugin_docs import read_docstring
