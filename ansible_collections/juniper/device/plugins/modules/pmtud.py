@@ -345,7 +345,7 @@ def main():
     results_for_minimal = junos_module.ping(ping_params,
                                             acceptable_percent_loss=100,
                                             results=results_for_minimal)
-    if int(results_for_minimal.get('packet_loss', 100)) == 100:
+    if round(float(results_for_minimal.get('packet_loss', 100))) == 100:
         results['msg'] = "Basic connectivity to %s failed." % (results['host'])
         junos_module.exit_json(**results)
 
@@ -368,7 +368,7 @@ def main():
         current_results = junos_module.ping(ping_params,
                                             acceptable_percent_loss=100,
                                             results=current_results)
-        loss = int(current_results.get('packet_loss', 100))
+        loss = round(float(current_results.get('packet_loss', 100)))
         if loss < 100 and test_size == params['max_size']:
             # ping success with max test_size, save and break
             results['failed'] = False
