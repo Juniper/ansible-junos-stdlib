@@ -41,7 +41,7 @@ dependencies: {}
 repository: https://github.com/Juniper/ansible-junos-stdlib
 
 # The URL to any online docs
-documentation: https://junos-ansible-modules.readthedocs.io
+documentation: https://ansible-juniper-collection.readthedocs.io/
 
 # The URL to the homepage of the collection/project
 homepage: https://github.com/Juniper/ansible-junos-stdlib
