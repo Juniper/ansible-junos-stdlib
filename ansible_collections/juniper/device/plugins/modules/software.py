@@ -417,7 +417,7 @@ def parse_version_from_filename(filename):
     # Known prefixes for filenames which contain Junos software packages.
     JUNOS_PACKAGE_PREFIXES = ['jbundle', 'jinstall', 'junos-install',
                               'junos-srx', 'junos-vmhost-install', 'junos-vrr',
-                              'vmx-bundle']
+                              'vmx-bundle', 'junos-arm']
     for prefix in JUNOS_PACKAGE_PREFIXES:
         if filename.startswith(prefix):
             # Assumes the version string will be prefixed by -.
