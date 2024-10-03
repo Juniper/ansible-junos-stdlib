@@ -538,7 +538,7 @@ class Connection(NetworkConnectionBase):
         return self.dev.rpc.set_chassis_cluster_disable(
                             reboot=True, normalize=True)
 
-    def invoke_jsnapy(self, data, action):
+    def invoke_jsnapy(self, data, action, folder=None):
         """invoke jsnapy for persistent connection.
         """
         try:
@@ -549,19 +549,23 @@ class Connection(NetworkConnectionBase):
                 responses = jsa.check(data=data,
                                       dev=self.dev,
                                       pre_file='PRE',
-                                      post_file='POST')
+                                      post_file='POST',
+                                      folder=folder)
             elif action == 'snapcheck':
                 responses = jsa.snapcheck(data=data,
                                           dev=self.dev,
-                                          pre_file='PRE')
+                                          pre_file='PRE',
+                                          folder=folder)
             elif action == 'snap_pre':
                 responses = jsa.snap(data=data,
                                      dev=self.dev,
-                                     file_name='PRE')
+                                     file_name='PRE',
+                                     folder=folder)
             elif action == 'snap_post':
                 responses = jsa.snap(data=data,
                                      dev=self.dev,
-                                     file_name='POST')
+                                     file_name='POST',
+                                     folder=folder)
             else:
                 raise AnsibleError("Unexpected action: %s." % (action))
             self.queue_message("vvvv", 'The %s action executed successfully' % action)
