@@ -4,11 +4,11 @@
 
 ## About
 
-Juniper Networks supports Ansible for managing devices running the Junos operating system (Junos OS and Junos Evolved). 
-This collection is hosted on the Ansible Galaxy website under the collection 
-[juniper.device](https://galaxy.ansible.com/ui/repo/published/juniper/device/). 
+Juniper Networks supports Ansible for managing devices running the Junos operating system (Junos OS and Junos Evolved).
+This collection is hosted on the Ansible Galaxy website under the collection
+[juniper.device](https://galaxy.ansible.com/ui/repo/published/juniper/device/).
 
-The `juniper.device` collection includes a set of Ansible modules that perform specific operational and configuration tasks on devices running Junos OS. 
+The `juniper.device` collection includes a set of Ansible modules that perform specific operational and configuration tasks on devices running Junos OS.
 These tasks include: installing and upgrading Junos OS, provisioning new Junos devices in the network, loading configuration changes,
 retrieving information, and resetting, rebooting, or shutting down managed devices.  Please refer to the
 [INSTALLATION](#installation) section for instructions on installing this collection.
@@ -41,7 +41,7 @@ This `juniper.device` collection includes the following modules:
 
 ### PyEZ Version Requirement
 
-For ansible collection `juniper.device` we will need to install [junos-eznc](https://github.com/Juniper/py-junos-eznc) version 2.6.0 or higher. 
+For ansible collection `juniper.device` we will need to install [junos-eznc](https://github.com/Juniper/py-junos-eznc) version 2.6.0 or higher.
 
 ### Overview of Plugins
 

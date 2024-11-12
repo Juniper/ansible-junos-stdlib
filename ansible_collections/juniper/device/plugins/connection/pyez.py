@@ -32,6 +32,7 @@
 #
 
 from __future__ import absolute_import, division, print_function
+
 import xmltodict
 
 __metaclass__ = type
@@ -204,18 +205,18 @@ options:
     - name: ssh_config
 
 """
+import json
+import logging
 import pickle
 
 from ansible.errors import AnsibleConnectionFailure, AnsibleError
 from ansible.module_utils._text import to_bytes, to_native, to_text
 from ansible.plugins.connection import NetworkConnectionBase, ensure_connect
 
-import json
-import logging
-
 # Non-standard library imports and checks
 try:
     from jnpr.junos.version import VERSION
+
     HAS_PYEZ_VERSION = VERSION
 except ImportError:
     HAS_PYEZ_VERSION = None
@@ -249,9 +250,9 @@ except ImportError:
     HAS_PYEZ_CONFIG = False
 
 try:
-    import jnpr.junos.op
     import jnpr.junos.factory.factory_loader
     import jnpr.junos.factory.table
+    import jnpr.junos.op
 
     HAS_PYEZ_OP_TABLE = True
 except ImportError:
@@ -266,6 +267,7 @@ except ImportError:
 
 try:
     from jnpr.jsnapy import SnapAdmin, __version__
+
     HAS_JSNAPY_VERSION = __version__
 except ImportError:
     HAS_JSNAPY_VERSION = None
@@ -301,7 +303,7 @@ except NameError:
     # Python 3
     basestring = str
 
-#import q
+# import q
 logging.getLogger("ncclient").setLevel(logging.INFO)
 
 from ansible_collections.ansible.netcommon.plugins.module_utils.network.common.utils import (
@@ -309,7 +311,7 @@ from ansible_collections.ansible.netcommon.plugins.module_utils.network.common.u
 )
 
 # Supported configuration modes
-CONFIG_MODE_CHOICES = ['exclusive', 'private', 'dynamic', 'batch', 'ephemeral']
+CONFIG_MODE_CHOICES = ["exclusive", "private", "dynamic", "batch", "ephemeral"]
 
 
 class Connection(NetworkConnectionBase):
@@ -343,10 +345,7 @@ class Connection(NetworkConnectionBase):
         super(Connection, self)._connect()
 
         self._sub_plugin = {"name": "pyez", "obj": self.dev}
-        self.queue_message(
-            "vvvv",
-            "created pyez connection type"
-        )
+        self.queue_message("vvvv", "created pyez connection type")
         return (
             0,
             to_bytes(self.dev._conn.session_id, errors="surrogate_or_strict"),
@@ -362,45 +361,48 @@ class Connection(NetworkConnectionBase):
         connect_args = {}
 
         # check for mode
-        if self.get_option('port') is None:
-            if self.get_option('mode') == 'telnet':
-                connect_args['port'] = 23
-            elif self.get_option('mode') == 'serial':
-                connect_args['port'] = '/dev/ttyUSB0'
+        if self.get_option("port") is None:
+            if self.get_option("mode") == "telnet":
+                connect_args["port"] = 23
+            elif self.get_option("mode") == "serial":
+                connect_args["port"] = "/dev/ttyUSB0"
             else:
-                connect_args['port'] = 830
+                connect_args["port"] = 830
         else:
-            connect_args['port'] = self.get_option('port')
+            connect_args["port"] = self.get_option("port")
 
-        if (self.get_option('mode') == 'telnet' or
-                self.get_option('mode') == 'serial'):
-            if self.get_option('baud') is None:
+        if self.get_option("mode") == "telnet" or self.get_option("mode") == "serial":
+            if self.get_option("baud") is None:
                 # Default baud if serial or telnet mode
-                connect_args['baud'] = 9600
-            if self.get_option('attempts') is None:
+                connect_args["baud"] = 9600
+            if self.get_option("attempts") is None:
                 # Default attempts if serial or telnet mode
-                connect_args['attempts'] = 10
+                connect_args["attempts"] = 10
 
-        connect_args['host'] = self.get_option('host')
+        connect_args["host"] = self.get_option("host")
         # connect_args['port'] = self.get_option('port')
-        connect_args['user'] = self.get_option('remote_user')
-        connect_args['passwd'] = self.get_option('password')
-        connect_args['ssh_private_key_file'] = self.get_option('private_key_file')
-        connect_args['ssh_config'] = self.get_option('pyez_ssh_config')
-        connect_args['timeout'] = self.get_option('persistent_connect_timeout')
+        connect_args["user"] = self.get_option("remote_user")
+        connect_args["passwd"] = self.get_option("password")
+        connect_args["ssh_private_key_file"] = self.get_option("private_key_file")
+        connect_args["ssh_config"] = self.get_option("pyez_ssh_config")
+        connect_args["timeout"] = self.get_option("persistent_connect_timeout")
         try:
             log_connect_args = dict(connect_args)
             log_connect_args["passwd"] = "NOT_LOGGING_PARAMETER"
 
-            self.queue_message("vvvv", "Creating device parameters: %s" % log_connect_args)
+            self.queue_message(
+                "vvvv", "Creating device parameters: %s" % log_connect_args
+            )
             timeout = connect_args.pop("timeout")
             self.dev = jnpr.junos.device.Device(**connect_args)
             self.queue_message("vvvv", "Opening device.")
             self.dev.open()
             self.queue_message("vvvv", "Device opened.")
 
-            self.dev.timeout = self.get_option('persistent_command_timeout')
-            self.queue_message("vvvv", "Setting default device timeout to %d." % timeout)
+            self.dev.timeout = self.get_option("persistent_command_timeout")
+            self.queue_message(
+                "vvvv", "Setting default device timeout to %d." % timeout
+            )
         # Exceptions raised by close() or open() are all sub-classes of
         # ConnectError, so this should catch all connection-related exceptions
         # raised from PyEZ.
@@ -408,8 +410,7 @@ class Connection(NetworkConnectionBase):
             raise AnsibleError("Unable to make a PyEZ connection: %s" % (str(ex)))
 
     def close(self):
-        """Close the self.dev PyEZ Device instance.
-        """
+        """Close the self.dev PyEZ Device instance."""
         if self.dev is not None:
             try:
                 # Because self.fail_json() calls self.close(), we must set
@@ -431,12 +432,18 @@ class Connection(NetworkConnectionBase):
 
     @ensure_connect
     def get_capabilities(self):
-        """Get the capabilities for network api..
-        """
-        return json.dumps({'network_api': 'pyez'})
+        """Get the capabilities for network api.."""
+        return json.dumps({"network_api": "pyez"})
 
-    def get_config(self, filter_xml=None, options=None, model=None,
-                         namespace=None, remove_ns=True, **kwarg):
+    def get_config(
+        self,
+        filter_xml=None,
+        options=None,
+        model=None,
+        namespace=None,
+        remove_ns=True,
+        **kwarg
+    ):
         """Get Configuration.
 
         Args:
@@ -458,10 +465,12 @@ class Connection(NetworkConnectionBase):
             - Invalid filter.
             - Format not understood by device.
         """
-        resp = self.dev.rpc.get_config(filter_xml, options, model, namespace, remove_ns, **kwarg)
+        resp = self.dev.rpc.get_config(
+            filter_xml, options, model, namespace, remove_ns, **kwarg
+        )
         return etree.tostring(resp)
 
-    def get_rpc_resp(self,rpc, ignore_warning, format):
+    def get_rpc_resp(self, rpc, ignore_warning, format):
         """Execute rpc on the device and get response.
 
         Args:
@@ -478,17 +487,18 @@ class Connection(NetworkConnectionBase):
         """
         # data comes in JSON format, needs to be converted
         rpc_val = xmltodict.unparse(rpc)
-        rpc_val = rpc_val.encode('utf-8')
-        parser = etree.XMLParser(ns_clean=True, recover=True, encoding='utf-8')
+        rpc_val = rpc_val.encode("utf-8")
+        parser = etree.XMLParser(ns_clean=True, recover=True, encoding="utf-8")
         rpc_etree = etree.fromstring(rpc_val, parser=parser)
-        resp = self.dev.rpc(rpc_etree, normalize=bool(format == 'xml'), ignore_warning=ignore_warning)
-        if(format == 'json'):
+        resp = self.dev.rpc(
+            rpc_etree, normalize=bool(format == "xml"), ignore_warning=ignore_warning
+        )
+        if format == "json":
             return resp
         return etree.tostring(resp)
 
     def get_facts(self):
-        """Get device facts.
-        """
+        """Get device facts."""
         return dict(self.dev.facts)
 
     def ping_device(self, normalize, **params):
@@ -509,8 +519,7 @@ class Connection(NetworkConnectionBase):
         return rpc_str
 
     def get_chassis_inventory(self):
-        """Get chassis inventory details from the device.
-        """
+        """Get chassis inventory details from the device."""
 
         resp = self.dev.rpc.get_chassis_inventory()
         return etree.tostring(resp)
@@ -521,85 +530,75 @@ class Connection(NetworkConnectionBase):
         return etree.tostring(resp)
 
     def get_re_name(self):
-        """Get re name from the device.
-        """
+        """Get re name from the device."""
         return self.dev.re_name
 
     def set_chassis_cluster_enable(self, cluster_id, node_id):
-        """send set chassis cluster enable rpc to the device.
-        """
+        """send set chassis cluster enable rpc to the device."""
         return self.dev.rpc.set_chassis_cluster_enable(
-                            cluster_id=cluster_id, node=node_id,
-                            reboot=True, normalize=True)
+            cluster_id=cluster_id, node=node_id, reboot=True, normalize=True
+        )
 
     def set_chassis_cluster_disable(self):
-        """send set chassis cluster disable rpc to the device.
-        """
-        return self.dev.rpc.set_chassis_cluster_disable(
-                            reboot=True, normalize=True)
+        """send set chassis cluster disable rpc to the device."""
+        return self.dev.rpc.set_chassis_cluster_disable(reboot=True, normalize=True)
 
     def invoke_jsnapy(self, data, action):
-        """invoke jsnapy for persistent connection.
-        """
+        """invoke jsnapy for persistent connection."""
         try:
             self.queue_message("vvvv", "Creating jnpr.jsnapy.SnapAdmin instance.")
             jsa = jnpr.jsnapy.SnapAdmin()
-            self.queue_message("vvvv", 'Executing %s action.' % action)
-            if action == 'check':
-                responses = jsa.check(data=data,
-                                      dev=self.dev,
-                                      pre_file='PRE',
-                                      post_file='POST')
-            elif action == 'snapcheck':
-                responses = jsa.snapcheck(data=data,
-                                          dev=self.dev,
-                                          pre_file='PRE')
-            elif action == 'snap_pre':
-                responses = jsa.snap(data=data,
-                                     dev=self.dev,
-                                     file_name='PRE')
-            elif action == 'snap_post':
-                responses = jsa.snap(data=data,
-                                     dev=self.dev,
-                                     file_name='POST')
+            self.queue_message("vvvv", "Executing %s action." % action)
+            if action == "check":
+                responses = jsa.check(
+                    data=data, dev=self.dev, pre_file="PRE", post_file="POST"
+                )
+            elif action == "snapcheck":
+                responses = jsa.snapcheck(data=data, dev=self.dev, pre_file="PRE")
+            elif action == "snap_pre":
+                responses = jsa.snap(data=data, dev=self.dev, file_name="PRE")
+            elif action == "snap_post":
+                responses = jsa.snap(data=data, dev=self.dev, file_name="POST")
             else:
                 raise AnsibleError("Unexpected action: %s." % (action))
-            self.queue_message("vvvv", 'The %s action executed successfully' % action)
+            self.queue_message("vvvv", "The %s action executed successfully" % action)
         except (pyez_exception.RpcError, pyez_exception.ConnectError) as ex:
             raise AnsibleError("Error communicating with the device: %s" % str(ex))
 
         results = {}
         if isinstance(responses, list) and len(responses) == 1:
-            if action in ('snapcheck', 'check'):
+            if action in ("snapcheck", "check"):
                 for response in responses:
-                    results['device'] = response.device
-                    results['router'] = response.device
-                    results['final_result'] = response.result
-                    results['total_passed'] = response.no_passed
-                    results['total_failed'] = response.no_failed
-                    results['test_results'] = response.test_results
+                    results["device"] = response.device
+                    results["router"] = response.device
+                    results["final_result"] = response.result
+                    results["total_passed"] = response.no_passed
+                    results["total_failed"] = response.no_failed
+                    results["test_results"] = response.test_results
                     total_tests = int(response.no_passed) + int(response.no_failed)
-                    results['total_tests'] = total_tests
+                    results["total_tests"] = total_tests
                 pass_percentage = 0
                 if total_tests > 0:
-                    pass_percentage = ((int(response.no_passed) * 100) //
-                                       total_tests)
-                results['passPercentage'] = pass_percentage
-                results['pass_percentage'] = pass_percentage
-                if results['final_result'] == 'Failed':
-                    results['msg'] = 'Test Failed: Passed %s, Failed %s' % \
-                                     (results['total_passed'],
-                                      results['total_failed'])
+                    pass_percentage = (int(response.no_passed) * 100) // total_tests
+                results["passPercentage"] = pass_percentage
+                results["pass_percentage"] = pass_percentage
+                if results["final_result"] == "Failed":
+                    results["msg"] = "Test Failed: Passed %s, Failed %s" % (
+                        results["total_passed"],
+                        results["total_failed"],
+                    )
                 else:
-                    results['msg'] = 'Test Passed: Passed %s, Failed %s' % \
-                                     (results['total_passed'],
-                                      results['total_failed'])
-            elif action in ('snap_pre', 'snap_post'):
-                results['msg'] = "The %s action successfully executed." % (action)
+                    results["msg"] = "Test Passed: Passed %s, Failed %s" % (
+                        results["total_passed"],
+                        results["total_failed"],
+                    )
+            elif action in ("snap_pre", "snap_post"):
+                results["msg"] = "The %s action successfully executed." % (action)
         else:
-            raise AnsibleError("Unexpected JSNAPy responses. Type: %s."
-                                   "Responses: %s" %
-                                   (type(responses), str(responses)))
+            raise AnsibleError(
+                "Unexpected JSNAPy responses. Type: %s."
+                "Responses: %s" % (type(responses), str(responses))
+            )
         return results
 
     def open_configuration(self, mode, ignore_warn=None, ephemeral_instance=None):
@@ -613,43 +612,47 @@ class Connection(NetworkConnectionBase):
         if self.config is None:
             if mode not in CONFIG_MODE_CHOICES:
                 raise AnsibleError("Invalid configuration mode: %s" % mode)
-            if mode != 'ephemeral' and ephemeral_instance is not None:
-                self.fail_json(msg='Ephemeral instance is specified while the mode '
-                                   'is not ephemeral. Specify the mode as ephemeral '
-                                   'or do not specify the instance.')
+            if mode != "ephemeral" and ephemeral_instance is not None:
+                self.fail_json(
+                    msg="Ephemeral instance is specified while the mode "
+                    "is not ephemeral. Specify the mode as ephemeral "
+                    "or do not specify the instance."
+                )
             if self.dev is None:
                 self.open()
             config = jnpr.junos.utils.config.Config(self.dev, mode=mode)
             try:
-                if config.mode == 'exclusive':
+                if config.mode == "exclusive":
                     config.lock()
-                elif config.mode == 'private':
+                elif config.mode == "private":
                     self.dev.rpc.open_configuration(
-                        private=True,
-                        ignore_warning=ignore_warn)
-                elif config.mode == 'dynamic':
+                        private=True, ignore_warning=ignore_warn
+                    )
+                elif config.mode == "dynamic":
                     self.dev.rpc.open_configuration(
-                        dynamic=True,
-                        ignore_warning=ignore_warn)
-                elif config.mode == 'batch':
+                        dynamic=True, ignore_warning=ignore_warn
+                    )
+                elif config.mode == "batch":
                     self.dev.rpc.open_configuration(
-                        batch=True,
-                        ignore_warning=ignore_warn)
-                elif config.mode == 'ephemeral':
+                        batch=True, ignore_warning=ignore_warn
+                    )
+                elif config.mode == "ephemeral":
                     if ephemeral_instance is None:
                         self.dev.rpc.open_configuration(
-                           ephemeral=True,
-                           ignore_warning=ignore_warn)
+                            ephemeral=True, ignore_warning=ignore_warn
+                        )
                     else:
                         self.dev.rpc.open_configuration(
-                           ephemeral_instance = ephemeral_instance,
-                           ignore_warning=ignore_warn)
-            except (pyez_exception.ConnectError,
-                    pyez_exception.RpcError) as ex:
-                raise AnsibleError('Unable to open the configuration in %s '
-                                   'mode: %s' % (config.mode, str(ex)))
+                            ephemeral_instance=ephemeral_instance,
+                            ignore_warning=ignore_warn,
+                        )
+            except (pyez_exception.ConnectError, pyez_exception.RpcError) as ex:
+                raise AnsibleError(
+                    "Unable to open the configuration in %s "
+                    "mode: %s" % (config.mode, str(ex))
+                )
             self.config = config
-            self.queue_message("log", "Configuration opened in %s mode."% config.mode)
+            self.queue_message("log", "Configuration opened in %s mode." % config.mode)
 
     def close_configuration(self):
         """Close candidate configuration database.
@@ -662,15 +665,13 @@ class Connection(NetworkConnectionBase):
             config = self.config
             self.config = None
             try:
-                if config.mode == 'exclusive':
+                if config.mode == "exclusive":
                     config.unlock()
-                elif config.mode in ['batch', 'dynamic', 'private', 'ephemeral']:
+                elif config.mode in ["batch", "dynamic", "private", "ephemeral"]:
                     self.dev.rpc.close_configuration()
                 self.queue_message("log", "Configuration closed.")
-            except (pyez_exception.ConnectError,
-                    pyez_exception.RpcError) as ex:
-                raise AnsibleError('Unable to close the configuration: %s' %
-                                   (str(ex)))
+            except (pyez_exception.ConnectError, pyez_exception.RpcError) as ex:
+                raise AnsibleError("Unable to close the configuration: %s" % (str(ex)))
 
     def rollback_configuration(self, id):
         """Rollback the device configuration to the specified id.
@@ -687,29 +688,36 @@ class Connection(NetworkConnectionBase):
             - Unable to rollback the configuration due to an RpcError or ConnectError
         """
         if self.dev is None or self.config is None:
-            raise AnsibleError('The device or configuration is not open.')
+            raise AnsibleError("The device or configuration is not open.")
 
-        if id == 'rescue':
+        if id == "rescue":
             self.queue_message("log", "Rolling back to the rescue configuration.")
             try:
-                self.config.rescue(action='reload')
+                self.config.rescue(action="reload")
                 self.queue_message("log", "Rescue configuration loaded.")
-            except (self.pyez_exception.RpcError,
-                    self.pyez_exception.ConnectError) as ex:
-                raise AnsibleError('Unable to load the rescue configuraton: '
-                                   '%s' % (str(ex)))
+            except (
+                self.pyez_exception.RpcError,
+                self.pyez_exception.ConnectError,
+            ) as ex:
+                raise AnsibleError(
+                    "Unable to load the rescue configuraton: " "%s" % (str(ex))
+                )
         elif id >= 0 and id <= 49:
             self.queue_message("log", "Loading rollback {} configuration.".format(id))
             try:
                 self.config.rollback(rb_id=id)
-                self.queue_message("log", "Rollback {} configuration loaded.".format(id))
-            except (self.pyez_exception.RpcError,
-                    self.pyez_exception.ConnectError) as ex:
-                raise AnsibleError('Unable to load the rollback %d '
-                                   'configuraton: %s' % (id, str(ex)))
+                self.queue_message(
+                    "log", "Rollback {} configuration loaded.".format(id)
+                )
+            except (
+                self.pyez_exception.RpcError,
+                self.pyez_exception.ConnectError,
+            ) as ex:
+                raise AnsibleError(
+                    "Unable to load the rollback %d " "configuraton: %s" % (id, str(ex))
+                )
         else:
-            raise AnsibleError('Unrecognized rollback configuraton value: %s'
-                               % (id))
+            raise AnsibleError("Unrecognized rollback configuraton value: %s" % (id))
 
     def check_configuration(self):
         """Check the candidate configuration. Assumes the configuration is already opened.
@@ -722,10 +730,8 @@ class Connection(NetworkConnectionBase):
         try:
             self.config.commit_check()
             self.queue_message("log", "Configuration checked.")
-        except (self.pyez_exception.RpcError,
-                self.pyez_exception.ConnectError) as ex:
-            raise AnsibleError('Failure checking the configuraton: %s' %
-                               (str(ex)))
+        except (self.pyez_exception.RpcError, self.pyez_exception.ConnectError) as ex:
+            raise AnsibleError("Failure checking the configuraton: %s" % (str(ex)))
 
     def diff_configuration(self, ignore_warning=False):
         """Diff the candidate and committed configurations.
@@ -740,10 +746,8 @@ class Connection(NetworkConnectionBase):
             diff = self.config.diff(rb_id=0, ignore_warning=ignore_warning)
             self.queue_message("log", "Configuration diff completed.")
             return diff
-        except (self.pyez_exception.RpcError,
-                self.pyez_exception.ConnectError) as ex:
-            raise AnsibleError('Failure diffing the configuraton: %s' %
-                               (str(ex)))
+        except (self.pyez_exception.RpcError, self.pyez_exception.ConnectError) as ex:
+            raise AnsibleError("Failure diffing the configuraton: %s" % (str(ex)))
 
     def load_configuration(self, config, load_args):
         """Load the candidate configuration from the specified src file using the
@@ -756,17 +760,22 @@ class Connection(NetworkConnectionBase):
             if config is not None:
                 self.config.load(config, **load_args)
             else:
-                self.queue_message("log", "Load args %s." %str(load_args))
+                self.queue_message("log", "Load args %s." % str(load_args))
                 self.config.load(**load_args)
             self.queue_message("log", "Configuration loaded.")
-        except (self.pyez_exception.RpcError,
-                self.pyez_exception.ConnectError) as ex:
-            raise AnsibleError('Failure loading the configuraton: %s' %
-                               (str(ex)))
+        except (self.pyez_exception.RpcError, self.pyez_exception.ConnectError) as ex:
+            raise AnsibleError("Failure loading the configuraton: %s" % (str(ex)))
 
-    def commit_configuration(self, ignore_warning=None, comment=None,
-                             confirmed=None, timeout=30, full=False,
-                             force_sync=False, sync=False):
+    def commit_configuration(
+        self,
+        ignore_warning=None,
+        comment=None,
+        confirmed=None,
+        timeout=30,
+        full=False,
+        force_sync=False,
+        sync=False,
+    ):
         """Commit the candidate configuration.
         Assumes the configuration is already opened.
 
@@ -781,87 +790,88 @@ class Connection(NetworkConnectionBase):
         if self.dev.timeout:
             timeout = self.dev.timeout
         try:
-            self.config.commit(ignore_warning=ignore_warning,
-                               comment=comment,
-                               confirm=confirmed,
-                               timeout=timeout,
-                               full=full,
-                               force_sync=force_sync,
-                               sync=sync)
+            self.config.commit(
+                ignore_warning=ignore_warning,
+                comment=comment,
+                confirm=confirmed,
+                timeout=timeout,
+                full=full,
+                force_sync=force_sync,
+                sync=sync,
+            )
             self.queue_message("log", "Configuration committed.")
-        except (self.pyez_exception.RpcError,
-                self.pyez_exception.ConnectError) as ex:
-            raise AnsibleError('Failure committing the configuraton: %s' %
-                               (str(ex)))
+        except (self.pyez_exception.RpcError, self.pyez_exception.ConnectError) as ex:
+            raise AnsibleError("Failure committing the configuraton: %s" % (str(ex)))
 
-    def system_api(self, action, in_min, at, all_re, vmhost, other_re, media, member_id=None):
-        """Triggers the system calls like reboot, shutdown, halt and zeroize to device.
-        """
+    def system_api(
+        self, action, in_min, at, all_re, vmhost, other_re, media, member_id=None
+    ):
+        """Triggers the system calls like reboot, shutdown, halt and zeroize to device."""
         msg = None
-        if action != 'zeroize':
-            if (at == 'now' or (in_min == 0 and at is None)):
+        if action != "zeroize":
+            if at == "now" or (in_min == 0 and at is None):
                 if self.dev.timeout > 5:
-                    self.queue_message("log", "Decreasing device RPC timeout to 5 seconds.")
+                    self.queue_message(
+                        "log", "Decreasing device RPC timeout to 5 seconds."
+                    )
                     self.dev.timeout = 5
 
         try:
             self.sw = jnpr.junos.utils.sw.SW(self.dev)
-            if action == 'reboot':
+            if action == "reboot":
                 if member_id is not None:
                     for m_id in member_id:
-                        got = self.sw.reboot(in_min, at, all_re, None, vmhost, other_re, member_id=m_id)
+                        got = self.sw.reboot(
+                            in_min, at, all_re, None, vmhost, other_re, member_id=m_id
+                        )
                 else:
                     got = self.sw.reboot(in_min, at, all_re, None, vmhost, other_re)
-            elif action == 'shutdown':
+            elif action == "shutdown":
                 got = self.sw.poweroff(in_min, at, None, all_re, other_re, vmhost)
-            elif action == 'halt':
+            elif action == "halt":
                 got = self.sw.halt(in_min, at, all_re, other_re)
-            elif action == 'zeroize':
+            elif action == "zeroize":
                 got = self.sw.zeroize(all_re, media)
             else:
-                raise AnsibleError('Relevant action not found')
+                raise AnsibleError("Relevant action not found")
 
             self.queue_message("log", "RPC executed")
             if got is None:
-                msg = 'Did not find expected RPC response.'
+                msg = "Did not find expected RPC response."
             else:
-                msg = '%s successfully initiated. Response got %s' % (action, got)
-        except (self.pyez_exception.RpcTimeoutError) as ex:
+                msg = "%s successfully initiated. Response got %s" % (action, got)
+        except self.pyez_exception.RpcTimeoutError as ex:
             try:
                 self.close(raise_exceptions=True)
                 # This means the device wasn't already disconnected.
-                raise AnsibleError('%s failed. %s may not have been ' \
-                                 'initiated.' % (action, action))
-            except (self.pyez_exception.RpcError,
-                    self.pyez_exception.ConnectError):
+                raise AnsibleError(
+                    "%s failed. %s may not have been " "initiated." % (action, action)
+                )
+            except (self.pyez_exception.RpcError, self.pyez_exception.ConnectError):
                 # This is expected. The device has already disconnected.
-                msg = '%s succeeded.' % (action)
-        except (self.pyez_exception.RpcError,
-                self.pyez_exception.ConnectError) as ex:
-            raise AnsibleError('%s failed. Error: %s' % (action, str(ex)))
+                msg = "%s succeeded." % (action)
+        except (self.pyez_exception.RpcError, self.pyez_exception.ConnectError) as ex:
+            raise AnsibleError("%s failed. Error: %s" % (action, str(ex)))
         return msg
 
     def software_api(self, install_params):
-        """Installs package to device.
-        """
+        """Installs package to device."""
         try:
             self.sw = jnpr.junos.utils.sw.SW(self.dev)
             ok, msg_ret = self.sw.install(**install_params)
             if ok is not True:
-                raise AnsibleError('Unable to install the software %s' % msg_ret)
-            msg = 'Package %s successfully installed. Response from device is: %s' % (
-                install_params.get('package') or
-                install_params.get('pkg_set'),
-                msg_ret)
-            self.queue_message("log",str(msg))
+                raise AnsibleError("Unable to install the software %s" % msg_ret)
+            msg = "Package %s successfully installed. Response from device is: %s" % (
+                install_params.get("package") or install_params.get("pkg_set"),
+                msg_ret,
+            )
+            self.queue_message("log", str(msg))
             return msg
-        except (self.pyez_exception.ConnectError,
-                self.pyez_exception.RpcError) as ex:
-            raise AnsibleError('Installation failed. Error: %s' % str(ex))
+        except (self.pyez_exception.ConnectError, self.pyez_exception.RpcError) as ex:
+            raise AnsibleError("Installation failed. Error: %s" % str(ex))
 
     def reboot_api(self, all_re, vmhost, member_id=None):
-        """reboots the device.
-        """
+        """reboots the device."""
         msg = None
         try:
             restore_timeout = self.dev.timeout
@@ -870,7 +880,9 @@ class Connection(NetworkConnectionBase):
             try:
                 if member_id is not None:
                     for m_id in member_id:
-                        got = self.sw.reboot(0, None, all_re, None, vmhost, member_id=m_id)
+                        got = self.sw.reboot(
+                            0, None, all_re, None, vmhost, member_id=m_id
+                        )
                 else:
                     got = self.sw.reboot(0, None, all_re, None, vmhost)
                 self.dev.timeout = restore_timeout
@@ -880,33 +892,33 @@ class Connection(NetworkConnectionBase):
             self.queue_message("log", "Reboot RPC executed.")
 
             if got is not None:
-                msg += ' Reboot successfully initiated. ' \
-                                  'Reboot message: %s' % got
+                msg += " Reboot successfully initiated. " "Reboot message: %s" % got
             else:
-                raise AnsibleError(' Did not find expected response ' \
-                                  'from reboot RPC. ')
-        except (self.pyez_exception.RpcTimeoutError) as ex:
+                raise AnsibleError(
+                    " Did not find expected response " "from reboot RPC. "
+                )
+        except self.pyez_exception.RpcTimeoutError as ex:
             try:
                 self.close(raise_exceptions=True)
                 # This means the device wasn't already disconnected.
-                raise AnsibleError(' Reboot failed. It may not have been ' \
-                                  'initiated.')
-            except (self.pyez_exception.RpcError,
-                    self.pyez_exception.RpcTimeoutError,
-                    self.pyez_exception.ConnectError):
+                raise AnsibleError(" Reboot failed. It may not have been " "initiated.")
+            except (
+                self.pyez_exception.RpcError,
+                self.pyez_exception.RpcTimeoutError,
+                self.pyez_exception.ConnectError,
+            ):
                 # This is expected. The device has already disconnected.
-                msg += ' Reboot succeeded.'
-            except (self.ncclient_exception.TimeoutExpiredError):
+                msg += " Reboot succeeded."
+            except self.ncclient_exception.TimeoutExpiredError:
                 # This is not really expected. Still consider reboot success as
                 # Looks like rpc was consumed but no response as its rebooting.
-                msg += ' Reboot succeeded. Ignoring close error.'
-        except (self.pyez_exception.RpcError,
-                self.pyez_exception.ConnectError) as ex:
-            raise AnsibleError(' Reboot failed. Error: %s' % (str(ex)))
+                msg += " Reboot succeeded. Ignoring close error."
+        except (self.pyez_exception.RpcError, self.pyez_exception.ConnectError) as ex:
+            raise AnsibleError(" Reboot failed. Error: %s" % (str(ex)))
         else:
             try:
                 self.close()
-            except (self.ncclient_exception.TimeoutExpiredError):
+            except self.ncclient_exception.TimeoutExpiredError:
                 self.queue_message("log", "Ignoring TimeoutError for close call")
 
         self.queue_message("log", "Reboot RPC successfully initiated.")
@@ -941,4 +953,4 @@ class Connection(NetworkConnectionBase):
         except (self.pyez_exception.RpcError, self.pyez_exception.ConnectError) as ex:
             raise AnsibleError(
                 "Failure checking the configuraton: {0}".format(str(ex))
-           ) from ex
+            ) from ex

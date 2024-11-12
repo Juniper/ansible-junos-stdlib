@@ -33,20 +33,22 @@
 
 from __future__ import absolute_import, division, print_function
 
-ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'supported_by': 'community',
-                    'status': ['stableinterface']}
+ANSIBLE_METADATA = {
+    "metadata_version": "1.1",
+    "supported_by": "community",
+    "status": ["stableinterface"],
+}
 
-DOCUMENTATION = '''
+DOCUMENTATION = """
 ---
-extends_documentation_fragment: 
+extends_documentation_fragment:
   - juniper_junos_common.connection_documentation
   - juniper_junos_common.logging_documentation
-module: file_copy 
+module: file_copy
 author: "Juniper Networks - Dinesh Babu (@dineshbaburam91)"
-short_description: File put and get over SCP module 
+short_description: File put and get over SCP module
 description:
-  - Copy file over SCP to and from a Juniper device 
+  - Copy file over SCP to and from a Juniper device
 options:
   local_dir:
     description:
@@ -56,7 +58,7 @@ options:
     type: str
   remote_dir:
     description:
-      - path of the directory on the remote device where the file is located 
+      - path of the directory on the remote device where the file is located
         or needs to be copied to
     required: true
     type: str
@@ -70,9 +72,9 @@ options:
       - Type of operation to execute, currently only support get and put
     required: true
     type: str
-'''
+"""
 
-EXAMPLES = '''
+EXAMPLES = """
 ---
 - name: Examples of juniper_device_file_copy
   hosts: all
@@ -91,15 +93,15 @@ EXAMPLES = '''
         local_dir: /tmp
         action: put
         file: license.txt
-'''
+"""
 
-RETURN = '''
+RETURN = """
 changed:
   description:
     - Indicates if the device's state has changed.
   returned: when the file has been successfully copied.
   type: bool
-'''
+"""
 
 """From Ansible 2.1, Ansible uses Ansiballz framework for assembling modules
 But custom module_utils directory is supported from Ansible 2.3
@@ -107,54 +109,49 @@ Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project
 
 # Ansiballz packages module_utils into ansible.module_utils
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.juniper.device.plugins.module_utils import juniper_junos_common
+
 from ansible_collections.juniper.device.plugins.module_utils import configuration as cfg
+from ansible_collections.juniper.device.plugins.module_utils import juniper_junos_common
+
 
 def main():
 
     # The argument spec for the module.
     junos_module = juniper_junos_common.JuniperJunosModule(
-        argument_spec = dict(
-            local_dir=dict(type='str',
-                        required=True,
-                         default=None),
-            remote_dir=dict(type='str',
-                            required=True,
-                            default=None),
-            file=dict(type='str',
-                    required=True,
-                    default=None),
-            action=dict(type='str',
-                        choices=['put', 'get'],
-                        required=True,
-                        default=None)
-         ),
+        argument_spec=dict(
+            local_dir=dict(type="str", required=True, default=None),
+            remote_dir=dict(type="str", required=True, default=None),
+            file=dict(type="str", required=True, default=None),
+            action=dict(
+                type="str", choices=["put", "get"], required=True, default=None
+            ),
+        ),
         supports_check_mode=True,
         min_jxmlease_version=cfg.MIN_JXMLEASE_VERSION,
     )
 
     # Set initial results values. Assume failure until we know it's success.
-    results = {'msg': '', 'changed': False, 'failed': False}
+    results = {"msg": "", "changed": False, "failed": False}
     output = []
     # We're going to be using params a lot
     params = junos_module.params
 
-    remote_path = params['remote_dir']
-    local_file=params['local_dir']+"/"+params['file']
-    remote_file=params['remote_dir']+"/"+params['file']
+    remote_path = params["remote_dir"]
+    local_file = params["local_dir"] + "/" + params["file"]
+    remote_file = params["remote_dir"] + "/" + params["file"]
 
-    if (params['action'] == "put"):
+    if params["action"] == "put":
         output = junos_module.scp_file_copy_put(local_file, remote_file)
-        results['msg'] = output[0]
-        results['changed'] = output[1] 
-    elif (params['action'] == "get"):
-        output = junos_module.scp_file_copy_get(remote_file, local_file) 
-        results['msg'] = output[0]
-        results['changed'] = output[1]
+        results["msg"] = output[0]
+        results["changed"] = output[1]
+    elif params["action"] == "get":
+        output = junos_module.scp_file_copy_get(remote_file, local_file)
+        results["msg"] = output[0]
+        results["changed"] = output[1]
 
     # Return results.
     junos_module.exit_json(**results)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

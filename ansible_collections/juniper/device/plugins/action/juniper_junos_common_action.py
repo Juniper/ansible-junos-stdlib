@@ -31,9 +31,12 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from ansible.plugins.action.normal import ActionModule as ActionNormal
-from ansible_collections.juniper.device.plugins.action.extract_data import ExtractData
 import os
+
+from ansible.plugins.action.normal import ActionModule as ActionNormal
+
+from ansible_collections.juniper.device.plugins.action.extract_data import ExtractData
+
 
 # The Ansible core engine will call ActionModule.run()
 class ActionModule(ExtractData, ActionNormal):
@@ -44,7 +47,8 @@ class ActionModule(ExtractData, ActionNormal):
     passing the "hidden" _module_utils_path option to the module.
 
     """
+
     def run(self, tmp=None, task_vars=None):
-        super().extract(tmp,task_vars)
+        super().extract(tmp, task_vars)
         # Call the parent action module.
         return super(ActionModule, self).run(tmp, task_vars)

@@ -31,15 +31,18 @@
 #
 
 from __future__ import absolute_import, division, print_function
+
 from six import iteritems
 
-ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'supported_by': 'community',
-                    'status': ['stableinterface']}
+ANSIBLE_METADATA = {
+    "metadata_version": "1.1",
+    "supported_by": "community",
+    "status": ["stableinterface"],
+}
 
-DOCUMENTATION = '''
+DOCUMENTATION = """
 ---
-extends_documentation_fragment: 
+extends_documentation_fragment:
   - juniper_junos_common.connection_documentation
   - juniper_junos_common.logging_documentation
 module: rpc
@@ -164,8 +167,8 @@ options:
         two lists must always contain the same number of elements. For RPC
         arguments which do not require a value, specify the value of True as
         shown in the :ref:`rpc-examples-label`.
-      - By default "0" and "1" will be converted to boolean values. In case 
-        it doesn't need to be transformed to boolean pass first kwargs as 
+      - By default "0" and "1" will be converted to boolean values. In case
+        it doesn't need to be transformed to boolean pass first kwargs as
     required: false
     default: none
     type: dict or list of dict
@@ -191,9 +194,9 @@ options:
     type: list
     aliases:
       - rpc
-'''
+"""
 
-EXAMPLES = '''
+EXAMPLES = """
 ---
 - name: 'Explicit host argument'
   hosts: junos
@@ -253,9 +256,9 @@ EXAMPLES = '''
           media: True
         format: json
         dest: get_interface_information.conf
-      register: junos'''
+      register: junos"""
 
-RETURN = '''
+RETURN = """
 attrs:
   description:
     - The RPC attributes and values from the list of dictionaries in the
@@ -345,10 +348,9 @@ stdout_lines:
     - The RPC reply from the Junos device as a list of single-line strings.
   returned: when RPC executed successfully and I(return_output) is C(true).
   type: list of str
-'''
+"""
 
 import os.path
-
 
 try:
     # Python 2
@@ -364,47 +366,43 @@ Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project
 
 # Ansiballz packages module_utils into ansible.module_utils
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.juniper.device.plugins.module_utils import juniper_junos_common
+
 from ansible_collections.juniper.device.plugins.module_utils import configuration as cfg
+from ansible_collections.juniper.device.plugins.module_utils import juniper_junos_common
+
 
 def main():
     # Create the module instance.
     junos_module = juniper_junos_common.JuniperJunosModule(
         argument_spec=dict(
-            rpcs=dict(required=True,
-                      type='list',
-                      aliases=['rpc'],
-                      default=None),
-            formats=dict(required=False,
-                         type='list',
-                         aliases=['format', 'display', 'output'],
-                         default=None),
-            kwargs=dict(required=False,
-                        aliases=['kwarg', 'args', 'arg'],
-                        type='str',
-                        default=None),
-            attrs=dict(required=False,
-                       type='str',
-                       aliases=['attr'],
-                       default=None),
-            filter=dict(required=False,
-                        type='str',
-                        aliases=['filter_xml'],
-                        default=None),
-            dest=dict(required=False,
-                      type='path',
-                      aliases=['destination'],
-                      default=None),
-            dest_dir=dict(required=False,
-                          type='path',
-                          aliases=['destination_dir', 'destdir'],
-                          default=None),
-            ignore_warning=dict(required=False,
-                                type='list',
-                                default=None),
-            return_output=dict(required=False,
-                               type='bool',
-                               default=True)
+            rpcs=dict(required=True, type="list", aliases=["rpc"], default=None),
+            formats=dict(
+                required=False,
+                type="list",
+                aliases=["format", "display", "output"],
+                default=None,
+            ),
+            kwargs=dict(
+                required=False,
+                aliases=["kwarg", "args", "arg"],
+                type="str",
+                default=None,
+            ),
+            attrs=dict(required=False, type="str", aliases=["attr"], default=None),
+            filter=dict(
+                required=False, type="str", aliases=["filter_xml"], default=None
+            ),
+            dest=dict(
+                required=False, type="path", aliases=["destination"], default=None
+            ),
+            dest_dir=dict(
+                required=False,
+                type="path",
+                aliases=["destination_dir", "destdir"],
+                default=None,
+            ),
+            ignore_warning=dict(required=False, type="list", default=None),
+            return_output=dict(required=False, type="bool", default=True),
         ),
         # Since this module doesn't change the device's configuration, there is
         # no additional work required to support check mode. It's inherently
@@ -416,7 +414,7 @@ def main():
     )
 
     # Check over rpcs
-    rpcs = junos_module.params.get('rpcs')
+    rpcs = junos_module.params.get("rpcs")
     # Ansible allows users to specify a rpcs argument with no value.
     if rpcs is None:
         junos_module.fail_json(msg="The rpcs option must have a value.")
@@ -424,195 +422,208 @@ def main():
     # Parse ignore_warning value
     ignore_warning = junos_module.parse_ignore_warning_option()
     # Check over formats
-    formats = junos_module.params.get('formats')
+    formats = junos_module.params.get("formats")
     if formats is None:
         # Default to xml format
-        formats = ['xml']
+        formats = ["xml"]
     valid_formats = juniper_junos_common.RPC_OUTPUT_FORMAT_CHOICES
     # Check format values
     for format in formats:
         # Is it a valid format?
         if format not in valid_formats:
-            junos_module.fail_json(msg="The value %s in formats is invalid. "
-                                       "Must be one of: %s" %
-                                       (format, ', '.join(map(str,
-                                                              valid_formats))))
+            junos_module.fail_json(
+                msg="The value %s in formats is invalid. "
+                "Must be one of: %s" % (format, ", ".join(map(str, valid_formats)))
+            )
     # Correct number of format values?
     if len(formats) != 1 and len(formats) != len(rpcs):
-        junos_module.fail_json(msg="The formats option must have a single "
-                                   "value, or one value per rpc. There "
-                                   "are %d rpcs and %d formats." %
-                                   (len(rpcs), len(formats)))
+        junos_module.fail_json(
+            msg="The formats option must have a single "
+            "value, or one value per rpc. There "
+            "are %d rpcs and %d formats." % (len(rpcs), len(formats))
+        )
     # Same format for all rpcs
     elif len(formats) == 1 and len(rpcs) > 1:
         formats = formats * len(rpcs)
 
     # Check over kwargs
-    kwstring = junos_module.params.get('kwargs')
-    kwargs = junos_module.parse_arg_to_list_of_dicts('kwargs',
-                                                     kwstring,
-                                                     allow_bool_values=True)
+    kwstring = junos_module.params.get("kwargs")
+    kwargs = junos_module.parse_arg_to_list_of_dicts(
+        "kwargs", kwstring, allow_bool_values=True
+    )
     if kwargs is not None:
         if len(kwargs) != len(rpcs):
-            junos_module.fail_json(msg="The kwargs option must have one value "
-                                       "per rpc. There are %d rpcs and %d "
-                                       "kwargs." %
-                                       (len(rpcs), len(kwargs)))
+            junos_module.fail_json(
+                msg="The kwargs option must have one value "
+                "per rpc. There are %d rpcs and %d "
+                "kwargs." % (len(rpcs), len(kwargs))
+            )
     else:
         kwargs = [None] * len(rpcs)
 
     # Check over attrs
-    attrstring = junos_module.params.get('attrs')
-    attrs = junos_module.parse_arg_to_list_of_dicts('attrs',
-                                                    attrstring)
+    attrstring = junos_module.params.get("attrs")
+    attrs = junos_module.parse_arg_to_list_of_dicts("attrs", attrstring)
     if attrs is not None:
         if len(attrs) != len(rpcs):
-            junos_module.fail_json(msg="The attrs option must have one value"
-                                       "per rpc. There are %d rpcs and %d "
-                                       "attrs." %
-                                       (len(rpcs), len(attrs)))
+            junos_module.fail_json(
+                msg="The attrs option must have one value"
+                "per rpc. There are %d rpcs and %d "
+                "attrs." % (len(rpcs), len(attrs))
+            )
     else:
         attrs = [None] * len(rpcs)
 
     # Check filter
-    if junos_module.params.get('filter') is not None:
-        if (len(rpcs) != 1 or (rpcs[0] != 'get-config' and
-                               rpcs[0] != 'get_config')):
-            junos_module.fail_json(msg="The filter option is only valid "
-                                       "when the rpcs option value is a "
-                                       "single 'get-config' RPC.")
+    if junos_module.params.get("filter") is not None:
+        if len(rpcs) != 1 or (rpcs[0] != "get-config" and rpcs[0] != "get_config"):
+            junos_module.fail_json(
+                msg="The filter option is only valid "
+                "when the rpcs option value is a "
+                "single 'get-config' RPC."
+            )
 
     results = list()
-    for (rpc_string, format, kwarg, attr) in zip(rpcs, formats, kwargs, attrs):
+    for rpc_string, format, kwarg, attr in zip(rpcs, formats, kwargs, attrs):
         # Replace underscores with dashes in RPC name.
-        rpc_string = rpc_string.replace('_', '-')
+        rpc_string = rpc_string.replace("_", "-")
         # Set initial result values. Assume failure until we know it's success.
-        result = {'msg': '',
-                  'rpc': rpc_string,
-                  'format': format,
-                  'kwargs': kwarg,
-                  'attrs': attr,
-                  'changed': False,
-                  'failed': True}
+        result = {
+            "msg": "",
+            "rpc": rpc_string,
+            "format": format,
+            "kwargs": kwarg,
+            "attrs": attr,
+            "changed": False,
+            "failed": True,
+        }
 
         # Execute the RPC
         try:
-            #for get-config in case of exception handling it will not display
-            #filters and arguments. To be added in future.
+            # for get-config in case of exception handling it will not display
+            # filters and arguments. To be added in future.
             rpc = junos_module.etree.Element(rpc_string, format=format)
-            if rpc_string == 'get-config':
-                filter = junos_module.params.get('filter')
+            if rpc_string == "get-config":
+                filter = junos_module.params.get("filter")
                 if attr is None:
                     attr = {}
                 if kwarg is None:
                     kwarg = {}
                 if format is not None:
-                    attr['format'] = format
-                junos_module.logger.debug('Executing "get-config" RPC. '
-                                          'filter_xml=%s, options=%s, '
-                                          'kwargs=%s',
-                                          filter, str(attr), str(kwarg))
+                    attr["format"] = format
+                junos_module.logger.debug(
+                    'Executing "get-config" RPC. '
+                    "filter_xml=%s, options=%s, "
+                    "kwargs=%s",
+                    filter,
+                    str(attr),
+                    str(kwarg),
+                )
                 # not adding ignore_warning as we don't expect to get rpc-error
                 # with severity warning during get_config
                 if junos_module.conn_type == "local":
-                    resp = junos_module.dev.rpc.get_config(filter_xml=filter,
-                                                       options=attr, **kwarg)
+                    resp = junos_module.dev.rpc.get_config(
+                        filter_xml=filter, options=attr, **kwarg
+                    )
                 else:
-                    resp = junos_module.get_config(filter_xml=filter,
-                                                       options=attr, **kwarg)
-                result['msg'] = 'The "get-config" RPC executed successfully.'
-                junos_module.logger.debug('The "get-config" RPC executed '
-                                          'successfully.')
+                    resp = junos_module.get_config(
+                        filter_xml=filter, options=attr, **kwarg
+                    )
+                result["msg"] = 'The "get-config" RPC executed successfully.'
+                junos_module.logger.debug(
+                    'The "get-config" RPC executed ' "successfully."
+                )
             else:
                 if kwarg is not None:
                     # Add kwarg
-                    for (key, value) in iteritems(kwarg):
+                    for key, value in iteritems(kwarg):
                         # Replace underscores with dashes in key name.
-                        key = key.replace('_', '-')
+                        key = key.replace("_", "-")
                         sub_element = junos_module.etree.SubElement(rpc, key)
                         if not isinstance(value, bool):
                             sub_element.text = value
                 if attr is not None:
                     # Add attr
-                    for (key, value) in iteritems(attr):
+                    for key, value in iteritems(attr):
                         # Replace underscores with dashes in key name.
-                        key = key.replace('_', '-')
+                        key = key.replace("_", "-")
                         rpc.set(key, value)
-                junos_module.logger.debug('Executing RPC "%s".',
-                                          junos_module.etree.tostring(
-                                              rpc,
-                                              pretty_print=True))
+                junos_module.logger.debug(
+                    'Executing RPC "%s".',
+                    junos_module.etree.tostring(rpc, pretty_print=True),
+                )
                 if junos_module.conn_type == "local":
-                    resp = junos_module.dev.rpc(rpc,
-                                       normalize=bool(format == 'xml'))
+                    resp = junos_module.dev.rpc(rpc, normalize=bool(format == "xml"))
                 else:
                     try:
-                        resp = junos_module.get_rpc(rpc,
-                                       ignore_warning=ignore_warning, format=format)
+                        resp = junos_module.get_rpc(
+                            rpc, ignore_warning=ignore_warning, format=format
+                        )
                     except Exception as ex:
                         if "RpcError" in (str(ex)):
                             raise junos_module.pyez_exception.RpcError
                         if "ConnectError" in (str(ex)):
                             raise junos_module.pyez_exception.ConnectError
-                result['msg'] = 'The RPC executed successfully.'
-                junos_module.logger.debug('RPC "%s" executed successfully.',
-                                          junos_module.etree.tostring(
-                                              rpc,
-                                              pretty_print=True))
-        except (junos_module.pyez_exception.ConnectError,
-                junos_module.pyez_exception.RpcError) as ex:
-            junos_module.logger.debug('Unable to execute RPC "%s". Error: %s',
-                                      junos_module.etree.tostring(
-                                          rpc,
-                                          pretty_print=True), str(ex))
-            result['msg'] = 'Unable to execute the RPC: %s. Error: %s' % \
-                            (junos_module.etree.tostring(rpc,
-                                                         pretty_print=True),
-                             str(ex))
+                result["msg"] = "The RPC executed successfully."
+                junos_module.logger.debug(
+                    'RPC "%s" executed successfully.',
+                    junos_module.etree.tostring(rpc, pretty_print=True),
+                )
+        except (
+            junos_module.pyez_exception.ConnectError,
+            junos_module.pyez_exception.RpcError,
+        ) as ex:
+            junos_module.logger.debug(
+                'Unable to execute RPC "%s". Error: %s',
+                junos_module.etree.tostring(rpc, pretty_print=True),
+                str(ex),
+            )
+            result["msg"] = "Unable to execute the RPC: %s. Error: %s" % (
+                junos_module.etree.tostring(rpc, pretty_print=True),
+                str(ex),
+            )
             results.append(result)
             continue
 
         text_output = None
         parsed_output = None
         if resp is True:
-            text_output = ''
+            text_output = ""
         elif (resp, junos_module.etree._Element):
             # Handle the output based on format
-            if format == 'text':
+            if format == "text":
                 text_output = resp.text
-                junos_module.logger.debug('Text output set.')
-            elif format == 'xml':
-                text_output = junos_module.etree.tostring(resp,
-                                                          pretty_print=True)
+                junos_module.logger.debug("Text output set.")
+            elif format == "xml":
+                text_output = junos_module.etree.tostring(resp, pretty_print=True)
                 parsed_output = junos_module.jxmlease.parse_etree(resp)
-                junos_module.logger.debug('XML output set.')
-            elif format == 'json':
+                junos_module.logger.debug("XML output set.")
+            elif format == "json":
                 text_output = str(resp)
                 parsed_output = resp
-                junos_module.logger.debug('JSON output set.')
+                junos_module.logger.debug("JSON output set.")
             else:
-                result['msg'] = 'Unexpected format %s.' % (format)
+                result["msg"] = "Unexpected format %s." % (format)
                 results.append(result)
-                junos_module.logger.debug('Unexpected format %s.', format)
+                junos_module.logger.debug("Unexpected format %s.", format)
                 continue
         else:
-            result['msg'] = 'Unexpected response type %s.' % (type(resp))
+            result["msg"] = "Unexpected response type %s." % (type(resp))
             results.append(result)
-            junos_module.logger.debug('Unexpected response type %s.',
-                                      type(resp))
+            junos_module.logger.debug("Unexpected response type %s.", type(resp))
             continue
 
         # Set the output keys
-        if junos_module.params['return_output'] is True:
+        if junos_module.params["return_output"] is True:
             if text_output is not None:
-                result['stdout'] = text_output
-                result['stdout_lines'] = text_output.splitlines()
+                result["stdout"] = text_output
+                result["stdout_lines"] = text_output.splitlines()
             if parsed_output is not None:
-                result['parsed_output'] = parsed_output
+                result["parsed_output"] = parsed_output
         # Save the output
         junos_module.save_text_output(rpc_string, format, text_output)
         # This command succeeded.
-        result['failed'] = False
+        result["failed"] = False
         # Append to the list of results
         results.append(result)
 
@@ -623,13 +634,11 @@ def main():
         # Calculate the overall failed. Only failed if all commands failed.
         failed = True
         for result in results:
-            if result.get('failed') is False:
+            if result.get("failed") is False:
                 failed = False
                 break
-        junos_module.exit_json(results=results,
-                               changed=False,
-                               failed=failed)
+        junos_module.exit_json(results=results, changed=False, failed=failed)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

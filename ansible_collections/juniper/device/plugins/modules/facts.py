@@ -33,13 +33,15 @@
 
 from __future__ import absolute_import, division, print_function
 
-ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'supported_by': 'community',
-                    'status': ['stableinterface']}
+ANSIBLE_METADATA = {
+    "metadata_version": "1.1",
+    "supported_by": "community",
+    "status": ["stableinterface"],
+}
 
-DOCUMENTATION = '''
+DOCUMENTATION = """
 ---
-extends_documentation_fragment: 
+extends_documentation_fragment:
   - juniper_junos_common.connection_documentation
   - juniper_junos_common.logging_documentation
 module: facts
@@ -70,7 +72,7 @@ options:
       - The resulting JSON file is saved in
         I(savedir)C(/)I(hostname)C(-facts.json).
       - The I(savedir) directory is the value of the I(savedir) option.
-      - The I(hostname)C(-facts.json) filename begins with the value of the 
+      - The I(hostname)C(-facts.json) filename begins with the value of the
         C(hostname) fact returned from the Junos device, which might be
         different than the value of the I(host) option passed to the module.
       - If the value of the I(savedir) option is C(none), the default, then
@@ -78,9 +80,9 @@ options:
     required: false
     default: none
     type: path
-'''
+"""
 
-EXAMPLES = '''
+EXAMPLES = """
 ---
 - name: 'Explicit host argument'
   hosts: junos
@@ -116,9 +118,9 @@ EXAMPLES = '''
 # Using savedir option
 
 # Print the saved JSON file
-'''
+"""
 
-RETURN = '''
+RETURN = """
 ansible_facts.junos:
   description:
     - Facts collected from the Junos device. This dictionary contains the
@@ -174,23 +176,24 @@ failed:
   returned: always
   type: bool
   sample: false
-'''
+"""
 
 # Standard library imports
 import json
 import os.path
 
-
-
 """From Ansible 2.1, Ansible uses Ansiballz framework for assembling modules
 But custom module_utils directory is supported from Ansible 2.3
 Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project/J8FL7Z1J1Mw """
 
+from ansible.module_utils._text import to_bytes
+
 # Ansiballz packages module_utils into ansible.module_utils
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.juniper.device.plugins.module_utils import juniper_junos_common
-from ansible.module_utils._text import to_bytes
+
 from ansible_collections.juniper.device.plugins.module_utils import configuration as cfg
+from ansible_collections.juniper.device.plugins.module_utils import juniper_junos_common
+
 
 def get_facts_dict(junos_module):
     """Retreive PyEZ facts and convert to a standard dict w/o custom types.
@@ -213,25 +216,26 @@ def get_facts_dict(junos_module):
         # Retrieve all PyEZ-supported facts and copy to a standard dict.
         facts = dict(dev.facts)
         # Add two useful facts that are implement as PyEZ Device attributes.
-        facts['re_name'] = dev.re_name
-        facts['master_state'] = dev.master
+        facts["re_name"] = dev.re_name
+        facts["master_state"] = dev.master
     else:
         facts = junos_module.get_facts()
     # Ansible doesn't allow keys starting with numbers.
     # Replace the '2RE' key with the 'has_2RE' key.
-    if '2RE' in facts:
-        facts['has_2RE'] = facts['2RE']
-        del facts['2RE']
+    if "2RE" in facts:
+        facts["has_2RE"] = facts["2RE"]
+        del facts["2RE"]
     # The value of the 'version_info' key is a custom junos.version_info
     # object. Convert this value to a dict.
-    if 'version_info' in facts and facts['version_info'] is not None:
-        facts['version_info'] = dict(facts['version_info'])
+    if "version_info" in facts and facts["version_info"] is not None:
+        facts["version_info"] = dict(facts["version_info"])
     # The values of the ['junos_info'][re_name]['object'] keys are
     # custom junos.version_info objects. Convert all of these to dicts.
-    if 'junos_info' in facts and facts['junos_info'] is not None:
-        for key in facts['junos_info']:
-            facts['junos_info'][key]['object'] = dict(
-                facts['junos_info'][key]['object'])
+    if "junos_info" in facts and facts["junos_info"] is not None:
+        for key in facts["junos_info"]:
+            facts["junos_info"][key]["object"] = dict(
+                facts["junos_info"][key]["object"]
+            )
     return facts
 
 
@@ -251,19 +255,20 @@ def save_facts(junos_module, facts):
         IOError: Calls junos_module.fail_json if unable to open the facts
                  file for writing.
     """
-    if junos_module.params.get('savedir') is not None:
-        save_dir = junos_module.params.get('savedir')
-        file_name = '%s-facts.json' % (facts['hostname'])
+    if junos_module.params.get("savedir") is not None:
+        save_dir = junos_module.params.get("savedir")
+        file_name = "%s-facts.json" % (facts["hostname"])
         file_path = os.path.normpath(os.path.join(save_dir, file_name))
         junos_module.logger.debug("Saving facts to: %s.", file_path)
         try:
             # TODO: Verify does this work with Python3
-            with open(file_path, 'w') as fact_file:
+            with open(file_path, "w") as fact_file:
                 json.dump(facts, fact_file)
             junos_module.logger.debug("Facts saved to: %s.", file_path)
         except IOError:
-            junos_module.fail_json(msg="Unable to save facts. Failed to open "
-                                       "the %s file." % (file_path))
+            junos_module.fail_json(
+                msg="Unable to save facts. Failed to open " "the %s file." % (file_path)
+            )
 
 
 def save_inventory(junos_module, inventory):
@@ -282,23 +287,25 @@ def save_inventory(junos_module, inventory):
         IOError: Calls junos_module.fail_json if unable to open the inventory
                  file for writing.
     """
-    if junos_module.conn_type == "local" :
+    if junos_module.conn_type == "local":
         dev = junos_module.dev
-        file_name = '%s-inventory.xml' % (dev.facts['hostname'])
+        file_name = "%s-inventory.xml" % (dev.facts["hostname"])
     else:
         facts = junos_module._pyez_conn.get_facts()
-        file_name = '%s-inventory.xml' % (facts['hostname'])
-    if junos_module.params.get('savedir') is not None:
-        save_dir = junos_module.params.get('savedir')
+        file_name = "%s-inventory.xml" % (facts["hostname"])
+    if junos_module.params.get("savedir") is not None:
+        save_dir = junos_module.params.get("savedir")
         file_path = os.path.normpath(os.path.join(save_dir, file_name))
         junos_module.logger.debug("Saving inventory to: %s.", file_path)
         try:
-            with open(file_path, 'wb') as fact_file:
-                fact_file.write(to_bytes(inventory, encoding='utf-8'))
+            with open(file_path, "wb") as fact_file:
+                fact_file.write(to_bytes(inventory, encoding="utf-8"))
             junos_module.logger.debug("Inventory saved to: %s.", file_path)
         except IOError:
-            junos_module.fail_json(msg="Unable to save inventory. Failed to "
-                                       "open the %s file." % (file_path))
+            junos_module.fail_json(
+                msg="Unable to save inventory. Failed to "
+                "open the %s file." % (file_path)
+            )
 
 
 def main():
@@ -308,10 +315,10 @@ def main():
     # Create the module instance.
     junos_module = juniper_junos_common.JuniperJunosModule(
         argument_spec=dict(
-            config_format=dict(choices=config_format_choices,
-                               required=False,
-                               default=None),
-            savedir=dict(type='path', required=False, default=None),
+            config_format=dict(
+                choices=config_format_choices, required=False, default=None
+            ),
+            savedir=dict(type="path", required=False, default=None),
         ),
         # Since this module doesn't change the device's configuration, there is
         # no additional work required to support check mode. It's inherently
@@ -325,7 +332,7 @@ def main():
     facts = get_facts_dict(junos_module)
     junos_module.logger.debug("Facts gathered.")
 
-    if junos_module.params.get('savedir') is not None:
+    if junos_module.params.get("savedir") is not None:
         # Save the facts.
         save_facts(junos_module, facts)
 
@@ -337,19 +344,19 @@ def main():
             else:
                 inventory = junos_module.get_chassis_inventory()
             junos_module.logger.debug("Inventory gathered.")
-            save_inventory(junos_module,
-                           junos_module.etree.tostring(inventory,
-                                                       pretty_print=True))
+            save_inventory(
+                junos_module, junos_module.etree.tostring(inventory, pretty_print=True)
+            )
         except junos_module.pyez_exception.RpcError as ex:
-            junos_module.fail_json(msg='Unable to retrieve hardware '
-                                       'inventory: %s' % (str(ex)))
+            junos_module.fail_json(
+                msg="Unable to retrieve hardware " "inventory: %s" % (str(ex))
+            )
 
-    config_format = junos_module.params.get('config_format')
+    config_format = junos_module.params.get("config_format")
     if config_format is not None:
-        (config, config_parsed) = junos_module.get_configuration(
-                                      format=config_format)
+        (config, config_parsed) = junos_module.get_configuration(format=config_format)
         if config is not None:
-            facts.update({'config': config})
+            facts.update({"config": config})
         # Need to wait until the ordering issues are figured out before
         # using config_parsed.
         # if config_parsed is not None:
@@ -357,11 +364,9 @@ def main():
 
     # Return response.
     junos_module.exit_json(
-        changed=False,
-        failed=False,
-        ansible_facts={'junos': facts},
-        facts=facts)
+        changed=False, failed=False, ansible_facts={"junos": facts}, facts=facts
+    )
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

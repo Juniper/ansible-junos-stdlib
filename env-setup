@@ -1,5 +1,5 @@
 #!/bin/bash
-# usage: source env-setup 
+# usage: source env-setup
 
 # When run using source as directed, $0 gets set to bash, so we must use $BASH_SOURCE
 if [ -n "$BASH_SOURCE" ] ; then

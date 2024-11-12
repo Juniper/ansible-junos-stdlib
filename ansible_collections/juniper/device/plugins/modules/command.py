@@ -33,13 +33,15 @@
 
 from __future__ import absolute_import, division, print_function
 
-ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'supported_by': 'community',
-                    'status': ['stableinterface']}
+ANSIBLE_METADATA = {
+    "metadata_version": "1.1",
+    "supported_by": "community",
+    "status": ["stableinterface"],
+}
 
-DOCUMENTATION = '''
+DOCUMENTATION = """
 ---
-extends_documentation_fragment: 
+extends_documentation_fragment:
   - juniper_junos_common.connection_documentation
   - juniper_junos_common.logging_documentation
 module: command
@@ -141,9 +143,9 @@ options:
     required: false
     default: true
     type: bool
-'''
+"""
 
-EXAMPLES = '''
+EXAMPLES = """
 - name: 'Explicit host argument'
   hosts: junos
   connection: local
@@ -202,9 +204,9 @@ EXAMPLES = '''
           - "show route"
           - "show lldp neighbors"
         dest: "/tmp/{{ inventory_hostname }}.commands.output"
-'''
+"""
 
-RETURN = '''
+RETURN = """
 changed:
   description:
     - Indicates if the device's state has changed. Since this module does not
@@ -277,10 +279,9 @@ stdout_lines:
     - The command reply from the Junos device as a list of single-line strings.
   returned: when command executed successfully and I(return_output) is C(true).
   type: list of str
-'''
+"""
 
 import sys
-
 
 """From Ansible 2.1, Ansible uses Ansiballz framework for assembling modules
 But custom module_utils directory is supported from Ansible 2.3
@@ -288,35 +289,38 @@ Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project
 
 # Ansiballz packages module_utils into ansible.module_utils
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.juniper.device.plugins.module_utils import juniper_junos_common
+
 from ansible_collections.juniper.device.plugins.module_utils import configuration as cfg
+from ansible_collections.juniper.device.plugins.module_utils import juniper_junos_common
+
 
 def main():
     # Create the module instance.
     junos_module = juniper_junos_common.JuniperJunosModule(
         argument_spec=dict(
-            commands=dict(required=True,
-                          type='list',
-                          aliases=['cli', 'command', 'cmd', 'cmds'],
-                          default=None),
-            formats=dict(required=False,
-                         type='list',
-                         aliases=['format', 'display', 'output'],
-                         default=None),
-            dest=dict(required=False,
-                      type='path',
-                      aliases=['destination'],
-                      default=None),
-            dest_dir=dict(required=False,
-                          type='path',
-                          aliases=['destination_dir', 'destdir'],
-                          default=None),
-            ignore_warning=dict(required=False,
-                                type='list',
-                                default=None),
-            return_output=dict(required=False,
-                               type='bool',
-                               default=True)
+            commands=dict(
+                required=True,
+                type="list",
+                aliases=["cli", "command", "cmd", "cmds"],
+                default=None,
+            ),
+            formats=dict(
+                required=False,
+                type="list",
+                aliases=["format", "display", "output"],
+                default=None,
+            ),
+            dest=dict(
+                required=False, type="path", aliases=["destination"], default=None
+            ),
+            dest_dir=dict(
+                required=False,
+                type="path",
+                aliases=["destination_dir", "destdir"],
+                default=None,
+            ),
+            ignore_warning=dict(required=False, type="list", default=None),
+            return_output=dict(required=False, type="bool", default=True),
         ),
         # Since this module doesn't change the device's configuration, there is
         # no additional work required to support check mode. It's inherently
@@ -331,144 +335,154 @@ def main():
     ignore_warning = junos_module.parse_ignore_warning_option()
 
     # Check over commands
-    commands = junos_module.params.get('commands')
+    commands = junos_module.params.get("commands")
     # Ansible allows users to specify a commands argument with no value.
     if commands is None:
         junos_module.fail_json(msg="The commands option must have a value.")
     # Make sure the commands don't include any pipe modifiers.
     for command in commands:
-        pipe_index = command.find('|')
-        if (pipe_index != -1 and
-           command[pipe_index:].strip() != 'display xml rpc'):
+        pipe_index = command.find("|")
+        if pipe_index != -1 and command[pipe_index:].strip() != "display xml rpc":
             # Allow "show configuration | display set"
-            if ('show configuration' in command and
-                'display set' in command[pipe_index:] and
-                '|' not in command[pipe_index+1:]):
+            if (
+                "show configuration" in command
+                and "display set" in command[pipe_index:]
+                and "|" not in command[pipe_index + 1 :]
+            ):
                 continue
             # Any other "| display " should use the format option instead.
             for valid_format in juniper_junos_common.RPC_OUTPUT_FORMAT_CHOICES:
-                if 'display ' + valid_format in command[pipe_index:]:
+                if "display " + valid_format in command[pipe_index:]:
                     junos_module.fail_json(
-                        msg='The pipe modifier (%s) in the command '
-                            '(%s) is not supported. Use format: "%s" '
-                            'instead.' %
-                            (command[pipe_index:], command, valid_format))
+                        msg="The pipe modifier (%s) in the command "
+                        '(%s) is not supported. Use format: "%s" '
+                        "instead." % (command[pipe_index:], command, valid_format)
+                    )
             # Any other "| " is going to produce an error anyway, so fail
             # with a meaningful message.
-            junos_module.fail_json(msg='The pipe modifier (%s) in the command '
-                                       '(%s) is not supported.' %
-                                       (command[pipe_index:], command))
+            junos_module.fail_json(
+                msg="The pipe modifier (%s) in the command "
+                "(%s) is not supported." % (command[pipe_index:], command)
+            )
 
     # Check over formats
-    formats = junos_module.params.get('formats')
+    formats = junos_module.params.get("formats")
     if formats is None:
         # Default to text format
-        formats = ['text']
+        formats = ["text"]
     valid_formats = juniper_junos_common.RPC_OUTPUT_FORMAT_CHOICES
     # Check format values
     for format in formats:
         # Is it a valid format?
         if format not in valid_formats:
-            junos_module.fail_json(msg="The value %s in formats is invalid. "
-                                       "Must be one of: %s" %
-                                       (format, ', '.join(map(str,
-                                                              valid_formats))))
+            junos_module.fail_json(
+                msg="The value %s in formats is invalid. "
+                "Must be one of: %s" % (format, ", ".join(map(str, valid_formats)))
+            )
     # Correct number of format values?
     if len(formats) != 1 and len(formats) != len(commands):
-        junos_module.fail_json(msg="The formats option must have a single "
-                                   "value, or one value per command. There "
-                                   "are %d commands and %d formats." %
-                                   (len(commands), len(formats)))
+        junos_module.fail_json(
+            msg="The formats option must have a single "
+            "value, or one value per command. There "
+            "are %d commands and %d formats." % (len(commands), len(formats))
+        )
     # Same format for all commands
     elif len(formats) == 1 and len(commands) > 1:
         formats = formats * len(commands)
 
     results = list()
-    for (command, format) in zip(commands, formats):
+    for command, format in zip(commands, formats):
         # Set initial result values. Assume failure until we know it's success.
-        result = {'msg': '',
-                  'command': command,
-                  'format': format,
-                  'changed': False,
-                  'failed': True}
+        result = {
+            "msg": "",
+            "command": command,
+            "format": format,
+            "changed": False,
+            "failed": True,
+        }
 
         # Execute the CLI command
         try:
-            junos_module.logger.debug('Executing command "%s".',
-                                      command)
-            rpc = junos_module.etree.Element('command', format=format)
+            junos_module.logger.debug('Executing command "%s".', command)
+            rpc = junos_module.etree.Element("command", format=format)
             rpc.text = command
             if junos_module.conn_type == "local":
-                resp = junos_module.dev.rpc(rpc, ignore_warning=ignore_warning, normalize=bool(format == 'xml'))
+                resp = junos_module.dev.rpc(
+                    rpc, ignore_warning=ignore_warning, normalize=bool(format == "xml")
+                )
             else:
-                resp = junos_module.get_rpc(rpc,
-                                   ignore_warning=ignore_warning, format=format)
-            result['msg'] = 'The command executed successfully.'
-            junos_module.logger.debug('Command "%s" executed successfully.',
-                                      command)
-        except (junos_module.pyez_exception.ConnectError,
-                junos_module.pyez_exception.RpcError) as ex:
-            junos_module.logger.debug('Unable to execute "%s". Error: %s',
-                                      command, str(ex))
-            result['msg'] = 'Unable to execute the command: %s. Error: %s' % \
-                            (command, str(ex))
+                resp = junos_module.get_rpc(
+                    rpc, ignore_warning=ignore_warning, format=format
+                )
+            result["msg"] = "The command executed successfully."
+            junos_module.logger.debug('Command "%s" executed successfully.', command)
+        except (
+            junos_module.pyez_exception.ConnectError,
+            junos_module.pyez_exception.RpcError,
+        ) as ex:
+            junos_module.logger.debug(
+                'Unable to execute "%s". Error: %s', command, str(ex)
+            )
+            result["msg"] = "Unable to execute the command: %s. Error: %s" % (
+                command,
+                str(ex),
+            )
             results.append(result)
             continue
 
         text_output = None
         parsed_output = None
         if resp is True:
-            text_output = ''
+            text_output = ""
         elif (resp, junos_module.etree._Element):
             # Handle the output based on format
-            if format == 'text':
-                if resp.tag in ['output', 'rpc-reply']:
+            if format == "text":
+                if resp.tag in ["output", "rpc-reply"]:
                     text_output = resp.text
-                    junos_module.logger.debug('Text output set.')
-                elif resp.tag == 'configuration-information':
-                    text_output = resp.findtext('configuration-output')
-                    junos_module.logger.debug('Text configuration output set.')
+                    junos_module.logger.debug("Text output set.")
+                elif resp.tag == "configuration-information":
+                    text_output = resp.findtext("configuration-output")
+                    junos_module.logger.debug("Text configuration output set.")
                 else:
-                    result['msg'] = 'Unexpected text response tag: %s.' % (
-                                    (resp.tag))
+                    result["msg"] = "Unexpected text response tag: %s." % ((resp.tag))
                     results.append(result)
-                    junos_module.logger.debug('Unexpected text response tag '
-                                              '%s.', resp.tag)
+                    junos_module.logger.debug(
+                        "Unexpected text response tag " "%s.", resp.tag
+                    )
                     continue
-            elif format == 'xml':
-                encode = None if sys.version < '3' else 'unicode'
-                text_output = junos_module.etree.tostring(resp,
-                                                          pretty_print=True,
-                                                          encoding=encode)
+            elif format == "xml":
+                encode = None if sys.version < "3" else "unicode"
+                text_output = junos_module.etree.tostring(
+                    resp, pretty_print=True, encoding=encode
+                )
                 parsed_output = junos_module.jxmlease.parse_etree(resp)
-                junos_module.logger.debug('XML output set.')
-            elif format == 'json':
+                junos_module.logger.debug("XML output set.")
+            elif format == "json":
                 text_output = str(resp)
                 parsed_output = resp
-                junos_module.logger.debug('JSON output set.')
+                junos_module.logger.debug("JSON output set.")
             else:
-                result['msg'] = 'Unexpected format %s.' % (format)
+                result["msg"] = "Unexpected format %s." % (format)
                 results.append(result)
-                junos_module.logger.debug('Unexpected format %s.', format)
+                junos_module.logger.debug("Unexpected format %s.", format)
                 continue
         else:
-            result['msg'] = 'Unexpected response type %s.' % (type(resp))
+            result["msg"] = "Unexpected response type %s." % (type(resp))
             results.append(result)
-            junos_module.logger.debug('Unexpected response type %s.',
-                                      type(resp))
+            junos_module.logger.debug("Unexpected response type %s.", type(resp))
             continue
 
         # Set the output keys
-        if junos_module.params['return_output'] is True:
+        if junos_module.params["return_output"] is True:
             if text_output is not None:
-                result['stdout'] = text_output
-                result['stdout_lines'] = text_output.splitlines()
+                result["stdout"] = text_output
+                result["stdout_lines"] = text_output.splitlines()
             if parsed_output is not None:
-                result['parsed_output'] = parsed_output
+                result["parsed_output"] = parsed_output
         # Save the output
         junos_module.save_text_output(command, format, text_output)
         # This command succeeded.
-        result['failed'] = False
+        result["failed"] = False
         # Append to the list of results
         results.append(result)
 
@@ -479,13 +493,11 @@ def main():
         # Calculate the overall failed. Only failed if all commands failed.
         failed = True
         for result in results:
-            if result.get('failed') is False:
+            if result.get("failed") is False:
                 failed = False
                 break
-        junos_module.exit_json(results=results,
-                               changed=False,
-                               failed=failed)
+        junos_module.exit_json(results=results, changed=False, failed=failed)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

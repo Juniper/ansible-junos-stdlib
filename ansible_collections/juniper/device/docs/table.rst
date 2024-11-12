@@ -359,7 +359,7 @@ Examples
 
 ::
 
-    
+
     ---
     - name: Retrieve data from a Junos device using a PyEZ table/view.
       hosts: junos-all
@@ -456,88 +456,88 @@ Return Values
     <td align=center># when response_type == &#x27;list_of_dicts&#x27;
     [
       {
-         &quot;local_int&quot;: &quot;ge-0/0/3&quot;, 
-         &quot;local_parent&quot;: &quot;-&quot;, 
-         &quot;remote_chassis_id&quot;: &quot;00:05:86:08:d4:c0&quot;, 
-         &quot;remote_port_desc&quot;: null, 
-         &quot;remote_port_id&quot;: &quot;ge-0/0/0&quot;, 
-         &quot;remote_sysname&quot;: &quot;r5&quot;, 
+         &quot;local_int&quot;: &quot;ge-0/0/3&quot;,
+         &quot;local_parent&quot;: &quot;-&quot;,
+         &quot;remote_chassis_id&quot;: &quot;00:05:86:08:d4:c0&quot;,
+         &quot;remote_port_desc&quot;: null,
+         &quot;remote_port_id&quot;: &quot;ge-0/0/0&quot;,
+         &quot;remote_sysname&quot;: &quot;r5&quot;,
          &quot;remote_type&quot;: &quot;Mac address&quot;
-      }, 
+      },
       {
-         &quot;local_int&quot;: &quot;ge-0/0/0&quot;, 
-         &quot;local_parent&quot;: &quot;-&quot;, 
-         &quot;remote_chassis_id&quot;: &quot;00:05:86:18:f3:c0&quot;, 
-         &quot;remote_port_desc&quot;: null, 
-         &quot;remote_port_id&quot;: &quot;ge-0/0/2&quot;, 
-         &quot;remote_sysname&quot;: &quot;r4&quot;, 
+         &quot;local_int&quot;: &quot;ge-0/0/0&quot;,
+         &quot;local_parent&quot;: &quot;-&quot;,
+         &quot;remote_chassis_id&quot;: &quot;00:05:86:18:f3:c0&quot;,
+         &quot;remote_port_desc&quot;: null,
+         &quot;remote_port_id&quot;: &quot;ge-0/0/2&quot;,
+         &quot;remote_sysname&quot;: &quot;r4&quot;,
          &quot;remote_type&quot;: &quot;Mac address&quot;
       }
     ]
     # when response_type == &#x27;juniper_items&#x27;
     [
       [
-        &quot;ge-0/0/3&quot;, 
+        &quot;ge-0/0/3&quot;,
         [
           [
-            &quot;local_parent&quot;, 
+            &quot;local_parent&quot;,
             &quot;-&quot;
-          ], 
+          ],
           [
-            &quot;remote_port_id&quot;, 
+            &quot;remote_port_id&quot;,
             &quot;ge-0/0/0&quot;
-          ], 
+          ],
           [
-            &quot;remote_chassis_id&quot;, 
+            &quot;remote_chassis_id&quot;,
             &quot;00:05:86:08:d4:c0&quot;
-          ], 
+          ],
           [
-            &quot;remote_port_desc&quot;, 
+            &quot;remote_port_desc&quot;,
             null
-          ], 
+          ],
           [
-            &quot;remote_type&quot;, 
+            &quot;remote_type&quot;,
             &quot;Mac address&quot;
-          ], 
+          ],
           [
-            &quot;local_int&quot;, 
+            &quot;local_int&quot;,
             &quot;ge-0/0/3&quot;
-          ], 
+          ],
           [
-            &quot;remote_sysname&quot;, 
+            &quot;remote_sysname&quot;,
             &quot;r5&quot;
           ]
         ]
-      ], 
+      ],
       [
-        &quot;ge-0/0/0&quot;, 
+        &quot;ge-0/0/0&quot;,
         [
           [
-            &quot;local_parent&quot;, 
+            &quot;local_parent&quot;,
             &quot;-&quot;
-          ], 
+          ],
           [
-            &quot;remote_port_id&quot;, 
+            &quot;remote_port_id&quot;,
             &quot;ge-0/0/2&quot;
-          ], 
+          ],
           [
-            &quot;remote_chassis_id&quot;, 
+            &quot;remote_chassis_id&quot;,
             &quot;00:05:86:18:f3:c0&quot;
-          ], 
+          ],
           [
-            &quot;remote_port_desc&quot;, 
+            &quot;remote_port_desc&quot;,
             null
-          ], 
+          ],
           [
-            &quot;remote_type&quot;, 
+            &quot;remote_type&quot;,
             &quot;Mac address&quot;
-          ], 
+          ],
           [
-            &quot;local_int&quot;, 
+            &quot;local_int&quot;,
             &quot;ge-0/0/0&quot;
-          ], 
+          ],
           [
-            &quot;remote_sysname&quot;, 
+            &quot;remote_sysname&quot;,
             &quot;r4&quot;
           ]
         ]
@@ -572,5 +572,3 @@ Status
 ~~~~~~
 
 This module is flagged as **stableinterface** which means that the maintainers for this module guarantee that no backward incompatible interface changes will be made.
-
-

@@ -25,7 +25,7 @@ Synopsis
      candidate configuration database. If opening the private configuration
      database fails the module fails and reports an error.
 #. Load configuration data into the candidate configuration database.
-   
+
    * Configuration data may be loaded using the *load* or *rollback*
      options. If either of these options are specified, new configuration
      data is loaded. If neither option is specified, this step is skipped.
@@ -36,7 +36,7 @@ Synopsis
    * The value of the *load* option defines the type of load which is
      performed.
    * The source of the new configuration data is one of the following:
-   
+
      * *src*      - A file path on the local Ansible control machine.
      * *lines*    - A list of strings containing the configuration data.
      * *template* - A file path to a Jinja2 template on the local
@@ -58,7 +58,7 @@ Synopsis
      fails, and an error is reported.
 #. Determine differences between the candidate and committed configuration
    databases.
-   
+
    * If step 2 was not skipped, and the *diff* option is ``true``,
      the default, perform a diff between the candidate and committed
      configuration databases.
@@ -68,7 +68,7 @@ Synopsis
      generated configuration difference in the *diff* and *diff_lines*
      keys of the module's response.
 #. Retrieve the configuration database from the Junos device.
-   
+
    * If the *retrieve* option is specified, retrieve the configuration
      database specified by the *retrieve* value from the target Junos
      device to the local Ansible control machine.
@@ -98,7 +98,7 @@ Synopsis
      option is specified, wait *check_commit_wait* seconds before
      performing the commit.
 #. Close the candidate configuration database.
-   
+
    * Close and discard the candidate configuration database.
    * If the *config_mode* option has a value of ``exclusive``, the default,
      unlock the candidate configuration database.
@@ -708,7 +708,7 @@ Examples
 
 ::
 
-    
+
     ---
     - name: 'Explicit host argument'
       hosts: junos
@@ -1016,5 +1016,3 @@ Status
 ~~~~~~
 
 This module is flagged as **stableinterface** which means that the maintainers for this module guarantee that no backward incompatible interface changes will be made.
-
-

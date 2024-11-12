@@ -36,13 +36,15 @@
 
 from __future__ import absolute_import, division, print_function
 
-ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'supported_by': 'community',
-                    'status': ['stableinterface']}
+ANSIBLE_METADATA = {
+    "metadata_version": "1.1",
+    "supported_by": "community",
+    "status": ["stableinterface"],
+}
 
-DOCUMENTATION = '''
+DOCUMENTATION = """
 ---
-extends_documentation_fragment: 
+extends_documentation_fragment:
   - juniper_junos_common.connection_documentation
   - juniper_junos_common.logging_documentation
 module: table
@@ -117,9 +119,9 @@ options:
 notes:
   - This module only works with operational tables/views; it does not work with
     configuration tables/views.
-'''
+"""
 
-EXAMPLES = '''
+EXAMPLES = """
 ---
 - name: Retrieve data from a Junos device using a PyEZ table/view.
   hosts: junos-all
@@ -155,11 +157,11 @@ EXAMPLES = '''
     - name: Print response
       ansible.builtin.debug:
         var: response
-'''
+"""
 
-RETURN = '''
+RETURN = """
 changed:
-  description: 
+  description:
     - Indicates if the device's configuration has changed. Since this
       module does not change the operational or configuration state of the
       device, the value is always set to C(false).
@@ -185,100 +187,100 @@ resource:
     # when response_type == 'list_of_dicts'
     [
       {
-         "local_int": "ge-0/0/3", 
-         "local_parent": "-", 
-         "remote_chassis_id": "00:05:86:08:d4:c0", 
-         "remote_port_desc": null, 
-         "remote_port_id": "ge-0/0/0", 
-         "remote_sysname": "r5", 
+         "local_int": "ge-0/0/3",
+         "local_parent": "-",
+         "remote_chassis_id": "00:05:86:08:d4:c0",
+         "remote_port_desc": null,
+         "remote_port_id": "ge-0/0/0",
+         "remote_sysname": "r5",
          "remote_type": "Mac address"
-      }, 
+      },
       {
-         "local_int": "ge-0/0/0", 
-         "local_parent": "-", 
-         "remote_chassis_id": "00:05:86:18:f3:c0", 
-         "remote_port_desc": null, 
-         "remote_port_id": "ge-0/0/2", 
-         "remote_sysname": "r4", 
+         "local_int": "ge-0/0/0",
+         "local_parent": "-",
+         "remote_chassis_id": "00:05:86:18:f3:c0",
+         "remote_port_desc": null,
+         "remote_port_id": "ge-0/0/2",
+         "remote_sysname": "r4",
          "remote_type": "Mac address"
       }
     ]
     # when response_type == 'juniper_items'
     [
       [
-        "ge-0/0/3", 
+        "ge-0/0/3",
         [
           [
-            "local_parent", 
+            "local_parent",
             "-"
-          ], 
+          ],
           [
-            "remote_port_id", 
+            "remote_port_id",
             "ge-0/0/0"
-          ], 
+          ],
           [
-            "remote_chassis_id", 
+            "remote_chassis_id",
             "00:05:86:08:d4:c0"
-          ], 
+          ],
           [
-            "remote_port_desc", 
+            "remote_port_desc",
             null
-          ], 
+          ],
           [
-            "remote_type", 
+            "remote_type",
             "Mac address"
-          ], 
+          ],
           [
-            "local_int", 
+            "local_int",
             "ge-0/0/3"
-          ], 
+          ],
           [
-            "remote_sysname", 
+            "remote_sysname",
             "r5"
           ]
         ]
-      ], 
+      ],
       [
-        "ge-0/0/0", 
+        "ge-0/0/0",
         [
           [
-            "local_parent", 
+            "local_parent",
             "-"
-          ], 
+          ],
           [
-            "remote_port_id", 
+            "remote_port_id",
             "ge-0/0/2"
-          ], 
+          ],
           [
-            "remote_chassis_id", 
+            "remote_chassis_id",
             "00:05:86:18:f3:c0"
-          ], 
+          ],
           [
-            "remote_port_desc", 
+            "remote_port_desc",
             null
-          ], 
+          ],
           [
-            "remote_type", 
+            "remote_type",
             "Mac address"
-          ], 
+          ],
           [
-            "local_int", 
+            "local_int",
             "ge-0/0/0"
-          ], 
+          ],
           [
-            "remote_sysname", 
+            "remote_sysname",
             "r4"
           ]
         ]
       ]
     ]
-'''
+"""
 
 # Standard library imports
 import os.path
 
 # Constants
-RESPONSE_CHOICES = ['list_of_dicts', 'juniper_items']
+RESPONSE_CHOICES = ["list_of_dicts", "juniper_items"]
 
 
 """From Ansible 2.1, Ansible uses Ansiballz framework for assembling modules
@@ -287,12 +289,13 @@ Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project
 
 # Ansiballz packages module_utils into ansible.module_utils
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.juniper.device.plugins.module_utils import juniper_junos_common
+
 from ansible_collections.juniper.device.plugins.module_utils import configuration as cfg
+from ansible_collections.juniper.device.plugins.module_utils import juniper_junos_common
+
 
 def expand_items(module, data):
-    """Recursively expand any table items
-    """
+    """Recursively expand any table items"""
     resources = []
     # data.items() is a list of tuples
     for table_key, table_fields in data.items():
@@ -312,8 +315,7 @@ def expand_items(module, data):
 
 
 def juniper_items_to_list_of_dicts(module, data):
-    """Recursively convert Juniper PyEZ Table/View items to list of dicts.
-    """
+    """Recursively convert Juniper PyEZ Table/View items to list of dicts."""
     resources = []
     # data.items() is a list of tuples
     for table_key, table_fields in data.items():
@@ -335,24 +337,23 @@ def main():
     # Create the module instance.
     junos_module = juniper_junos_common.JuniperJunosModule(
         argument_spec=dict(
-            file=dict(type='path',
-                      required=True,
-                      default=None),
-            table=dict(type='str',
-                       required=False,
-                       default=None),
-            path=dict(type='path',
-                      required=False,
-                      aliases=['directory', 'dir'],
-                      default=None),
-            kwargs=dict(required=False,
-                        aliases=['kwarg', 'args', 'arg'],
-                        type='dict',
-                        default=None),
-            response_type=dict(choices=RESPONSE_CHOICES,
-                               type='str',
-                               required=False,
-                               default='list_of_dicts'),
+            file=dict(type="path", required=True, default=None),
+            table=dict(type="str", required=False, default=None),
+            path=dict(
+                type="path", required=False, aliases=["directory", "dir"], default=None
+            ),
+            kwargs=dict(
+                required=False,
+                aliases=["kwarg", "args", "arg"],
+                type="dict",
+                default=None,
+            ),
+            response_type=dict(
+                choices=RESPONSE_CHOICES,
+                type="str",
+                required=False,
+                default="list_of_dicts",
+            ),
         ),
         # Check mode is implemented.
         supports_check_mode=True,
@@ -360,72 +361,79 @@ def main():
     )
 
     # Straight from params
-    file = junos_module.params.get('file')
-    table = junos_module.params.get('table')
-    path = junos_module.params.get('path')
-    kwargs = junos_module.params.get('kwargs')
-    response_type = junos_module.params.get('response_type')
+    file = junos_module.params.get("file")
+    table = junos_module.params.get("table")
+    path = junos_module.params.get("path")
+    kwargs = junos_module.params.get("kwargs")
+    response_type = junos_module.params.get("response_type")
 
-    if not file.endswith('.yml') and not file.endswith('.yaml'):
-        junos_module.fail_json(msg='The value of the file option must end '
-                                   'with the .yml or .yaml extension')
+    if not file.endswith(".yml") and not file.endswith(".yaml"):
+        junos_module.fail_json(
+            msg="The value of the file option must end "
+            "with the .yml or .yaml extension"
+        )
 
     # If needed, get the default path
     if path is None:
-        path = os.path.dirname(
-                   os.path.abspath(junos_module.pyez_op_table.__file__))
+        path = os.path.dirname(os.path.abspath(junos_module.pyez_op_table.__file__))
 
     # file_name is path + file
     file_name = os.path.join(path, file)
 
     junos_module.logger.debug("Attempting to open: %s.", file_name)
     try:
-        with open(file_name, 'r') as fp:
+        with open(file_name, "r") as fp:
             try:
-                junos_module.logger.debug("Attempting to parse YAML from : "
-                                          "%s.", file_name)
+                junos_module.logger.debug(
+                    "Attempting to parse YAML from : " "%s.", file_name
+                )
                 table_view = junos_module.yaml.safe_load(fp)
-                junos_module.logger.debug("YAML from %s successfully parsed.",
-                                          file_name)
+                junos_module.logger.debug(
+                    "YAML from %s successfully parsed.", file_name
+                )
             except junos_module.yaml.YAMLError as ex:
-                junos_module.fail_json(msg='Failed parsing YAML file %s. '
-                                           'Error: %s' % (file_name, str(ex)))
+                junos_module.fail_json(
+                    msg="Failed parsing YAML file %s. "
+                    "Error: %s" % (file_name, str(ex))
+                )
     except IOError:
-        junos_module.fail_json(msg='The file name %s could not be opened for'
-                                   'reading.' % (file_name))
+        junos_module.fail_json(
+            msg="The file name %s could not be opened for" "reading." % (file_name)
+        )
     junos_module.logger.debug("%s successfully read.", file_name)
 
     # Initialize the results. Assume failure until we know it's success.
-    results = {'msg': '',
-               'changed': False,
-               'failed': True}
+    results = {"msg": "", "changed": False, "failed": True}
 
     # Default to the table defined in file_name.
     # Ignore table names which begin with an underscore.
     if table is None:
         for key in table_view:
-            if not key.startswith('_') and 'Table' in key:
+            if not key.startswith("_") and "Table" in key:
                 if table is not None:
                     junos_module.fail_json(
-                        msg='The file name %s contains multiple table '
-                            'definitions. Specify the desired table with the '
-                            'table option.' % (file_name))
+                        msg="The file name %s contains multiple table "
+                        "definitions. Specify the desired table with the "
+                        "table option." % (file_name)
+                    )
                 table = key
 
     if table is None:
         junos_module.fail_json(
-            msg='No table definition was found in the %s file. Specify a '
-                'value for the file option which contains a valid table/view '
-                'definition.' % (file_name))
+            msg="No table definition was found in the %s file. Specify a "
+            "value for the file option which contains a valid table/view "
+            "definition." % (file_name)
+        )
     junos_module.logger.debug("Table: %s", table)
 
     try:
-        loader = \
-            junos_module.pyez_factory_loader.FactoryLoader().load(table_view)
+        loader = junos_module.pyez_factory_loader.FactoryLoader().load(table_view)
         junos_module.logger.debug("Loader created successfully.")
     except Exception as ex:
-        junos_module.fail_json(msg='Unable to create a table loader from the '
-                                   '%s file. Error: %s' % (file_name, str(ex)))
+        junos_module.fail_json(
+            msg="Unable to create a table loader from the "
+            "%s file. Error: %s" % (file_name, str(ex))
+        )
     try:
         # there is a limitation of JSON for persistent connection.
         # the connection passes information as JSON and can't use device object here.
@@ -440,40 +448,45 @@ def main():
             data.get()
         else:
             data.get(**kwargs)
-        junos_module.logger.debug("Data retrieved from %s successfully.",
-                                  table)
+        junos_module.logger.debug("Data retrieved from %s successfully.", table)
     except KeyError:
-        junos_module.fail_json(msg='Unable to find table %s in the '
-                                   '%s file.' % (table, file_name))
-    except (junos_module.pyez_exception.ConnectError,
-            junos_module.pyez_exception.RpcError) as ex:
-        junos_module.fail_json(msg='Unable to retrieve data from table %s. '
-                                   'Error: %s' % (table, str(ex)))
+        junos_module.fail_json(
+            msg="Unable to find table %s in the " "%s file." % (table, file_name)
+        )
+    except (
+        junos_module.pyez_exception.ConnectError,
+        junos_module.pyez_exception.RpcError,
+    ) as ex:
+        junos_module.fail_json(
+            msg="Unable to retrieve data from table %s. " "Error: %s" % (table, str(ex))
+        )
 
     if data is not None:
         try:
             len_data = len(data)
         except Exception as ex:
-            junos_module.fail_json(msg='Unable to parse table %s data into '
-                                       'items. Error: %s' % (table, str(ex)))
-        junos_module.logger.debug('Successfully retrieved %d items from %s.',
-                                  len_data, table)
-        results['msg'] = 'Successfully retrieved %d items from %s.' % \
-                         (len_data, table)
+            junos_module.fail_json(
+                msg="Unable to parse table %s data into "
+                "items. Error: %s" % (table, str(ex))
+            )
+        junos_module.logger.debug(
+            "Successfully retrieved %d items from %s.", len_data, table
+        )
+        results["msg"] = "Successfully retrieved %d items from %s." % (len_data, table)
 
-    if response_type == 'list_of_dicts':
-        junos_module.logger.debug('Converting data to list of dicts.')
+    if response_type == "list_of_dicts":
+        junos_module.logger.debug("Converting data to list of dicts.")
         resource = juniper_items_to_list_of_dicts(junos_module, data)
     else:
         resource = expand_items(junos_module, data)
 
     # If we made it this far, everything was successful.
-    results['failed'] = False
-    results['resource'] = resource
+    results["failed"] = False
+    results["resource"] = resource
 
     # Return response.
     junos_module.exit_json(**results)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

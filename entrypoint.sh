@@ -51,9 +51,8 @@ fi
 [[ -z "$ROLES" ]] || galaxy_install "$ROLES"
 
 if [ -z "$1" ]
-then 
+then
     echo "Starting an interactive Bash session"
     /bin/bash
 else run_command "$*"
 fi
-

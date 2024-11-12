@@ -30,53 +30,60 @@
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
 
-from distutils.version import LooseVersion
 import os
+from distutils.version import LooseVersion
 
 # Non-standard library imports and checks
 try:
     from jnpr.junos.version import VERSION
+
     HAS_PYEZ_VERSION = VERSION
 except ImportError:
     HAS_PYEZ_VERSION = None
 
 try:
-    import jnpr.junos.op
     import jnpr.junos.factory.factory_loader
     import jnpr.junos.factory.table
+    import jnpr.junos.op
+
     HAS_PYEZ_OP_TABLE = True
 except ImportError:
     HAS_PYEZ_OP_TABLE = False
 
 try:
     import ncclient.operations.errors as ncclient_exception
+
     HAS_NCCLIENT_EXCEPTIONS = True
 except ImportError:
     HAS_NCCLIENT_EXCEPTIONS = False
 
 try:
     import jnpr.jsnapy
+
     HAS_JSNAPY_VERSION = jnpr.jsnapy.__version__
 except ImportError:
     HAS_JSNAPY_VERSION = None
 # Most likely JSNAPy 1.2.0 with https://github.com/Juniper/jsnapy/issues/263
 except TypeError:
-    HAS_JSNAPY_VERSION = 'possibly 1.2.0'
+    HAS_JSNAPY_VERSION = "possibly 1.2.0"
 
 try:
     from lxml import etree
-    HAS_LXML_ETREE_VERSION = '.'.join(map(str, etree.LXML_VERSION))
+
+    HAS_LXML_ETREE_VERSION = ".".join(map(str, etree.LXML_VERSION))
 except ImportError:
     HAS_LXML_ETREE_VERSION = None
 
 try:
     import jxmlease
+
     HAS_JXMLEASE_VERSION = jxmlease.__version__
 except ImportError:
     HAS_JXMLEASE_VERSION = None
 
 try:
     import yaml
+
     HAS_YAML_VERSION = yaml.__version__
 except ImportError:
     HAS_YAML_VERSION = None
@@ -104,19 +111,19 @@ JSNAPY_INSTALLATION_URL = "https://github.com/Juniper/jsnapy#installation"
 # Minimum jxmlease version required by shared code.
 MIN_JXMLEASE_VERSION = "1.0.1"
 # Installation URL for jxmlease.
-JXMLEASE_INSTALLATION_URL = \
-    "http://jxmlease.readthedocs.io/en/stable/install.html"
+JXMLEASE_INSTALLATION_URL = "http://jxmlease.readthedocs.io/en/stable/install.html"
 # Minimum yaml version required by shared code.
 MIN_YAML_VERSION = "3.08"
 YAML_INSTALLATION_URL = "http://pyyaml.org/wiki/PyYAMLDocumentation"
 
 
 def _check_library(
-                   library_name,
-                   installed_version,
-                   installation_url,
-                   minimum=None,
-                   library_nickname=None):
+    library_name,
+    installed_version,
+    installation_url,
+    minimum=None,
+    library_nickname=None,
+):
     """Check if library_name is installed and version is >= minimum.
 
     Args:
@@ -137,28 +144,44 @@ def _check_library(
         library_nickname = library_name
     if installed_version is None:
         if minimum is not None:
-            return('%s >= %s is required for this module. '
-                               'However, %s does not appear to be '
-                               'currently installed. See %s for '
-                               'details on installing %s.' %
-                               (library_nickname, minimum, library_name,
-                                installation_url, library_name))
+            return (
+                "%s >= %s is required for this module. "
+                "However, %s does not appear to be "
+                "currently installed. See %s for "
+                "details on installing %s."
+                % (
+                    library_nickname,
+                    minimum,
+                    library_name,
+                    installation_url,
+                    library_name,
+                )
+            )
         else:
-            return('%s is required for this module. However, '
-                               '%s does not appear to be currently '
-                               'installed. See %s for details on '
-                               'installing %s.' %
-                               (library_nickname, library_name,
-                                installation_url, library_name))
+            return (
+                "%s is required for this module. However, "
+                "%s does not appear to be currently "
+                "installed. See %s for details on "
+                "installing %s."
+                % (library_nickname, library_name, installation_url, library_name)
+            )
     elif installed_version is not None and minimum is not None:
         if not LooseVersion(installed_version) >= LooseVersion(minimum):
-            return(
-                '%s >= %s is required for this module. Version %s of '
-                    '%s is currently installed. See %s for details on '
-                    'upgrading %s.' %
-                    (library_nickname, minimum, installed_version,
-                     library_name, installation_url, library_name))
+            return (
+                "%s >= %s is required for this module. Version %s of "
+                "%s is currently installed. See %s for details on "
+                "upgrading %s."
+                % (
+                    library_nickname,
+                    minimum,
+                    installed_version,
+                    library_name,
+                    installation_url,
+                    library_name,
+                )
+            )
     return "success"
+
 
 def check_pyez(minimum=None):
     """Check PyEZ is available and version is >= minimum.
@@ -174,11 +197,15 @@ def check_pyez(minimum=None):
         - PyEZ version < minimum.
     """
     if HAS_NCCLIENT_EXCEPTIONS is False:
-            return('ncclient.operations.errors module could not '
-                               'be imported.')
-    return _check_library('junos-eznc', HAS_PYEZ_VERSION,
-                        PYEZ_INSTALLATION_URL, minimum=minimum,
-                        library_nickname='junos-eznc (aka PyEZ)')
+        return "ncclient.operations.errors module could not " "be imported."
+    return _check_library(
+        "junos-eznc",
+        HAS_PYEZ_VERSION,
+        PYEZ_INSTALLATION_URL,
+        minimum=minimum,
+        library_nickname="junos-eznc (aka PyEZ)",
+    )
+
 
 def check_jsnapy(minimum=None):
     """Check jsnapy is available and version is >= minimum.
@@ -191,8 +218,10 @@ def check_jsnapy(minimum=None):
         - jsnapy not installed.
         - jsnapy version < minimum.
     """
-    return _check_library('jsnapy', HAS_JSNAPY_VERSION,
-                        JSNAPY_INSTALLATION_URL, minimum=minimum)
+    return _check_library(
+        "jsnapy", HAS_JSNAPY_VERSION, JSNAPY_INSTALLATION_URL, minimum=minimum
+    )
+
 
 def check_jxmlease(minimum=None):
     """Check jxmlease is available and version is >= minimum.
@@ -205,8 +234,10 @@ def check_jxmlease(minimum=None):
         - jxmlease not installed.
         - jxmlease version < minimum.
     """
-    return _check_library('jxmlease', HAS_JXMLEASE_VERSION,
-                        JXMLEASE_INSTALLATION_URL, minimum=minimum)
+    return _check_library(
+        "jxmlease", HAS_JXMLEASE_VERSION, JXMLEASE_INSTALLATION_URL, minimum=minimum
+    )
+
 
 def check_lxml_etree(minimum=None):
     """Check lxml etree is available and version is >= minimum.
@@ -219,8 +250,13 @@ def check_lxml_etree(minimum=None):
         - lxml not installed.
         - lxml version < minimum.
     """
-    return _check_library('lxml Etree', HAS_LXML_ETREE_VERSION,
-                        LXML_ETREE_INSTALLATION_URL, minimum=minimum)
+    return _check_library(
+        "lxml Etree",
+        HAS_LXML_ETREE_VERSION,
+        LXML_ETREE_INSTALLATION_URL,
+        minimum=minimum,
+    )
+
 
 def check_yaml(minimum=None):
     """Check yaml is available and version is >= minimum.
@@ -233,21 +269,25 @@ def check_yaml(minimum=None):
         - yaml not installed.
         - yaml version < minimum.
     """
-    return _check_library('yaml', HAS_YAML_VERSION,
-                        YAML_INSTALLATION_URL, minimum=minimum)
+    return _check_library(
+        "yaml", HAS_YAML_VERSION, YAML_INSTALLATION_URL, minimum=minimum
+    )
 
-def check_sw_compatibility(min_pyez_version,
-                        min_lxml_etree_version,
-                        min_jsnapy_version=None,
-                        min_jxmlease_version=None,
-                        min_yaml_version=None):
+
+def check_sw_compatibility(
+    min_pyez_version,
+    min_lxml_etree_version,
+    min_jsnapy_version=None,
+    min_jxmlease_version=None,
+    min_yaml_version=None,
+):
     """Check yaml is available and version is >= minimum.
 
-        Args:
-            minimum: The minimum PyYAML version required.
-                     Default = None which means no version check.
-        Returns:
-            string as success or the error
+    Args:
+        minimum: The minimum PyYAML version required.
+                 Default = None which means no version check.
+    Returns:
+        string as success or the error
     """
     ret_output = check_pyez(min_pyez_version)
     if ret_output != "success":
@@ -271,5 +311,3 @@ def check_sw_compatibility(min_pyez_version,
         ret_output = check_yaml(min_yaml_version)
 
     return ret_output
-
-

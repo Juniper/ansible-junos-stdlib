@@ -33,13 +33,15 @@
 
 from __future__ import absolute_import, division, print_function
 
-ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'supported_by': 'community',
-                    'status': ['stableinterface']}
+ANSIBLE_METADATA = {
+    "metadata_version": "1.1",
+    "supported_by": "community",
+    "status": ["stableinterface"],
+}
 
-DOCUMENTATION = '''
+DOCUMENTATION = """
 ---
-extends_documentation_fragment: 
+extends_documentation_fragment:
   - juniper_junos_common.connection_documentation
   - juniper_junos_common.logging_documentation
 module: srx_cluster
@@ -82,9 +84,9 @@ options:
     type: int
     aliases:
       - node
-'''
+"""
 
-EXAMPLES = '''
+EXAMPLES = """
 ---
 - name: Manipulate the SRX cluster configuration of Junos SRX devices
   hosts: junos-all
@@ -108,9 +110,9 @@ EXAMPLES = '''
     - name: Print the response.
       ansible.builtin.debug:
         var: response.config_lines
-'''
+"""
 
-RETURN = '''
+RETURN = """
 changed:
   description:
     - Indicates if the device's configuration has changed, or would have
@@ -132,7 +134,7 @@ reboot:
     - Indicates if a reboot of the device has been initiated.
   returned: success
   type: bool
-'''
+"""
 
 # Standard library imports
 
@@ -143,56 +145,53 @@ Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project
 
 # Ansiballz packages module_utils into ansible.module_utils
 from ansible.module_utils.basic import AnsibleModule
+
 from ansible_collections.juniper.device.plugins.module_utils import juniper_junos_common
+
 
 def main():
     # Create the module instance.
     junos_module = juniper_junos_common.JuniperJunosModule(
         argument_spec=dict(
-            enable=dict(type='bool',
-                        required=True,
-                        aliases=['cluster_enable'],
-                        default=None),
-            cluster_id=dict(type='int',
-                            required=False,
-                            aliases=['cluster'],
-                            default=None),
-            node_id=dict(type='int',
-                         required=False,
-                         aliases=['node'],
-                         default=None)
+            enable=dict(
+                type="bool", required=True, aliases=["cluster_enable"], default=None
+            ),
+            cluster_id=dict(
+                type="int", required=False, aliases=["cluster"], default=None
+            ),
+            node_id=dict(type="int", required=False, aliases=["node"], default=None),
         ),
         # Required if options
         # If enable is True, then cluster_id and node_id must be set.
-        required_if=[['enable', True, ['cluster_id', 'node_id']]],
+        required_if=[["enable", True, ["cluster_id", "node_id"]]],
         # Check mode is implemented.
-        supports_check_mode=True
+        supports_check_mode=True,
     )
     # Do additional argument verification.
 
     # Straight from params
-    enable = junos_module.params.get('enable')
-    cluster_id = junos_module.params.get('cluster_id')
-    node_id = junos_module.params.get('node_id')
+    enable = junos_module.params.get("enable")
+    cluster_id = junos_module.params.get("cluster_id")
+    node_id = junos_module.params.get("node_id")
 
     # cluster_id must be between 0 and 255
     if cluster_id is not None:
         if cluster_id < 0 or cluster_id > 255:
-            junos_module.fail_json(msg="The cluster_id option (%s) must have "
-                                       "an integer value between 0 and 255." %
-                                       (cluster_id))
+            junos_module.fail_json(
+                msg="The cluster_id option (%s) must have "
+                "an integer value between 0 and 255." % (cluster_id)
+            )
 
     # node_id must be between 0 and 1
     if node_id is not None:
         if node_id < 0 or node_id > 1:
-            junos_module.fail_json(msg="The node_id option (%s) must have a "
-                                       "value of 0 or 1." % (node_id))
+            junos_module.fail_json(
+                msg="The node_id option (%s) must have a "
+                "value of 0 or 1." % (node_id)
+            )
 
     # Initialize the results. Assume failure until we know it's success.
-    results = {'msg': '',
-               'changed': False,
-               'reboot': False,
-               'failed': True}
+    results = {"msg": "", "changed": False, "reboot": False, "failed": True}
 
     if junos_module.conn_type == "local":
         facts = dict(junos_module.dev.facts)
@@ -200,8 +199,8 @@ def main():
         facts = junos_module.get_facts()
         # facts checking has been done as part of persitent connection itself.
     junos_module.logger.debug("Check current SRX cluster operational state.")
-    current_cluster_state = facts['srx_cluster']
-    current_cluster_id = facts['srx_cluster_id']
+    current_cluster_state = facts["srx_cluster"]
+    current_cluster_id = facts["srx_cluster_id"]
     if current_cluster_id is not None:
         current_cluster_id = int(current_cluster_id)
     if junos_module.conn_type == "local":
@@ -210,68 +209,78 @@ def main():
         current_node_name = junos_module._pyez_conn.get_re_name()
     current_node_id = None
     if current_node_name is not None:
-        (_, _, current_node_id) = current_node_name.partition('node')
+        (_, _, current_node_id) = current_node_name.partition("node")
         if current_node_id:
             current_node_id = int(current_node_id)
     junos_module.logger.debug(
-        "Current SRX cluster operational state: %s, cluster_id: %s, "
-        "node_id: %s",
-        'enabled' if current_cluster_state else 'disabled',
+        "Current SRX cluster operational state: %s, cluster_id: %s, " "node_id: %s",
+        "enabled" if current_cluster_state else "disabled",
         str(current_cluster_id),
-        str(current_node_id))
+        str(current_node_id),
+    )
 
     # Is a state change needed?
     if current_cluster_state != enable:
         junos_module.logger.debug(
             "SRX cluster configuration change needed. Current state: %s. "
             "Desired state: %s",
-            'enabled' if current_cluster_state else 'disabled',
-            'enabled' if enable else 'disabled')
-        results['changed'] = True
+            "enabled" if current_cluster_state else "disabled",
+            "enabled" if enable else "disabled",
+        )
+        results["changed"] = True
 
     # Is a cluster ID change needed?
-    if (enable is True and current_cluster_id is not None and
-       current_cluster_id != cluster_id):
+    if (
+        enable is True
+        and current_cluster_id is not None
+        and current_cluster_id != cluster_id
+    ):
         junos_module.logger.debug(
             "SRX cluster ID change needed. Current cluster ID: %d. "
             "Desired cluster ID: %d",
-            current_cluster_id, cluster_id)
-        results['changed'] = True
+            current_cluster_id,
+            cluster_id,
+        )
+        results["changed"] = True
 
     # Is a node ID change needed?
-    if (enable is True and current_node_id is not None and
-       current_node_id != node_id):
+    if enable is True and current_node_id is not None and current_node_id != node_id:
         junos_module.logger.debug(
-            "SRX node ID change needed. Current node ID: %d. "
-            "Desired cluster ID: %d",
-            current_node_id, node_id)
-        results['changed'] = True
+            "SRX node ID change needed. Current node ID: %d. " "Desired cluster ID: %d",
+            current_node_id,
+            node_id,
+        )
+        results["changed"] = True
 
-    results['msg'] = 'Current state: %s, cluster_id: %s, node_id: %s' % \
-                     ('enabled' if current_cluster_state else 'disabled',
-                      str(current_cluster_id),
-                      str(current_node_id))
+    results["msg"] = "Current state: %s, cluster_id: %s, node_id: %s" % (
+        "enabled" if current_cluster_state else "disabled",
+        str(current_cluster_id),
+        str(current_node_id),
+    )
 
-    if results['changed'] is True:
-        results['msg'] += ' Desired state:  %s, cluster_id: %s, ' \
-                          'node_id: %s' % \
-                          ('enabled' if enable else 'disabled',
-                           str(cluster_id),
-                           str(node_id))
+    if results["changed"] is True:
+        results["msg"] += " Desired state:  %s, cluster_id: %s, " "node_id: %s" % (
+            "enabled" if enable else "disabled",
+            str(cluster_id),
+            str(node_id),
+        )
 
         if not junos_module.check_mode:
-            results['msg'] += ' Initiating change.'
+            results["msg"] += " Initiating change."
             try:
                 output = None
                 if enable is True:
                     if junos_module.conn_type == "local":
                         resp = junos_module.dev.rpc.set_chassis_cluster_enable(
-                            cluster_id=str(cluster_id), node=str(node_id),
-                            reboot=True, normalize=True
+                            cluster_id=str(cluster_id),
+                            node=str(node_id),
+                            reboot=True,
+                            normalize=True,
                         )
                     else:
                         resp = junos_module._pyez_conn.set_chassis_cluster_enable(
-                            cluster_id=str(cluster_id), node=str(node_id))
+                            cluster_id=str(cluster_id), node=str(node_id)
+                        )
                 else:
                     if junos_module.conn_type == "local":
                         resp = junos_module.dev.rpc.set_chassis_cluster_disable(
@@ -287,22 +296,25 @@ def main():
                             resp = None
                             output = None
                 if resp is not None:
-                    output = resp.getparent().findtext('.//output')
+                    output = resp.getparent().findtext(".//output")
                     if output is None:
-                        output = resp.getparent().findtext('.//message')
-                results['msg'] += ' Reboot initiated. Response: %s' % (output)
-                results['reboot'] = True
-            except (junos_module.pyez_exception.ConnectError,
-                    junos_module.pyez_exception.RpcError) as ex:
-                junos_module.logger.debug('Error: %s', str(ex))
-                results['msg'] += ' Error: %s' % (str(ex))
+                        output = resp.getparent().findtext(".//message")
+                results["msg"] += " Reboot initiated. Response: %s" % (output)
+                results["reboot"] = True
+            except (
+                junos_module.pyez_exception.ConnectError,
+                junos_module.pyez_exception.RpcError,
+            ) as ex:
+                junos_module.logger.debug("Error: %s", str(ex))
+                results["msg"] += " Error: %s" % (str(ex))
                 junos_module.fail_json(**results)
 
     # If we made it this far, everything was successful.
-    results['failed'] = False
+    results["failed"] = False
 
     # Return response.
     junos_module.exit_json(**results)
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
