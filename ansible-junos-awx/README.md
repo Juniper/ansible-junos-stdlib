@@ -38,12 +38,12 @@ This will do the following operations:
 $ make
 pip install virtualenv
 Requirement already satisfied: virtualenv in /Library/Python/2.7/site-packages
-rm -rf ./awx ./awx-env /private/tmp/pgdocker         
+rm -rf ./awx ./awx-env /private/tmp/pgdocker
 virtualenv awx-env --no-site-packages
 New python executable in /private/tmp/ansible-junos-awx/awx-env/bin/python
 Installing setuptools, pip, wheel...done.
 . awx-env/bin/activate && \
-	pip install ansible docker-py 
+	pip install ansible docker-py
 Collecting ansible
 Collecting docker-py
   Using cached docker_py-1.10.6-py2.py3-none-any.whl
@@ -98,10 +98,10 @@ remote: Total 2596 (delta 603), reused 1034 (delta 237), pack-reused 0
 Receiving objects: 100% (2596/2596), 7.48 MiB | 482.00 KiB/s, done.
 Resolving deltas: 100% (603/603), done.
 Checking out files: 100% (2317/2317), done.
-mkdir -p /private/tmp/pgdocker 
+mkdir -p /private/tmp/pgdocker
 . awx-env/bin/activate && \
 	ansible-playbook -i /private/tmp/ansible-junos-awx/awx/installer/inventory /private/tmp/ansible-junos-awx/awx/installer/install.yml
-[DEPRECATION WARNING]: DEFAULT_SUDO_USER option, In favor of become which is a generic framework . This feature will be removed in version 2.8. Deprecation 
+[DEPRECATION WARNING]: DEFAULT_SUDO_USER option, In favor of become which is a generic framework . This feature will be removed in version 2.8. Deprecation
 warnings can be disabled by setting deprecation_warnings=False in ansible.cfg.
 
 PLAY [Build and deploy AWX] ************************************************************************************************************************************
@@ -114,13 +114,13 @@ included: /private/tmp/ansible-junos-awx/awx/installer/check_vars/tasks/check_do
 
 TASK [check_vars : postgres_data_dir should be defined] ********************************************************************************************************
 ok: [localhost] => {
-    "changed": false, 
+    "changed": false,
     "msg": "All assertions passed"
 }
 
 TASK [check_vars : host_port should be defined] ****************************************************************************************************************
 ok: [localhost] => {
-    "changed": false, 
+    "changed": false,
     "msg": "All assertions passed"
 }
 
@@ -448,33 +448,33 @@ TASK [local_docker : Start the containers] *************************************
 skipping: [localhost]
 
 PLAY RECAP *****************************************************************************************************************************************************
-localhost                  : ok=12   changed=5    unreachable=0    failed=0   
+localhost                  : ok=12   changed=5    unreachable=0    failed=0
 
 sleep 120
 docker exec -it awx_task pip install jsnapy jxmlease junos-eznc
 Collecting jsnapy
   Downloading jsnapy-1.3.1.tar.gz (50kB)
-    100% |################################| 51kB 399kB/s 
+    100% |################################| 51kB 399kB/s
 Collecting jxmlease
   Downloading jxmlease-1.0.1-py2.py3-none-any.whl
 Collecting junos-eznc
   Downloading junos_eznc-2.1.7-py2.py3-none-any.whl (150kB)
-    100% |################################| 153kB 1.6MB/s 
+    100% |################################| 153kB 1.6MB/s
 Collecting colorama (from jsnapy)
   Downloading colorama-0.3.9-py2.py3-none-any.whl
 Collecting configparser (from jsnapy)
   Downloading configparser-3.5.0.tar.gz
 Collecting pyparsing (from jsnapy)
   Downloading pyparsing-2.2.0-py2.py3-none-any.whl (56kB)
-    100% |################################| 61kB 5.5MB/s 
+    100% |################################| 61kB 5.5MB/s
 Collecting icdiff (from jsnapy)
   Downloading icdiff-1.9.1.tar.gz
 Collecting future (from jsnapy)
   Downloading future-0.16.0.tar.gz (824kB)
-    100% |################################| 829kB 937kB/s 
+    100% |################################| 829kB 937kB/s
 Collecting ncclient>=0.5.3 (from junos-eznc)
   Downloading ncclient-0.5.3.tar.gz (63kB)
-    100% |################################| 71kB 6.5MB/s 
+    100% |################################| 71kB 6.5MB/s
 Requirement already satisfied (use --upgrade to upgrade): paramiko>=1.15.2 in /usr/lib/python2.7/site-packages (from junos-eznc)
 Requirement already satisfied (use --upgrade to upgrade): six in /usr/lib/python2.7/site-packages (from junos-eznc)
 Collecting scp>=0.7.0 (from junos-eznc)
@@ -482,14 +482,14 @@ Collecting scp>=0.7.0 (from junos-eznc)
 Requirement already satisfied (use --upgrade to upgrade): jinja2>=2.7.1 in /usr/lib/python2.7/site-packages (from junos-eznc)
 Collecting lxml>=3.2.4 (from junos-eznc)
   Downloading lxml-4.1.1-cp27-cp27mu-manylinux1_x86_64.whl (5.6MB)
-    100% |################################| 5.6MB 229kB/s 
+    100% |################################| 5.6MB 229kB/s
 Collecting pyserial (from junos-eznc)
   Downloading pyserial-3.4-py2.py3-none-any.whl (193kB)
-    100% |################################| 194kB 4.3MB/s 
+    100% |################################| 194kB 4.3MB/s
 Requirement already satisfied (use --upgrade to upgrade): PyYAML>=3.10 in /usr/lib64/python2.7/site-packages (from junos-eznc)
 Collecting netaddr (from junos-eznc)
   Downloading netaddr-0.7.19-py2.py3-none-any.whl (1.6MB)
-    100% |################################| 1.6MB 815kB/s 
+    100% |################################| 1.6MB 815kB/s
 Requirement already satisfied (use --upgrade to upgrade): setuptools>0.6 in /usr/lib/python2.7/site-packages (from ncclient>=0.5.3->junos-eznc)
 Requirement already satisfied (use --upgrade to upgrade): cryptography>=1.1 in /usr/lib64/python2.7/site-packages (from paramiko>=1.15.2->junos-eznc)
 Requirement already satisfied (use --upgrade to upgrade): pyasn1>=0.1.7 in /usr/lib/python2.7/site-packages (from paramiko>=1.15.2->junos-eznc)
@@ -569,7 +569,7 @@ ansible-galaxy respectively.
 ```
 Example:
 
-PROJECT_DATA_DIR = 
+PROJECT_DATA_DIR =
 AWX_TASK_TAG =
 POSTGRES_DATA_DIR =
 ANSIBLE_JUNOS_VERSION =

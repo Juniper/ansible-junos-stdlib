@@ -32,24 +32,36 @@
 #
 
 from __future__ import absolute_import, division, print_function
+
 import os
 
 connection_spec_fallbacks = {
-    'host': ['host', 'hostname', 'ip', 'ansible_host', 'inventory_hostname'],
-    'user': ['user', 'username', 'ansible_connection_user', 'ansible_ssh_user', 'ansible_user'],
-    'passwd': ['passwd', 'password', 'ansible_ssh_pass', 'ansible_pass'],
-    'port': ['port', 'ansible_ssh_port', 'ansible_port'],
-    'ssh_private_key_file': ['ssh_private_key_file', 'ansible_ssh_private_key_file',
-                             'ansible_private_key_file', 'ssh_keyfile'],
-    'ssh_config': ['ssh_config'],
-    'cs_user': ['cs_user', 'console_username'],
-    'cs_passwd': ['cs_passwd', 'console_password'],
-    'attempts': ['attempts'],
-    'baud': ['baud'],
-    'console': ['console'],
-    'mode': ['mode'],
-    'timeout': ['timeout', 'ansible_timeout']
+    "host": ["host", "hostname", "ip", "ansible_host", "inventory_hostname"],
+    "user": [
+        "user",
+        "username",
+        "ansible_connection_user",
+        "ansible_ssh_user",
+        "ansible_user",
+    ],
+    "passwd": ["passwd", "password", "ansible_ssh_pass", "ansible_pass"],
+    "port": ["port", "ansible_ssh_port", "ansible_port"],
+    "ssh_private_key_file": [
+        "ssh_private_key_file",
+        "ansible_ssh_private_key_file",
+        "ansible_private_key_file",
+        "ssh_keyfile",
+    ],
+    "ssh_config": ["ssh_config"],
+    "cs_user": ["cs_user", "console_username"],
+    "cs_passwd": ["cs_passwd", "console_password"],
+    "attempts": ["attempts"],
+    "baud": ["baud"],
+    "console": ["console"],
+    "mode": ["mode"],
+    "timeout": ["timeout", "ansible_timeout"],
 }
+
 
 class ExtractData:
     def extract(self, tmp=None, task_vars=None):
@@ -58,25 +70,25 @@ class ExtractData:
 
         connection_args = self._task.args
 
-        self._task.args['_connection'] = self._play_context.connection
-        new_connection_args['_connection'] = self._play_context.connection
-	
+        self._task.args["_connection"] = self._play_context.connection
+        new_connection_args["_connection"] = self._play_context.connection
+
         # The environment variables used by Ansible Tower
-        if 'user' not in connection_args:
-            net_user = os.getenv('ANSIBLE_NET_USERNAME')
+        if "user" not in connection_args:
+            net_user = os.getenv("ANSIBLE_NET_USERNAME")
             if net_user is not None:
-                new_connection_args['user'] = net_user
-                connection_args['user'] = net_user
-        if 'passwd' not in connection_args:
-            net_passwd = os.getenv('ANSIBLE_NET_PASSWORD')
+                new_connection_args["user"] = net_user
+                connection_args["user"] = net_user
+        if "passwd" not in connection_args:
+            net_passwd = os.getenv("ANSIBLE_NET_PASSWORD")
             if net_passwd is not None:
-                new_connection_args['passwd'] = net_passwd
-                connection_args['passwd'] = net_passwd
-        if 'ssh_private_key_file' not in connection_args:
-            net_key = os.getenv('ANSIBLE_NET_SSH_KEYFILE')
+                new_connection_args["passwd"] = net_passwd
+                connection_args["passwd"] = net_passwd
+        if "ssh_private_key_file" not in connection_args:
+            net_key = os.getenv("ANSIBLE_NET_SSH_KEYFILE")
             if net_key is not None:
-                new_connection_args['ssh_private_key_file'] = net_key
-                connection_args['ssh_private_key_file'] = net_key
+                new_connection_args["ssh_private_key_file"] = net_key
+                connection_args["ssh_private_key_file"] = net_key
 
         # The values set by Ansible command line arguments, configuration
         # settings, or environment variables.
@@ -87,38 +99,42 @@ class ExtractData:
                         new_connection_args[key] = task_vars[task_var_key]
                         # check if the value is in form of a variable {{var}}
                         # In case of variables, resolve it to the value
-                        index = str(new_connection_args[key]).find('{{')
+                        index = str(new_connection_args[key]).find("{{")
                         if index == 0:
                             tempKey = new_connection_args[key][2:-2].strip()
                             new_connection_args[key] = task_vars[tempKey]
                         break
 
         # Fix for ansible-core>=2.13 when -u, -k or --private-key are command line arguments
-        if 'user' not in connection_args:
+        if "user" not in connection_args:
             if self._play_context.remote_user is not None:
-                new_connection_args['user'] = self._play_context.remote_user
-                connection_args['user'] = self._play_context.remote_user
-        if 'passwd' not in connection_args:
+                new_connection_args["user"] = self._play_context.remote_user
+                connection_args["user"] = self._play_context.remote_user
+        if "passwd" not in connection_args:
             if self._play_context.password is not None:
-                new_connection_args['passwd'] = self._play_context.password
-                connection_args['passwd'] = self._play_context.password
-        if 'ssh_private_key_file' not in connection_args:
+                new_connection_args["passwd"] = self._play_context.password
+                connection_args["passwd"] = self._play_context.password
+        if "ssh_private_key_file" not in connection_args:
             if self._play_context.private_key_file is not None:
-                new_connection_args['ssh_private_key_file'] = self._play_context.private_key_file
-                connection_args['ssh_private_key_file'] = self._play_context.private_key_file
+                new_connection_args["ssh_private_key_file"] = (
+                    self._play_context.private_key_file
+                )
+                connection_args["ssh_private_key_file"] = (
+                    self._play_context.private_key_file
+                )
 
         # Backwards compatible behavior to fallback to USER env. variable.
-        if 'user' not in connection_args and 'user' not in new_connection_args:
-            user = os.getenv('USER')
+        if "user" not in connection_args and "user" not in new_connection_args:
+            user = os.getenv("USER")
             if user is not None:
-                new_connection_args['user'] = user
+                new_connection_args["user"] = user
 
         self._task.args.update(new_connection_args)
 
         # Pass the hidden _module_utils_path option
         module_utils_path = os.path.normpath(os.path.dirname(__file__))
-        self._task.args['_module_utils_path'] = module_utils_path
+        self._task.args["_module_utils_path"] = module_utils_path
         # Pass the hidden _module_name option
-        self._task.args['_module_name'] = self._task.action
+        self._task.args["_module_name"] = self._task.action
         # Pass the hidden _inventory_hostname option
-        self._task.args['_inventory_hostname'] = task_vars['inventory_hostname']
+        self._task.args["_inventory_hostname"] = task_vars["inventory_hostname"]

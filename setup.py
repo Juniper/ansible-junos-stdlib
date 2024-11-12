@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 from setuptools import setup
+
 from version import VERSION
 
 setup(
@@ -11,23 +12,26 @@ setup(
     license="Apache 2.0",
     keywords="Ansible Junos NETCONF networking automation",
     url="http://www.github.com/Juniper/ansible-junos-stdlib",
-    packages=['ansible_collections/juniper/device/plugins/modules', 'ansible_collections/juniper/device/plugins/module_utils' ],
+    packages=[
+        "ansible_collections/juniper/device/plugins/modules",
+        "ansible_collections/juniper/device/plugins/module_utils",
+    ],
     classifiers=[
-        'Development Status :: 5 - Production/Stable',
-        'Environment :: Console',
-        'Intended Audience :: Developers',
-        'Intended Audience :: Information Technology',
-        'Intended Audience :: System Administrators',
-        'Intended Audience :: Telecommunications Industry',
-        'License :: OSI Approved :: Apache Software License',
-        'Operating System :: OS Independent',
-        'Programming Language :: Python',
-        'Programming Language :: Python :: 3.7',
-        'Programming Language :: Python :: 3.8',
-        'Topic :: Software Development :: Libraries',
-        'Topic :: Software Development :: Libraries :: Application Frameworks',
-        'Topic :: Software Development :: Libraries :: Python Modules',
-        'Topic :: System :: Networking',
-        'Topic :: Text Processing :: Markup :: XML'
+        "Development Status :: 5 - Production/Stable",
+        "Environment :: Console",
+        "Intended Audience :: Developers",
+        "Intended Audience :: Information Technology",
+        "Intended Audience :: System Administrators",
+        "Intended Audience :: Telecommunications Industry",
+        "License :: OSI Approved :: Apache Software License",
+        "Operating System :: OS Independent",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3.7",
+        "Programming Language :: Python :: 3.8",
+        "Topic :: Software Development :: Libraries",
+        "Topic :: Software Development :: Libraries :: Application Frameworks",
+        "Topic :: Software Development :: Libraries :: Python Modules",
+        "Topic :: System :: Networking",
+        "Topic :: Text Processing :: Markup :: XML",
     ],
 )

@@ -341,7 +341,7 @@ Examples
 
 ::
 
-    
+
     ---
     - name: Manipulate the SRX cluster configuration of Junos SRX devices
       hosts: junos-all
@@ -450,5 +450,3 @@ Status
 ~~~~~~
 
 This module is flagged as **stableinterface** which means that the maintainers for this module guarantee that no backward incompatible interface changes will be made.
-
-

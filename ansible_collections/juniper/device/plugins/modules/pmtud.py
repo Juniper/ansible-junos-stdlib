@@ -33,13 +33,15 @@
 
 from __future__ import absolute_import, division, print_function
 
-ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'supported_by': 'community',
-                    'status': ['stableinterface']}
+ANSIBLE_METADATA = {
+    "metadata_version": "1.1",
+    "supported_by": "community",
+    "status": ["stableinterface"],
+}
 
-DOCUMENTATION = '''
+DOCUMENTATION = """
 ---
-extends_documentation_fragment: 
+extends_documentation_fragment:
   - juniper_junos_common.connection_documentation
   - juniper_junos_common.logging_documentation
 module: pmtud
@@ -120,9 +122,9 @@ options:
       - src
       - src_ip
       - src_host
-'''
+"""
 
-EXAMPLES = '''
+EXAMPLES = """
 ---
 - name: Examples of pmtud
   hosts: junos-all
@@ -178,9 +180,9 @@ EXAMPLES = '''
     - name: Print the discovered MTU.
       ansible.builtin.debug:
         var: response.inet_mtu
-'''
+"""
 
-RETURN = '''
+RETURN = """
 changed:
   description:
     - Indicates if the device's state has changed. Since this module
@@ -233,7 +235,7 @@ warnings:
     - A list of warning strings, if any, produced from the ping.
   returned: when warnings are present
   type: list
-'''
+"""
 
 
 """From Ansible 2.1, Ansible uses Ansiballz framework for assembling modules
@@ -242,7 +244,9 @@ Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project
 
 # Ansiballz packages module_utils into ansible.module_utils
 from ansible.module_utils.basic import AnsibleModule
+
 from ansible_collections.juniper.device.plugins.module_utils import juniper_junos_common
+
 
 def main():
     # Constants for MTU size
@@ -261,123 +265,131 @@ def main():
     INET_AND_ICMP_HEADER_SIZE = INET_HEADER_SIZE + ICMP_HEADER_SIZE
 
     # Choices for max_size
-    MAX_SIZE_CHOICES = [0] + list(map(lambda x: 2 ** x, range(1, 17)))
+    MAX_SIZE_CHOICES = [0] + list(map(lambda x: 2**x, range(1, 17)))
 
     # Create the module instance.
     junos_module = juniper_junos_common.JuniperJunosModule(
         argument_spec=dict(
-            dest=dict(type='str',
-                      required=True,
-                      aliases=['dest_ip', 'dest_host', 'destination',
-                               'destination_ip', 'destination_host'],
-                      default=None),
-            max_size=dict(type='int',
-                          required=False,
-                          default=1500),
-            max_range=dict(type='int',
-                           required=False,
-                           choices=MAX_SIZE_CHOICES,
-                           default=512),
-            source=dict(type='str',
-                        required=False,
-                        aliases=['source_ip', 'source_host', 'src',
-                                 'src_ip', 'src_host'],
-                        default=None),
-            interface=dict(type='str',
-                           required=False,
-                           default=None),
-            routing_instance=dict(type='str',
-                                  required=False,
-                                  default=None),
+            dest=dict(
+                type="str",
+                required=True,
+                aliases=[
+                    "dest_ip",
+                    "dest_host",
+                    "destination",
+                    "destination_ip",
+                    "destination_host",
+                ],
+                default=None,
+            ),
+            max_size=dict(type="int", required=False, default=1500),
+            max_range=dict(
+                type="int", required=False, choices=MAX_SIZE_CHOICES, default=512
+            ),
+            source=dict(
+                type="str",
+                required=False,
+                aliases=["source_ip", "source_host", "src", "src_ip", "src_host"],
+                default=None,
+            ),
+            interface=dict(type="str", required=False, default=None),
+            routing_instance=dict(type="str", required=False, default=None),
         ),
         # Since this module doesn't change the device's configuration, there is
         # no additional work required to support check mode. It's inherently
         # supported.
-        supports_check_mode=True
+        supports_check_mode=True,
     )
 
     # We're going to be using params a lot
     params = junos_module.params
 
     # max_size must be between INET_MIN_MTU_SIZE and INET_MAX_MTU_SIZE
-    if (params['max_size'] < INET_MIN_MTU_SIZE or
-       params['max_size'] > INET_MAX_MTU_SIZE):
-        junos_module.fail_json(msg='The value of the max_size option(%d) '
-                                   'must be between %d and %d.' %
-                                   (params['max_size'], INET_MIN_MTU_SIZE,
-                                    INET_MAX_MTU_SIZE))
+    if params["max_size"] < INET_MIN_MTU_SIZE or params["max_size"] > INET_MAX_MTU_SIZE:
+        junos_module.fail_json(
+            msg="The value of the max_size option(%d) "
+            "must be between %d and %d."
+            % (params["max_size"], INET_MIN_MTU_SIZE, INET_MAX_MTU_SIZE)
+        )
 
     # Initialize ping parameters.
-    ping_params = {'host': params.get('dest'),
-                   'count': '3',
-                   'rapid': True,
-                   'inet': True,
-                   'do_not_fragment': True}
+    ping_params = {
+        "host": params.get("dest"),
+        "count": "3",
+        "rapid": True,
+        "inet": True,
+        "do_not_fragment": True,
+    }
 
     # Add optional ping parameters
     o_ping_params = {}
-    if params['source'] is not None:
-        o_ping_params['source'] = params['source']
-    if params['interface'] is not None:
-        o_ping_params['interface'] = params['interface']
-    if params['routing_instance'] is not None:
-        o_ping_params['routing_instance'] = params['routing_instance']
+    if params["source"] is not None:
+        o_ping_params["source"] = params["source"]
+    if params["interface"] is not None:
+        o_ping_params["interface"] = params["interface"]
+    if params["routing_instance"] is not None:
+        o_ping_params["routing_instance"] = params["routing_instance"]
     ping_params.update(o_ping_params)
 
     # Set initial results values. Assume failure until we know it's success.
-    results = {'changed': False,
-               'failed': True,
-               'inet_mtu': 0,
-               'host': params.get('dest')}
+    results = {
+        "changed": False,
+        "failed": True,
+        "inet_mtu": 0,
+        "host": params.get("dest"),
+    }
     # Results should include all the o_ping_params.
     for key in o_ping_params:
         results[key] = ping_params.get(key)
     # Add aliases for backwards compatibility
-    results.update({'dest': ping_params.get('host'),
-                    'dest_ip': ping_params.get('host'),
-                    'source_ip': ping_params.get('source')})
+    results.update(
+        {
+            "dest": ping_params.get("host"),
+            "dest_ip": ping_params.get("host"),
+            "source_ip": ping_params.get("source"),
+        }
+    )
 
     # Execute a minimally-sized ping just to verify basic connectivity.
     junos_module.logger.debug("Verifying basic connectivity.")
-    ping_params['size'] = str(INET_MIN_MTU_SIZE -
-                              INET_AND_ICMP_HEADER_SIZE)
+    ping_params["size"] = str(INET_MIN_MTU_SIZE - INET_AND_ICMP_HEADER_SIZE)
     results_for_minimal = dict(results)
-    results_for_minimal = junos_module.ping(ping_params,
-                                            acceptable_percent_loss=100,
-                                            results=results_for_minimal)
-    if round(float(results_for_minimal.get('packet_loss', 100))) == 100:
-        results['msg'] = "Basic connectivity to %s failed." % (results['host'])
+    results_for_minimal = junos_module.ping(
+        ping_params, acceptable_percent_loss=100, results=results_for_minimal
+    )
+    if round(float(results_for_minimal.get("packet_loss", 100))) == 100:
+        results["msg"] = "Basic connectivity to %s failed." % (results["host"])
         junos_module.exit_json(**results)
 
     # Initialize test_size and step
-    test_size = params['max_size']
-    step = params['max_range']
-    min_test_size = test_size - (params['max_range'] - 1)
+    test_size = params["max_size"]
+    step = params["max_range"]
+    min_test_size = test_size - (params["max_range"] - 1)
     if min_test_size < INET_MIN_MTU_SIZE:
         min_test_size = INET_MIN_MTU_SIZE
 
     while True:
         if test_size < INET_MIN_MTU_SIZE:
             test_size = INET_MIN_MTU_SIZE
-        if test_size > params['max_size']:
-            test_size = params['max_size']
+        if test_size > params["max_size"]:
+            test_size = params["max_size"]
         junos_module.logger.debug("Probing with size: %d", test_size)
         step = step // 2 if step >= 2 else 0
-        ping_params['size'] = str(test_size - INET_AND_ICMP_HEADER_SIZE)
+        ping_params["size"] = str(test_size - INET_AND_ICMP_HEADER_SIZE)
         current_results = dict(results)
-        current_results = junos_module.ping(ping_params,
-                                            acceptable_percent_loss=100,
-                                            results=current_results)
-        loss = round(float(current_results.get('packet_loss', 100)))
-        if loss < 100 and test_size == params['max_size']:
+        current_results = junos_module.ping(
+            ping_params, acceptable_percent_loss=100, results=current_results
+        )
+        loss = round(float(current_results.get("packet_loss", 100)))
+        if loss < 100 and test_size == params["max_size"]:
             # ping success with max test_size, save and break
-            results['failed'] = False
-            results['inet_mtu'] = test_size
+            results["failed"] = False
+            results["inet_mtu"] = test_size
             break
         elif loss < 100:
             # ping success, increase test_size
-            results['failed'] = False
-            results['inet_mtu'] = test_size
+            results["failed"] = False
+            results["inet_mtu"] = test_size
             test_size += step
         else:
             # ping fail, lower size
@@ -385,19 +397,19 @@ def main():
         if step < 1:
             break
 
-    if results.get('inet_mtu', 0) == 0:
-        junos_module.fail_json(msg='The MTU of the path to %s is less than '
-                                   'the minimum tested size(%d). Try '
-                                   'decreasing max_size(%d) or increasing '
-                                   'max_range(%d).' % (results['host'],
-                                                       min_test_size,
-                                                       params['max_size'],
-                                                       params['max_range']),
-                               **results)
+    if results.get("inet_mtu", 0) == 0:
+        junos_module.fail_json(
+            msg="The MTU of the path to %s is less than "
+            "the minimum tested size(%d). Try "
+            "decreasing max_size(%d) or increasing "
+            "max_range(%d)."
+            % (results["host"], min_test_size, params["max_size"], params["max_range"]),
+            **results
+        )
 
     # Return results.
     junos_module.exit_json(**results)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

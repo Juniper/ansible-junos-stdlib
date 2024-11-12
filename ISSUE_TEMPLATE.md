@@ -14,7 +14,7 @@ Module Name
 -->
 
 juniper.device collection and Python libraries version
-<!--- Paste, BELOW THIS COMMENT, verbatim output from "ansible --version" and  "pip freeze" between quotes below 
+<!--- Paste, BELOW THIS COMMENT, verbatim output from "ansible --version" and  "pip freeze" between quotes below
 Also provide the version of juniper.device collection-->
 ```
 

@@ -33,13 +33,15 @@
 
 from __future__ import absolute_import, division, print_function
 
-ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'supported_by': 'community',
-                    'status': ['stableinterface']}
+ANSIBLE_METADATA = {
+    "metadata_version": "1.1",
+    "supported_by": "community",
+    "status": ["stableinterface"],
+}
 
-DOCUMENTATION = '''
+DOCUMENTATION = """
 ---
-extends_documentation_fragment: 
+extends_documentation_fragment:
   - juniper_junos_common.connection_documentation
   - juniper_junos_common.logging_documentation
 module: config
@@ -53,7 +55,7 @@ description:
     steps in order:
 
     #. Open a candidate configuration database.
-    
+
        * If the I(config_mode) option has a value of C(exclusive), the default,
          take a lock on the candidate configuration database. If the lock fails
          the module fails and reports an error.
@@ -75,7 +77,7 @@ description:
          opening the ephemeral onfiguration database fails the module fails
          and reports an error.
     #. Load configuration data into the candidate configuration database.
-       
+
        * Configuration data may be loaded using the I(load) or I(rollback)
          options. If either of these options are specified, new configuration
          data is loaded. If neither option is specified, this step is skipped.
@@ -86,7 +88,7 @@ description:
        * The value of the I(load) option defines the type of load which is
          performed.
        * The source of the new configuration data is one of the following:
-       
+
          * I(src)      - A file path on the local Ansible control machine.
          * I(lines)    - A list of strings containing the configuration data.
          * I(template) - A file path to a Jinja2 template on the local
@@ -98,7 +100,7 @@ description:
          loaded is in the specified format, rather than the format determined
          from the file name.
     #. Check the validity of the candidate configuration database.
-    
+
        * If the I(check) option is C(true), the default, check the validity
          of the configuration by performing a "commit check" operation.
        * This option may be specified with I(diff) C(false) and I(commit)
@@ -108,7 +110,7 @@ description:
          fails, and an error is reported.
     #. Determine differences between the candidate and committed configuration
        databases.
-       
+
        * If step 2 was not skipped, and the I(diff) option is C(true),
          the default, perform a diff between the candidate and committed
          configuration databases.
@@ -118,7 +120,7 @@ description:
          generated configuration difference in the I(diff) and I(diff_lines)
          keys of the module's response.
     #. Retrieve the configuration database from the Junos device.
-       
+
        * If the I(retrieve) option is specified, retrieve the configuration
          database specified by the I(retrieve) value from the target Junos
          device to the local Ansible control machine.
@@ -135,7 +137,7 @@ description:
          retrieved configuration in the I(config), I(config_lines), and
          I(config_parsed) keys of the module's response.
     #. Commit the configuration changes.
-    
+
        * If the I(commit) option is C(true), the default, commit the
          configuration changes.
        * This option may be specified with I(diff) C(false) and I(check)
@@ -148,7 +150,7 @@ description:
          option is specified, wait I(check_commit_wait) seconds before
          performing the commit.
     #. Close the candidate configuration database.
-       
+
        * Close and discard the candidate configuration database.
        * If the I(config_mode) option has a value of C(exclusive), the default,
          unlock the candidate configuration database.
@@ -379,7 +381,7 @@ options:
     type: bool, str, or list of str
   model:
     description:
-      - Specifies yang model openconfig/custom/ietf to fetch. 
+      - Specifies yang model openconfig/custom/ietf to fetch.
       - When model is True and filter_xml is None, xml is enclosed under
         <data> so that we get junos as well as other model configurations.
       - In case of custom, user will have to provide the namespace to be fetched
@@ -452,7 +454,7 @@ options:
         format (a series of configuration mode commands). The new configuration
         data is loaded line by line and may contain any configuration mode
         commands, such as set, delete, edit, or deactivate. This value must be
-        specified if the new configuration is in set format.  
+        specified if the new configuration is in set format.
     required: false
     default: none
     choices:
@@ -478,7 +480,7 @@ options:
       - The configuration database to be retrieved.
     required: false
     default: none
-    choices: 
+    choices:
       - none
       - candidate
       - committed
@@ -553,7 +555,7 @@ options:
       - The Junos device uses this URL to load the configuration, therefore
         this URL must be reachable by the target Junos device.
       - The possible formats of this value are documented in the 'url' section
-        of the 
+        of the
         U(<load-configuration> RPC documentation|https://www.juniper.net/documentation/en_US/junos/topics/reference/tag-summary/junos-xml-protocol-load-configuration.html).
       - The I(src), I(lines), I(template), and I(url) options are mutually
         exclusive.
@@ -571,9 +573,9 @@ options:
     type: dict
     aliases:
       - template_vars
-'''
+"""
 
-EXAMPLES = '''
+EXAMPLES = """
 ---
 - name: 'Explicit host argument'
   hosts: junos
@@ -745,9 +747,9 @@ EXAMPLES = '''
         filter: <configuration><groups><name>re0</name></groups></configuration>
         return_output: True
       register: config_output
-'''
+"""
 
-RETURN = '''
+RETURN = """
 changed:
   description:
     - Indicates if the device's configuration has changed, or would have
@@ -779,7 +781,7 @@ config_parsed:
             C(json) and I(return_output) is C(true).
   type: dict
 diff:
-  description: 
+  description:
     - The configuration differences between the previous and new
       configurations. The value is a dict that contains a single key named
       "prepared". Value associated with that key is a single multi-line string
@@ -796,7 +798,7 @@ diff_lines:
             I(return_output) is C(true).
   type: list
 failed:
-  description: 
+  description:
     - Indicates if the task failed.
   returned: always
   type: bool
@@ -810,12 +812,11 @@ msg:
     - A human-readable message indicating the result.
   returned: always
   type: str
-'''
+"""
 
 
 # Standard library imports
 import time
-
 
 """From Ansible 2.1, Ansible uses Ansiballz framework for assembling modules
 But custom module_utils directory is supported from Ansible 2.3
@@ -823,14 +824,15 @@ Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project
 
 # Ansiballz packages module_utils into ansible.module_utils
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.juniper.device.plugins.module_utils import juniper_junos_common
+
 from ansible_collections.juniper.device.plugins.module_utils import configuration as cfg
+from ansible_collections.juniper.device.plugins.module_utils import juniper_junos_common
+
 
 def main():
     # Choices which are defined in the common module.
     config_format_choices = juniper_junos_common.CONFIG_FORMAT_CHOICES
-    config_database_choices = [None] + \
-        juniper_junos_common.CONFIG_DATABASE_CHOICES
+    config_database_choices = [None] + juniper_junos_common.CONFIG_DATABASE_CHOICES
     config_action_choices = [None] + juniper_junos_common.CONFIG_ACTION_CHOICES
     config_mode_choices = juniper_junos_common.CONFIG_MODE_CHOICES
     config_model_choices = juniper_junos_common.CONFIG_MODEL_CHOICES
@@ -838,127 +840,89 @@ def main():
     # Create the module instance.
     junos_module = juniper_junos_common.JuniperJunosModule(
         argument_spec=dict(
-            ignore_warning=dict(required=False,
-                                type='list',
-                                default=None),
-            config_mode=dict(choices=config_mode_choices,
-                             type='str',
-                             required=False,
-                             aliases=['config_access', 'edit_mode',
-                                      'edit_access'],
-                             default='exclusive'),
-            ephemeral_instance=dict(type='str',
-                                    required=False,
-                                    default=None),
-            rollback=dict(type='str',
-                          required=False,
-                          default=None),
-            load=dict(choices=config_action_choices,
-                      type='str',
-                      required=False,
-                      default=None),
-            src=dict(type='path',
-                     required=False,
-                     aliases=['source', 'file'],
-                     default=None),
-            lines=dict(type='list',
-                       required=False,
-                       default=None),
-            template=dict(type='path',
-                          required=False,
-                          aliases=['template_path'],
-                          default=None),
-            vars=dict(type='dict',
-                      required=False,
-                      aliases=['template_vars'],
-                      default=None),
-            url=dict(type='str',
-                     required=False,
-                     default=None),
-            format=dict(choices=config_format_choices,
-                        type='str',
-                        required=False,
-                        default=None),
-            model=dict(required=False,
-                       choices=config_model_choices,
-                        type='str',
-                        default=None),
-            remove_ns=dict(required=False,
-                            type='bool',
-                            default=None),
-            namespace=dict(required=False,
-                            type='str',
-                            default=None),
-            check=dict(required=False,
-                       type='bool',
-                       aliases=['check_commit', 'commit_check'],
-                       default=None),
-            diff=dict(required=False,
-                      type='bool',
-                      aliases=['compare', 'diffs'],
-                      default=None),
-            diffs_file=dict(type='path',
-                            required=False,
-                            default=None),
-            dest_dir=dict(required=False,
-                          type='path',
-                          aliases=['destination_dir', 'destdir', 'savedir',
-                                   'save_dir'],
-                          default=None),
-            return_output=dict(required=False,
-                               type='bool',
-                               default=True),
-            retrieve=dict(choices=config_database_choices,
-                          type='str',
-                          required=False,
-                          default=None),
-            options=dict(type='dict',
-                         required=False,
-                         default={}),
-            filter=dict(required=False,
-                        type='str',
-                        aliases=['filter_xml'],
-                        default=None),
-            dest=dict(type='path',
-                      required=False,
-                      aliases=['destination'],
-                      default=None),
-            commit=dict(required=False,
-                        type='bool',
-                        default=None),
-            commit_empty_changes=dict(required=False,
-                                      type='bool',
-                                      default=False),
-            commit_full=dict(required=False,
-                             type='bool',
-                             default=False),
-            commit_sync=dict(required=False,
-                             type='bool',
-                             default=False),
-            commit_force_sync=dict(required=False,
-                                   type='bool',
-                                   default=False),
-            confirmed=dict(required=False,
-                           type='int',
-                           aliases=['confirm'],
-                           default=None),
-            timeout=dict(required=False,
-                           type='int',
-                           default=30),
-            comment=dict(required=False,
-                         type='str',
-                         default=None),
-            check_commit_wait=dict(required=False,
-                                   type='int',
-                                   default=None)
+            ignore_warning=dict(required=False, type="list", default=None),
+            config_mode=dict(
+                choices=config_mode_choices,
+                type="str",
+                required=False,
+                aliases=["config_access", "edit_mode", "edit_access"],
+                default="exclusive",
+            ),
+            ephemeral_instance=dict(type="str", required=False, default=None),
+            rollback=dict(type="str", required=False, default=None),
+            load=dict(
+                choices=config_action_choices, type="str", required=False, default=None
+            ),
+            src=dict(
+                type="path", required=False, aliases=["source", "file"], default=None
+            ),
+            lines=dict(type="list", required=False, default=None),
+            template=dict(
+                type="path", required=False, aliases=["template_path"], default=None
+            ),
+            vars=dict(
+                type="dict", required=False, aliases=["template_vars"], default=None
+            ),
+            url=dict(type="str", required=False, default=None),
+            format=dict(
+                choices=config_format_choices, type="str", required=False, default=None
+            ),
+            model=dict(
+                required=False, choices=config_model_choices, type="str", default=None
+            ),
+            remove_ns=dict(required=False, type="bool", default=None),
+            namespace=dict(required=False, type="str", default=None),
+            check=dict(
+                required=False,
+                type="bool",
+                aliases=["check_commit", "commit_check"],
+                default=None,
+            ),
+            diff=dict(
+                required=False, type="bool", aliases=["compare", "diffs"], default=None
+            ),
+            diffs_file=dict(type="path", required=False, default=None),
+            dest_dir=dict(
+                required=False,
+                type="path",
+                aliases=["destination_dir", "destdir", "savedir", "save_dir"],
+                default=None,
+            ),
+            return_output=dict(required=False, type="bool", default=True),
+            retrieve=dict(
+                choices=config_database_choices,
+                type="str",
+                required=False,
+                default=None,
+            ),
+            options=dict(type="dict", required=False, default={}),
+            filter=dict(
+                required=False, type="str", aliases=["filter_xml"], default=None
+            ),
+            dest=dict(
+                type="path", required=False, aliases=["destination"], default=None
+            ),
+            commit=dict(required=False, type="bool", default=None),
+            commit_empty_changes=dict(required=False, type="bool", default=False),
+            commit_full=dict(required=False, type="bool", default=False),
+            commit_sync=dict(required=False, type="bool", default=False),
+            commit_force_sync=dict(required=False, type="bool", default=False),
+            confirmed=dict(
+                required=False, type="int", aliases=["confirm"], default=None
+            ),
+            timeout=dict(required=False, type="int", default=30),
+            comment=dict(required=False, type="str", default=None),
+            check_commit_wait=dict(required=False, type="int", default=None),
         ),
         # Mutually exclusive options.
-        mutually_exclusive=[['load', 'rollback'],
-                            ['src', 'lines', 'template', 'url'],
-                            ['diffs_file', 'dest_dir'],
-                            ['dest', 'dest_dir']],
+        mutually_exclusive=[
+            ["load", "rollback"],
+            ["src", "lines", "template", "url"],
+            ["diffs_file", "dest_dir"],
+            ["dest", "dest_dir"],
+        ],
         # Required together options.
-        required_together=[['template', 'vars']],
+        required_together=[["template", "vars"]],
         # Check mode is implemented.
         supports_check_mode=True,
         min_jxmlease_version=cfg.MIN_JXMLEASE_VERSION,
@@ -969,45 +933,45 @@ def main():
     ignore_warning = junos_module.parse_ignore_warning_option()
 
     # Straight from params
-    config_mode = junos_module.params.get('config_mode')
-    ephemeral_instance = junos_module.params.get('ephemeral_instance')
+    config_mode = junos_module.params.get("config_mode")
+    ephemeral_instance = junos_module.params.get("ephemeral_instance")
 
     # Parse rollback value
     rollback = junos_module.parse_rollback_option()
 
     # Straight from params
-    load = junos_module.params.get('load')
-    src = junos_module.params.get('src')
-    lines = junos_module.params.get('lines')
-    template = junos_module.params.get('template')
-    vars = junos_module.params.get('vars')
-    url = junos_module.params.get('url')
-    format = junos_module.params.get('format')
-    check = junos_module.params.get('check')
-    diff = junos_module.params.get('diff')
-    diffs_file = junos_module.params.get('diffs_file')
-    dest_dir = junos_module.params.get('dest_dir')
-    return_output = junos_module.params.get('return_output')
-    retrieve = junos_module.params.get('retrieve')
-    options = junos_module.params.get('options')
-    filter = junos_module.params.get('filter')
-    dest = junos_module.params.get('dest')
-    commit = junos_module.params.get('commit')
-    commit_empty_changes = junos_module.params.get('commit_empty_changes')
-    commit_full = junos_module.params.get('commit_full')
-    commit_sync = junos_module.params.get('commit_sync')
-    commit_force_sync = junos_module.params.get('commit_force_sync')
-    confirmed = junos_module.params.get('confirmed')
-    timeout = junos_module.params.get('timeout')
-    comment = junos_module.params.get('comment')
-    check_commit_wait = junos_module.params.get('check_commit_wait')
-    model = junos_module.params.get('model')
-    remove_ns = junos_module.params.get('remove_ns')
-    namespace = junos_module.params.get('namespace')
+    load = junos_module.params.get("load")
+    src = junos_module.params.get("src")
+    lines = junos_module.params.get("lines")
+    template = junos_module.params.get("template")
+    vars = junos_module.params.get("vars")
+    url = junos_module.params.get("url")
+    format = junos_module.params.get("format")
+    check = junos_module.params.get("check")
+    diff = junos_module.params.get("diff")
+    diffs_file = junos_module.params.get("diffs_file")
+    dest_dir = junos_module.params.get("dest_dir")
+    return_output = junos_module.params.get("return_output")
+    retrieve = junos_module.params.get("retrieve")
+    options = junos_module.params.get("options")
+    filter = junos_module.params.get("filter")
+    dest = junos_module.params.get("dest")
+    commit = junos_module.params.get("commit")
+    commit_empty_changes = junos_module.params.get("commit_empty_changes")
+    commit_full = junos_module.params.get("commit_full")
+    commit_sync = junos_module.params.get("commit_sync")
+    commit_force_sync = junos_module.params.get("commit_force_sync")
+    confirmed = junos_module.params.get("confirmed")
+    timeout = junos_module.params.get("timeout")
+    comment = junos_module.params.get("comment")
+    check_commit_wait = junos_module.params.get("check_commit_wait")
+    model = junos_module.params.get("model")
+    remove_ns = junos_module.params.get("remove_ns")
+    namespace = junos_module.params.get("namespace")
 
     # Ephemeral database doesn't support "show | compare",
     # so setting diff to False.
-    if config_mode == 'ephemeral':
+    if config_mode == "ephemeral":
         diff = False
 
     # If retrieve is set and load and rollback are not set, then
@@ -1030,191 +994,211 @@ def main():
 
     # If load is not None, must have one of src, template, url, lines
     if load is not None:
-        for option in ['src', 'lines', 'template', 'url']:
+        for option in ["src", "lines", "template", "url"]:
             if junos_module.params.get(option) is not None:
                 break
         # for/else only executed if we didn't break out of the loop.
         else:
-            junos_module.fail_json(msg="The load option (%s) is specified, "
-                                       "but none of 'src', 'lines', "
-                                       "'template', or 'url' are specified. "
-                                       "Must specify one of the 'src', "
-                                       "'lines', 'template', or 'url' options."
-                                       % (load))
+            junos_module.fail_json(
+                msg="The load option (%s) is specified, "
+                "but none of 'src', 'lines', "
+                "'template', or 'url' are specified. "
+                "Must specify one of the 'src', "
+                "'lines', 'template', or 'url' options." % (load)
+            )
 
     # format is valid if retrieve is not None or load is not None.
     if format is not None:
         if load is None and retrieve is None:
-            junos_module.fail_json(msg="The format option (%s) is specified, "
-                                       "but neither 'load' or 'retrieve' are "
-                                       "specified. Must specify one of "
-                                       "'load' or 'retrieve' options."
-                                       % (format))
+            junos_module.fail_json(
+                msg="The format option (%s) is specified, "
+                "but neither 'load' or 'retrieve' are "
+                "specified. Must specify one of "
+                "'load' or 'retrieve' options." % (format)
+            )
 
     # dest_dir is valid if retrieve is not None or diff is True.
     if dest_dir is not None:
         if retrieve is None and diff is False:
-            junos_module.fail_json(msg="The dest_dir option (%s) is specified,"
-                                       " but neither 'retrieve' or 'diff' "
-                                       "are specified. Must specify one of "
-                                       "'retrieve' or 'diff' options."
-                                       % (dest_dir))
+            junos_module.fail_json(
+                msg="The dest_dir option (%s) is specified,"
+                " but neither 'retrieve' or 'diff' "
+                "are specified. Must specify one of "
+                "'retrieve' or 'diff' options." % (dest_dir)
+            )
 
     # dest is valid if retrieve is not None
     if dest is not None:
         if retrieve is None:
-            junos_module.fail_json(msg="The dest option (%s) is specified,"
-                                       " but 'retrieve' is not specified. "
-                                       "Must specify the 'retrieve' option."
-                                       % (dest))
+            junos_module.fail_json(
+                msg="The dest option (%s) is specified,"
+                " but 'retrieve' is not specified. "
+                "Must specify the 'retrieve' option." % (dest)
+            )
 
     # diffs_file is valid if diff is True
     if diffs_file is not None:
         if diff is False:
-            junos_module.fail_json(msg="The diffs_file option (%s) is "
-                                       "specified, but 'diff' is false."
-                                       % (diffs_file))
+            junos_module.fail_json(
+                msg="The diffs_file option (%s) is "
+                "specified, but 'diff' is false." % (diffs_file)
+            )
 
     # commit_empty_changes is valid if commit is True
     if commit_empty_changes is True:
         if commit is False:
-            junos_module.fail_json(msg="The commit_empty_changes option "
-                                       "is true, but 'commit' is false. "
-                                       "The commit_empty_changes option "
-                                       "may only be specified when "
-                                       "'commit' is true.")
+            junos_module.fail_json(
+                msg="The commit_empty_changes option "
+                "is true, but 'commit' is false. "
+                "The commit_empty_changes option "
+                "may only be specified when "
+                "'commit' is true."
+            )
 
     # comment is valid if commit is True
     if comment is not None:
         if commit is False:
-            junos_module.fail_json(msg="The comment option (%s) is "
-                                       "specified, but 'commit' is false."
-                                       % (comment))
+            junos_module.fail_json(
+                msg="The comment option (%s) is "
+                "specified, but 'commit' is false." % (comment)
+            )
 
     # confirmed is valid if commit is True
     if confirmed is not None:
         if commit is False:
-            junos_module.fail_json(msg="The confirmed option (%s) is "
-                                       "specified, but 'commit' is false."
-                                       % (confirmed))
+            junos_module.fail_json(
+                msg="The confirmed option (%s) is "
+                "specified, but 'commit' is false." % (confirmed)
+            )
         # Must be greater >= 1.
         if confirmed < 1:
-            junos_module.fail_json(msg="The confirmed option (%s) must have a "
-                                       "positive integer value." % (confirmed))
+            junos_module.fail_json(
+                msg="The confirmed option (%s) must have a "
+                "positive integer value." % (confirmed)
+            )
 
     # check_commit_wait is valid if check is True and commit is True
     if check_commit_wait is not None:
         if commit is False:
-            junos_module.fail_json(msg="The check_commit_wait option (%s) is "
-                                       "specified, but 'commit' is false."
-                                       % (check_commit_wait))
+            junos_module.fail_json(
+                msg="The check_commit_wait option (%s) is "
+                "specified, but 'commit' is false." % (check_commit_wait)
+            )
         if check is False:
-            junos_module.fail_json(msg="The check_commit_wait option (%s) is "
-                                       "specified, but 'check' is false."
-                                       % (check_commit_wait))
+            junos_module.fail_json(
+                msg="The check_commit_wait option (%s) is "
+                "specified, but 'check' is false." % (check_commit_wait)
+            )
         # Must be greater >= 1.
         if check_commit_wait < 1:
-            junos_module.fail_json(msg="The check_commit_wait option (%s) "
-                                       "must have a positive integer value." %
-                                       (check_commit_wait))
+            junos_module.fail_json(
+                msg="The check_commit_wait option (%s) "
+                "must have a positive integer value." % (check_commit_wait)
+            )
 
     # Initialize the results. Assume failure until we know it's success.
-    results = {'msg': 'Configuration has been: ',
-               'changed': False,
-               'failed': True}
+    results = {"msg": "Configuration has been: ", "changed": False, "failed": True}
 
-    junos_module.logger.debug("Step 1 - Open a candidate configuration "
-                              "database.")
-    junos_module.open_configuration(mode=config_mode, ignore_warning=ignore_warning,
-                                              ephemeral_instance=ephemeral_instance)
-    results['msg'] += 'opened'
+    junos_module.logger.debug("Step 1 - Open a candidate configuration " "database.")
+    junos_module.open_configuration(
+        mode=config_mode,
+        ignore_warning=ignore_warning,
+        ephemeral_instance=ephemeral_instance,
+    )
+    results["msg"] += "opened"
 
-    junos_module.logger.debug("Step 2 - Load configuration data into the "
-                              "candidate configuration database.")
+    junos_module.logger.debug(
+        "Step 2 - Load configuration data into the " "candidate configuration database."
+    )
     if rollback is not None:
         junos_module.rollback_configuration(id=rollback)
         # Assume configuration changed in case we don't perform a diff later.
         # If diff is set, we'll check for actual differences later.
-        results['changed'] = True
-        results['msg'] += ', rolled back'
+        results["changed"] = True
+        results["msg"] += ", rolled back"
     elif load is not None:
         if src is not None:
-            junos_module.load_configuration(action=load,
-                                            src=src,
-                                            ignore_warning=ignore_warning,
-                                            format=format)
-            results['file'] = src
+            junos_module.load_configuration(
+                action=load, src=src, ignore_warning=ignore_warning, format=format
+            )
+            results["file"] = src
         elif lines is not None:
-            junos_module.load_configuration(action=load,
-                                            lines=lines,
-                                            ignore_warning=ignore_warning,
-                                            format=format)
+            junos_module.load_configuration(
+                action=load, lines=lines, ignore_warning=ignore_warning, format=format
+            )
         elif template is not None:
-            junos_module.load_configuration(action=load,
-                                            template=template,
-                                            vars=vars,
-                                            ignore_warning=ignore_warning,
-                                            format=format)
+            junos_module.load_configuration(
+                action=load,
+                template=template,
+                vars=vars,
+                ignore_warning=ignore_warning,
+                format=format,
+            )
         elif url is not None:
-            junos_module.load_configuration(action=load,
-                                            url=url,
-                                            ignore_warning=ignore_warning,
-                                            format=format)
+            junos_module.load_configuration(
+                action=load, url=url, ignore_warning=ignore_warning, format=format
+            )
         else:
-            junos_module.fail_json(msg="The load option was set to: %s, but "
-                                       "no 'src', 'lines', 'template', or "
-                                       "'url' option was set." %
-                                       (load))
+            junos_module.fail_json(
+                msg="The load option was set to: %s, but "
+                "no 'src', 'lines', 'template', or "
+                "'url' option was set." % (load)
+            )
         # Assume configuration changed in case we don't perform a diff later.
         # If diff is set, we'll check for actual differences later.
-        results['changed'] = True
-        results['msg'] += ', loaded'
+        results["changed"] = True
+        results["msg"] += ", loaded"
 
-    junos_module.logger.debug("Step 3 - Check the validity of the candidate "
-                              "configuration database.")
+    junos_module.logger.debug(
+        "Step 3 - Check the validity of the candidate " "configuration database."
+    )
     if check is True:
         junos_module.check_configuration()
-        results['msg'] += ', checked'
+        results["msg"] += ", checked"
 
-    junos_module.logger.debug("Step 4 - Determine differences between the "
-                              "candidate and committed configuration "
-                              "databases.")
+    junos_module.logger.debug(
+        "Step 4 - Determine differences between the "
+        "candidate and committed configuration "
+        "databases."
+    )
     if diff is True or junos_module._diff:
         diff = junos_module.diff_configuration(ignore_warning)
         if diff is not None:
-            results['changed'] = True
+            results["changed"] = True
             if return_output is True or junos_module._diff:
-                results['diff'] = {'prepared': diff}
-                results['diff_lines'] = diff.splitlines()
+                results["diff"] = {"prepared": diff}
+                results["diff_lines"] = diff.splitlines()
             # Save the diff output
-            junos_module.save_text_output('diff', 'diff', diff)
+            junos_module.save_text_output("diff", "diff", diff)
         else:
-            results['changed'] = False
-        results['msg'] += ', diffed'
+            results["changed"] = False
+        results["msg"] += ", diffed"
 
-    junos_module.logger.debug("Step 5 - Retrieve the configuration database "
-                              "from the Junos device.")
+    junos_module.logger.debug(
+        "Step 5 - Retrieve the configuration database " "from the Junos device."
+    )
     if retrieve is not None:
         if format is None:
-            format = 'text'
+            format = "text"
         (config, config_parsed) = junos_module.get_configuration(
-                                      database=retrieve,
-                                      format=format,
-                                      options=options,
-                                      filter=filter,
-                                      model=model,
-                                      namespace=namespace,
-                                      remove_ns=remove_ns)
+            database=retrieve,
+            format=format,
+            options=options,
+            filter=filter,
+            model=model,
+            namespace=namespace,
+            remove_ns=remove_ns,
+        )
         if return_output is True:
             if config is not None:
-                results['config'] = config
-                results['config_lines'] = config.splitlines()
+                results["config"] = config
+                results["config_lines"] = config.splitlines()
             if config_parsed is not None:
-                results['config_parsed'] = config_parsed
+                results["config_parsed"] = config_parsed
         # Save the output
-        format_extension = 'config' if format == 'text' else format
-        junos_module.save_text_output('config', format_extension, config)
-        results['msg'] += ', retrieved'
+        format_extension = "config" if format == "text" else format
+        junos_module.save_text_output("config", format_extension, config)
+        results["msg"] += ", retrieved"
 
     junos_module.logger.debug("Step 6 - Commit the configuration changes.")
     if commit is True and not junos_module.check_mode:
@@ -1222,34 +1206,39 @@ def main():
         # 1) commit_empty_changes is True
         # 2) Neither rollback or load is set. i.e. confirming a previous commit
         # 3) rollback or load is set, and there were actual changes.
-        if (commit_empty_changes is True or
-            (rollback is None and load is None) or
-            ((rollback is not None or load is not None) and
-             results['changed'] is True)):
+        if (
+            commit_empty_changes is True
+            or (rollback is None and load is None)
+            or (
+                (rollback is not None or load is not None)
+                and results["changed"] is True
+            )
+        ):
             if check_commit_wait is not None:
                 time.sleep(check_commit_wait)
-            junos_module.commit_configuration(ignore_warning=ignore_warning,
-                                              comment=comment,
-                                              confirmed=confirmed,
-                                              timeout=timeout,
-                                              full=commit_full,
-                                              sync=commit_sync,
-                                              force_sync=commit_force_sync)
-            results['msg'] += ', committed'
+            junos_module.commit_configuration(
+                ignore_warning=ignore_warning,
+                comment=comment,
+                confirmed=confirmed,
+                timeout=timeout,
+                full=commit_full,
+                sync=commit_sync,
+                force_sync=commit_force_sync,
+            )
+            results["msg"] += ", committed"
         else:
             junos_module.logger.debug("Skipping commit. Nothing changed.")
 
-    junos_module.logger.debug("Step 7 - Close the candidate configuration "
-                              "database.")
+    junos_module.logger.debug("Step 7 - Close the candidate configuration " "database.")
     junos_module.close_configuration()
-    results['msg'] += ', closed.'
+    results["msg"] += ", closed."
 
     # If we made it this far, everything was successful.
-    results['failed'] = False
+    results["failed"] = False
 
     # Return response.
     junos_module.exit_json(**results)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

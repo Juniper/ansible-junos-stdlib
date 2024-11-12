@@ -33,13 +33,15 @@
 
 from __future__ import absolute_import, division, print_function
 
-ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'supported_by': 'community',
-                    'status': ['stableinterface']}
+ANSIBLE_METADATA = {
+    "metadata_version": "1.1",
+    "supported_by": "community",
+    "status": ["stableinterface"],
+}
 
-DOCUMENTATION = '''
+DOCUMENTATION = """
 ---
-extends_documentation_fragment: 
+extends_documentation_fragment:
   - juniper_junos_common.connection_documentation
   - juniper_junos_common.logging_documentation
 module: software
@@ -57,7 +59,7 @@ description:
 
     #. Compare the currently installed Junos version to the desired version
        specified by the I(version) option.
-    
+
        * If the current and desired versions are the same, stop and return
          I(changed) with a value of C(false).
        * If running in check mode, and the current and desired versions differ,
@@ -92,8 +94,8 @@ options:
     description:
       -  install software on the specified members ids of VC.
     required: false
-    default: none 
-    type: list 
+    default: none
+    type: list
   checksum:
     description:
       - The pre-calculated checksum, using the I(checksum_algorithm) of the
@@ -316,9 +318,9 @@ notes:
     software specified by the I(version) option is actually activated on the
     target Junos device. It is the user's responsibility to confirm the
     software installation using additional follow on tasks in their playbook.
-'''
+"""
 
-EXAMPLES = '''
+EXAMPLES = """
 ---
 - name: 'Explicit host argument'
   hosts: junos
@@ -345,10 +347,10 @@ EXAMPLES = '''
         cleanfs: false
         validate: true
       register: response
-'''
+"""
 
 
-RETURN = '''
+RETURN = """
 changed:
   description:
     - Indicates if the device's state has changed, or if the state would have
@@ -375,12 +377,13 @@ msg:
       installation.
   returned: always
   type: str
-'''
+"""
 
 # Standard Library imports
 import os.path
 import re
 import time
+
 try:
     # Python 3.x
     from urllib.parse import urlparse
@@ -395,7 +398,9 @@ Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project
 
 # Ansiballz packages module_utils into ansible.module_utils
 from ansible.module_utils.basic import AnsibleModule
+
 from ansible_collections.juniper.device.plugins.module_utils import juniper_junos_common
+
 
 def parse_version_from_filename(filename):
     """Attempts to parse a version string from the filename of a Junos package.
@@ -415,15 +420,22 @@ def parse_version_from_filename(filename):
         The version string, or None if unable to parse.
     """
     # Known prefixes for filenames which contain Junos software packages.
-    JUNOS_PACKAGE_PREFIXES = ['jbundle', 'jinstall', 'junos-install',
-                              'junos-srx', 'junos-vmhost-install', 'junos-vrr',
-                              'vmx-bundle', 'junos-arm']
+    JUNOS_PACKAGE_PREFIXES = [
+        "jbundle",
+        "jinstall",
+        "junos-install",
+        "junos-srx",
+        "junos-vmhost-install",
+        "junos-vrr",
+        "vmx-bundle",
+        "junos-arm",
+    ]
     for prefix in JUNOS_PACKAGE_PREFIXES:
         if filename.startswith(prefix):
             # Assumes the version string will be prefixed by -.
             # Assume major version will begin with two digits followed by dot.
             # Assume the version string ends with the last digit in filename.
-            match = re.search(r'-(\d{2}\..*\d).*', filename)
+            match = re.search(r"-(\d{2}\..*\d).*", filename)
             if match is not None:
                 return match.group(1)
     # Not a known Junos package name.
@@ -432,8 +444,8 @@ def parse_version_from_filename(filename):
 
 
 def define_progress_callback(junos_module):
-    """Create callback which can be passed to SW.install(progress=progress)
-    """
+    """Create callback which can be passed to SW.install(progress=progress)"""
+
     def myprogress(_, report):
         """A progress function which logs report at level INFO.
 
@@ -442,86 +454,58 @@ def define_progress_callback(junos_module):
           report: The string to be logged.
         """
         junos_module.logger.info(report)
+
     return myprogress
 
 
 def main():
-    CHECKSUM_ALGORITHM_CHOICES = ['md5', 'sha1', 'sha256']
+    CHECKSUM_ALGORITHM_CHOICES = ["md5", "sha1", "sha256"]
 
-    #Define the argument spec.
-    software_argument_spec=dict(
-        local_package=dict(required=False,
-                           aliases=['package'],
-                           type='path',
-                           default=None),
-        remote_package=dict(required=False,
-                            type='path',
-                            # Default is '/var/tmp/' + filename from the
-                            # local_package option, if set.
-                            default=None),
-        pkg_set=dict(required=False,
-                     type='list',
-                     default=None),
-        version=dict(required=False,
-                     aliases=['target_version', 'new_version',
-                              'desired_version'],
-                     type='str',
-                     # Default is determined from filename portion of
-                     # remote_package option.
-                     default=None),
-        no_copy=dict(required=False,
-                     type='bool',
-                     default=False),
-        reboot=dict(required=False,
-                    type='bool',
-                    default=True),
-        reboot_pause=dict(required=False,
-                          type='int',
-                          default=10),
-        issu=dict(required=False,
-                  type='bool',
-                  default=False),
-        nssu=dict(required=False,
-                  type='bool',
-                  default=False),
-        force_host=dict(required=False,
-                        type='bool',
-                        default=False),
-        validate=dict(required=False,
-                      type='bool',
-                      default=False),
-        cleanfs=dict(required=False,
-                     type='bool',
-                     default=True),
-        all_re=dict(required=False,
-                    type='bool',
-                    default=True),
-        member_id=dict(required=False,
-                    type='list',
-                    default=None),
-        vmhost=dict(required=False,
-                    type='bool',
-                    default=False),
-        checksum=dict(required=False,
-                      type='str',
-                      default=None),
-        checksum_algorithm=dict(required=False,
-                                choices=CHECKSUM_ALGORITHM_CHOICES,
-                                type='str',
-                                default='md5'),
-        checksum_timeout=dict(required=False,
-                              type='int',
-                              default=300),
-        cleanfs_timeout=dict(required=False,
-                             type='int',
-                             default=300),
-        install_timeout=dict(required=False,
-                             type='int',
-                             default=1800),
-        kwargs=dict(required=False,
-                    aliases=['kwarg', 'args', 'arg'],
-                    type='dict',
-                    default=None),
+    # Define the argument spec.
+    software_argument_spec = dict(
+        local_package=dict(
+            required=False, aliases=["package"], type="path", default=None
+        ),
+        remote_package=dict(
+            required=False,
+            type="path",
+            # Default is '/var/tmp/' + filename from the
+            # local_package option, if set.
+            default=None,
+        ),
+        pkg_set=dict(required=False, type="list", default=None),
+        version=dict(
+            required=False,
+            aliases=["target_version", "new_version", "desired_version"],
+            type="str",
+            # Default is determined from filename portion of
+            # remote_package option.
+            default=None,
+        ),
+        no_copy=dict(required=False, type="bool", default=False),
+        reboot=dict(required=False, type="bool", default=True),
+        reboot_pause=dict(required=False, type="int", default=10),
+        issu=dict(required=False, type="bool", default=False),
+        nssu=dict(required=False, type="bool", default=False),
+        force_host=dict(required=False, type="bool", default=False),
+        validate=dict(required=False, type="bool", default=False),
+        cleanfs=dict(required=False, type="bool", default=True),
+        all_re=dict(required=False, type="bool", default=True),
+        member_id=dict(required=False, type="list", default=None),
+        vmhost=dict(required=False, type="bool", default=False),
+        checksum=dict(required=False, type="str", default=None),
+        checksum_algorithm=dict(
+            required=False,
+            choices=CHECKSUM_ALGORITHM_CHOICES,
+            type="str",
+            default="md5",
+        ),
+        checksum_timeout=dict(required=False, type="int", default=300),
+        cleanfs_timeout=dict(required=False, type="int", default=300),
+        install_timeout=dict(required=False, type="int", default=1800),
+        kwargs=dict(
+            required=False, aliases=["kwarg", "args", "arg"], type="dict", default=None
+        ),
     )
     # Save keys for later. Must do because software_argument_spec gets
     # modified.
@@ -529,34 +513,34 @@ def main():
 
     # Create the module instance.
     junos_module = juniper_junos_common.JuniperJunosModule(
-        argument_spec = software_argument_spec,
+        argument_spec=software_argument_spec,
         # Mutually exclusive options.
-        mutually_exclusive=[['issu', 'nssu']],
+        mutually_exclusive=[["issu", "nssu"]],
         # One of local_package and remote_package is required.
-        required_one_of=[['local_package', 'remote_package', 'pkg_set']],
-        supports_check_mode=True
+        required_one_of=[["local_package", "remote_package", "pkg_set"]],
+        supports_check_mode=True,
     )
 
     # Straight from params
-    local_package = junos_module.params.pop('local_package')
-    remote_package = junos_module.params.pop('remote_package')
-    pkg_set = junos_module.params.pop('pkg_set')
-    target_version = junos_module.params.pop('version')
-    no_copy = junos_module.params.pop('no_copy')
-    reboot = junos_module.params.pop('reboot')
-    reboot_pause = junos_module.params.pop('reboot_pause')
-    install_timeout = junos_module.params.pop('install_timeout')
-    cleanfs = junos_module.params.pop('cleanfs')
-    all_re = junos_module.params.pop('all_re')
-    member_id = junos_module.params.pop('member_id')
-    kwargs = junos_module.params.pop('kwargs')
+    local_package = junos_module.params.pop("local_package")
+    remote_package = junos_module.params.pop("remote_package")
+    pkg_set = junos_module.params.pop("pkg_set")
+    target_version = junos_module.params.pop("version")
+    no_copy = junos_module.params.pop("no_copy")
+    reboot = junos_module.params.pop("reboot")
+    reboot_pause = junos_module.params.pop("reboot_pause")
+    install_timeout = junos_module.params.pop("install_timeout")
+    cleanfs = junos_module.params.pop("cleanfs")
+    all_re = junos_module.params.pop("all_re")
+    member_id = junos_module.params.pop("member_id")
+    kwargs = junos_module.params.pop("kwargs")
 
     url = None
     remote_dir = None
     if remote_package is not None:
         # Is the remote package a URL?
         parsed_url = urlparse(remote_package)
-        if parsed_url.scheme == '':
+        if parsed_url.scheme == "":
             # A file on the remote host.
             (remote_dir, remote_filename) = os.path.split(remote_package)
         else:
@@ -564,18 +548,20 @@ def main():
             (_, remote_filename) = os.path.split(parsed_url.path)
     else:
         # Default remote_dir value
-        remote_dir = '/var/tmp'
-        remote_filename = ''
+        remote_dir = "/var/tmp"
+        remote_filename = ""
 
     if url is not None and local_package is not None:
-        junos_module.fail_json(msg='There remote_package (%s) is a URL. '
-                                   'The local_package option is not allowed.' %
-                                   remote_package)
+        junos_module.fail_json(
+            msg="There remote_package (%s) is a URL. "
+            "The local_package option is not allowed." % remote_package
+        )
 
     if url is not None and no_copy is True:
-        junos_module.fail_json(msg='There remote_package (%s) is a URL. '
-                                   'The no_copy option is not allowed.' %
-                                   remote_package)
+        junos_module.fail_json(
+            msg="There remote_package (%s) is a URL. "
+            "The no_copy option is not allowed." % remote_package
+        )
 
     if url is None:
         local_filename = None
@@ -583,36 +569,41 @@ def main():
             # Expand out the path.
             local_package = os.path.abspath(local_package)
             (local_dir, local_filename) = os.path.split(local_package)
-            if local_filename == '':
-                junos_module.fail_json(msg='There is no filename component to '
-                                           'the local_package (%s).' %
-                                           local_package)
+            if local_filename == "":
+                junos_module.fail_json(
+                    msg="There is no filename component to "
+                    "the local_package (%s)." % local_package
+                )
         elif remote_package is not None:
             # remote package was, so we must assume no_copy.
             no_copy = True
 
         if no_copy is False:
             if local_package is not None and not os.path.isfile(local_package):
-                junos_module.fail_json(msg='The local_package (%s) is not a '
-                                       'valid file on the local Ansible '
-                                       'control machine.' % local_package)
+                junos_module.fail_json(
+                    msg="The local_package (%s) is not a "
+                    "valid file on the local Ansible "
+                    "control machine." % local_package
+                )
             elif pkg_set is not None:
                 pkg_set = [os.path.abspath(item) for item in pkg_set]
                 for pkg_set_item in pkg_set:
                     if not os.path.isfile(pkg_set_item):
                         junos_module.fail_json(
-                            msg='The pkg (%s) is not a valid file on the local'
-                                ' Ansible control machine.' % pkg_set_item)
+                            msg="The pkg (%s) is not a valid file on the local"
+                            " Ansible control machine." % pkg_set_item
+                        )
 
-        if remote_filename == '':
+        if remote_filename == "":
             # Use the same name as local_filename
             remote_filename = local_filename
 
         if local_filename is not None and remote_filename != local_filename:
-            junos_module.fail_json(msg='The filename of the remote_package '
-                                       '(%s) must be the same as the filename '
-                                       'of the local_package (%s).' %
-                                       (remote_filename, local_filename))
+            junos_module.fail_json(
+                msg="The filename of the remote_package "
+                "(%s) must be the same as the filename "
+                "of the local_package (%s)." % (remote_filename, local_filename)
+            )
 
     # If no_copy is True, then we need to turn off cleanfs to keep from
     # deleting the software package which is already present on the device.
@@ -624,12 +615,14 @@ def main():
     junos_module.logger.debug("New target version is: %s.", target_version)
 
     # Initialize the results. Assume not changed and failure until we know.
-    results = {'msg': '',
-               'changed': False,
-               'check_mode': junos_module.check_mode,
-               'failed': True}
+    results = {
+        "msg": "",
+        "changed": False,
+        "check_mode": junos_module.check_mode,
+        "failed": True,
+    }
 
-    if junos_module.conn_type == "local" :
+    if junos_module.conn_type == "local":
         facts = dict(junos_module.dev.facts)
     else:
         facts = junos_module.get_facts()
@@ -638,64 +631,72 @@ def main():
     # Check version info to see if we need to do the install.
     if target_version is not None:
         if all_re is True:
-            junos_info = facts['junos_info']
+            junos_info = facts["junos_info"]
             for current_re in junos_info:
-                current_version = junos_info[current_re]['text']
+                current_version = junos_info[current_re]["text"]
                 if target_version != current_version:
-                    junos_module.logger.debug("Current version on %s: %s. "
-                                              "Target version: %s.",
-                                              current_version, current_re,
-                                              target_version)
-                    results['changed'] = True
+                    junos_module.logger.debug(
+                        "Current version on %s: %s. " "Target version: %s.",
+                        current_version,
+                        current_re,
+                        target_version,
+                    )
+                    results["changed"] = True
                 else:
-                    results['msg'] += "Current version on %s: %s same as Targeted " \
-                                      "version: %s.\n" % (current_version, current_re,
-                                                          target_version)
+                    results["msg"] += (
+                        "Current version on %s: %s same as Targeted "
+                        "version: %s.\n" % (current_version, current_re, target_version)
+                    )
         else:
-            current_version = facts['version']
+            current_version = facts["version"]
             if junos_module.conn_type == "local":
                 re_name = junos_module.dev.re_name
             else:
                 re_name = junos_module._pyez_conn.get_re_name()
             if target_version != current_version:
-                junos_module.logger.debug("Current version on %s: %s. "
-                                          "Target version: %s.",
-                                          current_version, re_name,
-                                          target_version)
-                results['changed'] = True
+                junos_module.logger.debug(
+                    "Current version on %s: %s. " "Target version: %s.",
+                    current_version,
+                    re_name,
+                    target_version,
+                )
+                results["changed"] = True
             else:
-                results['msg'] += "Current version on %s: %s same as Targeted " \
-                                 "version: %s.\n" % (current_version, re_name,
-                                                     target_version)
+                results[
+                    "msg"
+                ] += "Current version on %s: %s same as Targeted " "version: %s.\n" % (
+                    current_version,
+                    re_name,
+                    target_version,
+                )
     else:
         # A non-Junos install. Always attempt to install.
-        results['changed'] = True
+        results["changed"] = True
 
     # Do the install if necessary
-    if results['changed'] is True and not junos_module.check_mode:
-        junos_module.logger.debug("Beginning installation of %s.",
-                                  remote_filename)
+    if results["changed"] is True and not junos_module.check_mode:
+        junos_module.logger.debug("Beginning installation of %s.", remote_filename)
         # Calculate the install parameters
         install_params = {}
         if url is not None:
-            install_params['package'] = url
+            install_params["package"] = url
         elif local_package is not None:
-            install_params['package'] = local_package
+            install_params["package"] = local_package
         elif pkg_set is not None:
-            install_params['pkg_set'] = pkg_set
+            install_params["pkg_set"] = pkg_set
         else:
-            install_params['package'] = remote_filename
+            install_params["package"] = remote_filename
         if remote_dir is not None:
-            install_params['remote_path'] = remote_dir
+            install_params["remote_path"] = remote_dir
         if junos_module.conn_type != "local":
-            install_params['progress'] = True
+            install_params["progress"] = True
         else:
-            install_params['progress'] = define_progress_callback(junos_module)
-        install_params['cleanfs'] = cleanfs
-        install_params['no_copy'] = no_copy
-        install_params['timeout'] = install_timeout
-        install_params['all_re'] = all_re
-        install_params['member_id'] = member_id
+            install_params["progress"] = define_progress_callback(junos_module)
+        install_params["cleanfs"] = cleanfs
+        install_params["no_copy"] = no_copy
+        install_params["timeout"] = install_timeout
+        install_params["all_re"] = all_re
+        install_params["member_id"] = member_id
         for key in option_keys:
             value = junos_module.params.get(key)
             if value is not None:
@@ -703,17 +704,16 @@ def main():
         if kwargs is not None:
             install_params.update(kwargs)
 
-        junos_module.logger.debug("Install parameters are: %s",
-                                  str(install_params))
+        junos_module.logger.debug("Install parameters are: %s", str(install_params))
         if junos_module.conn_type != "local":
             try:
-                results['msg'] = junos_module._pyez_conn.software_api(install_params)
+                results["msg"] = junos_module._pyez_conn.software_api(install_params)
             except Exception as err:  # pylint: disable=broad-except
                 if "ConnectionError" in str(type(err)):
                     # If Exception is ConnectionError, it is excpected
                     # Device installation inititated succesfully
                     junos_module.logger.debug("Package successfully installed.")
-                    results['msg'] += 'Package successfully installed.'
+                    results["msg"] += "Package successfully installed."
                 else:
                     # If exception is not ConnectionError
                     # we will raise the exception
@@ -724,33 +724,42 @@ def main():
                 junos_module.add_sw()
                 ok, msg_ret = junos_module.sw.install(**install_params)
                 if ok is not True:
-                    results['msg'] = 'Unable to install the software %s', msg_ret
+                    results["msg"] = "Unable to install the software %s", msg_ret
                     junos_module.fail_json(**results)
-                msg = 'Package %s successfully installed. Response from device is: %s' % (
-                            install_params.get('package') or
-                            install_params.get('pkg_set'),
-                            msg_ret)
-                results['msg'] = msg
+                msg = (
+                    "Package %s successfully installed. Response from device is: %s"
+                    % (
+                        install_params.get("package") or install_params.get("pkg_set"),
+                        msg_ret,
+                    )
+                )
+                results["msg"] = msg
                 junos_module.logger.debug(msg)
-            except (junos_module.pyez_exception.ConnectError,
-                    junos_module.pyez_exception.RpcError) as ex:
-                results['msg'] = 'Installation failed. Error: %s' % str(ex)
+            except (
+                junos_module.pyez_exception.ConnectError,
+                junos_module.pyez_exception.RpcError,
+            ) as ex:
+                results["msg"] = "Installation failed. Error: %s" % str(ex)
                 junos_module.fail_json(**results)
         if reboot is True:
-            junos_module.logger.debug('Initiating reboot.')
+            junos_module.logger.debug("Initiating reboot.")
             if junos_module.conn_type != "local":
                 try:
-                    #Handling reboot of specific VC members
+                    # Handling reboot of specific VC members
                     if member_id is not None:
-                        results['msg'] += junos_module._pyez_conn.reboot_api(all_re, install_params.get('vmhost'), member_id=member_id)
+                        results["msg"] += junos_module._pyez_conn.reboot_api(
+                            all_re, install_params.get("vmhost"), member_id=member_id
+                        )
                     else:
-                        results['msg'] += junos_module._pyez_conn.reboot_api(all_re, install_params.get('vmhost'))
+                        results["msg"] += junos_module._pyez_conn.reboot_api(
+                            all_re, install_params.get("vmhost")
+                        )
                 except Exception as err:  # pylint: disable=broad-except
                     if "ConnectionError" in str(type(err)):
                         # If Exception is ConnectionError, it is excpected
                         # Device reboot inititated succesfully
                         junos_module.logger.debug("Reboot RPC executed.")
-                        results['msg'] += ' Reboot succeeded.'
+                        results["msg"] += " Reboot succeeded."
                     else:
                         # If exception is not ConnectionError
                         # we will raise the exception
@@ -764,19 +773,24 @@ def main():
                     # happens relatively quickly.
                     restore_timeout = junos_module.dev.timeout
                     if junos_module.dev.timeout > 5:
-                        junos_module.logger.debug("Decreasing device RPC timeout "
-                                                  "to 5 seconds.")
+                        junos_module.logger.debug(
+                            "Decreasing device RPC timeout " "to 5 seconds."
+                        )
                         junos_module.dev.timeout = 5
                     try:
                         if member_id is not None:
-                            got = junos_module.sw.reboot(0,
-                                                         None,
-                                                         all_re,
-                                                         None,
-                                                         install_params.get('vmhost'),
-                                                         member_id=member_id)
+                            got = junos_module.sw.reboot(
+                                0,
+                                None,
+                                all_re,
+                                None,
+                                install_params.get("vmhost"),
+                                member_id=member_id,
+                            )
                         else:
-                            got = junos_module.sw.reboot(0, None, all_re, None, install_params.get('vmhost'))
+                            got = junos_module.sw.reboot(
+                                0, None, all_re, None, install_params.get("vmhost")
+                            )
                         junos_module.dev.timeout = restore_timeout
                     except Exception:  # pylint: disable=broad-except
                         junos_module.dev.timeout = restore_timeout
@@ -784,16 +798,19 @@ def main():
                     junos_module.logger.debug("Reboot RPC executed.")
 
                     if got is not None:
-                        results['msg'] += ' Reboot successfully initiated. ' \
-                                                  'Reboot message: %s' % got
+                        results["msg"] += (
+                            " Reboot successfully initiated. "
+                            "Reboot message: %s" % got
+                        )
                     else:
                         # This is the else clause of the for loop.
                         # It only gets executed if the loop finished without
                         # hitting the break.
-                        results['msg'] += ' Did not find expected response ' \
-                                              'from reboot RPC. '
+                        results["msg"] += (
+                            " Did not find expected response " "from reboot RPC. "
+                        )
                         junos_module.fail_json(**results)
-                except (junos_module.pyez_exception.RpcTimeoutError) as ex:
+                except junos_module.pyez_exception.RpcTimeoutError as ex:
                     # This might be OK. It might just indicate the device didn't
                     # send the closing </rpc-reply> (known Junos bug).
                     # Try to close the device. If it closes cleanly, then it was
@@ -801,39 +818,45 @@ def main():
                     try:
                         junos_module.close(raise_exceptions=True)
                         # This means the device wasn't already disconnected.
-                        results['msg'] += ' Reboot failed. It may not have been ' \
-                                          'initiated.'
+                        results["msg"] += (
+                            " Reboot failed. It may not have been " "initiated."
+                        )
                         junos_module.fail_json(**results)
-                    except (junos_module.pyez_exception.RpcError,
-                            junos_module.pyez_exception.RpcTimeoutError,
-                            junos_module.pyez_exception.ConnectError):
+                    except (
+                        junos_module.pyez_exception.RpcError,
+                        junos_module.pyez_exception.RpcTimeoutError,
+                        junos_module.pyez_exception.ConnectError,
+                    ):
                         # This is expected. The device has already disconnected.
-                        results['msg'] += ' Reboot succeeded.'
-                    except (junos_module.ncclient_exception.TimeoutExpiredError):
+                        results["msg"] += " Reboot succeeded."
+                    except junos_module.ncclient_exception.TimeoutExpiredError:
                         # This is not really expected. Still consider reboot success as
                         # Looks like rpc was consumed but no response as its rebooting.
-                        results['msg'] += ' Reboot succeeded. Ignoring close error.'
-                except (junos_module.pyez_exception.RpcError,
-                        junos_module.pyez_exception.ConnectError) as ex:
-                    results['msg'] += ' Reboot failed. Error: %s' % (str(ex))
+                        results["msg"] += " Reboot succeeded. Ignoring close error."
+                except (
+                    junos_module.pyez_exception.RpcError,
+                    junos_module.pyez_exception.ConnectError,
+                ) as ex:
+                    results["msg"] += " Reboot failed. Error: %s" % (str(ex))
                     junos_module.fail_json(**results)
                 else:
                     try:
                         junos_module.close()
-                    except (junos_module.ncclient_exception.TimeoutExpiredError):
-                        junos_module.logger.debug("Ignoring TimeoutError for close call")
+                    except junos_module.ncclient_exception.TimeoutExpiredError:
+                        junos_module.logger.debug(
+                            "Ignoring TimeoutError for close call"
+                        )
 
                 junos_module.logger.debug("Reboot RPC successfully initiated.")
             if reboot_pause > 0:
-                junos_module.logger.debug("Sleeping for %d seconds",
-                                          reboot_pause)
+                junos_module.logger.debug("Sleeping for %d seconds", reboot_pause)
                 time.sleep(reboot_pause)
 
     # If we made it this far, it's success.
-    results['failed'] = False
+    results["failed"] = False
 
     junos_module.exit_json(**results)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

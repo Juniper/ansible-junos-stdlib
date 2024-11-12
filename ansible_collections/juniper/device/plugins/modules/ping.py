@@ -33,13 +33,15 @@
 
 from __future__ import absolute_import, division, print_function
 
-ANSIBLE_METADATA = {'metadata_version': '1.1',
-                    'supported_by': 'community',
-                    'status': ['stableinterface']}
+ANSIBLE_METADATA = {
+    "metadata_version": "1.1",
+    "supported_by": "community",
+    "status": ["stableinterface"],
+}
 
-DOCUMENTATION = '''
+DOCUMENTATION = """
 ---
-extends_documentation_fragment: 
+extends_documentation_fragment:
   - juniper_junos_common.connection_documentation
   - juniper_junos_common.logging_documentation
 module: ping
@@ -134,9 +136,9 @@ options:
     required: false
     default: none (default ttl for device)
     type: int
-'''
+"""
 
-EXAMPLES = '''
+EXAMPLES = """
 ---
 - name: Examples of ping
   hosts: junos-all
@@ -221,9 +223,9 @@ EXAMPLES = '''
       juniper.device.ping:
         dest: "224.0.0.1"
         interface: "ge-0/0/0.0"
-'''
+"""
 
-RETURN = '''
+RETURN = """
 acceptable_percent_loss:
   description:
     - The acceptable packet loss (as a percentage) for this task as specified
@@ -371,7 +373,7 @@ warnings:
     - A list of warning strings, if any, produced from the ping.
   returned: when warnings are present
   type: list
-'''
+"""
 
 
 """From Ansible 2.1, Ansible uses Ansiballz framework for assembling modules
@@ -380,51 +382,46 @@ Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project
 
 # Ansiballz packages module_utils into ansible.module_utils
 from ansible.module_utils.basic import AnsibleModule
+
 from ansible_collections.juniper.device.plugins.module_utils import juniper_junos_common
+
 
 def main():
     # The argument spec for the module.
     argument_spec = dict(
-        dest=dict(type='str',
-                  required=True,
-                  aliases=['dest_ip', 'dest_host', 'destination',
-                           'destination_ip', 'destination_host'],
-                  default=None),
-        acceptable_percent_loss=dict(type='int',
-                                     required=False,
-                                     aliases=['acceptable_packet_loss'],
-                                     default=0),
+        dest=dict(
+            type="str",
+            required=True,
+            aliases=[
+                "dest_ip",
+                "dest_host",
+                "destination",
+                "destination_ip",
+                "destination_host",
+            ],
+            default=None,
+        ),
+        acceptable_percent_loss=dict(
+            type="int", required=False, aliases=["acceptable_packet_loss"], default=0
+        ),
     )
 
     # The portion of the argument spec that's specifically a parameter
     # to the ping RPC.
     ping_argument_spec = dict(
-        count=dict(type='int',
-                   required=False,
-                   default=5),
-        rapid=dict(type='bool',
-                   required=False,
-                   default=True),
-        ttl=dict(type='int',
-                 required=False,
-                 default=None),
-        size=dict(type='int',
-                  required=False,
-                  default=None),
-        do_not_fragment=dict(type='bool',
-                             required=False,
-                             default=False),
-        source=dict(type='str',
-                    required=False,
-                    aliases=['source_ip', 'source_host', 'src',
-                             'src_ip', 'src_host'],
-                    default=None),
-        interface=dict(type='str',
-                       required=False,
-                       default=None),
-        routing_instance=dict(type='str',
-                              required=False,
-                              default=None),
+        count=dict(type="int", required=False, default=5),
+        rapid=dict(type="bool", required=False, default=True),
+        ttl=dict(type="int", required=False, default=None),
+        size=dict(type="int", required=False, default=None),
+        do_not_fragment=dict(type="bool", required=False, default=False),
+        source=dict(
+            type="str",
+            required=False,
+            aliases=["source_ip", "source_host", "src", "src_ip", "src_host"],
+            default=None,
+        ),
+        interface=dict(type="str", required=False, default=None),
+        routing_instance=dict(type="str", required=False, default=None),
     )
 
     # Add the ping RPC parameter argument spec fo the full argument_spec.
@@ -438,7 +435,7 @@ def main():
         # Since this module doesn't change the device's configuration, there is
         # no additional work required to support check mode. It's inherently
         # supported.
-        supports_check_mode=True
+        supports_check_mode=True,
     )
 
     # We're going to be using params a lot
@@ -446,17 +443,17 @@ def main():
 
     # acceptable packet loss is a percentage. Check to make sure it's between
     # 0 and 100 inclusive
-    if (params['acceptable_percent_loss'] > 100 or
-       params['acceptable_percent_loss'] < 0):
-        junos_module.fail_json(msg='The value of the acceptable_percent_loss'
-                                   'option (%d) is a percentage and must have '
-                                   'a value between 0 and 100.' %
-                                   (params['acceptable_percent_loss']))
+    if params["acceptable_percent_loss"] > 100 or params["acceptable_percent_loss"] < 0:
+        junos_module.fail_json(
+            msg="The value of the acceptable_percent_loss"
+            "option (%d) is a percentage and must have "
+            "a value between 0 and 100." % (params["acceptable_percent_loss"])
+        )
 
     # All of the params keys which are also keys in ping_argument_spec are the
     # ping_params. Omit None and False values because they don't need to be
     # passed to the RPC.
-    ping_params = {'host': params.get('dest')}
+    ping_params = {"host": params.get("dest")}
     for key in ping_argument_spec:
         value = params.get(key)
         # Convert int (but not bool) to str
@@ -469,29 +466,33 @@ def main():
             ping_params.update({key: value})
 
     # Set initial results values. Assume failure until we know it's success.
-    results = {'msg': '', 'changed': False, 'failed': True}
+    results = {"msg": "", "changed": False, "failed": True}
     # Results should include all the ping params in argument_spec_keys.
     for key in argument_spec_keys:
         results[key] = params.get(key)
     # Overwrite to be a string in the results
-    results['acceptable_percent_loss'] = str(
-        params.get('acceptable_percent_loss'))
+    results["acceptable_percent_loss"] = str(params.get("acceptable_percent_loss"))
     # Add timeout to the response even though it's a connect parameter.
-    results['timeout'] = str(params.get('timeout'))
+    results["timeout"] = str(params.get("timeout"))
     # Add aliases for backwards compatibility
-    results.update({'host': params.get('dest'),
-                    'dest_ip': params.get('dest'),
-                    'source_ip': params.get('source')})
+    results.update(
+        {
+            "host": params.get("dest"),
+            "dest_ip": params.get("dest"),
+            "source_ip": params.get("source"),
+        }
+    )
 
     # Execute the ping.
     results = junos_module.ping(
-                  ping_params,
-                  acceptable_percent_loss=params['acceptable_percent_loss'],
-                  results=results)
+        ping_params,
+        acceptable_percent_loss=params["acceptable_percent_loss"],
+        results=results,
+    )
 
     # Return results.
     junos_module.exit_json(**results)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()

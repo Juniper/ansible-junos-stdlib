@@ -11,24 +11,24 @@ include Makefile.variable
 
 all:prequisite virtual-env ansible-awx docker-start docker-exec ## install ansible-junos-awx
 
- 
+
 .PHONY: prequisite
 prequisite:
 	pip install virtualenv
-	rm -rf ./awx ./awx-env        
-	
+	rm -rf ./awx ./awx-env
+
 .PHONY: virtual-env
 virtual-env:
 	virtualenv awx-env --no-site-packages
 	. awx-env/bin/activate && \
-	pip install ansible docker-py 
+	pip install ansible docker-py
 
 .PHONY: ansible-awx
 ansible-awx:
 	. awx-env/bin/activate && \
         git clone https://github.com/ansible/awx.git --single-branch --depth 1
-	
-.PHONY: docker-start 
+
+.PHONY: docker-start
 docker-start:
 ifneq '$(PROJECT_DATA_DIR)' ''
 	mkdir -p $(PROJECT_DATA_DIR)
@@ -60,14 +60,14 @@ docker-exec:
 	docker exec -it awx_task pip install jsnapy jxmlease junos-eznc
 	docker exec -it awx_task ansible-galaxy install juniper.junos,$(ANSIBLE_JUNOS_VERSION) -p  /etc/ansible/roles
 	docker exec -it awx_task /bin/bash -c 'sed -i '/roles_path/s/^#//g' /etc/ansible/ansible.cfg'
-ifneq '$(HOST_FILE)' ''	
+ifneq '$(HOST_FILE)' ''
 	curl -u admin:password --noproxy '*' http://localhost/api/v2/inventories/ --header "Content-Type: application/json" -x POST -d '{"name":"$(INVENTORY_NAME)" , "organization": 1}'
 	docker exec -it awx_task /bin/bash -c 'awx-manage inventory_import --source=/var/lib/awx/projects/hosts --inventory-name=$(INVENTORY_NAME) --overwrite'
 endif
 
 .PHONY: docker-stop
 docker-stop: ## stop the docker
-	docker stop awx_task 
+	docker stop awx_task
 	docker stop awx_web
 	docker stop memcached
 	docker stop rabbitmq
