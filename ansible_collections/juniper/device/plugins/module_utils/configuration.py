@@ -57,6 +57,13 @@ except ImportError:
     HAS_PYEZ_OP_TABLE = False
 
 try:
+    from ncclient.operations.errors import TimeoutExpiredError
+
+    HAS_NCCLIENT_EXCEPTIONS = True
+except ImportError:
+    HAS_NCCLIENT_EXCEPTIONS = False
+
+try:
     import jnpr.jsnapy
 
     HAS_JSNAPY_VERSION = jnpr.jsnapy.__version__
