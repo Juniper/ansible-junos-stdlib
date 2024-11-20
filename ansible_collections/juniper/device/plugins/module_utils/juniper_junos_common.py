@@ -87,11 +87,11 @@ try:
 except ImportError:
     HAS_NCCLIENT = False
 try:
-    pass
+    import ncclient.operations.errors as ncclient_exception
 
-    HAS_LOOSE_VERSION = True
+    HAS_NCCLIENT_EXCEPTIONS = True
 except ImportError:
-    HAS_LOOSE_VERSION = False
+    HAS_NCCLIENT_EXCEPTIONS = False
 
 from ansible_collections.juniper.device.plugins.module_utils import configuration as cfg
 
@@ -671,7 +671,7 @@ class JuniperJunosModule(AnsibleModule):
         self.pyez_factory_table = jnpr.junos.factory.table
         self.pyez_op_table = jnpr.junos.op
         self.pyez_exception = pyez_exception
-        self.ncclient_exception = cfg.ncclient_exception
+        self.ncclient_exception = ncclient_exception
         self.etree = cfg.etree
         self.jxmlease = cfg.jxmlease
         self.yaml = cfg.yaml

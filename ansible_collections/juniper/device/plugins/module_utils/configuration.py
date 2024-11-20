@@ -57,11 +57,11 @@ except ImportError:
     HAS_PYEZ_OP_TABLE = False
 
 try:
-    from ncclient.operations.errors import TimeoutExpiredError
+    import ncclient
 
-    HAS_NCCLIENT_EXCEPTIONS = True
+    HAS_NCCLIENT_VERSION = ncclient.__version__
 except ImportError:
-    HAS_NCCLIENT_EXCEPTIONS = False
+    HAS_NCCLIENT_VERSION = None
 
 try:
     import jnpr.jsnapy
@@ -195,8 +195,8 @@ def check_pyez(minimum=None):
         - PyEZ not installed (unable to import).
         - PyEZ version < minimum.
     """
-    if HAS_NCCLIENT_EXCEPTIONS is False:
-        return "ncclient.operations.errors module could not " "be imported."
+    if HAS_NCCLIENT_VERSION is None:
+        return "ncclient module could not " "be imported."
     return _check_library(
         "junos-eznc",
         HAS_PYEZ_VERSION,
