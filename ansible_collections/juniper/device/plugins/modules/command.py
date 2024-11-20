@@ -33,6 +33,8 @@
 
 from __future__ import absolute_import, division, print_function
 
+__metaclass__ = type
+
 ANSIBLE_METADATA = {
     "metadata_version": "1.1",
     "supported_by": "community",
@@ -42,8 +44,8 @@ ANSIBLE_METADATA = {
 DOCUMENTATION = """
 ---
 extends_documentation_fragment:
-  - juniper_junos_common.connection_documentation
-  - juniper_junos_common.logging_documentation
+  - juniper.device.juniper_junos_common.connection_documentation
+  - juniper.device.juniper_junos_common.logging_documentation
 module: command
 author: "Juniper Networks - Stacy Smith (@stacywsmith)"
 short_description: Execute one or more CLI commands on a Junos device
@@ -288,7 +290,6 @@ But custom module_utils directory is supported from Ansible 2.3
 Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project/J8FL7Z1J1Mw """
 
 # Ansiballz packages module_utils into ansible.module_utils
-from ansible.module_utils.basic import AnsibleModule
 
 from ansible_collections.juniper.device.plugins.module_utils import configuration as cfg
 from ansible_collections.juniper.device.plugins.module_utils import juniper_junos_common
@@ -415,7 +416,7 @@ def main():
                     rpc, ignore_warning=ignore_warning, format=format
                 )
             result["msg"] = "The command executed successfully."
-            junos_module.logger.debug('Command "%s" executed successfully.', command)
+            junos_module.logger.debug("Command %s executed successfully.", command)
         except (
             junos_module.pyez_exception.ConnectError,
             junos_module.pyez_exception.RpcError,
@@ -434,7 +435,7 @@ def main():
         parsed_output = None
         if resp is True:
             text_output = ""
-        elif (resp, junos_module.etree._Element):
+        elif isinstance(resp, junos_module.etree._Element):
             # Handle the output based on format
             if format == "text":
                 if resp.tag in ["output", "rpc-reply"]:
@@ -447,7 +448,7 @@ def main():
                     result["msg"] = "Unexpected text response tag: %s." % ((resp.tag))
                     results.append(result)
                     junos_module.logger.debug(
-                        "Unexpected text response tag " "%s.", resp.tag
+                        "Unexpected text response tag %s.", resp.tag
                     )
                     continue
             elif format == "xml":

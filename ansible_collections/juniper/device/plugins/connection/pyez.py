@@ -33,7 +33,12 @@
 
 from __future__ import absolute_import, division, print_function
 
-import xmltodict
+try:
+    import xmltodict
+
+    HAS_XMLTODICT = True
+except ImportError:
+    HAS_XMLTODICT = False
 
 __metaclass__ = type
 
@@ -207,10 +212,9 @@ options:
 """
 import json
 import logging
-import pickle
 
-from ansible.errors import AnsibleConnectionFailure, AnsibleError
-from ansible.module_utils._text import to_bytes, to_native, to_text
+from ansible.errors import AnsibleError
+from ansible.module_utils._text import to_bytes
 from ansible.plugins.connection import NetworkConnectionBase, ensure_connect
 
 # Non-standard library imports and checks
@@ -266,7 +270,7 @@ except ImportError:
     HAS_PYEZ_EXCEPTIONS = False
 
 try:
-    from jnpr.jsnapy import SnapAdmin, __version__
+    from jnpr.jsnapy import __version__
 
     HAS_JSNAPY_VERSION = __version__
 except ImportError:
@@ -296,19 +300,9 @@ try:
 except ImportError:
     HAS_YAML_VERSION = None
 
-try:
-    # Python 2
-    basestring
-except NameError:
-    # Python 3
-    basestring = str
-
 # import q
 logging.getLogger("ncclient").setLevel(logging.INFO)
 
-from ansible_collections.ansible.netcommon.plugins.module_utils.network.common.utils import (
-    to_list,
-)
 
 # Supported configuration modes
 CONFIG_MODE_CHOICES = ["exclusive", "private", "dynamic", "batch", "ephemeral"]
@@ -895,13 +889,13 @@ class Connection(NetworkConnectionBase):
                 msg += " Reboot successfully initiated. " "Reboot message: %s" % got
             else:
                 raise AnsibleError(
-                    " Did not find expected response " "from reboot RPC. "
+                    " Did not find expected response from reboot RPC. "
                 )
         except self.pyez_exception.RpcTimeoutError as ex:
             try:
                 self.close(raise_exceptions=True)
                 # This means the device wasn't already disconnected.
-                raise AnsibleError(" Reboot failed. It may not have been " "initiated.")
+                raise AnsibleError(" Reboot failed. It may not have been initiated.")
             except (
                 self.pyez_exception.RpcError,
                 self.pyez_exception.RpcTimeoutError,

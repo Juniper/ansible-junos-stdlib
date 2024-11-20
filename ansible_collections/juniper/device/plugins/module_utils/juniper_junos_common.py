@@ -33,6 +33,8 @@
 
 from __future__ import absolute_import, division, print_function
 
+__metaclass__ = type
+
 import hashlib
 import json
 import logging
@@ -40,29 +42,58 @@ import os
 
 # Standard library imports
 from argparse import ArgumentParser
-from distutils.version import LooseVersion
 
-import jnpr
-import xmltodict
-from ansible.module_utils._text import to_bytes, to_text
+try:
+    import jnpr
+
+    HAS_PYEZ_JNPR = True
+except ImportError:
+    HAS_PYEZ_JNPR = False
+try:
+    import xmltodict
+
+    HAS_XMLTODICT = True
+except ImportError:
+    HAS_XMLTODICT = False
+from ansible.module_utils._text import to_bytes
 from ansible.module_utils.basic import AnsibleModule, boolean
 from ansible.module_utils.common.validation import check_type_dict
+from ansible.module_utils.six import string_types
 
 # Ansible imports
 from ansible.module_utils.connection import Connection
-from jnpr.junos import exception as pyez_exception
-from jnpr.junos.utils.scp import SCP
-from jnpr.junos.utils.sw import SW
-from ncclient.operations.errors import TimeoutExpiredError
+try:
+    from jnpr.junos.utils.sw import SW
+
+    HAS_PYEZ_SW = True
+except ImportError:
+    HAS_PYEZ_SW = False
+try:
+    from jnpr.junos.utils.scp import SCP
+
+    HAS_PYEZ_SW = True
+except ImportError:
+    HAS_PYEZ_SW = False
+try:
+    from jnpr.junos import exception as pyez_exception
+
+    HAS_PYEZ_EXCEPTION = True
+except ImportError:
+    HAS_PYEZ_EXCEPTION = False
+try:
+    from ncclient.operations.errors import TimeoutExpiredError
+
+    HAS_NCCLIENT = True
+except ImportError:
+    HAS_NCCLIENT = False
+try:
+    pass
+
+    HAS_LOOSE_VERSION = True
+except ImportError:
+    HAS_LOOSE_VERSION = False
 
 from ansible_collections.juniper.device.plugins.module_utils import configuration as cfg
-
-try:
-    # Python 2
-    basestring
-except NameError:
-    # Python 3
-    basestring = str
 
 
 class ModuleDocFragment(object):
@@ -548,8 +579,8 @@ class JuniperJunosModule(AnsibleModule):
     # Method overrides
     def __init__(
         self,
-        argument_spec={},
-        mutually_exclusive=[],
+        argument_spec=None,
+        mutually_exclusive=None,
         min_pyez_version=cfg.MIN_PYEZ_VERSION,
         min_lxml_etree_version=cfg.MIN_LXML_ETREE_VERSION,
         min_jsnapy_version=None,
@@ -593,6 +624,10 @@ class JuniperJunosModule(AnsibleModule):
             A JuniperJunosModule instance object.
         """
 
+        if mutually_exclusive is None:
+            mutually_exclusive = []
+        if argument_spec is None:
+            argument_spec = {}
         # initialize default values here for error scenario while super is called
 
         # by default local
@@ -716,7 +751,7 @@ class JuniperJunosModule(AnsibleModule):
             return self._pyez_connection
         try:
             capabilities = self.get_capabilities()
-        except ConnectionError as exc:
+        except ConnectionError:
             self.logger.debug("Connection might be local")
             return
             # module.fail_json(msg=to_text(exc, errors="surrogate_then_replace"))
@@ -841,7 +876,7 @@ class JuniperJunosModule(AnsibleModule):
                     msg="Unable to parse the console value (%s). "
                     "Error: %s" % (console_string, str(ex))
                 )
-            except Exception as ex:
+            except Exception:
                 self.fail_json(
                     msg="Unable to parse the console value (%s). "
                     "The value of the console argument is "
@@ -960,7 +995,7 @@ class JuniperJunosModule(AnsibleModule):
         # Evaluate the string
         kwargs = self.safe_eval(string_val)
 
-        if isinstance(kwargs, basestring):
+        if isinstance(kwargs, string_types):
             # This might be a keyword1=value1 keyword2=value2 type string.
             # The _check_type_dict method will parse this into a dict for us.
             try:
@@ -969,7 +1004,7 @@ class JuniperJunosModule(AnsibleModule):
                 self.fail_json(
                     msg="The value of the %s option (%s) is "
                     "invalid. Unable to translate into "
-                    "a list of dicts." % (option_name, string_val, str(exc))
+                    "a list of dicts. %s" % (option_name, string_val, str(exc))
                 )
 
         # Now, if it's a dict, let's make it a list of one dict
@@ -985,7 +1020,7 @@ class JuniperJunosModule(AnsibleModule):
         return_val = []
         for kwarg in kwargs:
             # If it's now a string, see if it can be parsed into a dictionary.
-            if isinstance(kwarg, basestring):
+            if isinstance(kwarg, string_types):
                 # This might be a keyword1=value1 keyword2=value2 type string.
                 # The _check_type_dict method will parse this into a dict.
                 try:
@@ -994,13 +1029,13 @@ class JuniperJunosModule(AnsibleModule):
                     self.fail_json(
                         msg="The value of the %s option (%s) is "
                         "invalid. Unable to translate into a "
-                        "list of dicts." % (option_name, string_val, str(exc))
+                        "list of dicts %s." % (option_name, string_val, str(exc))
                     )
             # Now if it's not a dict, there's a problem.
             if not isinstance(kwarg, dict):
                 self.fail_json(
                     msg="The value of the kwargs option (%s) is "
-                    "invalid. Unable to translate into a list "
+                    "%s. Unable to translate into a list "
                     "of dicts." % (option_name, string_val)
                 )
             # check if allow_bool_values passed in kwargs
@@ -1011,7 +1046,7 @@ class JuniperJunosModule(AnsibleModule):
             # is a string or bool.
             return_item = {}
             for k, v in kwarg.items():
-                if not isinstance(k, basestring):
+                if not isinstance(k, string_types):
                     self.fail_json(
                         msg="The value of the %s option (%s) "
                         "is invalid. Unable to translate into "
@@ -1053,7 +1088,7 @@ class JuniperJunosModule(AnsibleModule):
                 if bool_val is not None:
                     return bool_val
             except TypeError:
-                if isinstance(ignore_warn_list[0], basestring):
+                if isinstance(ignore_warn_list[0], string_types):
                     return ignore_warn_list[0]
             self.fail_json(
                 msg="The value of the ignore_warning option "
@@ -1062,7 +1097,7 @@ class JuniperJunosModule(AnsibleModule):
             )
         elif len(ignore_warn_list) > 1:
             for ignore_warn in ignore_warn_list:
-                if not isinstance(ignore_warn, basestring):
+                if not isinstance(ignore_warn, string_types):
                     self.fail_json(
                         msg="The value of the ignore_warning "
                         "option (%s) is invalid. "
@@ -1095,7 +1130,7 @@ class JuniperJunosModule(AnsibleModule):
         rollback = self.params.get("rollback")
         if rollback is None or rollback == "rescue":
             return rollback
-        if isinstance(rollback, basestring):
+        if isinstance(rollback, string_types):
             try:
                 # Is it an int between 0 and 49?
                 int_val = int(rollback)
@@ -1185,11 +1220,11 @@ class JuniperJunosModule(AnsibleModule):
         # if ignore_warning is a bool, pass the bool
         # if ignore_warning is a string add to the list
         # if ignore_warning is a list, merge them
-        if ignore_warning != None and isinstance(ignore_warning, bool):
+        if ignore_warning is not None and isinstance(ignore_warning, bool):
             ignore_warn = ignore_warning
-        elif ignore_warning != None and isinstance(ignore_warning, str):
+        elif ignore_warning is not None and isinstance(ignore_warning, str):
             ignore_warn.append(ignore_warning)
-        elif ignore_warning != None and isinstance(ignore_warning, list):
+        elif ignore_warning is not None and isinstance(ignore_warning, list):
             ignore_warn = ignore_warn + ignore_warning
 
         if self.conn_type != "local":
@@ -1272,7 +1307,7 @@ class JuniperJunosModule(AnsibleModule):
         self,
         database="committed",
         format="text",
-        options={},
+        options=None,
         filter=None,
         model=None,
         namespace=None,
@@ -1314,6 +1349,8 @@ class JuniperJunosModule(AnsibleModule):
             - Invalid filter.
             - Format not understood by device.
         """
+        if options is None:
+            options = {}
         if database not in CONFIG_DATABASE_CHOICES:
             self.fail_json(
                 msg="The configuration database % is not in the "
@@ -1335,7 +1372,7 @@ class JuniperJunosModule(AnsibleModule):
                 self.open()
 
         self.logger.debug(
-            "Retrieving device configuration. Options: %s  " "Filter %s",
+            "Retrieving device configuration. Options: %s  Filter %s",
             str(options),
             str(filter),
         )
@@ -1574,7 +1611,7 @@ class JuniperJunosModule(AnsibleModule):
             load_args["template_path"] = template
             load_args["template_vars"] = vars
             self.logger.debug(
-                "Loading the configuration from the %s " "template.", template
+                "Loading the configuration from the %s template.", template
             )
         if url is not None:
             load_args["url"] = url
@@ -1654,7 +1691,7 @@ class JuniperJunosModule(AnsibleModule):
         except (self.pyez_exception.RpcError, self.pyez_exception.ConnectError) as ex:
             self.fail_json(msg="Failure committing the configuraton: %s" % (str(ex)))
 
-    def ping(self, params, acceptable_percent_loss=0, results={}):
+    def ping(self, params, acceptable_percent_loss=0, results=None):
         """Execute a ping command with the parameters specified in params.
 
         Args:
@@ -1692,6 +1729,8 @@ class JuniperJunosModule(AnsibleModule):
             - If the ping RPC produces an exception.
             - If there are errors present in the results.
         """
+        if results is None:
+            results = {}
         # Assume failure until we know success.
         results["failed"] = True
 
