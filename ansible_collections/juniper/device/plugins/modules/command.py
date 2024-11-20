@@ -44,8 +44,8 @@ ANSIBLE_METADATA = {
 DOCUMENTATION = """
 ---
 extends_documentation_fragment:
-  - juniper.device.juniper_junos_common.connection_documentation
-  - juniper.device.juniper_junos_common.logging_documentation
+  - juniper_junos_common.connection_documentation
+  - juniper_junos_common.logging_documentation
 module: command
 author: "Juniper Networks - Stacy Smith (@stacywsmith)"
 short_description: Execute one or more CLI commands on a Junos device

@@ -57,11 +57,7 @@ except ImportError:
     HAS_PYEZ_OP_TABLE = False
 
 try:
-<<<<<<< HEAD
-    pass
-=======
     import ncclient.operations.errors as ncclient_exception 
->>>>>>> 6e4bc6e (Fixed Sanity test issues)
 
     HAS_NCCLIENT_EXCEPTIONS = True
 except ImportError:
