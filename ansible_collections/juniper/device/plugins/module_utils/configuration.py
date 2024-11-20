@@ -57,13 +57,6 @@ except ImportError:
     HAS_PYEZ_OP_TABLE = False
 
 try:
-    import ncclient.operations.errors as ncclient_exception
-
-    HAS_NCCLIENT_EXCEPTIONS = True
-except ImportError:
-    HAS_NCCLIENT_EXCEPTIONS = False
-
-try:
     import jnpr.jsnapy
 
     HAS_JSNAPY_VERSION = jnpr.jsnapy.__version__
