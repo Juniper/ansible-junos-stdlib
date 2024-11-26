@@ -33,6 +33,8 @@
 
 from __future__ import absolute_import, division, print_function
 
+__metaclass__ = type
+
 ANSIBLE_METADATA = {
     "metadata_version": "1.1",
     "supported_by": "community",
@@ -470,7 +472,8 @@ options:
     description:
       - Additional options, specified as a dictionary of key/value pairs, used
         when retrieving the configuration. See the
-        U(<get-configuration> RPC documentation|https://www.juniper.net/documentation/en_US/junos/topics/reference/tag-summary/junos-xml-protocol-get-configuration.html)
+        U(<get-configuration> RPC documentation|
+        https://www.juniper.net/documentation/en_US/junos/topics/reference/tag-summary/junos-xml-protocol-get-configuration.html)
         for information on available options.
     required: false
     default: None
@@ -556,7 +559,8 @@ options:
         this URL must be reachable by the target Junos device.
       - The possible formats of this value are documented in the 'url' section
         of the
-        U(<load-configuration> RPC documentation|https://www.juniper.net/documentation/en_US/junos/topics/reference/tag-summary/junos-xml-protocol-load-configuration.html).
+        U(<load-configuration> RPC documentation|
+        https://www.juniper.net/documentation/en_US/junos/topics/reference/tag-summary/junos-xml-protocol-load-configuration.html).
       - The I(src), I(lines), I(template), and I(url) options are mutually
         exclusive.
     required: false
@@ -823,7 +827,6 @@ But custom module_utils directory is supported from Ansible 2.3
 Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project/J8FL7Z1J1Mw """
 
 # Ansiballz packages module_utils into ansible.module_utils
-from ansible.module_utils.basic import AnsibleModule
 
 from ansible_collections.juniper.device.plugins.module_utils import configuration as cfg
 from ansible_collections.juniper.device.plugins.module_utils import juniper_junos_common
@@ -1099,7 +1102,7 @@ def main():
     # Initialize the results. Assume failure until we know it's success.
     results = {"msg": "Configuration has been: ", "changed": False, "failed": True}
 
-    junos_module.logger.debug("Step 1 - Open a candidate configuration " "database.")
+    junos_module.logger.debug("Step 1 - Open a candidate configuration database.")
     junos_module.open_configuration(
         mode=config_mode,
         ignore_warning=ignore_warning,
@@ -1108,7 +1111,7 @@ def main():
     results["msg"] += "opened"
 
     junos_module.logger.debug(
-        "Step 2 - Load configuration data into the " "candidate configuration database."
+        "Step 2 - Load configuration data into the candidate configuration database."
     )
     if rollback is not None:
         junos_module.rollback_configuration(id=rollback)
@@ -1150,7 +1153,7 @@ def main():
         results["msg"] += ", loaded"
 
     junos_module.logger.debug(
-        "Step 3 - Check the validity of the candidate " "configuration database."
+        "Step 3 - Check the validity of the candidate configuration database."
     )
     if check is True:
         junos_module.check_configuration()
@@ -1175,7 +1178,7 @@ def main():
         results["msg"] += ", diffed"
 
     junos_module.logger.debug(
-        "Step 5 - Retrieve the configuration database " "from the Junos device."
+        "Step 5 - Retrieve the configuration database from the Junos device."
     )
     if retrieve is not None:
         if format is None:
@@ -1229,7 +1232,7 @@ def main():
         else:
             junos_module.logger.debug("Skipping commit. Nothing changed.")
 
-    junos_module.logger.debug("Step 7 - Close the candidate configuration " "database.")
+    junos_module.logger.debug("Step 7 - Close the candidate configuration database.")
     junos_module.close_configuration()
     results["msg"] += ", closed."
 

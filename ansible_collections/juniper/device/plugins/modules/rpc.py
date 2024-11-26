@@ -32,7 +32,9 @@
 
 from __future__ import absolute_import, division, print_function
 
-from six import iteritems
+__metaclass__ = type
+
+from ansible.module_utils.six import iteritems
 
 ANSIBLE_METADATA = {
     "metadata_version": "1.1",
@@ -350,22 +352,12 @@ stdout_lines:
   type: list of str
 """
 
-import os.path
-
-try:
-    # Python 2
-    basestring
-except NameError:
-    # Python 3
-    basestring = str
-
 
 """From Ansible 2.1, Ansible uses Ansiballz framework for assembling modules
 But custom module_utils directory is supported from Ansible 2.3
 Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project/J8FL7Z1J1Mw """
 
 # Ansiballz packages module_utils into ansible.module_utils
-from ansible.module_utils.basic import AnsibleModule
 
 from ansible_collections.juniper.device.plugins.module_utils import configuration as cfg
 from ansible_collections.juniper.device.plugins.module_utils import juniper_junos_common
@@ -531,7 +523,7 @@ def main():
                     )
                 result["msg"] = 'The "get-config" RPC executed successfully.'
                 junos_module.logger.debug(
-                    'The "get-config" RPC executed ' "successfully."
+                    "The 'get-config' RPC executed successfully."
                 )
             else:
                 if kwarg is not None:
@@ -589,7 +581,7 @@ def main():
         parsed_output = None
         if resp is True:
             text_output = ""
-        elif (resp, junos_module.etree._Element):
+        elif isinstance(resp, junos_module.etree._Element):
             # Handle the output based on format
             if format == "text":
                 text_output = resp.text

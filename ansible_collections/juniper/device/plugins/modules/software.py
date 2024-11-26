@@ -33,6 +33,8 @@
 
 from __future__ import absolute_import, division, print_function
 
+__metaclass__ = type
+
 ANSIBLE_METADATA = {
     "metadata_version": "1.1",
     "supported_by": "community",
@@ -397,7 +399,6 @@ But custom module_utils directory is supported from Ansible 2.3
 Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project/J8FL7Z1J1Mw """
 
 # Ansiballz packages module_utils into ansible.module_utils
-from ansible.module_utils.basic import AnsibleModule
 
 from ansible_collections.juniper.device.plugins.module_utils import juniper_junos_common
 
@@ -438,19 +439,17 @@ def parse_version_from_filename(filename):
             match = re.search(r"-(\d{2}\..*\d).*", filename)
             if match is not None:
                 return match.group(1)
-    # Not a known Junos package name.
-    else:
-        return None
+    return None
 
 
 def define_progress_callback(junos_module):
     """Create callback which can be passed to SW.install(progress=progress)"""
 
-    def myprogress(_, report):
+    def myprogress(_0, report):
         """A progress function which logs report at level INFO.
 
         Args:
-          _: The PyEZ device object. Unused because the logger already knows.
+          _0: The PyEZ device object. Unused because the logger already knows.
           report: The string to be logged.
         """
         junos_module.logger.info(report)
@@ -545,7 +544,7 @@ def main():
             (remote_dir, remote_filename) = os.path.split(remote_package)
         else:
             url = remote_package
-            (_, remote_filename) = os.path.split(parsed_url.path)
+            (_0, remote_filename) = os.path.split(parsed_url.path)
     else:
         # Default remote_dir value
         remote_dir = "/var/tmp"
@@ -636,7 +635,7 @@ def main():
                 current_version = junos_info[current_re]["text"]
                 if target_version != current_version:
                     junos_module.logger.debug(
-                        "Current version on %s: %s. " "Target version: %s.",
+                        "Current version on %s: %s. Target version: %s.",
                         current_version,
                         current_re,
                         target_version,
@@ -655,7 +654,7 @@ def main():
                 re_name = junos_module._pyez_conn.get_re_name()
             if target_version != current_version:
                 junos_module.logger.debug(
-                    "Current version on %s: %s. " "Target version: %s.",
+                    "Current version on %s: %s. Target version: %s.",
                     current_version,
                     re_name,
                     target_version,
@@ -774,7 +773,7 @@ def main():
                     restore_timeout = junos_module.dev.timeout
                     if junos_module.dev.timeout > 5:
                         junos_module.logger.debug(
-                            "Decreasing device RPC timeout " "to 5 seconds."
+                            "Decreasing device RPC timeout to 5 seconds."
                         )
                         junos_module.dev.timeout = 5
                     try:

@@ -29,10 +29,16 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
+from __future__ import absolute_import, division, print_function
 
-import os
-from distutils.version import LooseVersion
+__metaclass__ = type
 
+try:
+    from looseversion import LooseVersion
+
+    HAS_LOOSE_VERSION = True
+except ImportError:
+    HAS_LOOSE_VERSION = False
 # Non-standard library imports and checks
 try:
     from jnpr.junos.version import VERSION
@@ -51,11 +57,11 @@ except ImportError:
     HAS_PYEZ_OP_TABLE = False
 
 try:
-    import ncclient.operations.errors as ncclient_exception
+    import ncclient
 
-    HAS_NCCLIENT_EXCEPTIONS = True
+    HAS_NCCLIENT_VERSION = ncclient.__version__
 except ImportError:
-    HAS_NCCLIENT_EXCEPTIONS = False
+    HAS_NCCLIENT_VERSION = None
 
 try:
     import jnpr.jsnapy
@@ -87,13 +93,6 @@ try:
     HAS_YAML_VERSION = yaml.__version__
 except ImportError:
     HAS_YAML_VERSION = None
-
-try:
-    # Python 2
-    basestring
-except NameError:
-    # Python 3
-    basestring = str
 
 # Constants
 # Minimum PyEZ version required by shared code.
@@ -196,8 +195,8 @@ def check_pyez(minimum=None):
         - PyEZ not installed (unable to import).
         - PyEZ version < minimum.
     """
-    if HAS_NCCLIENT_EXCEPTIONS is False:
-        return "ncclient.operations.errors module could not " "be imported."
+    if HAS_NCCLIENT_VERSION is None:
+        return "ncclient module could not " "be imported."
     return _check_library(
         "junos-eznc",
         HAS_PYEZ_VERSION,

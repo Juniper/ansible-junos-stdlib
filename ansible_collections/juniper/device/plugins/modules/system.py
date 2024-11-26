@@ -33,6 +33,8 @@
 
 from __future__ import absolute_import, division, print_function
 
+__metaclass__ = type
+
 ANSIBLE_METADATA = {
     "metadata_version": "1.1",
     "supported_by": "community",
@@ -251,7 +253,6 @@ But custom module_utils directory is supported from Ansible 2.3
 Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project/J8FL7Z1J1Mw """
 
 # Ansiballz packages module_utils into ansible.module_utils
-from ansible.module_utils.basic import AnsibleModule
 
 from ansible_collections.juniper.device.plugins.module_utils import juniper_junos_common
 
@@ -313,7 +314,7 @@ def main():
     # if action is zeroize, at, in_min, other_re shouldn't be set
     if action == "zeroize":
         # at, in_min and other_re option only applies to reboot, shutdown, or halt action.
-        if (at != None) or (in_min != 0) or (other_re == True):
+        if (at is not None) or (in_min != 0) or (other_re is True):
             junos_module.fail_json(
                 msg="The options at, in_min and other_re can only be used when "
                 'the action option has the value "zeroize"'
@@ -366,7 +367,7 @@ def main():
                 if at == "now" or (in_min == 0 and at is None):
                     if junos_module.dev.timeout > 5:
                         junos_module.logger.debug(
-                            "Decreasing device RPC timeout " "to 5 seconds."
+                            "Decreasing device RPC timeout to 5 seconds."
                         )
                         junos_module.dev.timeout = 5
 

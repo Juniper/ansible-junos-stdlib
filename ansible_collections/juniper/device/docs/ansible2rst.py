@@ -25,24 +25,19 @@ import cgi
 import datetime
 import os
 import re
-import sys
-from distutils.version import LooseVersion
-
+import warnings
 import yaml
 from jinja2 import Environment, FileSystemLoader
 from six import print_
 
-try:
-    from collections import MutableMapping, MutableSequence, MutableSet
-except ImportError:
-    # Python-3.8 or later
-    from collections.abc import MutableMapping, MutableSet, MutableSequence
+from collections.abc import MutableMapping, MutableSet, MutableSequence
 
 from ansible.module_utils._text import to_bytes
 from ansible.module_utils.six import iteritems, string_types
 from ansible.parsing.plugin_docs import read_docstring
 from ansible.parsing.yaml.loader import AnsibleLoader
 from ansible.plugins.loader import fragment_loader
+from ansible.errors import AnsibleError
 
 try:
     from html import escape as html_escape
@@ -327,7 +322,7 @@ def process_module(fname, template, outputname, aliases=None):
             # Error out if there's no description
             if "description" not in doc["options"][k]:
                 raise AnsibleError(
-                    "Missing required description for option %s in %s " % (k, module)
+                    "Missing required description for option %s in %s " % (k, module_name)
                 )
 
             # Error out if required isn't a boolean (people have been putting
@@ -337,7 +332,7 @@ def process_module(fname, template, outputname, aliases=None):
             if not isinstance(required_value, bool):
                 raise AnsibleError(
                     "Invalid required value '%s' for option '%s' in '%s' (must be truthy)"
-                    % (required_value, k, module)
+                    % (required_value, k, module_name)
                 )
 
             # Strip old version_added information for options
@@ -360,7 +355,7 @@ def process_module(fname, template, outputname, aliases=None):
             if "description" not in doc["connection_options"][k]:
                 raise AnsibleError(
                     "Missing required description for connection_option %s in %s "
-                    % (k, module)
+                    % (k, module_name)
                 )
 
             # Error out if required isn't a boolean (people have been putting
@@ -370,7 +365,7 @@ def process_module(fname, template, outputname, aliases=None):
             if not isinstance(required_value, bool):
                 raise AnsibleError(
                     "Invalid required value '%s' for connection_option '%s' in '%s' (must be truthy)"
-                    % (required_value, k, module)
+                    % (required_value, k, module_name)
                 )
 
             # Strip old version_added information for options
@@ -395,7 +390,7 @@ def process_module(fname, template, outputname, aliases=None):
             if "description" not in doc["logging_options"][k]:
                 raise AnsibleError(
                     "Missing required description for logging_option %s in %s "
-                    % (k, module)
+                    % (k, module_name)
                 )
 
             # Error out if required isn't a boolean (people have been putting
@@ -405,7 +400,7 @@ def process_module(fname, template, outputname, aliases=None):
             if not isinstance(required_value, bool):
                 raise AnsibleError(
                     "Invalid required value '%s' for logging_option '%s' in '%s' (must be truthy)"
-                    % (required_value, k, module)
+                    % (required_value, k, module_name)
                 )
 
             # Strip old version_added information for options
@@ -452,7 +447,7 @@ def process_module(fname, template, outputname, aliases=None):
         doc["author"] = [doc["author"]]
 
     # here is where we build the table of contents...
-    text = template.render(doc)
+    template.render(doc)
     # write_data(text, outputname, module_name, OUTPUTDIR)
 
 

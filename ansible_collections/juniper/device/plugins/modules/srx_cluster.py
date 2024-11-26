@@ -33,6 +33,8 @@
 
 from __future__ import absolute_import, division, print_function
 
+__metaclass__ = type
+
 ANSIBLE_METADATA = {
     "metadata_version": "1.1",
     "supported_by": "community",
@@ -144,7 +146,6 @@ But custom module_utils directory is supported from Ansible 2.3
 Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project/J8FL7Z1J1Mw """
 
 # Ansiballz packages module_utils into ansible.module_utils
-from ansible.module_utils.basic import AnsibleModule
 
 from ansible_collections.juniper.device.plugins.module_utils import juniper_junos_common
 
@@ -209,12 +210,12 @@ def main():
         current_node_name = junos_module._pyez_conn.get_re_name()
     current_node_id = None
     if current_node_name is not None:
-        (_, _, current_node_id) = current_node_name.partition("node")
+        (_0, _1, current_node_id) = current_node_name.partition("node")
         if current_node_id:
             current_node_id = int(current_node_id)
     junos_module.logger.debug(
-        "Current SRX cluster operational state: %s, cluster_id: %s, " "node_id: %s",
-        "enabled" if current_cluster_state else "disabled",
+        "Current SRX cluster operational state: %s, cluster_id: %s, node_id: %s",
+        "enabled if current_cluster_state else disabled",
         str(current_cluster_id),
         str(current_node_id),
     )
@@ -246,7 +247,7 @@ def main():
     # Is a node ID change needed?
     if enable is True and current_node_id is not None and current_node_id != node_id:
         junos_module.logger.debug(
-            "SRX node ID change needed. Current node ID: %d. " "Desired cluster ID: %d",
+            "SRX node ID change needed. Current node ID: %d. Desired cluster ID: %d",
             current_node_id,
             node_id,
         )
@@ -289,7 +290,7 @@ def main():
                     else:
                         try:
                             resp = junos_module._pyez_conn.set_chassis_cluster_disable()
-                        except Exception as err:
+                        except Exception:
                             # Reboot initiated
                             # We got Exception ConnectionError
                             # so handling the exception

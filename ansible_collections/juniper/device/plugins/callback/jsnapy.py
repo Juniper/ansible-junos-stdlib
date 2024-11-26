@@ -35,15 +35,12 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-import collections
 import json
-import os
 import pprint
-import time
 
+from ansible.module_utils.six import iteritems
 from ansible import constants as C
 from ansible.plugins.callback import CallbackBase
-from six import iteritems
 
 
 class CallbackModule(CallbackBase):
@@ -58,8 +55,8 @@ class CallbackModule(CallbackBase):
     # callback needs to be enabled with config-file to use jsnapy callback during execution
     CALLBACK_NEEDS_WHITELIST = True
 
-    ## useful links regarding Callback
-    ## https://github.com/ansible/ansible/blob/devel/lib/ansible/plugins/callback/__init__.py
+    # useful links regarding Callback
+    # https://github.com/ansible/ansible/blob/devel/lib/ansible/plugins/callback/__init__.py
 
     def __init__(self):
         self._pp = pprint.PrettyPrinter(indent=4)
@@ -72,28 +69,28 @@ class CallbackModule(CallbackBase):
         Collect test results for all tests executed if action is snapcheck or check
         """
 
-        ## Extract module name
+        # Extract module name
         module_args = {}
         if "invocation" in result._result:
             if "module_args" in result._result["invocation"]:
                 module_args = result._result["invocation"]["module_args"]
 
-        ## Check if dic return has all valid information
+        # Check if dic return has all valid information
         if "action" not in module_args:
             return None
 
         if module_args["action"] == "snapcheck" or module_args["action"] == "check":
 
-            ## Check if dict entry already exist for this host
+            # Check if dict entry already exist for this host
             host = result._host.name
-            if not host in self._results.keys():
+            if host not in self._results.keys():
                 self._results[host] = []
 
             self._results[host].append(result)
 
     def v2_playbook_on_stats(self, stats):
 
-        ## Go over all results for all hosts
+        # Go over all results for all hosts
         for host, results in iteritems(self._results):
             has_printed_banner = False
             for result in results:

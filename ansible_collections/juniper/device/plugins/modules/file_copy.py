@@ -33,6 +33,8 @@
 
 from __future__ import absolute_import, division, print_function
 
+__metaclass__ = type
+
 ANSIBLE_METADATA = {
     "metadata_version": "1.1",
     "supported_by": "community",
@@ -108,7 +110,6 @@ But custom module_utils directory is supported from Ansible 2.3
 Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project/J8FL7Z1J1Mw """
 
 # Ansiballz packages module_utils into ansible.module_utils
-from ansible.module_utils.basic import AnsibleModule
 
 from ansible_collections.juniper.device.plugins.module_utils import configuration as cfg
 from ansible_collections.juniper.device.plugins.module_utils import juniper_junos_common
@@ -136,7 +137,7 @@ def main():
     # We're going to be using params a lot
     params = junos_module.params
 
-    remote_path = params["remote_dir"]
+    params["remote_dir"]
     local_file = params["local_dir"] + "/" + params["file"]
     remote_file = params["remote_dir"] + "/" + params["file"]
 
