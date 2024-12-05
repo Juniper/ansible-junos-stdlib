@@ -462,7 +462,10 @@ class Connection(NetworkConnectionBase):
         resp = self.dev.rpc.get_config(
             filter_xml, options, model, namespace, remove_ns, **kwarg
         )
-        return etree.tostring(resp)
+        if options['format'] == 'json':
+            return rsp
+        else:
+            return etree.tostring(resp)
 
     def get_rpc_resp(self, rpc, ignore_warning, format):
         """Execute rpc on the device and get response.

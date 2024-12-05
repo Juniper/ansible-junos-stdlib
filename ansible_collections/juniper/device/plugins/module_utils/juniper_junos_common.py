@@ -1912,7 +1912,10 @@ class JuniperJunosModule(AnsibleModule):
         response = self._pyez_conn.get_config(
             filter_xml, options, model, namespace, remove_ns, **kwarg
         )
-        return self.etree.fromstring(response)
+        if options['format'] == 'json':
+            return response
+        else:
+            return self.etree.fromstring(response)
 
     def get_rpc(self, rpc, ignore_warning=None, format=None):
         rpc_1 = self.etree.tostring(rpc)
