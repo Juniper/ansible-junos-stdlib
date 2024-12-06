@@ -435,7 +435,7 @@ def main():
         parsed_output = None
         if resp is True:
             text_output = ""
-        elif isinstance(resp, junos_module.etree._Element):
+        elif (isinstance(resp, junos_module.etree._Element)) or (isinstance(resp, dict)):
             # Handle the output based on format
             if format == "text":
                 if resp.tag in ["output", "rpc-reply"]:
