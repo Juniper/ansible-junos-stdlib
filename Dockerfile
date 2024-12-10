@@ -1,32 +1,36 @@
-FROM juniper/pyez:2.5.3
+FROM python:3.12-alpine
 
 LABEL net.juniper.image.maintainer="Juniper Networks <jnpr-community-netdev@juniper.net>" \
       net.juniper.image.description="Lightweight image with Ansible and the Junos roles"
 
+WORKDIR /source
+
+## Copy project inside the containers
+ADD setup.* ./
+ADD requirements.txt .
+ADD entrypoint.sh /usr/local/bin/.
+
+## Install dependencies and PyEZ
 RUN apk add --no-cache build-base python3-dev py3-pip \
-    openssl-dev curl ca-certificates bash openssh-client
+    libxslt-dev libxml2-dev libffi-dev openssl-dev curl \
+    ca-certificates py3-pip bash openssh-client
 
-WORKDIR /tmp
-COPY requirements.txt .
-RUN pip3 install -r requirements.txt
+RUN pip install --upgrade pip \
+    && pip install pipdeptree \
+    && python3 -m pip install -r requirements.txt
 
-RUN apk del -r --purge gcc make g++ &&\
-    rm -rf /source/* &&\
-    rm -rf /var/cache/apk/* &&\
-    rm -rf /tmp/*
+# Also install the collections junipernetworks.junos and juniper.device
+# Install Ansible modules in one layer
+RUN ansible-galaxy collection install junipernetworks.junos && \
+    ansible-galaxy collection install juniper.device
 
-WORKDIR /usr/share/ansible/collections/ansible_collections/
-COPY ansible_collections/ .
-
-WORKDIR /usr/bin
-COPY entrypoint.sh .
-RUN chmod +x entrypoint.sh
-
-# Also install the roles, until collections is ready for prime-time
-RUN ansible-galaxy role install Juniper.junos,2.4.3
+## Clean up and start init
+RUN apk del -r --purge gcc make g++ \
+    && rm -rf /source/* \
+    && chmod +x /usr/local/bin/entrypoint.sh
 
 WORKDIR /project
 
 VOLUME /project
 
-ENTRYPOINT ["/usr/bin/entrypoint.sh"]
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
