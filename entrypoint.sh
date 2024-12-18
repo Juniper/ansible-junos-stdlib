@@ -18,7 +18,7 @@ function pip_install {
 }
 
 function galaxy_install {
-    echo "Install Ansible roles"
+    echo "Install Ansible Collections"
     ansible-galaxy install -r "$1"
 }
 
@@ -38,9 +38,9 @@ elif [ -f "/extras/requirements.txt" ];then REQ="/extras/requirements.txt"
 else REQ=''
 fi
 
-if [ "$ROLES" ]; then ROLES=$ROLES
-elif [ -f "/extras/requirements.yml" ]; then ROLES="/extras/requirements.yml"
-else ROLES=''
+if [ "$COLLECTIONS" ]; then COLLECTIONS=$COLLECTIONS
+elif [ -f "/extras/requirements.yml" ]; then COLLECTIONS="/extras/requirements.yml"
+else COLLECTIONS=''
 fi
 
 
@@ -48,7 +48,7 @@ fi
 
 [[ -z "$REQ" ]] || pip_install "$REQ"
 
-[[ -z "$ROLES" ]] || galaxy_install "$ROLES"
+[[ -z "$COLLECTIONS" ]] || galaxy_install "$COLLECTIONS"
 
 if [ -z "$1" ]
 then
