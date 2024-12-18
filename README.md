@@ -120,35 +120,6 @@ This will set your `$ANSIBLE_LIBRARY` variable to the repo location and the inst
   $ echo $ANSIBLE_LIBRARY
   /home/jeremy/Ansible/ansible-junos-stdlib/library:/usr/share/ansible
 
-#### Python Packages
-
-Environment Variable: `$REQ`
-Bind Mount: `/extras/requirements.txt`
-File Format: pip [requirements](https://pip.pypa.io/en/stable/reference/requirements-file-format/) file
-
-Examples:
-
-  docker run -it --rm -v $PWD:/project -e REQ="requirements.txt" juniper/pyez-ansible
-
-As a bind mount.
-
-  docker run -it --rm -v $PWD/requirements.txt:/extras/requirements.txt juniper/pyez-ansible
-
-#### Ansible Packages
-
-Environment Variable: `$COLLECTIONS`
-Bind Mount: `/extras/requirements.yml`
-File Format: Ansible [requirements](https://docs.ansible.com/ansible/devel/user_guide/collections_using.html#install-multiple-collections-with-a-requirements-file) file
-
-
-Examples:
-
-  docker run -it --rm -v $PWD:/project -e REQ="requirements.yml" juniper/pyez-ansible
-
-As a bind mount.
-
-  docker run -it --rm -v $PWD/requirements.txt:/extras/requirements.yml juniper/pyez-ansible
-
 ## Example Playbook
 
 This example outlines how to use Ansible to install or upgrade the software image on a device running Junos OS.
