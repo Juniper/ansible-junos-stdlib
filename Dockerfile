@@ -15,16 +15,17 @@ RUN apk add --no-cache build-base python3-dev py3-pip \
     ca-certificates py3-pip bash openssh-client
 
 RUN pip install --upgrade pip \
-    && pip install pipdeptree \
     && python3 -m pip install -r requirements.txt
 
-# Also install the collections junipernetworks.junos and juniper.device
+# Also install the collections juniper.device
 # Install Ansible modules in one layer
-RUN ansible-galaxy collection install junipernetworks.junos && \
-    ansible-galaxy collection install juniper.device
+RUN ansible-galaxy collection install juniper.device
 
 ## Clean up and start init
 RUN apk del -r --purge gcc make g++ \
+    && rm -rf /var/cache/apk/* \
+    && rm -rf /tmp/* \
+    && rm -rf /root/.cache \
     && chmod +x /usr/local/bin/entrypoint.sh
 
 WORKDIR /project
