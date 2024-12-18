@@ -25,7 +25,6 @@ RUN ansible-galaxy collection install junipernetworks.junos && \
 
 ## Clean up and start init
 RUN apk del -r --purge gcc make g++ \
-    && rm -rf /source/* \
     && chmod +x /usr/local/bin/entrypoint.sh
 
 WORKDIR /project
