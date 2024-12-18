@@ -52,7 +52,8 @@
     - name: Save rescue configuration
       juniper.device.command:
         commands: "request system configuration rescue save"
-
+        formats:
+          - "xml"
 
     - name: Configure syslog configuration
       juniper.device.config:
