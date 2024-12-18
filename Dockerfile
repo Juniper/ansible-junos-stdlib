@@ -3,10 +3,9 @@ FROM python:3.12-alpine
 LABEL net.juniper.image.maintainer="Juniper Networks <jnpr-community-netdev@juniper.net>" \
       net.juniper.image.description="Lightweight image with Ansible and the Junos roles"
 
-WORKDIR /source
+WORKDIR /tmp
 
 ## Copy project inside the containers
-ADD setup.* ./
 ADD requirements.txt .
 ADD entrypoint.sh /usr/local/bin/.
 
