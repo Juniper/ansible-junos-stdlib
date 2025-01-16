@@ -463,7 +463,7 @@ class Connection(NetworkConnectionBase):
             filter_xml, options, model, namespace, remove_ns, **kwarg
         )
         if options['format'] == 'json':
-            return rsp
+            return resp
         else:
             return etree.tostring(resp)
 
