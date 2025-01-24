@@ -11,8 +11,10 @@
 #
 # NOTE: Automatic provisioning of network instances on EC2 requires an ansible-core-ci API key.
 [junos]
-local_test ansible_host=x.x.x.x ansible_connection=local ansible_network_os="junos" ansible_user=xyz ansible_ssh_pass=xyz
+junos_test ansible_host=x.x.x.x ansible_network_os="junos" ansible_user=xyz ansible_ssh_pass=xyz
 
+[all:vars]
+ansible_python_interpreter=/usr/bin/python3
 ###
 # Example
 #
