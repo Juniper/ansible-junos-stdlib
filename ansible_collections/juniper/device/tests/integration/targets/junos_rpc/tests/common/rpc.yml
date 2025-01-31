@@ -1,0 +1,234 @@
+---
+#################
+    - name: "Execute single RPC get-software-information without any kwargs"
+      juniper.device.rpc:
+        rpcs:
+          - "get-software-information"
+      register: test1
+      ignore_errors: true
+      tags: [test1]
+
+    - name: Check TEST 1
+      ansible.builtin.assert:
+        that:
+          - test1.msg == "The RPC executed successfully."
+      tags: [test1]
+
+#################
+    - name: "Get Device Configuration with dest"
+      juniper.device.rpc:
+        rpc: get-config
+        dest: get_config.conf
+      register: test2
+      ignore_errors: true
+      tags: [test2]
+
+    - name: Check that the get_config.conf exists
+      ansible.builtin.stat:
+        path: get_config.conf
+      register: stat_result
+
+    - name: Check TEST 2
+      ansible.builtin.assert:
+        that:
+          - test2.msg == "The \"get-config\" RPC executed successfully."
+          - stat_result.stat.exists == True
+      tags: [test2]
+
+    - name: Clean up TEST 2
+      ansible.builtin.file:
+        path: get_config.conf
+        state: absent
+#################
+
+    - name: "Get Device Configuration in text"
+      juniper.device.rpc:
+        rpc: get-interface-information
+        kwargs:
+          interface_name: "lo0.0"
+        format: text
+      register: test3
+      ignore_errors: true
+      tags: [test3]
+
+    - name: Check TEST 3
+      ansible.builtin.assert:
+        that:
+          - test3.msg == "The RPC executed successfully."
+      tags: [test3]
+
+#################
+
+    - name: "Execute multiple RPCs without any kwargs"
+      juniper.device.rpc:
+        rpcs:
+          - "get-software-information"
+          - "get-interface-information"
+        dest: get_config.conf
+      register: test4
+      ignore_errors: true
+      tags: [test4]
+
+    - name: Check TEST 4
+      ansible.builtin.assert:
+        that:
+          - test4.results[0].msg == "The RPC executed successfully."
+          - test4.results[1].msg == "The RPC executed successfully."
+      tags: [test4]
+
+    - name: Clean up TEST 4
+      ansible.builtin.file:
+        path: get_config.conf
+        state: absent
+
+#################
+
+    - name: "Execute multiple RPCs with multiple kwargs"
+      juniper.device.rpc:
+        rpcs:
+          - "get-software-information"
+          - "get-interface-information"
+        kwargs:
+          - {}
+          - interface_name: "lo0.0"
+      register: test5
+      ignore_errors: true
+      tags: [test5]
+
+    - name: Check TEST 5
+      ansible.builtin.assert:
+        that:
+          - test5.results[0].msg == "The RPC executed successfully."
+          - test5.results[1].msg == "The RPC executed successfully."
+      tags: [test5]
+
+#################
+    - name: Creates directory
+      ansible.builtin.file:
+        path: out
+        state: directory
+        mode: '0644'
+
+    - name: "Execute multiple RPCs with multiple kwargs and dest-dir"
+      juniper.device.rpc:
+        rpcs:
+          - "get-software-information"
+          - "get-interface-information"
+        kwargs:
+          - {}
+          - interface_name: "lo0.0"
+        dest_dir: "out"
+      register: test6
+      ignore_errors: true
+      tags: [test6]
+
+    - name: Check get-interface-information.xml exists
+      ansible.builtin.stat:
+        path: "out/{{ inventory_hostname }}_get-interface-information.xml"
+      register: stat_result_1
+
+    - name: Check get-software-information.xml exists
+      ansible.builtin.stat:
+        path: "out/{{ inventory_hostname }}_get-software-information.xml"
+      register: stat_result_2
+
+    - name: Check TEST 6
+      ansible.builtin.assert:
+        that:
+          - test6.results[0].msg == "The RPC executed successfully."
+          - test6.results[1].msg == "The RPC executed successfully."
+          - stat_result_1.stat.exists == True
+          - stat_result_2.stat.exists == True
+      tags: [test6]
+
+    - name: Clean up TEST 6
+      ansible.builtin.file:
+        path: out
+        state: absent
+
+#################
+    - name: Get Device Configuration for interface
+      juniper.device.rpc:
+        rpc: get-config
+        filter_xml: "<configuration><interfaces/></configuration>"
+      register: test7
+      ignore_errors: true
+      tags: [test7]
+
+    - name: Check TEST 7
+      ansible.builtin.assert:
+        that:
+          - test7.msg == "The \"get-config\" RPC executed successfully."
+      tags: [test7]
+
+#################
+    - name: "Execute wrong RPC to generate RPC error"
+      juniper.device.rpc:
+        rpcs:
+          - "wrong-rpc"
+      register: test8
+      ignore_errors: true
+      tags: [test8]
+
+    - name: Check TEST 8
+      ansible.builtin.assert:
+        that:
+          - '"Unable to execute the RPC" or "MODULE FAILURE" in test8.msg'
+      tags: [test8]
+
+#################
+    - name: "Check configuration for errors"
+      juniper.device.rpc:
+        rpcs:
+          - "load-configuration"
+        attrs:
+          - action: 'set'
+            format: 'text'
+        kwargs:
+          - configuration_set: 'set system syslog file test1 any any'
+      register: test9
+      tags: [test9]
+
+    - name: Check TEST 9
+      ansible.builtin.debug:
+        var: test9
+      tags: [test9]
+
+    - name: Check TEST 9
+      ansible.builtin.assert:
+        that:
+          - test9.msg == "The RPC executed successfully."
+      tags: [test9]
+
+#################
+    - name: Check rollback info
+      juniper.device.rpc:
+        rpc: get-rollback-information
+        kwargs:
+          rollback: "3"
+          compare: "2"
+      register: test11
+      tags: [test11]
+
+    - name: Check TEST 11
+      ansible.builtin.assert:
+        that:
+          test11.msg == "The RPC executed successfully."
+      tags: [test11]
+
+####################
+    - name: Check rollback info with boolean values
+      juniper.device.rpc:
+        rpc: get-rollback-information
+        kwargs:
+          allow_bool_values: "0"
+          rollback: "1"
+          compare: "0"
+      register: test12
+      tags: [test12]
+
+    - name: Check TEST 12
+      ansible.builtin.assert:
+        that:
+          test12.msg == "The RPC executed successfully."
+      tags: [test12]

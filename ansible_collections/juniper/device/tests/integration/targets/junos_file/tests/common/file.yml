@@ -1,0 +1,39 @@
+---
+    - name: Creates file log.txt
+      ansible.builtin.file:
+        path: /var/tmp/log.txt
+        state: touch
+        mode: '0644'
+
+    - name: Delete local file log.txt
+      ansible.builtin.file:
+        path: /tmp/log.txt
+        state: absent
+
+
+    - name: "File copy"
+      juniper.device.file_copy:
+        local_dir: /var/tmp
+        remote_dir: /var/log
+        file: log.txt
+        action: put
+      register: test1
+      ignore_errors: true
+
+    - name: Check file copy put
+      ansible.builtin.assert:
+        that:
+          - (test1.msg == 'File pushed OK') or (test1.msg == 'File already present, skipping the scp')
+
+    - name: "File copy get"
+      juniper.device.file_copy:
+        local_dir: /tmp
+        remote_dir: /var/log
+        file: log.txt
+        action: get
+      register: test2
+
+    - name: Check file copy get
+      ansible.builtin.assert:
+        that:
+          - test2.msg == 'File pushed OK'
