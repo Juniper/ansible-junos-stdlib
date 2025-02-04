@@ -632,7 +632,15 @@ def main():
         if all_re is True:
             junos_info = facts["junos_info"]
             for current_re in junos_info:
-                current_version = junos_info[current_re]["text"]
+                if facts["vmhost"]:
+                    set_primary = facts["vmhost_info"][current_re]["vmhost_current_root_set"]
+                    current_version = facts["vmhost_info"][current_re]["vmhost_version_set_b"]
+                    if facts["vmhost_info"][current_re]["vmhost_current_root_set"] == "p":
+                        current_version = parse_version_from_filename(facts["vmhost_info"][current_re]["vmhost_version_set_b"])
+                    else:
+                        current_version = parse_version_from_filename(facts["vmhost_info"][current_re]["vmhost_version_set_p"])
+                else:
+                    current_version = junos_info[current_re]["text"]
                 if target_version != current_version:
                     junos_module.logger.debug(
                         "Current version on %s: %s. Target version: %s.",
@@ -647,11 +655,17 @@ def main():
                         "version: %s.\n" % (current_version, current_re, target_version)
                     )
         else:
-            current_version = facts["version"]
             if junos_module.conn_type == "local":
                 re_name = junos_module.dev.re_name
             else:
                 re_name = junos_module._pyez_conn.get_re_name()
+            if facts["vmhost"]:
+                if facts["vmhost_info"][re_name]["vmhost_current_root_set"] == "p":
+                    current_version = parse_version_from_filename(facts["vmhost_info"][re_name]["vmhost_version_set_b"])
+                else:
+                    current_version = parse_version_from_filename(facts["vmhost_info"][re_name]["vmhost_version_set_p"])
+            else:
+                current_version = facts["version"]
             if target_version != current_version:
                 junos_module.logger.debug(
                     "Current version on %s: %s. Target version: %s.",
