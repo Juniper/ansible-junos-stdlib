@@ -1,0 +1,22 @@
+# This is the configuration template for ansible-test network-integration tests.
+#
+# You do not need this template if you are:
+#
+# 1) Running integration tests without using ansible-test.
+# 2) Using the `--platform` option to provision temporary network instances on EC2.
+#
+# If you do not want to use the automatically provisioned temporary network instances,
+# fill in the @VAR placeholders below and save this file without the .template extension,
+# into the tests/integration directory of the collection you're testing.
+#
+# NOTE: Automatic provisioning of network instances on EC2 requires an ansible-core-ci API key.
+[junos]
+junos_test ansible_host=x.x.x.x ansible_network_os="junos" ansible_user=xyz ansible_ssh_pass=xyz
+
+[all:vars]
+ansible_python_interpreter=/usr/bin/python3
+###
+# Example
+#
+# [vyos]
+# vyos01.example.net ansible_connection=local ansible_network_os="vyos" ansible_user=admin ansible_ssh_pass=mypassword

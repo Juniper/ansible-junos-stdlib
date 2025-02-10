@@ -1,0 +1,12 @@
+---
+- name: Debug task
+  ansible.builtin.debug:
+    msg: "START prepare_junos_tests/main.yaml"
+
+- name: Wait for netconf server to come up
+  delegate_to: localhost
+  tags: netconf
+  ansible.builtin.wait_for:
+    host: "{{ hostvars[item].ansible_host }}"
+    port: 830
+  with_inventory_hostnames: junos
