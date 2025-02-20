@@ -44,8 +44,8 @@ ANSIBLE_METADATA = {
 DOCUMENTATION = """
 ---
 extends_documentation_fragment:
-  - juniper_junos_common.connection_documentation
-  - juniper_junos_common.logging_documentation
+  - juniper.device.juniper_junos_doc.connection_documentation
+  - juniper.device.juniper_junos_doc.logging_documentation
 module: file_copy
 author: "Juniper Networks - Dinesh Babu (@dineshbaburam91)"
 short_description: File put and get over SCP module
