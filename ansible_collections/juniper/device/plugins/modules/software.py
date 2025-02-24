@@ -632,7 +632,7 @@ def main():
         if all_re is True:
             junos_info = facts["junos_info"]
             for current_re in junos_info:
-                if (facts["vmhost"]) and (facts["vmhost_info"][re_name]["vmhost_current_root_set"] is not None):
+                if (facts["vmhost"]) and (current_re in facts["vmhost_info"]):
                     current_version = facts["vmhost_info"][current_re]["vmhost_version_set_b"]
                     if facts["vmhost_info"][current_re]["vmhost_current_root_set"] == "p":
                         current_version = parse_version_from_filename(facts["vmhost_info"][current_re]["vmhost_version_set_b"])
@@ -658,7 +658,7 @@ def main():
                 re_name = junos_module.dev.re_name
             else:
                 re_name = junos_module._pyez_conn.get_re_name()
-            if (facts["vmhost"]) and (facts["vmhost_info"][re_name]["vmhost_current_root_set"] is not None):
+            if (facts["vmhost"]) and (re_name in facts["vmhost_info"]):
                 if facts["vmhost_info"][re_name]["vmhost_current_root_set"] == "p":
                     current_version = parse_version_from_filename(facts["vmhost_info"][re_name]["vmhost_version_set_b"])
                 else:
