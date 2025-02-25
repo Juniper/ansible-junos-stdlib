@@ -30,12 +30,9 @@
 # (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 #
-
 from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
-
-from ansible_collections.juniper.device.plugins.module_utils import configuration as cfg
 
 
 class ModuleDocFragment(object):
@@ -55,7 +52,8 @@ class ModuleDocFragment(object):
 
     # The connection-specific options. Defined here so it can be re-used as
     # suboptions in provider.
-    _CONNECT_DOCUMENTATION = """options: {}
+    CONNECTION_DOCUMENTATION = r"""
+    options:
       attempts:
         description:
           - The number of times to try connecting and logging in to the Junos
@@ -234,7 +232,7 @@ class ModuleDocFragment(object):
 """
 
     LOGGING_DOCUMENTATION = """
-    logging_options:
+    options:
       logdir:
         description:
           - The path to a directory, on the Ansible control machine, where
@@ -317,28 +315,4 @@ class ModuleDocFragment(object):
         choices:
           - INFO
           - DEBUG
-
-
 """
-
-    # _SUB_CONNECT_DOCUMENTATION is just _CONNECT_DOCUMENTATION with each
-    # line indented.
-    _SUB_CONNECT_DOCUMENTATION = ""
-    for line in _CONNECT_DOCUMENTATION.splitlines(True):
-        _SUB_CONNECT_DOCUMENTATION += "    " + line
-
-    # Build actual DOCUMENTATION string by putting the pieces together.
-    CONNECTION_DOCUMENTATION = (
-        """
-    connection_options:"""
-        + _CONNECT_DOCUMENTATION
-        + """
-    requirements:
-      - U(junos-eznc|https://github.com/Juniper/py-junos-eznc) >= """
-        + cfg.MIN_PYEZ_VERSION
-        + """
-      - Python >= 3.5
-    notes:
-      - The NETCONF system service must be enabled on the target Junos device.
-"""
-    )
