@@ -19,4 +19,3 @@
     ansible_connection: local
   tags:
     - local
-

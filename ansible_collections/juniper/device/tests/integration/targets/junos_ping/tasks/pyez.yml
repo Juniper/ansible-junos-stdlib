@@ -19,4 +19,3 @@
     ansible_connection: juniper.device.pyez
   tags:
     - pyez
-
