@@ -1,1 +1,6 @@
-../../../requirements.txt
+ansible >= 2.10
+junos-eznc >= 2.6.0
+jsnapy>=1.3.6
+jxmlease
+xmltodict
+looseversion
