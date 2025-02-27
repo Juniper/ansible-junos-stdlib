@@ -806,7 +806,9 @@ def main():
                         junos_module.dev.timeout = restore_timeout
                     except Exception:  # pylint: disable=broad-except
                         junos_module.dev.timeout = restore_timeout
-                        raise
+                        if (not facts["vmhost"]) and (
+                        not EzErrors.RpcTimeoutError):  # To handle vmhost reboot PR 1375936
+                            raise
                     junos_module.logger.debug("Reboot RPC executed.")
 
                     if got is not None:
