@@ -1,0 +1,14 @@
+---
+- name: Test junos_facts module
+  hosts: all
+  gather_facts: false
+  collections:
+    - juniper.device
+  tasks:
+    - name: "TEST 1 - Gather Facts"
+      junos_facts:
+      ignore_errors: true
+      register: test1
+
+    - debug:
+        var: test1
