@@ -1,1 +1,6 @@
 requires_ansible: ">=2.10"
+plugin_routing:
+  modules:
+    junipernetworks.junos.junos_facts
+      redirect: juniper.device.junos_facts
+
