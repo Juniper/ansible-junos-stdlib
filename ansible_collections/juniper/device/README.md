@@ -188,12 +188,14 @@ core module you should open a [Github issue against the Ansible project](https:/
 
 Release notes are available [here](https://github.com/Juniper/ansible-junos-stdlib/releases).
 
+
+## Related Information
+
 [Official Juniper documentation](http://www.juniper.net/techpubs/en_US/release-independent/junos-ansible/information-products/pathway-pages/index.html) (detailed information, including examples)
 
 [Ansible style documentation](https://ansible-juniper-collection.readthedocs.io)
 
-
-## Related Information
+## Contributors
 
 Juniper Networks is actively contributing to and maintaining this repo. Please contact
 [jnpr-community-netdev@juniper.net](jnpr-community-netdev@juniper.net) for any queries.
@@ -204,7 +206,6 @@ Juniper Networks is actively contributing to and maintaining this repo. Please c
 *Former Contributors:*
 
 [Stacy W Smith](https://github.com/stacywsmith), [Jeremy Schulman](https://github.com/jeremyschulman), [Rick Sherman](https://github.com/shermdog), [Damien Garros](https://github.com/dgarros), [David Gethings](https://github.com/dgjnpr), [Nitin Kumar](https://github.com/vnitinv), [Rahul Kumar](https://github.com/rahkumar651991)
-
 
 ## License Information
 
