@@ -2,7 +2,7 @@
 
 # Juniper Ansible collection for Junos
 
-## About
+## Description
 
 Juniper Networks supports Ansible for managing devices running the Junos operating system (Junos OS and Junos Evolved).
 This collection is hosted on the Ansible Galaxy website under the collection
@@ -13,17 +13,12 @@ These tasks include: installing and upgrading Junos OS, provisioning new Junos d
 retrieving information, and resetting, rebooting, or shutting down managed devices.  Please refer to the
 [INSTALLATION](#installation) section for instructions on installing this collection.
 
-## Two Sets of Ansible Modules for Junos devices
-
-Since Ansible version >= 2.1, Ansible also natively includes
+ince Ansible version >= 2.1, Ansible also natively includes
 [core modules for Junos](https://docs.ansible.com/ansible/latest/collections/junipernetworks/junos/index.html#plugins-in-junipernetworks-junos). The Junos modules included
 in Ansible core have names which begin with the prefix `junos_`. The Junos modules included in this `Juniper.device`
 collection have names starting with module types. These two sets of Junos modules can coexist on the same
 Ansible control machine, and an Ansible playbook may invoke a module from either (or both) sets. Juniper Networks recommends
 using the modules in `juniper.device` collection when writing new playbooks that manage Junos devices.
-
-## Overview of Modules
-
 This `juniper.device` collection includes the following modules:
 
 - **command** — Execute one or more CLI commands on a Junos device.
@@ -38,12 +33,6 @@ This `juniper.device` collection includes the following modules:
 - **srx_cluster** — Add or remove SRX chassis cluster configuration.
 - **system** — Initiate operational actions on the Junos system.
 - **table** — Retrieve data from a Junos device using a PyEZ table/view.
-
-### PyEZ Version Requirement
-
-For ansible collection `juniper.device` we will need to install [junos-eznc](https://github.com/Juniper/py-junos-eznc) version 2.6.0 or higher.
-
-### Overview of Plugins
 
 In addition to the modules listed above, a callback_plugin `jsnapy` is available for the module [jsnapy](https://github.com/Juniper/jsnapy).
 
@@ -70,20 +59,46 @@ should be added to the Ansible configuration file in order to allow the jsnapy c
     [defaults]
     callback_whitelist = jsnapy
 
-## DOCUMENTATION
+## Requirements
 
-[Official Juniper documentation](http://www.juniper.net/techpubs/en_US/release-independent/junos-ansible/information-products/pathway-pages/index.html) (detailed information, including examples)
+This modules requires the following to be installed on the Ansible control machine:
 
-[Ansible style documentation](https://ansible-juniper-collection.readthedocs.io)
+- Python >= 3.8
+- [Ansible](http://www.ansible.com) 2.9 or later
+- Junos [py-junos-eznc](https://github.com/Juniper/py-junos-eznc) 2.6.0 or later
+- [jxmlease](https://github.com/Juniper/jxmlease) 1.0.1 or later
+- [xmltodict](https://pypi.org/project/xmltodict/) 0.13.0 or later
+- [jsnapy](https://github.com/Juniper/jsnapy) 1.3.7 or later
 
-## INSTALLATION
 
-You must have the [DEPENDENCIES](#dependencies) installed on your system.
-Check requirements.txt for the dependencies.
+## Installation
 
-### NOTICES
+Before using this collection, you need to install it with the Ansible Galaxy command-line tool:
 
-### MacOS Mojave and newer
+```
+ansible-galaxy collection install juniper.device
+```
+
+You can also include it in a requirements.yml file and install it with ansible-galaxy collection install -r requirements.yml, using the format:
+
+
+```yaml
+collections:
+  - name: juniper.device
+```
+
+Note that if you install any collections from Ansible Galaxy, they will not be upgraded automatically when you upgrade the Ansible package.
+To upgrade the collection to the latest available version, run the following command:
+
+```
+ansible-galaxy collection install juniper.device --upgrade
+```
+
+You can also install a specific version of the collection, for example, if you need to downgrade when something is broken in the latest version (please report an issue in this repository). Use the following syntax to install version 1.0.0:
+
+```
+ansible-galaxy collection install juniper.device:==1.0.0
+```
 
 In MacOS Mojave and newer (>=10.14), ssh keys created with the system `ssh-keygen` are created using the newer 'OPENSSH' key format, even when specifying `-t rsa` during creation. This directly affects the usage of ssh keys, particularly when using the `ssh_private_key_file`. To create/convert/check keys, follow these steps:
 
@@ -91,36 +106,9 @@ In MacOS Mojave and newer (>=10.14), ssh keys created with the system `ssh-keyge
 - Check existing keys: `head -n1 ~/.ssh/some_private_key` RSA keys will be `-----BEGIN RSA PRIVATE KEY-----` and OPENSSH keys will be `-----BEGIN OPENSSH PRIVATE KEY-----`
 - Convert an OPENSSH key to an RSA key: `ssh-keygen -p -m PEM -f ~/.ssh/some_key`
 
-### Ansible Galaxy collection
+See [using Ansible collections](https://docs.ansible.com/ansible/devel/user_guide/collections_using.html) for more details.
 
-You can use the ansible-galaxy install command to install the latest
-version of the `juniper.device` collection.
-
-```bash
-sudo ansible-galaxy collection install juniper.device
-```
-
-You can also use the ansible-galaxy install command to install the latest development version of the junos collections directly from GitHub.
-
-```bash
-sudo ansible-galaxy collection install git+https://github.com/Juniper/ansible-junos-stdlib.git#/ansible_collections/juniper/device
-```
-
-For more information visit - https://docs.ansible.com/ansible/latest/user_guide/collections_using.html#specifying-the-location-to-search-for-collections
-
-
-### Git clone
-
-For testing you can `git clone` this repo and run the `env-setup` script in the repo directory:
-
-  user@ansible-junos-stdlib> source env-setup
-
-This will set your `$ANSIBLE_LIBRARY` variable to the repo location and the installed Ansible library path.  For example:
-
-  $ echo $ANSIBLE_LIBRARY
-  /home/jeremy/Ansible/ansible-junos-stdlib/library:/usr/share/ansible
-
-## Example Playbook
+## Use Cases
 
 This example outlines how to use Ansible to install or upgrade the software image on a device running Junos OS.
 
@@ -162,22 +150,27 @@ This example outlines how to use Ansible to install or upgrade the software imag
       when: not sw.check_mode
 ```
 
-## DEPENDENCIES
+## Testing
 
-This modules requires the following to be installed on the Ansible control machine:
 
-- Python >= 3.8
-- [Ansible](http://www.ansible.com) 2.9 or later
-- Junos [py-junos-eznc](https://github.com/Juniper/py-junos-eznc) 2.6.0 or later
-- [jxmlease](https://github.com/Juniper/jxmlease) 1.0.1 or later
-- [xmltodict](https://pypi.org/project/xmltodict/) 0.13.0 or later
-- [jsnapy](https://github.com/Juniper/jsnapy) 1.3.7 or later
+[Functional Tests for Juniper Ansible collection for Junos][https://github.com/Juniper/ansible-junos-stdlib/blob/master/tests/README.md]
 
-## LICENSE
+## Contributing (Optional)
 
-Apache 2.0
+We welcome community contributions to this collection. If you find problems, please open an issue or create a PR against the [GitHub issue](https://github.com/Juniper/ansible-junos-stdlib/issues)
 
-## SUPPORT
+You can also join us on:
+
+- Post a question on our [Google Group](https://groups.google.com/forum/#!forum/junos-python-ez)
+- Email [jnpr-community-netdev@juniper.net](jnpr-community-netdev@juniper.net)
+
+See the [Ansible Community Guide](https://docs.ansible.com/ansible/latest/community/index.html) for details on contributing to Ansible.
+
+This collection follows the Ansible project's
+[Code of Conduct](https://docs.ansible.com/ansible/devel/community/code_of_conduct.html).
+Please read and familiarize yourself with this document.
+
+## Support
 
 Support for this `juniper.device` collection is provided by the community and Juniper Networks. If you have an
 issue with a module in the `juniper.device` collection, you may:
@@ -190,7 +183,16 @@ issue with a module in the `juniper.device` collection, you may:
 Support for the Junos modules included in Ansible core is provided by Ansible. If you have an issue with an Ansible
 core module you should open a [Github issue against the Ansible project](https://github.com/ansible/ansible/issues).
 
-## CONTRIBUTORS
+## Release Notes and Roadmap
+
+Release notes are available [here](https://github.com/Juniper/ansible-junos-stdlib/releases).
+
+[Official Juniper documentation](http://www.juniper.net/techpubs/en_US/release-independent/junos-ansible/information-products/pathway-pages/index.html) (detailed information, including examples)
+
+[Ansible style documentation](https://ansible-juniper-collection.readthedocs.io)
+
+
+## Related Information
 
 Juniper Networks is actively contributing to and maintaining this repo. Please contact
 [jnpr-community-netdev@juniper.net](jnpr-community-netdev@juniper.net) for any queries.
@@ -201,3 +203,8 @@ Juniper Networks is actively contributing to and maintaining this repo. Please c
 *Former Contributors:*
 
 [Stacy W Smith](https://github.com/stacywsmith), [Jeremy Schulman](https://github.com/jeremyschulman), [Rick Sherman](https://github.com/shermdog), [Damien Garros](https://github.com/dgarros), [David Gethings](https://github.com/dgjnpr), [Nitin Kumar](https://github.com/vnitinv), [Rahul Kumar](https://github.com/rahkumar651991)
+
+
+## License Information
+
+Apache 2.0
