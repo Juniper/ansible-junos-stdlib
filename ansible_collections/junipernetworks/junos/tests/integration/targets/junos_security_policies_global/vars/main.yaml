@@ -1,0 +1,65 @@
+---
+merged:
+  before: {}
+
+  after:
+    default_policy: permit-all
+    policy_rematch:
+      enable: true
+      extensive: true
+    policy_stats:
+      enable: true
+      system_wide: true
+    pre_id_default_policy_action:
+      log:
+        session_init: true
+      session_timeout:
+        icmp: 10
+        others: 10
+    traceoptions:
+      file:
+        files: 3
+        match: "/[A-Z]*/gm"
+        no_world_readable: true
+        size: 10k
+      flag: all
+      no_remote_trace: true
+
+  updated:
+    default_policy: deny-all
+    policy_rematch:
+      enable: true
+      extensive: true
+    policy_stats:
+      enable: true
+      system_wide: true
+    pre_id_default_policy_action:
+      log:
+        session_init: true
+      session_timeout:
+        icmp: 10
+        others: 10
+    traceoptions:
+      file:
+        files: 4
+        match: /[A-Z]*/gm
+        size: 10k
+        no_world_readable: true
+      flag: all
+      no_remote_trace: true
+replaced:
+  after:
+    default_policy: deny-all
+    policy_rematch:
+      enable: true
+    policy_stats:
+      enable: true
+    pre_id_default_policy_action:
+      log:
+        session_init: true
+    traceoptions:
+      file:
+        files: 4
+        match: /[A-Z]*/gm
+        size: 10k
+      flag: all

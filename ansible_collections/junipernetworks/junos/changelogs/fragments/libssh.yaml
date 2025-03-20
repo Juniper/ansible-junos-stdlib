@@ -1,0 +1,3 @@
+---
+trivial:
+  - junos_net_put - Add tests for net_put module using scp & sftp protocol

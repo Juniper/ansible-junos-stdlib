@@ -1,0 +1,92 @@
+---
+- name: Debug task
+  ansible.builtin.debug:
+    msg: START junos_bgp_global round trip integration tests on connection={{
+      ansible_connection }}
+
+- block:
+    - name: Reset configuration
+      ansible.builtin.include_tasks: _reset_config.yaml
+
+    - name: Apply the provided configuration (base config)
+      register: base_config
+      junipernetworks.junos.junos_bgp_global:
+        config:
+          accept_remote_nexthop: true
+          add_path_display_ipv4_address: true
+          advertise_from_main_vpn_tables: true
+          advertise_inactive: true
+          as_number: "65534"
+          asdot_notation: true
+          authentication_algorithm: "md5"
+          bgp_error_tolerance:
+            malformed_route_limit: 20000000
+          bmp:
+            monitor: true
+          damping: true
+          egress_te_sid_stats: true
+          hold_time: 5
+          holddown_all_stale_labels: true
+          include_mp_next_hop: true
+          log_updown: true
+          loops: 3
+          no_advertise_peer_as: true
+          no_aggregator_id: true
+          no_client_reflect: true
+          out_delay: 10
+          precision_timers: true
+        state: merged
+
+    - name: Gather interfaces facts
+      junipernetworks.junos.junos_facts:
+        gather_subset:
+          - default
+        gather_network_resources:
+          - bgp_global
+
+    - name: Apply the provided configuration (config to be reverted)
+      register: result
+      junipernetworks.junos.junos_bgp_global:
+        config:
+          accept_remote_nexthop: true
+          add_path_display_ipv4_address: true
+          advertise_from_main_vpn_tables: true
+          advertise_inactive: true
+          as_number: "65535"
+          asdot_notation: true
+          authentication_algorithm: "md5"
+          bgp_error_tolerance:
+            malformed_route_limit: 20000000
+          preference: "2"
+        state: replaced
+
+    - name: Assert that changes were applied
+      ansible.builtin.assert:
+        that: result['changed'] == true
+
+    - name: Revert back to base config using facts round trip
+      register: revert
+      junipernetworks.junos.junos_bgp_global:
+        config: "{{ ansible_facts['network_resources']['bgp_global'] }}"
+        state: replaced
+
+    - name: Assert that before dicts are correct
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ result['after'] == revert['before'] }}"
+
+    - name: Assert that config was reverted
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ base_config['after'] == revert['after'] }}"
+  always:
+    - name: Reset configuration
+      ansible.builtin.include_tasks: _reset_config.yaml
+
+- name: Debug task
+  ansible.builtin.debug:
+    msg:
+      END junos_bgp_global round trip integration tests on connection={{ ansible_connection
+      }}

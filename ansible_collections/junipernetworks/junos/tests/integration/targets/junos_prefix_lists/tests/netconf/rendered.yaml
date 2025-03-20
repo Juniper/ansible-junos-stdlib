@@ -1,0 +1,34 @@
+---
+- ansible.builtin.debug:
+    msg: START junos_prefix_lists rendered integration tests on connection={{
+      ansible_connection }}
+
+- ansible.builtin.set_fact:
+    expected_rendered_output: '<nc:policy-options xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"><nc:prefix-list><nc:name>Internal</nc:name><nc:prefix-list-item><nc:name>172.16.1.16/28</nc:name></nc:prefix-list-item><nc:prefix-list-item><nc:name>172.16.1.32/28</nc:name></nc:prefix-list-item></nc:prefix-list><nc:prefix-list><nc:name>Test1</nc:name><nc:dynamic-db/></nc:prefix-list><nc:prefix-list><nc:name>Test2</nc:name><nc:prefix-list-item><nc:name>172.16.2.16/28</nc:name></nc:prefix-list-item><nc:prefix-list-item><nc:name>172.16.2.32/28</nc:name></nc:prefix-list-item><nc:prefix-list-item><nc:name>172.16.2.48/28</nc:name></nc:prefix-list-item></nc:prefix-list></nc:policy-options>'
+- name: Render platform specific commands from task input using rendered state
+  register: result
+  junipernetworks.junos.junos_prefix_lists:
+    config:
+      - name: Internal
+        address_prefixes:
+          - 172.16.1.16/28
+          - 172.16.1.32/28
+      - name: Test1
+        dynamic_db: true
+      - name: Test2
+        address_prefixes:
+          - 172.16.2.16/28
+          - 172.16.2.32/28
+          - 172.16.2.48/28
+    state: rendered
+
+- name: Assert that correct set of commands were rendered
+  ansible.builtin.assert:
+    that:
+      - result.changed == False
+      - "{{ expected_rendered_output | symmetric_difference(result['rendered']) |length\
+        \ == 0 }}"
+
+- ansible.builtin.debug:
+    msg: END junos_prefix_lists rendered integration tests on connection={{
+      ansible_connection }}

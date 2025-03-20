@@ -1,0 +1,56 @@
+---
+- ansible.builtin.debug:
+    msg: START junos_prefix_lists gathered integration tests on connection={{ ansible_connection }}
+
+- block:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+    - ansible.builtin.set_fact:
+        expected_gathered_output:
+          - address_prefixes:
+              - 172.16.1.16/28
+              - 172.16.1.32/28
+            name: Internal
+          - dynamic_db: true
+            name: Test1
+          - address_prefixes:
+              - 172.16.2.16/28
+              - 172.16.2.32/28
+              - 172.16.2.48/28
+            name: Test2
+
+    - name: Merge the provided configuration with the exisiting running configuration
+      junipernetworks.junos.junos_prefix_lists: &merged
+        config:
+          - name: Internal
+            address_prefixes:
+              - 172.16.1.16/28
+              - 172.16.1.32/28
+          - name: Test1
+            dynamic_db: true
+          - name: Test2
+            address_prefixes:
+              - 172.16.2.16/28
+              - 172.16.2.32/28
+              - 172.16.2.48/28
+        state: merged
+      register: result
+
+    - name: Gather prefix-lists facts using gathered state
+      register: result
+      junipernetworks.junos.junos_prefix_lists:
+        state: gathered
+
+    - name: Assert that facts were correctly generated
+      ansible.builtin.assert:
+        that:
+          - "{{ expected_gathered_output | symmetric_difference(result['gathered']) |length\
+            \ == 0 }}"
+
+  always:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+- ansible.builtin.debug:
+    msg:
+      END junos_prefix_lists gathered integration tests on connection={{ ansible_connection
+      }}

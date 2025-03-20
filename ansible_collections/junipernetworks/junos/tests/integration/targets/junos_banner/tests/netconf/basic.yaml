@@ -1,0 +1,205 @@
+---
+- name: Debug task
+  ansible.builtin.debug:
+    msg="START junos_banner netconf/basic.yaml on connection={{ ansible_connection
+    }}"
+
+- name: Setup - remove login banner
+  junipernetworks.junos.junos_banner:
+    banner: login
+    state: absent
+
+- name: Create login banner
+  register: result
+  junipernetworks.junos.junos_banner:
+    banner: login
+    text: this is my login banner
+    state: present
+
+- name: Get running configuration
+  register: config
+  junipernetworks.junos.junos_rpc:
+    rpc: get-configuration
+
+- name: Assertion
+  ansible.builtin.assert:
+    that:
+      - result.changed == true
+      - "'<message>this is my login banner</message>' in config.xml"
+
+- name: Create login banner (idempotent)
+  register: result
+  junipernetworks.junos.junos_banner:
+    banner: login
+    text: this is my login banner
+    state: present
+
+- name: Assertion
+  ansible.builtin.assert:
+    that:
+      - result.changed == false
+
+- name: Deactivate login banner
+  register: result
+  junipernetworks.junos.junos_banner:
+    banner: login
+    text: this is my login banner
+    state: present
+    active: false
+
+- name: Get running configuration
+  register: config
+  junipernetworks.junos.junos_rpc:
+    rpc: get-configuration
+
+- name: Assertion
+  ansible.builtin.assert:
+    that:
+      - result.changed == true
+      - '''<message inactive="inactive">this is my login banner</message>'' in config.xml'
+
+- name: Activate login banner
+  register: result
+  junipernetworks.junos.junos_banner:
+    banner: login
+    text: this is my login banner
+    state: present
+    active: true
+
+- name: Get running configuration
+  register: config
+  junipernetworks.junos.junos_rpc:
+    rpc: get-configuration
+
+- name: Assertion
+  ansible.builtin.assert:
+    that:
+      - result.changed == true
+      - "'<message>this is my login banner</message>' in config.xml"
+
+- name: check mode
+  register: result
+  check_mode: true
+  junipernetworks.junos.junos_banner:
+    banner: login
+    text: this is not the login banner you're looking for
+    state: present
+
+- name: Assertion
+  ansible.builtin.assert:
+    that:
+      - result.changed == true
+      - result.failed == false
+
+- name: Delete login banner
+  register: result
+  junipernetworks.junos.junos_banner:
+    banner: login
+    state: absent
+
+- name: Get running configuration
+  register: config
+  junipernetworks.junos.junos_rpc:
+    rpc: get-configuration
+
+- name: Assertion
+  ansible.builtin.assert:
+    that:
+      - result.changed == true
+      - "'<message>this is my login banner</message>' not in config.xml"
+
+- name: Setup - remove motd banner
+  junipernetworks.junos.junos_banner:
+    banner: motd
+    state: absent
+
+- name: Create motd banner
+  register: result
+  junipernetworks.junos.junos_banner:
+    banner: motd
+    text: this is my motd banner
+    state: present
+
+- name: Get running configuration
+  register: config
+  junipernetworks.junos.junos_rpc:
+    rpc: get-configuration
+
+- name: Assertion
+  ansible.builtin.assert:
+    that:
+      - result.changed == true
+      - "'<announcement>this is my motd banner</announcement>' in config.xml"
+
+- name: Create motd banner (idempotent)
+  register: result
+  junipernetworks.junos.junos_banner:
+    banner: motd
+    text: this is my motd banner
+    state: present
+
+- name: Assertion
+  ansible.builtin.assert:
+    that:
+      - result.changed == false
+
+- name: Deactivate motd banner
+  register: result
+  junipernetworks.junos.junos_banner:
+    banner: motd
+    text: this is my motd banner
+    state: present
+    active: false
+
+- name: Get running configuration
+  register: config
+  junipernetworks.junos.junos_rpc:
+    rpc: get-configuration
+
+- name: Assertion
+  ansible.builtin.assert:
+    that:
+      - result.changed == true
+      - "'<announcement inactive=\"inactive\">this is my motd banner</announcement>'\
+        \ in config.xml"
+
+- name: Activate motd banner
+  register: result
+  junipernetworks.junos.junos_banner:
+    banner: motd
+    text: this is my motd banner
+    state: present
+    active: true
+
+- name: Get running configuration
+  register: config
+  junipernetworks.junos.junos_rpc:
+    rpc: get-configuration
+
+- name: Assertion
+  ansible.builtin.assert:
+    that:
+      - result.changed == true
+      - "'<announcement>this is my motd banner</announcement>' in config.xml"
+
+- name: Delete motd banner
+  register: result
+  junipernetworks.junos.junos_banner:
+    banner: motd
+    state: absent
+
+- name: Get running configuration
+  register: config
+  junipernetworks.junos.junos_rpc:
+    rpc: get-configuration
+
+- name: Assertion
+  ansible.builtin.assert:
+    that:
+      - result.changed == true
+      - "'<announcement>this is my motd banner</announcement>' not in config.xml"
+
+- name: Debug task
+  ansible.builtin.debug:
+    msg="END junos_banner netconf/basic.yaml on connection={{ ansible_connection
+    }}"

@@ -1,0 +1,12 @@
+---
+- ansible.builtin.debug:
+    msg: "START junos_snmp_server reset config on connection={{ ansible_connection }}"
+
+- name: Reset the config releavent to snmp resource
+  junipernetworks.junos.junos_config:
+    lines:
+      - delete snmp
+      - delete routing-instances
+
+- ansible.builtin.debug:
+    msg: "END junos_snmp_server reset config on connection={{ ansible_connection }}"

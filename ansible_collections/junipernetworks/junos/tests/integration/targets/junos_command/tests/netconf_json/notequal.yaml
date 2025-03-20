@@ -1,0 +1,46 @@
+---
+- name: Debug task
+  ansible.builtin.debug:
+    msg="START netconf_json/notequal.yaml on connection={{ ansible_connection
+    }}"
+
+- name: Run test neq operator
+  register: result
+  junipernetworks.junos.junos_command:
+    commands:
+      - show version
+      - show interfaces lo0
+    format: json
+    wait_for:
+      - result[1]['interface-information'][0]['physical-interface'][0]['name'][0]['data']
+        neq em0
+
+- name: Assertion
+  ansible.builtin.assert:
+    that:
+      - result.changed == false
+      - result.stdout is defined
+      - result.stdout_lines is defined
+
+- name: Run test != operator
+  register: result
+  junipernetworks.junos.junos_command:
+    commands:
+      - show version
+      - show interfaces lo0
+    format: json
+    wait_for:
+      - result[1]['interface-information'][0]['physical-interface'][0]['name'][0]['data']
+        neq em0
+
+- name: Assertion
+  ansible.builtin.assert:
+    that:
+      - result.changed == false
+      - result.stdout is defined
+      - result.stdout_lines is defined
+
+- name: Debug task
+  ansible.builtin.debug:
+    msg="END netconf_json/notequal.yaml on connection={{ ansible_connection
+    }}"

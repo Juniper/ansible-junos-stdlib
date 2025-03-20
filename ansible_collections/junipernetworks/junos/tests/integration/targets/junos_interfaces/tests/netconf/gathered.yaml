@@ -1,0 +1,77 @@
+---
+- name: Debug task
+  ansible.builtin.debug:
+    msg: START junos_interfaces gathered integration tests on connection={{
+      ansible_connection }}
+
+- name: Reset configuration
+  ansible.builtin.include_tasks: _remove_config.yaml
+
+- name: Set facts
+  ansible.builtin.set_fact:
+    expected_merged_output:
+      - name: ge-0/0/1
+        description: Configured by Ansible - Interface 1
+        mtu: 1024
+        speed: 100m
+        enabled: false
+        duplex: full-duplex
+        hold_time:
+          up: 2000
+          down: 2200
+
+      - name: ge-0/0/2
+        description: Configured by Ansible - Interface 2
+        mtu: 2048
+        speed: 10m
+        enabled: true
+        hold_time:
+          up: 3000
+          down: 3200
+
+      - name: fxp0
+        enabled: true
+
+- block:
+    - name: Merge the provided configuration with the exisiting running configuration
+      register: result
+      junipernetworks.junos.junos_interfaces: &id001
+        config:
+          - name: ge-0/0/1
+            description: Configured by Ansible - Interface 1
+            mtu: 1024
+            speed: 100m
+            enabled: false
+            duplex: full-duplex
+            hold_time:
+              up: 2000
+              down: 2200
+          - name: ge-0/0/2
+            description: Configured by Ansible - Interface 2
+            mtu: 2048
+            speed: 10m
+            hold_time:
+              up: 3000
+              down: 3200
+        state: merged
+
+    - name: Gather interfaces facts using gathered state
+      register: result
+      junipernetworks.junos.junos_interfaces:
+        state: gathered
+
+    - name: Assert that facts were correctly generated
+      ansible.builtin.assert:
+        that:
+          "{{ expected_merged_output | symmetric_difference(result['gathered']) |length\
+          \ == 0 }}"
+
+  always:
+    - name: Reset configuration
+      ansible.builtin.include_tasks: _remove_config.yaml
+
+- name: Debug task
+  ansible.builtin.debug:
+    msg:
+      END junos_interfaces gathered integration tests on connection={{ ansible_connection
+      }}

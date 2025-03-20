@@ -1,0 +1,38 @@
+---
+- ansible.builtin.debug:
+    msg:
+      START junos_l2_interfaces parsed integration tests on connection={{ ansible_connection
+      }}
+
+- ansible.builtin.set_fact:
+    expected_parsed_output:
+      - name: ge-0/0/1
+        access:
+          vlan: vlan100
+        enhanced_layer: true
+        unit: 0
+
+      - name: ge-0/0/2
+        trunk:
+          allowed_vlans:
+            - vlan200
+            - vlan300
+          native_vlan: "400"
+        enhanced_layer: true
+        unit: 0
+
+- name: Parse externally provided interfaces config to agnostic model
+  register: result
+  junipernetworks.junos.junos_l2_interfaces:
+    running_config: "{{ lookup('file', './fixtures/parsed.cfg') }}"
+    state: parsed
+
+- name: Assert that config was correctly parsed
+  ansible.builtin.assert:
+    that:
+      - "{{ expected_parsed_output | symmetric_difference(result['parsed']) |length ==\
+        \ 0 }}"
+- ansible.builtin.debug:
+    msg:
+      END junos_l2_interfaces parsed integration tests on connection={{ ansible_connection
+      }}

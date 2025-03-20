@@ -1,0 +1,39 @@
+---
+- ansible.builtin.debug:
+    msg:
+      START junos_vlans deleted integration tests on connection={{ ansible_connection
+      }}
+
+- ansible.builtin.include_tasks: _remove_config.yaml
+
+- ansible.builtin.include_tasks: _base_config.yaml
+
+- block:
+    - name: Delete the provided configuration with the exisiting running configuration
+      register: result
+      junipernetworks.junos.junos_vlans: &id001
+        config:
+        state: deleted
+
+    - name: Assert the configuration is reflected on host
+      ansible.builtin.assert:
+        that:
+          - not result.after
+
+    - name:
+        Delete the provided configuration with the existing running configuration
+        (IDEMPOTENT)
+      register: result
+      junipernetworks.junos.junos_vlans: *id001
+
+    - name: Assert that the previous task was idempotent
+      ansible.builtin.assert:
+        that:
+          - result['changed'] == false
+  always:
+    - ansible.builtin.include_tasks: _remove_config.yaml
+
+- ansible.builtin.debug:
+    msg:
+      END junos_vlans deleted integration tests on connection={{ ansible_connection
+      }}
