@@ -64,7 +64,7 @@ should be added to the Ansible configuration file in order to allow the jsnapy c
 This modules requires the following to be installed on the Ansible control machine:
 
 - Python >= 3.8
-- [Ansible](http://www.ansible.com) 2.15 or later
+- [Ansible](http://www.ansible.com) 2.16 or later
 - Junos [py-junos-eznc](https://github.com/Juniper/py-junos-eznc) 2.6.0 or later
 - [jxmlease](https://github.com/Juniper/jxmlease) 1.0.1 or later
 - [xmltodict](https://pypi.org/project/xmltodict/) 0.13.0 or later
@@ -97,7 +97,7 @@ ansible-galaxy collection install juniper.device --upgrade
 You can also install a specific version of the collection, for example, if you need to downgrade when something is broken in the latest version (please report an issue in this repository). Use the following syntax to install version 1.0.0:
 
 ```
-ansible-galaxy collection install juniper.device:==1.0.0
+ansible-galaxy collection install juniper.device==1.0.0
 ```
 
 In MacOS Mojave and newer (>=10.14), ssh keys created with the system `ssh-keygen` are created using the newer 'OPENSSH' key format, even when specifying `-t rsa` during creation. This directly affects the usage of ssh keys, particularly when using the `ssh_private_key_file`. To create/convert/check keys, follow these steps:
@@ -161,7 +161,6 @@ We welcome community contributions to this collection. If you find problems, ple
 
 You can also join us on:
 
-- Post a question on our [Google Group](https://groups.google.com/forum/#!forum/junos-python-ez)
 - Email [jnpr-community-netdev@juniper.net](jnpr-community-netdev@juniper.net)
 
 See the [Ansible Community Guide](https://docs.ansible.com/ansible/latest/community/index.html) for details on contributing to Ansible.
@@ -176,7 +175,6 @@ Support for this `juniper.device` collection is provided by the community and Ju
 issue with a module in the `juniper.device` collection, you may:
 
 - Open a [GitHub issue](https://github.com/Juniper/ansible-junos-stdlib/issues).
-- Post a question on our [Google Group](https://groups.google.com/forum/#!forum/junos-python-ez)
 - Email [jnpr-community-netdev@juniper.net](jnpr-community-netdev@juniper.net)
 - Open a [JTAC Case](https://www.juniper.net/casemanager/#/create)
 
