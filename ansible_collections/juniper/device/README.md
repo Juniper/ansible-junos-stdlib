@@ -13,7 +13,7 @@ These tasks include: installing and upgrading Junos OS, provisioning new Junos d
 retrieving information, and resetting, rebooting, or shutting down managed devices.  Please refer to the
 [INSTALLATION](#installation) section for instructions on installing this collection.
 
-ince Ansible version >= 2.1, Ansible also natively includes
+Since Ansible version >= 2.1, Ansible also natively includes
 [core modules for Junos](https://docs.ansible.com/ansible/latest/collections/junipernetworks/junos/index.html#plugins-in-junipernetworks-junos). The Junos modules included
 in Ansible core have names which begin with the prefix `junos_`. The Junos modules included in this `Juniper.device`
 collection have names starting with module types. These two sets of Junos modules can coexist on the same
