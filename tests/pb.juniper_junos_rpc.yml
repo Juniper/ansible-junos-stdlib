@@ -18,7 +18,6 @@
         that:
           - test1.msg == "The RPC executed successfully."
       tags: [test1]
-
 #################
     - name: "Get Device Configuration with dest"
       juniper.device.rpc:
@@ -260,3 +259,18 @@
         that:
           test12.msg == "The RPC executed successfully."
       tags: [test12]
+#################
+    - name: "Execute single RPC get-software-information with format JSON"
+      juniper.device.rpc:
+        rpcs:
+          - "get-software-information"
+        format: json
+      register: test13
+      ignore_errors: true
+      tags: [test13]
+
+    - name: Check TEST 13
+      ansible.builtin.assert:
+        that:
+          - test1.msg == "The RPC executed successfully."
+      tags: [test13]
