@@ -1,0 +1,6 @@
+[pyez_connection_testcases]
+x.x.x.x ansible_user=xxx ansible_ssh_pass=xxx ansible_connection=ansible.netcommon.netconf ansible_python_interpreter=/Users/btarkhala/Documents/ansible_debug/venv/bin/python
+
+[all:vars]
+ansible_network_os=junipernetworks.junos.junos
+

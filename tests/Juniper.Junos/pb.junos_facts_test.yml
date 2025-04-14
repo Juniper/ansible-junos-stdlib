@@ -1,0 +1,41 @@
+- name: Junos Facts Collection
+  hosts: all
+  gather_facts: no
+  connection: ansible.netcommon.network_cli
+  collections:
+    - junipernetworks.junos
+
+  tasks:
+    - name: 1. Collect default set of facts (works)
+      junipernetworks.junos.junos_facts:
+        gather_subset:
+          - default
+      register: default_facts
+
+    - name: Print default facts
+      debug:
+        var: default_facts.ansible_facts
+
+    - name: 2. Collect full config 
+      junipernetworks.junos.junos_facts:
+        gather_subset:
+          - all
+        config_format: text
+      register: config_result
+      failed_when: "'syntax error' in config_result.msg | string or 'huge text node' in config_result.msg | string"
+
+
+    - name: 3. Gather network resource facts (fail on syntax error)
+      junipernetworks.junos.junos_facts:
+        gather_subset:
+          - all
+        gather_network_resources:
+          - interfaces
+          - lldp_global
+          - vlans
+          - security_policies_global
+        config_format: text
+      register: resource_result
+      failed_when: "'syntax error' in resource_result.msg | string or 'huge text node' in resource_result.msg | string"
+
+   
