@@ -63,12 +63,13 @@ should be added to the Ansible configuration file in order to allow the jsnapy c
 
 This modules requires the following to be installed on the Ansible control machine:
 
-- Python >= 3.8
-- [Ansible](http://www.ansible.com) 2.16 or later
+- Python >= 3.10
+- [Ansible](http://www.ansible.com) 2.17 or later
 - Junos [py-junos-eznc](https://github.com/Juniper/py-junos-eznc) 2.6.0 or later
 - [jxmlease](https://github.com/Juniper/jxmlease) 1.0.1 or later
 - [xmltodict](https://pypi.org/project/xmltodict/) 0.13.0 or later
 - [jsnapy](https://github.com/Juniper/jsnapy) 1.3.7 or later
+- [looseversion](https://github.com/effigies/looseversion) 1.3.0 or later
 
 
 ## Installation
