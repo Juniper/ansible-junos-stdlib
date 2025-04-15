@@ -1,0 +1,20 @@
+---
+- ansible.builtin.debug:
+    msg:
+      START junos_routing_options parsed integration tests on connection={{ ansible_connection
+      }}
+
+- name: Parse externally provided routing_options config to agnostic model
+  register: result
+  junipernetworks.junos.junos_routing_options:
+    running_config: "{{ lookup('file', './fixtures/parsed.cfg') }}"
+    state: parsed
+
+- name: Assert that config was correctly parsed
+  ansible.builtin.assert:
+    that:
+      - "{{ merged['updated']  == result['parsed'] }}"
+- ansible.builtin.debug:
+    msg:
+      END junos_routing_options parsed integration tests on connection={{ ansible_connection
+      }}

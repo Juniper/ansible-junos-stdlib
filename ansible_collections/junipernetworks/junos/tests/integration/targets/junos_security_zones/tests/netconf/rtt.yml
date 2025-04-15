@@ -1,0 +1,184 @@
+---
+- ansible.builtin.debug:
+    msg: >-
+      START junos_security_zones round trip integration tests on connection={{
+      ansible_connection }}
+- block:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+    - ansible.builtin.include_tasks: _initial_config.yaml
+    - name: Apply the provided configuration (base config)
+      register: base_config
+      junipernetworks.junos.junos_security_zones:
+        config:
+          functional_zone_management:
+            description: test description
+            host_inbound_traffic:
+              protocols:
+                - name: all
+                - name: bgp
+                  except: true
+              system_services:
+                - name: all
+                - except: true
+                  name: dhcp
+            interfaces:
+              - ge-0/0/1.0
+              - ge-0/0/2.0
+            screen: test_screen
+          zones:
+            - address_book:
+                address_sets:
+                  - addresses:
+                      - test_adr1
+                      - test_adr2
+                    name: test_adrset1
+                  - addresses:
+                      - test_adr3
+                      - test_adr4
+                    name: test_adrset2
+                  - address_sets:
+                      - test_adrset1
+                      - test_adrset2
+                    addresses:
+                      - test_adr5
+                    description: test description
+                    name: test_adrset3
+                addresses:
+                  - description: test desc
+                    ip_prefix: 10.0.0.0/24
+                    name: test_adr1
+                  - dns_name:
+                      ipv6_only: true
+                      name: 1.1.1.1
+                    name: test_adr2
+                  - name: test_adr3
+                    range_address:
+                      from: 10.2.0.1
+                      to: 10.2.0.2
+                  - name: test_adr4
+                    wildcard_address: 10.3.0.1/24
+                  - description: test desc
+                    ip_prefix: 10.1.0.0/24
+                    name: test_adr5
+              advance_policy_based_routing_profile: test_profile
+              application_tracking: true
+              description: test description
+              enable_reverse_reroute: true
+              host_inbound_traffic:
+                protocols:
+                  - name: all
+                  - except: true
+                    name: bgp
+                system_services:
+                  - name: all
+                  - except: true
+                    name: dhcp
+              interfaces:
+                - ge-0/0/3.0
+                - ge-0/0/4.0
+              name: test_sec_zone1
+              screen: test_screen
+              source_identity_log: true
+              tcp_rst: true
+        state: merged
+    - name: Gather interfaces facts
+      junipernetworks.junos.junos_facts:
+        gather_subset:
+          - default
+        gather_network_resources:
+          - security_zones
+    - name: Apply the provided configuration (config to be reverted)
+      register: result
+      junipernetworks.junos.junos_security_zones:
+        config:
+          functional_zone_management:
+            description: test description 2
+            host_inbound_traffic:
+              protocols:
+                - name: all
+              system_services:
+                - name: all
+            interfaces:
+              - ge-0/0/1.0
+              - ge-0/0/2.0
+            screen: test_screen
+          zones:
+            - address_book:
+                address_sets:
+                  - addresses:
+                      - test_adr1
+                      - test_adr2
+                    name: test_adrset1
+                  - addresses:
+                      - test_adr3
+                      - test_adr4
+                    name: test_adrset2
+                  - address_sets:
+                      - test_adrset1
+                      - test_adrset2
+                    addresses:
+                      - test_adr5
+                    description: test description
+                    name: test_adrset3
+                addresses:
+                  - description: test desc
+                    ip_prefix: 10.0.0.0/24
+                    name: test_adr1
+                  - dns_name:
+                      ipv6_only: true
+                      name: 1.1.1.1
+                    name: test_adr2
+                  - name: test_adr3
+                    range_address:
+                      from: 10.2.0.1
+                      to: 10.2.0.2
+                  - name: test_adr4
+                    wildcard_address: 10.3.0.1/24
+                  - description: test desc
+                    ip_prefix: 10.1.0.0/24
+                    name: test_adr5
+              advance_policy_based_routing_profile: test_profile
+              application_tracking: true
+              description: test description
+              enable_reverse_reroute: true
+              host_inbound_traffic:
+                protocols:
+                  - name: all
+                  - except: true
+                    name: bgp
+                system_services:
+                  - name: all
+                  - except: true
+                    name: dhcp
+              interfaces:
+                - ge-0/0/3.0
+                - ge-0/0/4.0
+              name: test_sec_zone1
+              screen: test_screen
+              source_identity_log: true
+              tcp_rst: true
+        state: replaced
+    - name: Assert that changes were applied
+      ansible.builtin.assert:
+        that: "result['changed'] == true"
+    - name: Revert back to base config using facts round trip
+      register: revert
+      junipernetworks.junos.junos_security_zones:
+        config: "{{ ansible_facts['network_resources']['security_zones'] }}"
+        state: replaced
+    - name: Assert that before dicts are correct
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ result['after'] == revert['before'] }}"
+    - name: Assert that config was reverted
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ base_config['after'] == revert['after'] }}"
+  always:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+- ansible.builtin.debug:
+    msg: >-
+      END junos_security_zones round trip integration tests on connection={{
+      ansible_connection }}

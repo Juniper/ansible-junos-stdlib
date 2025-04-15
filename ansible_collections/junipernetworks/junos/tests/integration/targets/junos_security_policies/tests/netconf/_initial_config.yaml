@@ -1,0 +1,37 @@
+---
+- ansible.builtin.debug:
+    msg: "START junos_security_policies initial config on connection={{ ansible_connection }}"
+
+- name: Generate ssl certificates for ssl proxy profile-name
+  junipernetworks.junos.junos_command:
+    commands:
+      - request security pki generate-key-pair certificate-id SECURITY-cert size 2048 type rsa
+      - request security pki local-certificate generate-self-signed certificate-id SECURITY-cert domain-name labs.abc.net subject DC=mydomain.net,L=Sunnyvale,O=Mydomain,OU=LAB,CN=SECURITY email lab@labs.abc.net add-ca-constraint
+
+- name: Configure basic config relevant to security policies
+  junipernetworks.junos.junos_config:
+    lines:
+      - set class-of-service application-traffic-control rule-sets test_traffic_control rule test_rule match application-known
+      - set class-of-service application-traffic-control rule-sets test_traffic_control rule test_rule then log
+      - set security address-book global address a1 200.0.113.0/24
+      - set security address-book global address a2 201.0.113.0/24
+      - set security address-book global address a3 202.0.113.0/24
+      - set security address-book global address a4 203.0.113.0/24
+      - set security dynamic-application profile test_dyn_app redirect-message type custom-text content hello_world
+      - set security gprs gtp profile gtp1
+      - set interfaces ge-0/0/0 unit 0 family inet address 200.0.113.1/24
+      - set interfaces ge-0/0/1 unit 0 family inet address 201.0.113.1/24
+      - set interfaces ge-0/0/2 unit 0 family inet address 202.0.113.1/24
+      - set security zones security-zone one interfaces ge-0/0/0
+      - set security zones security-zone two interfaces ge-0/0/1
+      - set security zones security-zone three interfaces ge-0/0/2
+      - set services icap-redirect profile test_icap server test_icap_server host 10.10.10.11
+      - set services user-identification device-information end-user-profile profile-name test_end_user_profile attribute device-identity string Windows
+      - set services user-identification device-information end-user-profile profile-name test_end_user_profile domain-name test_domain
+      - set services ssl proxy profile SECURITY-SSL-PROXY root-ca SECURITY-cert
+      - set access profile WEBAUTH client FWClient1 firewall-user password pwd
+      - set access firewall-authentication web-authentication default-profile WEBAUTH
+      - set services ssl termination profile test_ssl_term server-certificate SECURITY-cert
+
+- ansible.builtin.debug:
+    msg: "END junos_security_policies initial config on connection={{ ansible_connection }}"

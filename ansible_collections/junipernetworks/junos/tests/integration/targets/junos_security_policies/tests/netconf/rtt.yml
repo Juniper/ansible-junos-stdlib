@@ -1,0 +1,197 @@
+---
+- ansible.builtin.debug:
+    msg:
+      START junos_security_policies round trip integration tests on connection={{
+      ansible_connection }}
+
+- block:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+    - ansible.builtin.include_tasks: _initial_config.yaml
+
+    - name: Apply the provided configuration (base config)
+      register: base_config
+      junipernetworks.junos.junos_security_policies:
+        config:
+          from_zones:
+            - name: one
+              to_zones:
+                - name: two
+                  policies:
+                    - name: test_policy_1
+                      description: "hello world"
+                      match:
+                        application:
+                          names:
+                            - junos-dhcp-relay
+                            - junos-finger
+                        destination_address:
+                          any_ipv6: true
+                        source_address:
+                          addresses:
+                            - a1
+                            - a2
+                        source_identity:
+                          authenticated_user: true
+                          unknown_user: true
+                        source_end_user_profile: test_end_user_profile
+                        source_address_excluded: true
+                        destination_address_excluded: true
+                        dynamic_application:
+                          any: true
+                        url_category:
+                          names:
+                            - Enhanced_Web_Chat
+                      then:
+                        deny: true
+                        log:
+                          session_close: true
+                        count: true
+                    - name: test_policy_2
+                      description: hello world
+                      match:
+                        application:
+                          any: true
+                        destination_address:
+                          any_ipv6: true
+                        source_address:
+                          addresses:
+                            - a1
+                      then:
+                        reject:
+                          profile: test_dyn_app
+                          ssl_proxy:
+                            profile_name: SECURITY-SSL-PROXY
+                - name: two
+                  policies:
+                    - name: test_policy_2
+                      description: hello world
+                      match:
+                        application:
+                          any: true
+                        destination_address:
+                          addresses:
+                            - a2
+                        source_address:
+                          addresses:
+                            - a1
+                      then:
+                        permit:
+                          application_services:
+                            application_traffic_control_rule_set: test_traffic_control
+                            gprs_gtp_profile: gtp1
+                            icap_redirect: test_icap
+                            reverse_redirect_wx: true
+                            uac_policy:
+                              enable: true
+                          destination_address: drop-untranslated
+                          firewall_authentication:
+                            pass_through:
+                              auth_user_agent: Opera1
+                              auth_only_browser: true
+                            push_to_identity_management: true
+                            user_firewall:
+                              access_profile: WEBAUTH
+                              auth_only_browser: true
+                              auth_user_agent: Opera1
+                              web_redirect_to_https: true
+                            web_authentication:
+                              - client_match: FWClient1
+                          tcp_options:
+                            initial_tcp_mss: 64
+                            window_scale: true
+            - name: two
+              to_zones:
+                - name: three
+                  policies:
+                    - name: test_policy_4
+                      match:
+                        application:
+                          any: true
+                        destination_address:
+                          any_ipv6: true
+                        source_address:
+                          addresses:
+                            - a1
+                      then:
+                        deny: true
+          global:
+            policies:
+              - name: test_glob_1
+                match:
+                  application:
+                    any: true
+                  destination_address:
+                    any_ipv6: true
+                  source_address:
+                    addresses:
+                      - a1
+                then:
+                  deny: true
+              - name: test_glob_2
+                match:
+                  application:
+                    any: true
+                  destination_address:
+                    any_ipv6: true
+                  source_address:
+                    addresses:
+                      - a1
+                then:
+                  deny: true
+        state: merged
+
+    - name: Gather interfaces facts
+      junipernetworks.junos.junos_facts:
+        gather_subset:
+          - default
+        gather_network_resources:
+          - security_policies
+
+    - name: Apply the provided configuration (config to be reverted)
+      register: result
+      junipernetworks.junos.junos_security_policies:
+        config:
+          global:
+            policies:
+              - name: test_glob_1
+                description: replaced
+                match:
+                  application:
+                    any: true
+                  destination_address:
+                    any_ipv6: true
+                  source_address:
+                    addresses:
+                      - a1
+                then:
+                  deny: true
+        state: replaced
+
+    - name: Assert that changes were applied
+      ansible.builtin.assert:
+        that: result['changed'] == true
+
+    - name: Revert back to base config using facts round trip
+      register: revert
+      junipernetworks.junos.junos_security_policies:
+        config: "{{ ansible_facts['network_resources']['security_policies'] }}"
+        state: replaced
+
+    - name: Assert that before dicts are correct
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ result['after'] == revert['before'] }}"
+
+    - name: Assert that config was reverted
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ base_config['after'] == revert['after'] }}"
+  always:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+- ansible.builtin.debug:
+    msg:
+      END junos_security_policies round trip integration tests on connection={{ ansible_connection
+      }}

@@ -1,0 +1,38 @@
+---
+- ansible.builtin.debug:
+    msg:
+      START junos_ospfv2 parsed integration tests on connection={{ ansible_connection
+      }}
+
+- ansible.builtin.set_fact:
+    expected_parsed_output:
+      - areas:
+          - area_id: 0.0.0.200
+            interfaces:
+              - metric: 3
+                name: so-0/0/0.1
+                priority: 5
+          - area_id: 0.0.0.100
+            interfaces:
+              - metric: 5
+                name: so-0/0/0.0
+                priority: 3
+            stub:
+              default_metric: 200
+              set: true
+        router_id: 10.200.16.7
+
+- name: Parse OSPFV2 running-config to agnostic model
+  register: result
+  junipernetworks.junos.junos_ospfv2:
+    running_config: "{{ lookup('file', './fixtures/parsed.cfg') }}"
+    state: parsed
+
+- name: Assert that config was correctly parsed
+  ansible.builtin.assert:
+    that:
+      - "{{ expected_parsed_output  == result['parsed'] }}"
+- ansible.builtin.debug:
+    msg:
+      END junos_ospfv2 parsed integration tests on connection={{ ansible_connection
+      }}

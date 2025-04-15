@@ -1,0 +1,56 @@
+---
+- ansible.builtin.debug:
+    msg:
+      START junos_lag_interfaces parsed integration tests on connection={{ ansible_connection
+      }}
+
+- ansible.builtin.set_fact:
+    expected_parsed_output:
+      - name: ae0
+        members:
+          - member: xe-0/1/0
+            ether_option_type: gigether
+            link_type: "primary"
+          - member: xe-0/1/1
+            ether_option_type: gigether
+            link_type: "primary"
+          - member: xe-0/1/4
+            ether_option_type: gigether
+            link_type: "primary"
+          - member: xe-0/1/5
+            ether_option_type: gigether
+            link_type: "primary"
+        mode: active
+      - name: ae1
+        members:
+          - member: ge-0/0/1
+            ether_option_type: ether
+          - member: ge-0/0/2
+            ether_option_type: ether
+        mode: active
+      - name: ae2
+        link_protection: true
+        members:
+          - member: ge-0/0/3
+            ether_option_type: ether
+            link_type: primary
+          - member: ge-0/0/4
+            ether_option_type: ether
+            link_type: backup
+        mode: passive
+
+- name: Parse externally provided interfaces config to agnostic model
+  register: result
+  junipernetworks.junos.junos_lag_interfaces:
+    running_config: "{{ lookup('file', './fixtures/parsed.cfg') }}"
+    state: parsed
+
+- name: Assert that config was correctly parsed
+  ansible.builtin.assert:
+    that:
+      - "{{ expected_parsed_output | symmetric_difference(result['parsed']) |length ==\
+        \ 0 }}"
+- ansible.builtin.debug:
+    msg:
+      END junos_lag_interfaces parsed integration tests on connection={{ ansible_connection
+      }}

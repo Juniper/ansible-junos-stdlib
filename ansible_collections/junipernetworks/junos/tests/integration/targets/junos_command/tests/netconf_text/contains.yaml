@@ -1,0 +1,27 @@
+---
+- name: Debug task
+  ansible.builtin.debug:
+    msg="START netconf_text/contains.yaml on connection={{ ansible_connection
+    }}"
+
+- name: Test contains operator with text encoding
+  register: result
+  junipernetworks.junos.junos_command:
+    commands:
+      - show version
+      - show interfaces lo0
+    display: text
+    wait_for:
+      - result[1] contains lo0
+
+- name: Assertion
+  ansible.builtin.assert:
+    that:
+      - result.changed == false
+      - result.stdout is defined
+      - result.stdout_lines is defined
+
+- name: Debug task
+  ansible.builtin.debug:
+    msg="END netconf_text/contains.yaml on connection={{ ansible_connection
+    }}"

@@ -1,0 +1,56 @@
+---
+- ansible.builtin.debug:
+    msg: START junos_lldp_global gathered integration tests on connection={{
+      ansible_connection }}
+
+- name: get supported protocols
+  register: result
+  ignore_errors: true
+  junipernetworks.junos.junos_command:
+    commands: show lldp
+
+- name: lldp supported
+  ansible.builtin.set_fact:
+    lldp_supported: true
+  when: not result.failed
+
+- name: lldp not supported
+  ansible.builtin.set_fact:
+    lldp_supported: false
+  when: result.failed
+
+- ansible.builtin.set_fact:
+    expected_merged_output:
+      address: 10.1.1.1
+      hold_multiplier: 10
+      interval: 10000
+      transmit_delay: 400
+
+- block:
+    - name: Merge the provided configuration with the exisiting running configuration
+      register: result
+      junipernetworks.junos.junos_lldp_global: &id001
+        config:
+          interval: 10000
+          address: 10.1.1.1
+          transmit_delay: 400
+          hold_multiplier: 10
+        state: merged
+
+    - name: Gather lldp_global facts using gathered state
+      register: result
+      junipernetworks.junos.junos_lldp_global:
+        state: gathered
+
+    - name: Assert that facts were correctly generated
+      ansible.builtin.assert:
+        that: "{{ expected_merged_output == result['gathered'] }}"
+
+  always:
+    - ansible.builtin.include_tasks: _remove_config.yaml
+  when: lldp_supported
+
+- ansible.builtin.debug:
+    msg:
+      END junos_lldp_global gathered integration tests on connection={{ ansible_connection
+      }}

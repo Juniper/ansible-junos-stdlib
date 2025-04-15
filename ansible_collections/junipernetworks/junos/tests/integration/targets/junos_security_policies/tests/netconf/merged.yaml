@@ -1,0 +1,171 @@
+---
+- ansible.builtin.debug:
+    msg: "START junos_security_policies merged integration tests on connection={{ ansible_connection }}"
+
+- block:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+    - ansible.builtin.include_tasks: _initial_config.yaml
+
+    - name: Merge the provided configuration with the exisiting running configuration
+      junipernetworks.junos.junos_security_policies: &merged
+        config:
+          from_zones:
+            - name: one
+              to_zones:
+                - name: two
+                  policies:
+                    - match:
+                        application:
+                          names:
+                            - junos-dhcp-relay
+                            - junos-finger
+                        destination_address:
+                          addresses:
+                            - a2
+                            - a4
+                        destination_address_excluded: true
+                        dynamic_application:
+                          names:
+                            - any
+                        source_address:
+                          addresses:
+                            - a1
+                            - a3
+                        source_address_excluded: true
+                        source_end_user_profile: test_end_user_profile
+                        source_identity:
+                          authenticated_user: true
+                          unknown_user: true
+                        url_category:
+                          names:
+                            - Enhanced_Web_Chat
+                      name: test_policy_1
+                      then:
+                        count: true
+                        deny: true
+                        log:
+                          session_close: true
+                    - match:
+                        application:
+                          any: true
+                        destination_address:
+                          any_ipv6: true
+                        source_address:
+                          addresses:
+                            - a1
+                      name: test_policy_2
+                      then:
+                        reject:
+                          enable: true
+                          profile: test_dyn_app
+                          ssl_proxy:
+                            enable: true
+                            profile_name: SECURITY-SSL-PROXY
+                - name: three
+                  policies:
+                    - match:
+                        application:
+                          any: true
+                        destination_address:
+                          addresses:
+                            - a2
+                        source_address:
+                          addresses:
+                            - a1
+                      name: test_policy_3
+                      then:
+                        permit:
+                          application_services:
+                            application_traffic_control_rule_set: test_traffic_control
+                            gprs_gtp_profile: gtp1
+                            icap_redirect: test_icap
+                            reverse_redirect_wx: "True"
+                            uac_policy:
+                              enable: true
+                          firewall_authentication:
+                            push_to_identity_management: true
+                            web_authentication:
+                              - FWClient1
+                          tcp_options:
+                            initial_tcp_mss: 64
+                            window_scale: true
+          global:
+            policies:
+              - match:
+                  application:
+                    any: true
+                  destination_address:
+                    any_ipv6: true
+                  source_address:
+                    any_ipv6: true
+                name: test_glob_1
+                then:
+                  deny: true
+              - match:
+                  application:
+                    any: true
+                  destination_address:
+                    any_ipv6: true
+                  source_address:
+                    any_ipv6: true
+                name: test_glob_2
+                then:
+                  deny: true
+
+        state: merged
+      register: result
+
+    - name: Assert that before dicts were correctly generated
+      ansible.builtin.assert:
+        that: "{{ merged['before'] == result['before'] }}"
+
+    - name: Assert the configuration is reflected on host
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ merged['after'] == result['after'] }}"
+
+    - name: Merge the provided configuration with the existing running configuration (IDEMPOTENT)
+      junipernetworks.junos.junos_security_policies: *merged
+      register: result
+
+    - name: Assert that the previous task was idempotent
+      ansible.builtin.assert:
+        that:
+          - result.changed == False
+
+    - name: Update the running configuration with provided configuration
+      junipernetworks.junos.junos_security_policies:
+        config:
+          global:
+            policies:
+              - name: test_glob_3
+                description: test update
+                match:
+                  application:
+                    any: true
+                  destination_address:
+                    any_ipv6: true
+                  source_address:
+                    any: true
+                then:
+                  deny: true
+        state: merged
+      register: result
+
+    - name: Assert that before dicts were correctly generated
+      ansible.builtin.assert:
+        that: "{{ merged['after'] == result['before'] }}"
+
+    - name: Assert the configuration is reflected on host
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ merged['updated'] == result['after'] }}"
+
+  tags: merged
+  always:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+- ansible.builtin.debug:
+    msg: "END junos_security_policies merged integration tests on connection={{ ansible_connection }}"

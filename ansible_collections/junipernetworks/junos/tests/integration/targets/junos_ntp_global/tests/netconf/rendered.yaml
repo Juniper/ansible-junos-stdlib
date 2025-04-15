@@ -1,0 +1,30 @@
+---
+- ansible.builtin.debug:
+    msg: START junos_ntp_global rendered integration tests on connection={{
+      ansible_connection }}
+
+- ansible.builtin.set_fact:
+    expected_rendered_output: '<nc:system xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"><nc:ntp><nc:interval-range>2</nc:interval-range><nc:multicast-client>224.0.0.1</nc:multicast-client><nc:peer><nc:name>78.44.194.186</nc:name></nc:peer><nc:peer><nc:name>172.44.194.186</nc:name><nc:key>10000</nc:key><nc:prefer/><nc:version>3</nc:version></nc:peer></nc:ntp></nc:system>'
+
+- name: Render platform specific commands from task input using rendered state
+  register: result
+  junipernetworks.junos.junos_ntp_global:
+    config:
+      interval_range: 2
+      multicast_client: "224.0.0.1"
+      peers:
+        - peer: "78.44.194.186"
+        - peer: "172.44.194.186"
+          key_id: 10000
+          prefer: true
+          version: 3
+    state: rendered
+
+- name: Assert that correct set of commands were rendered
+  ansible.builtin.assert:
+    that:
+      - "{{ expected_rendered_output == result['rendered'] }}"
+
+- ansible.builtin.debug:
+    msg: END junos_ntp_global rendered integration tests on connection={{
+      ansible_connection }}

@@ -1,0 +1,18 @@
+---
+- name: Debug
+  ansible.builtin.debug:
+    msg: "START junipernetworks.junos.junos_acl_interfaces reset ACL and ACL interfaces config on connection={{ ansible_connection }}"
+
+- name: Set initial state for firewalls and interfaces
+  junipernetworks.junos.junos_config:
+    lines:
+      - delete firewall
+      - set firewall family inet filter initial_acl term ten_dot from source-port bgp protocol tcp source-address 10.0.0.0/8
+      - set firewall family inet filter initial_acl term eleven_dot from source-port bgp protocol tcp source-address 11.0.0.0/8
+      - set firewall family inet filter second_acl term twelve_dot from source-port bgp protocol tcp source-address 12.0.0.0/8
+      - "delete interfaces ge-1/0/0"
+      - "delete interfaces ge-2/0/0"
+
+- name: Debug
+  ansible.builtin.debug:
+    msg: "END junipernetworks.junos.junos_acl_interfaces reset ACL and ACL interfaces config on connection={{ ansible_connection }}"

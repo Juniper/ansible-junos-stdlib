@@ -1,0 +1,65 @@
+---
+- ansible.builtin.debug:
+    msg: START junos_vlans round trip integration tests on connection={{
+      ansible_connection }}
+
+- block:
+    - ansible.builtin.include_tasks: _remove_config.yaml
+    - ansible.builtin.include_tasks: _initial_config.yaml
+
+    - name: Apply the provided configuration (base config)
+      register: base_config
+      junipernetworks.junos.junos_vlans:
+        config:
+          - name: vlan1
+            vlan_id: 1
+          - name: vlan2
+            vlan_id: 2
+            l3_interface: "irb.12"
+        state: merged
+
+    - name: Gather interfaces facts
+      junipernetworks.junos.junos_facts:
+        gather_subset:
+          - default
+        gather_network_resources:
+          - vlans
+
+    - name: Apply the provided configuration (config to be reverted)
+      register: result
+      junipernetworks.junos.junos_vlans:
+        config:
+          - name: vlan1
+            vlan_id: 10
+        state: replaced
+
+    - name: Assert that changes were applied
+      ansible.builtin.assert:
+        that: result['changed'] == true
+
+    - name: Revert back to base config using facts round trip
+      register: revert
+      junipernetworks.junos.junos_vlans:
+        config: "{{ ansible_facts['network_resources']['vlans'] }}"
+        state: replaced
+
+    - name: Assert that before dicts are correct
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ result['after'] | symmetric_difference( revert['before'])\
+            \ |length == 0 }}"
+
+    - name: Assert that config was reverted
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ base_config['after'] | symmetric_difference( revert['after'])\
+            \ |length == 0 }}"
+  always:
+    - ansible.builtin.include_tasks: _remove_config.yaml
+
+- ansible.builtin.debug:
+    msg:
+      END junos_vlans round trip integration tests on connection={{ ansible_connection
+      }}

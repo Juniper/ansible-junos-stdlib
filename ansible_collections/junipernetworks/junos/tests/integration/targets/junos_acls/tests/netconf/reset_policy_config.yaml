@@ -1,0 +1,16 @@
+---
+- name: Debug task
+  ansible.builtin.debug:
+    msg: "START junos_acls reset policy options config on connection={{ ansible_connection }}"
+
+- name: Reset policy options config
+  junipernetworks.junos.junos_config:
+    lines:
+      - delete firewall family inet filter PROTECT-RE term allow-ospf from source-prefix-list ipv4-interfaces
+      - delete firewall family inet filter PROTECT-RE term allow-ospf from source-prefix-list ospf-all-routers
+      - delete policy-options prefix-list ospf-all-routers
+      - delete policy-options prefix-list ipv4-interfaces
+
+- name: Debug task
+  ansible.builtin.debug:
+    msg: "END junos_acls reset policy options config on connection={{ ansible_connection }}"

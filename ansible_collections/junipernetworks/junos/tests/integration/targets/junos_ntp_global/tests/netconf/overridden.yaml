@@ -1,0 +1,47 @@
+---
+- ansible.builtin.debug:
+    msg: "START junos_ntp_global overridden integration tests on connection={{ ansible_connection }}"
+
+- block:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+    - ansible.builtin.include_tasks: _initial_config.yaml
+    - ansible.builtin.include_tasks: _populate_config.yaml
+
+    - name: Override configuration
+      junipernetworks.junos.junos_ntp_global: &overridden
+        config:
+          multicast_client: "224.0.0.1"
+          interval_range: 3
+          peers:
+            - peer: "172.44.194.188"
+              key_id: 10000
+              prefer: true
+              version: 3
+        state: overridden
+      register: result
+
+    - name: Assert that before dicts were correctly generated
+      ansible.builtin.assert:
+        that: "{{ merged['after'] == result['before'] }}"
+
+    - name: Assert configuration
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ replaced['after'] == result.after }}"
+
+    - name: Replaced the provided configuration with the existing running configuration (IDEMPOTENT)
+      junipernetworks.junos.junos_ntp_global: *overridden
+      register: result
+
+    - name: Assert that the previous task was idempotent
+      ansible.builtin.assert:
+        that:
+          - result.changed == False
+
+  tags: overridden
+  always:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+- ansible.builtin.debug:
+    msg: "END junos_ntp_global overridden integration tests on connection={{ ansible_connection }}"

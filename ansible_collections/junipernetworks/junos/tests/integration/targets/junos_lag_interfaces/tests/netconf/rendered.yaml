@@ -1,0 +1,36 @@
+---
+- ansible.builtin.debug:
+    msg: START junos_lag_interfaces rendered integration tests on connection={{
+      ansible_connection }}
+
+- ansible.builtin.set_fact:
+    expected_rendered_output: '<nc:interfaces xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"><nc:interface><nc:name>ae1</nc:name><nc:aggregated-ether-options><nc:lacp><nc:active/></nc:lacp></nc:aggregated-ether-options></nc:interface><nc:interface><nc:name>ge-0/0/1</nc:name><nc:ether-options><nc:ieee-802.3ad><nc:bundle>ae1</nc:bundle></nc:ieee-802.3ad></nc:ether-options></nc:interface><nc:interface><nc:name>ge-0/0/2</nc:name><nc:ether-options><nc:ieee-802.3ad><nc:bundle>ae1</nc:bundle></nc:ieee-802.3ad></nc:ether-options></nc:interface><nc:interface><nc:name>ae2</nc:name><nc:aggregated-ether-options><nc:lacp><nc:passive/></nc:lacp><nc:link-protection/></nc:aggregated-ether-options></nc:interface><nc:interface><nc:name>ge-0/0/3</nc:name><nc:ether-options><nc:ieee-802.3ad><nc:bundle>ae2</nc:bundle><nc:primary/></nc:ieee-802.3ad></nc:ether-options></nc:interface><nc:interface><nc:name>ge-0/0/4</nc:name><nc:ether-options><nc:ieee-802.3ad><nc:bundle>ae2</nc:bundle><nc:backup/></nc:ieee-802.3ad></nc:ether-options></nc:interface></nc:interfaces>'
+
+- name: Render platform specific commands from task input using rendered state
+  register: result
+  junipernetworks.junos.junos_lag_interfaces:
+    config:
+      - name: ae1
+        members:
+          - member: ge-0/0/1
+          - member: ge-0/0/2
+        mode: active
+
+      - name: ae2
+        link_protection: true
+        members:
+          - member: ge-0/0/3
+            link_type: primary
+          - member: ge-0/0/4
+            link_type: backup
+        mode: passive
+    state: rendered
+
+- name: Assert that correct set of commands were rendered
+  ansible.builtin.assert:
+    that:
+      - "{{ expected_rendered_output == result['rendered'] }}"
+
+- ansible.builtin.debug:
+    msg: END junos_lag_interfaces rendered integration tests on connection={{
+      ansible_connection }}

@@ -1,0 +1,14 @@
+---
+- name: Invoke netconf xml tasks
+  ansible.builtin.include_tasks: netconf_xml.yaml
+
+- name: Invoke netconf text
+  ansible.builtin.include_tasks: netconf_text.yaml
+
+- name: Invoke netconf json tasks
+  ansible.builtin.include_tasks: netconf_json.yaml
+
+- name: Invoke netconf cli tasks
+  ansible.builtin.include_tasks: cli.yaml
+  tags:
+    - network_cli

@@ -1,0 +1,40 @@
+---
+- ansible.builtin.debug:
+    msg:
+      START junos_ospfv3 parsed integration tests on connection={{ ansible_connection
+      }}
+
+- ansible.builtin.set_fact:
+    expected_parsed_output:
+      - router_id: 10.200.16.75
+        areas:
+          - area_id: 0.0.0.100
+            stub:
+              default_metric: 200
+              set: true
+            interfaces:
+              - name: so-0/0/0.0
+                priority: 3
+                metric: 5
+                flood_reduction: true
+                passive: true
+          - area_id: 0.0.0.200
+            interfaces:
+              - name: ge-1/1/0.0
+              - name: ge-2/2/0.0
+
+- name: Parse externally provided interfaces config to agnostic model
+  register: result
+  junipernetworks.junos.junos_ospfv3:
+    running_config: "{{ lookup('file', './fixtures/parsed.cfg') }}"
+    state: parsed
+
+- name: Assert that config was correctly parsed
+  ansible.builtin.assert:
+    that:
+      - "{{ expected_parsed_output | symmetric_difference(result['parsed']) |length ==\
+        \ 0 }}"
+- ansible.builtin.debug:
+    msg:
+      END junos_ospfv3 parsed integration tests on connection={{ ansible_connection
+      }}

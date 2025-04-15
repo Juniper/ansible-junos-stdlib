@@ -1,0 +1,65 @@
+---
+- ansible.builtin.debug:
+    msg="START cli_config/cli_replace.yaml on connection={{ ansible_connection
+    }}"
+
+- name: set interface config
+  loop:
+    - delete interfaces ge-0/0/11
+    - set interfaces ge-0/0/11 description "test cli_config"
+  ansible.netcommon.cli_config:
+    config: "{{ item }}"
+
+- name: get running configuration
+  register: result
+  ansible.netcommon.cli_command:
+    command: show configuration
+
+- name: copy configuration to file
+  copy:
+    content: "{{ result['stdout'] }}"
+    dest: /tmp/junos01.cfg
+
+- name: modify interface ge-0/0/11 configuration
+  replace:
+    path: /tmp/junos01.cfg
+    regexp: test cli_config
+    replace: test cli_config replaced
+
+- name: copy config file to remote host
+  ansible.netcommon.net_put:
+    src: /tmp/junos01.cfg
+    protocol: sftp
+    dest: /var/home/{{ ansible_user }}/junos01.cfg
+
+- name: replace syslog test file configuration
+  ansible.netcommon.cli_config:
+    replace: /var/home/{{ ansible_user }}/junos01.cfg
+
+- name: get interface configuration
+  register: result
+  ansible.netcommon.cli_command:
+    command: show configuration interfaces ge-0/0/11
+
+- name: ansible.builtin.assert that interface config change is reflected on device
+  ansible.builtin.assert:
+    that:
+      - "'test cli_config replaced' in  result.stdout"
+
+- name: replace interface configuration (idempotent)
+  register: result
+  ansible.netcommon.cli_config:
+    replace: /var/home/{{ ansible_user }}/junos01.cfg
+
+- name: Assert that the previous task was idempotent
+  ansible.builtin.assert:
+    that:
+      - result['changed'] == false
+
+- name: delete interface config
+  ansible.netcommon.cli_config:
+    config: delete interfaces ge-0/0/11
+
+- ansible.builtin.debug:
+    msg="END cli_config/cli_replace.yaml on connection={{ ansible_connection
+    }}"

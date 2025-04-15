@@ -1,0 +1,45 @@
+---
+- ansible.builtin.debug:
+    msg:
+      START junos_l3_interfaces parsed integration tests on connection={{ ansible_connection
+      }}
+
+- ansible.builtin.set_fact:
+    expected_parsed_output:
+      - name: ge-1/0/0
+        mtu: 1500
+        ipv4:
+          - address: 192.168.100.1/24
+
+          - address: 10.200.16.20/24
+        unit: 0
+
+      - name: ge-2/0/0
+        ipv4:
+          - address: 192.168.100.2/24
+
+          - address: 10.200.16.21/24
+        unit: 0
+
+      - name: ge-2/0/0
+        ipv4:
+          - address: 192.178.100.2/24
+
+          - address: 10.210.16.21/24
+        unit: 1
+
+- name: Parse externally provided interfaces config to agnostic model
+  register: result
+  junipernetworks.junos.junos_l3_interfaces:
+    running_config: "{{ lookup('file', './fixtures/parsed.cfg') }}"
+    state: parsed
+
+- name: Assert that config was correctly parsed
+  ansible.builtin.assert:
+    that:
+      - "{{ expected_parsed_output | symmetric_difference(result['parsed']) |length ==\
+        \ 0 }}"
+- ansible.builtin.debug:
+    msg:
+      END junos_l3_interfaces parsed integration tests on connection={{ ansible_connection
+      }}

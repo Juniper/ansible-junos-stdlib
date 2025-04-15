@@ -1,0 +1,12 @@
+---
+- ansible.builtin.debug:
+    msg: "START junos_routing_instances reset config on connection={{ ansible_connection }}"
+
+- name: Configure policy options w.r.t routing-instances
+  junipernetworks.junos.junos_config:
+    lines:
+      - set vlans vlan1 vlan-id 1
+      - set vlans vlan2 vlan-id 2
+      - set vlans vlan2 vlan-id 2 l3-interface irb.12
+- ansible.builtin.debug:
+    msg: "END junos_routing_instances reset config on connection={{ ansible_connection }}"

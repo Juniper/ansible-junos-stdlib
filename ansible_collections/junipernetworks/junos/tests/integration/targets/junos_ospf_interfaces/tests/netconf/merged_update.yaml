@@ -1,0 +1,66 @@
+---
+- ansible.builtin.debug:
+    msg: "START junos_ospf_interfaces merged update integration tests on connection={{ ansible_connection }}"
+
+- block:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+    - ansible.builtin.include_tasks: _initial_config.yaml
+
+    - ansible.builtin.set_fact:
+        expected_config:
+          - address_family:
+              - afi: "ipv4"
+                processes:
+                  area:
+                    area_id: "0.0.0.2"
+                  priority: 3
+                  metric: 5
+            name: "ge-0/0/2.0"
+            router_id: "10.200.16.75"
+          - address_family:
+              - afi: "ipv4"
+                processes:
+                  area:
+                    area_id: "0.0.0.3"
+                  priority: 3
+                  metric: 5
+            name: "ge-0/0/3.0"
+            router_id: "10.200.16.75"
+
+    - name: Merge the provided configuration with the exisiting running configuration
+      junipernetworks.junos.junos_ospf_interfaces: &merged
+        config:
+          - router_id: "10.200.16.75"
+            name: "ge-0/0/3.0"
+            address_family:
+              - afi: "ipv4"
+                processes:
+                  area:
+                    area_id: "0.0.0.3"
+                  priority: 3
+                  metric: 5
+        state: merged
+      register: result
+
+    - name: Assert the configuration is reflected on host
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ expected_config | symmetric_difference(result['after']) |length\
+            \ == 0 }}"
+
+    - name: Merge the provided configuration with the existing running configuration (IDEMPOTENT)
+      junipernetworks.junos.junos_ospf_interfaces: *merged
+      register: result
+
+    - name: Assert that the previous task was idempotent
+      ansible.builtin.assert:
+        that:
+          - result.changed == False
+
+  tags: merged_update
+  always:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+- ansible.builtin.debug:
+    msg: "END junos_ospf_interfaces merged update  integration tests on connection={{ ansible_connection }}"
