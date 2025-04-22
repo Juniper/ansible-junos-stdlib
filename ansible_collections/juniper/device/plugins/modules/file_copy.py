@@ -48,10 +48,19 @@ extends_documentation_fragment:
   - juniper.device.juniper_junos_doc.logging_documentation
 module: file_copy
 author: "Juniper Networks - Dinesh Babu (@dineshbaburam91)"
-short_description: File put and get over SCP module
+short_description: File put and get over SCP/FTP module
 description:
-  - Copy file over SCP to and from a Juniper device
+  - Copy file over SCP/FTP to and from a Juniper device
 options:
+  protocol:
+    description:
+        - Set the protocols to transfer the file
+    required: false
+    default: scp
+    choices:
+        - scp
+        - ftp
+    type: str
   local_dir:
     description:
       - path of the local directory where the file is located
@@ -69,6 +78,16 @@ options:
       - Name of the file to copy to/from the remote device
     required: true
     type: str
+  transfer_filename:
+    description:
+      - Name of the transfer file to copy to/from the remote device
+    required: false
+    type: str
+  checksum:
+    description:
+      - Validate the file using MD5 algorithm check
+    required: false
+    type: bool
   action:
     description:
       - Type of operation to execute, currently only support get and put
@@ -85,15 +104,19 @@ EXAMPLES = """
   tasks:
     - name: Copy a log file on a remote device locally
       juniper.device.file_copy:
+        protocol: scp
         remote_dir: /var/log
         local_dir: /tmp
         action: get
+        checksum: True
         file: log.txt
     - name: Copy a local file into /var/tmp on the remote device
       juniper.device.file_copy:
+        protocol: ftp
         remote_dir: /var/tmp
         local_dir: /tmp
         action: put
+        checksum: False
         file: license.txt
 """
 
@@ -120,9 +143,14 @@ def main():
     # The argument spec for the module.
     junos_module = juniper_junos_common.JuniperJunosModule(
         argument_spec=dict(
+            protocol=dict(
+                type="str", choices=["scp", "ftp"], required=False, default="scp"
+            ),
             local_dir=dict(type="str", required=True, default=None),
             remote_dir=dict(type="str", required=True, default=None),
             file=dict(type="str", required=True, default=None),
+            transfer_filename=dict(type="str", required=False, default=None),
+            checksum=dict(type="bool", required=False, default=True),
             action=dict(
                 type="str", choices=["put", "get"], required=True, default=None
             ),
@@ -138,15 +166,52 @@ def main():
     params = junos_module.params
 
     params["remote_dir"]
-    local_file = params["local_dir"] + "/" + params["file"]
-    remote_file = params["remote_dir"] + "/" + params["file"]
+    transfer_filename = params["transfer_filename"]
+    protocol = params["protocol"]
+    check_sum = params["checksum"]
 
     if params["action"] == "put":
-        output = junos_module.scp_file_copy_put(local_file, remote_file)
+        local_file = params["local_dir"] + "/" + params["file"]
+        if transfer_filename:
+            remote_file = params["remote_dir"] + "/" + transfer_filename
+        else:
+            remote_file = params["remote_dir"] + "/" + params["file"]
+        if protocol == "scp":
+            if check_sum is False:
+                output = junos_module.scp_file_copy_put_without_checksum(
+                    local_file, remote_file
+                )
+            else:
+                output = junos_module.scp_file_copy_put(local_file, remote_file)
+        elif protocol == "ftp":
+            if check_sum is False:
+                output = junos_module.ftp_file_copy_put_without_checksum(
+                    local_file, remote_file
+                )
+            else:
+                output = junos_module.ftp_file_copy_put(local_file, remote_file)
         results["msg"] = output[0]
         results["changed"] = output[1]
     elif params["action"] == "get":
-        output = junos_module.scp_file_copy_get(remote_file, local_file)
+        remote_file = params["remote_dir"] + "/" + params["file"]
+        if transfer_filename:
+            local_file = params["local_dir"] + "/" + transfer_filename
+        else:
+            local_file = params["local_dir"] + "/" + params["file"]
+        if params["protocol"] == "scp":
+            if check_sum is False:
+                output = junos_module.scp_file_copy_get_without_checksum(
+                    remote_file, local_file
+                )
+            else:
+                output = junos_module.scp_file_copy_get(remote_file, local_file)
+        elif params["protocol"] == "ftp":
+            if check_sum is False:
+                output = junos_module.ftp_file_copy_get_without_checksum(
+                    remote_file, local_file
+                )
+            else:
+                output = junos_module.ftp_file_copy_get(remote_file, local_file)
         results["msg"] = output[0]
         results["changed"] = output[1]
 
