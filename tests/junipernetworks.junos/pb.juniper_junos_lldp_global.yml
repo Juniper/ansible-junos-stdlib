@@ -1,0 +1,54 @@
+- name: Functional Test - junos_lldp_global module
+  hosts: netconf_connection_testcases
+  connection: ansible.netcommon.netconf
+  gather_facts: false
+  tasks:
+
+    - name: Merge LLDP global configuration
+      junipernetworks.junos.junos_lldp_global:
+        config:
+          interval: 10000
+          address: 10.1.1.1
+          transmit_delay: 400
+          hold_multiplier: 10
+        state: merged
+
+    - name: Replace LLDP global configuration
+      junipernetworks.junos.junos_lldp_global:
+        config:
+          address: 20.2.2.2
+          hold_multiplier: 5
+          enabled: false
+        state: replaced
+
+    - name: Gather LLDP global configuration
+      junipernetworks.junos.junos_lldp_global:
+        state: gathered
+      register: gather_result
+
+    - name: Assert LLDP address is correctly configured
+      ansible.builtin.assert:
+        that:
+          - gather_result.gathered.address == "20.2.2.2"
+          - gather_result.gathered.hold_multiplier == 5
+          - gather_result.gathered.enabled == false
+        success_msg: "LLDP global settings gathered correctly"
+        fail_msg: "LLDP global settings did not match expected values"
+
+    - name: Render LLDP global configuration to XML
+      junipernetworks.junos.junos_lldp_global:
+        config:
+          interval: 10000
+          address: 10.1.1.1
+          transmit_delay: 400
+          hold_multiplier: 10
+        state: rendered
+      register: render_result
+
+    - name: Debug rendered LLDP XML
+      ansible.builtin.debug:
+        var: render_result.rendered
+
+    - name: Delete LLDP global configuration
+      junipernetworks.junos.junos_lldp_global:
+        state: deleted

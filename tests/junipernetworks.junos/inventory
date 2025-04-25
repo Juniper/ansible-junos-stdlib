@@ -1,0 +1,9 @@
+[junos]
+netconf_connection_testcases ansible_host=x.x.x.x
+
+[all:vars]
+ansible_python_interpreter=<python interpreter path>
+ansible_connection=netconf
+ansible_network_os=junipernetworks.junos.junos
+ansible_user=xxxx
+ansible_password=xxxx

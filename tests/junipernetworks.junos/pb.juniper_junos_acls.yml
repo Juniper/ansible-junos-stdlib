@@ -1,0 +1,64 @@
+- name: Functional Test - junos_acls module
+  hosts: junos
+  gather_facts: false
+  connection: netconf
+  collections:
+    - junipernetworks.junos
+
+  vars:
+    acl_name: "allow_ssh_acl"
+    term_name: "ssh_rule"
+
+  tasks:
+
+    - name: Pre-clean - Delete test ACL if it exists
+      junos_acls:
+        config:
+          - afi: ipv4
+            acls:
+              - name: "{{ acl_name }}"
+        state: deleted
+      register: pre_cleanup
+
+    - name: Assert pre-clean success
+      assert:
+        that:
+          - pre_cleanup.changed in [true, false]
+
+   
+    - name: Apply ACL with state merged
+      junos_acls:
+        config:
+          - afi: ipv4
+            acls:
+              - name: "{{ acl_name }}"
+                aces:
+                  - name: "{{ term_name }}"
+                    source:
+                      port_protocol:
+                        eq: ssh
+                    protocol: tcp
+        state: merged
+      register: merge_result
+
+    - name: Assert merged config applied
+      assert:
+        that:
+          - merge_result.changed == true
+          - merge_result.after is defined
+          - merge_result.commands | length > 0
+
+    
+    - name: Post-clean - Remove ACL
+      junos_acls:
+        config:
+          - afi: ipv4
+            acls:
+              - name: "{{ acl_name }}"
+        state: deleted
+      register: post_cleanup
+
+    - name: Assert ACL was cleaned up
+      assert:
+        that:
+          - post_cleanup.changed == true

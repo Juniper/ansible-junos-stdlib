@@ -1,0 +1,57 @@
+- name: Functional Test - junos_hostname module
+  hosts: junos
+  gather_facts: false
+  connection: netconf
+  collections:
+    - junipernetworks.junos
+
+  vars:
+    test_hostname: "ft-host-20250424084647"
+
+  tasks:
+
+    - name: Pre-clean - Delete existing hostname
+      junipernetworks.junos.junos_hostname:
+        config: {}
+        state: deleted
+      register: delete_result
+
+    - name: Assert pre-clean success
+      assert:
+        that:
+          - delete_result.changed == true or delete_result.changed == false
+
+    - name: Apply hostname config with state merged
+      junipernetworks.junos.junos_hostname:
+        config:
+          hostname: "{{ test_hostname }}"
+        state: merged
+      register: merged_result
+
+    - name: Assert hostname was set
+      assert:
+        that:
+          - merged_result.changed == true
+          - merged_result.after.hostname == test_hostname
+
+    - name: Gather hostname config
+      junipernetworks.junos.junos_hostname:
+        state: gathered
+      register: gather_result
+
+    - name: Assert gathered hostname is correct
+      assert:
+        that:
+          - gather_result.changed == false
+          - gather_result.gathered.hostname == test_hostname
+
+    - name: Delete test hostname (post-clean)
+      junipernetworks.junos.junos_hostname:
+        config: {}
+        state: deleted
+      register: cleanup_result
+
+    - name: Assert hostname deleted
+      assert:
+        that:
+          - cleanup_result.changed == true

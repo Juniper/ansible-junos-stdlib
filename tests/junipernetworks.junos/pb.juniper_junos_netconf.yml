@@ -1,0 +1,29 @@
+# NOTE: This module requires 'network_cli' connection type.
+# Run this playbook using:
+# ansible-playbook -i inventory pb.juniper_junos_netconf.yml -e ansible_connection=network_cli
+
+- name: Functional Test - junos_netconf module
+  hosts: netconf_connection_testcases
+  gather_facts: false
+  connection: network_cli  
+
+  tasks:
+
+    - name: Enable NETCONF service on port 830
+      junipernetworks.junos.junos_netconf:
+        netconf_port: 830
+        state: present
+      register: enable_result
+
+    - name: Debug NETCONF enable command
+      ansible.builtin.debug:
+        var: enable_result.commands
+
+    - name: Disable NETCONF service
+      junipernetworks.junos.junos_netconf:
+        state: absent
+      register: disable_result
+
+    - name: Debug NETCONF disable command
+      ansible.builtin.debug:
+        var: disable_result.commands

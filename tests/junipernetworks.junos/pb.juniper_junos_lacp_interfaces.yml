@@ -1,0 +1,82 @@
+---
+- name: Functional Test - junos_lacp_interfaces module
+  hosts: netconf_connection_testcases
+  gather_facts: false
+  connection: ansible.netcommon.netconf
+
+  tasks:
+
+    - name: Pre-clean - Delete LACP interfaces attributes of given interfaces
+      junipernetworks.junos.junos_lacp_interfaces:
+        config:
+          - name: ae0
+          - name: ge-0/0/2
+          - name: ge-0/0/3
+        state: deleted
+
+    - name: Merge provided configuration with device configuration
+      junipernetworks.junos.junos_lacp_interfaces:
+        config:
+          - name: ae0
+            period: fast
+            sync_reset: enable
+            system:
+              priority: 100
+              mac:
+                address: 00:00:00:00:00:02
+          - name: ge-0/0/3
+            port_priority: 100
+            force_up: true
+        state: merged
+
+    - name: Replace device LACP interfaces configuration with provided configuration
+      junipernetworks.junos.junos_lacp_interfaces:
+        config:
+          - name: ae0
+            period: slow
+        state: replaced
+
+    - name: Overrides all device LACP interfaces configuration with provided configuration
+      junipernetworks.junos.junos_lacp_interfaces:
+        config:
+          - name: ae0
+            system:
+              priority: 300
+              mac:
+                address: 00:00:00:00:00:03
+          - name: ge-0/0/2
+            port_priority: 200
+            force_up: false
+        state: overridden
+
+    - name: Gather junos lacp interfaces facts
+      junipernetworks.junos.junos_lacp_interfaces:
+        state: gathered
+      register: gather_result
+
+    - name: Extract interface names from gathered result
+      set_fact:
+        gathered_names: "{{ gather_result.gathered | map(attribute='name') | list }}"  
+
+    - name: Assert gathered includes ae0 and ge-0/0/2
+      ansible.builtin.assert:
+        that:
+          - "'ae0' in gathered_names"
+          - "'ge-0/0/2' in gathered_names"
+        fail_msg: "Expected interfaces ae0 and ge-0/0/2 not found in gathered result"
+        success_msg: "Successfully found ae0 and ge-0/0/2 in gathered result"
+
+    - name: Render platform specific xml from task input using rendered state
+      junipernetworks.junos.junos_lacp_interfaces:
+        config:
+          - name: ae0
+            period: fast
+            sync_reset: enable
+            system:
+              priority: 100
+              mac:
+                address: 00:00:00:00:00:02
+          - name: ge-0/0/3
+            port_priority: 100
+            force_up: true
+        state: rendered

@@ -1,0 +1,84 @@
+- name: Functional Test - junos_l2_interfaces module
+  hosts: junos
+  gather_facts: false
+  connection: netconf
+  collections:
+    - junipernetworks.junos
+
+  tasks:
+    - name: Pre-define required VLANs
+      junipernetworks.junos.junos_vlans:
+        config:
+          - name: v101
+            vlan_id: 101
+          - name: vlan30
+            vlan_id: 30
+          - name: vlan50
+            vlan_id: 50
+        state: merged
+
+    - name: Pre-clean - Delete existing L2 config
+      junipernetworks.junos.junos_l2_interfaces:
+        config:
+          - name: ge-0/0/3
+          - name: ge-0/0/4
+        state: deleted
+      ignore_errors: true
+
+    - name: Apply L2 config - merge access and trunk modes
+      junipernetworks.junos.junos_l2_interfaces:
+        config:
+          - name: ge-0/0/3
+            access:
+              vlan: v101
+          - name: ge-0/0/4
+            trunk:
+              allowed_vlans: [ vlan30 ]
+              native_vlan: "50" 
+        state: merged
+      register: merge_result
+
+    - name: Assert L2 config merged
+      assert:
+        that:
+          - merge_result is defined
+          - merge_result.changed is defined
+          - merge_result.changed | bool == true
+
+    - name: Gather current L2 interface config
+      junipernetworks.junos.junos_l2_interfaces:
+        state: gathered
+      register: gathered_result
+
+    - name: Assert L2 config gathered
+      assert:
+        that:
+          - gathered_result.gathered | selectattr("name", "equalto", "ge-0/0/3") | list | length > 0
+          - gathered_result.gathered | selectattr("name", "equalto", "ge-0/0/4") | list | length > 0
+
+    - name: Render L2 config offline
+      junipernetworks.junos.junos_l2_interfaces:
+        config:
+          - name: ge-0/0/3
+            access:
+              vlan: v101
+          - name: ge-0/0/4
+            trunk:
+              allowed_vlans: [ vlan30 ]
+              native_vlan: 50
+        state: rendered
+      register: render_result
+
+    - name: Assert rendered L2 config
+      assert:
+        that:
+          - render_result.rendered is defined
+          - render_result.rendered | length > 0
+
+    - name: Post-clean - Delete L2 config
+      junipernetworks.junos.junos_l2_interfaces:
+        config:
+          - name: ge-0/0/3
+          - name: ge-0/0/4
+        state: deleted
+      ignore_errors: true

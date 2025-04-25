@@ -1,0 +1,63 @@
+- name: Functional Test - junos_lldp_interfaces module
+  hosts: netconf_connection_testcases
+  connection: ansible.netcommon.netconf
+  gather_facts: false
+  tasks:
+
+    - name: Pre-clean LLDP interface config
+      junipernetworks.junos.junos_lldp_interfaces:
+        config:
+          - name: ge-0/0/1
+          - name: ge-0/0/2
+          - name: ge-0/0/3
+        state: deleted
+      ignore_errors: true
+
+    - name: Merge LLDP interface configuration
+      junipernetworks.junos.junos_lldp_interfaces:
+        config:
+          - name: ge-0/0/1
+          - name: ge-0/0/2
+            enabled: false
+        state: merged
+
+    - name: Replace LLDP interface configuration
+      junipernetworks.junos.junos_lldp_interfaces:
+        config:
+          - name: ge-0/0/2
+            enabled: true
+          - name: ge-0/0/3
+            enabled: false
+        state: replaced
+
+    - name: Override LLDP interface configuration
+      junipernetworks.junos.junos_lldp_interfaces:
+        config:
+          - name: ge-0/0/3
+            enabled: false
+        state: overridden
+
+    - name: Gather current LLDP interface configuration
+      junipernetworks.junos.junos_lldp_interfaces:
+        state: gathered
+      register: lldp_interface_gather
+
+    - name: Assert ge-0/0/3 is in gathered LLDP interfaces and disabled
+      ansible.builtin.assert:
+        that:
+          - lldp_interface_gather.gathered | selectattr("name", "equalto", "ge-0/0/3") | selectattr("enabled", "equalto", false) | list | length > 0
+        fail_msg: "ge-0/0/3 with enabled: false not found in gathered result"
+        success_msg: "ge-0/0/3 is correctly disabled in LLDP interfaces"
+
+    - name: Render LLDP interface configuration for offline validation
+      junipernetworks.junos.junos_lldp_interfaces:
+        config:
+          - name: ge-0/0/1
+          - name: ge-0/0/2
+            enabled: false
+        state: rendered
+      register: rendered_lldp
+
+    - name: Debug rendered XML
+      ansible.builtin.debug:
+        var: rendered_lldp.rendered
