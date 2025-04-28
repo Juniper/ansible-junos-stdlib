@@ -581,7 +581,7 @@ def main():
         parsed_output = None
         if resp is True:
             text_output = ""
-        elif (isinstance(resp, junos_module.etree._Element)) or (isinstance(resp, dict)):
+        elif isinstance(resp, junos_module.etree._Element):
             # Handle the output based on format
             if format == "text":
                 text_output = resp.text

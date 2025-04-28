@@ -1,0 +1,35 @@
+---
+- name: Debug task
+  ansible.builtin.debug:
+    msg: START junos_acls rendered integration tests on connection={{
+      ansible_connection }}
+
+- name: Set facts
+  ansible.builtin.set_fact:
+    expected_rendered_output: '<nc:firewall xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"><nc:family><nc:inet><nc:filter><nc:name>initial_acl</nc:name><nc:term><nc:name>ten_dot</nc:name><nc:from><nc:source-address>10.0.0.0/8</nc:source-address><nc:source-port>bgp</nc:source-port><nc:protocol>tcp</nc:protocol></nc:from></nc:term></nc:filter></nc:inet></nc:family></nc:firewall>'
+
+- name: Render platform specific commands from task input using rendered state
+  register: result
+  junipernetworks.junos.junos_acls:
+    config:
+      - acls:
+          - aces:
+              - name: ten_dot
+                source:
+                  address: 10.0.0.0/8
+                  port_protocol:
+                    eq: bgp
+                protocol: tcp
+            name: initial_acl
+        afi: ipv4
+    state: rendered
+
+- name: Assert that correct set of commands were rendered
+  ansible.builtin.assert:
+    that:
+      - "{{ expected_rendered_output == result['rendered'] }}"
+
+- name: Debug task
+  ansible.builtin.debug:
+    msg: END junos_acls rendered integration tests on connection={{
+      ansible_connection }}

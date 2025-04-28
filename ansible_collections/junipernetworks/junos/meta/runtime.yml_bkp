@@ -1,0 +1,89 @@
+---
+requires_ansible: ">=2.15.0"
+plugin_routing:
+  modules:
+    acl_interfaces:
+      redirect: junipernetworks.junos.junos_acl_interfaces
+    acls:
+      redirect: junipernetworks.junos.junos_acls
+    banner:
+      redirect: junipernetworks.junos.junos_banner
+    command:
+      redirect: junipernetworks.junos.junos_command
+    config:
+      redirect: junipernetworks.junos.junos_config
+    facts:
+      redirect: junipernetworks.junos.junos_facts
+    interfaces:
+      redirect: junipernetworks.junos.junos_interfaces
+    l2_interfaces:
+      redirect: junipernetworks.junos.junos_l2_interfaces
+    l3_interfaces:
+      redirect: junipernetworks.junos.junos_l3_interfaces
+    lacp:
+      redirect: junipernetworks.junos.junos_lacp
+    lacp_interfaces:
+      redirect: junipernetworks.junos.junos_lacp_interfaces
+    lag_interfaces:
+      redirect: junipernetworks.junos.junos_lag_interfaces
+    lldp_global:
+      redirect: junipernetworks.junos.junos_lldp_global
+    bgp_global:
+      redirect: junipernetworks.junos.junos_bgp_global
+    bgp_address_family:
+      redirect: junipernetworks.junos.junos_bgp_address_family
+    routing_instances:
+      redirect: junipernetworks.junos.junos_routing_instances
+    prefix_lists:
+      redirect: junipernetworks.junos.junos_prefix_lists
+    logging_global:
+      redirect: junipernetworks.junos.junos_logging_global
+    ntp_global:
+      redirect: junipernetworks.junos.junos_ntp_global
+    security_policies:
+      redirect: junipernetworks.junos.junos_security_policies
+    security_policies_global:
+      redirect: junipernetworks.junos.junos_security_policies_global
+    security_zones:
+      redirect: junipernetworks.junos.junos_security_zones
+    snmp_server:
+      redirect: junipernetworks.junos.junos_snmp_server
+    hostname:
+      redirect: junipernetworks.junos.junos_hostname
+    routing_options:
+      redirect: junipernetworks.junos.junos_routing_options
+    lldp_interfaces:
+      redirect: junipernetworks.junos.junos_lldp_interfaces
+    netconf:
+      redirect: junipernetworks.junos.junos_netconf
+    ospfv2:
+      redirect: junipernetworks.junos.junos_ospfv2
+    ospfv3:
+      redirect: junipernetworks.junos.junos_ospfv3
+    ospf_interfaces:
+      redirect: junipernetworks.junos.junos_ospf_interfaces
+    package:
+      redirect: junipernetworks.junos.junos_package
+    ping:
+      redirect: junipernetworks.junos.junos_ping
+    rpc:
+      redirect: junipernetworks.junos.junos_rpc
+    scp:
+      redirect: junipernetworks.junos.junos_scp
+      deprecation:
+        removal_date: "2025-01-01"
+        warning_text: See the plugin documentation for more details
+    junos_scp:
+      deprecation:
+        removal_date: "2025-01-01"
+        warning_text: See the plugin documentation for more details
+    static_routes:
+      redirect: junipernetworks.junos.junos_static_routes
+    system:
+      redirect: junipernetworks.junos.junos_system
+    user:
+      redirect: junipernetworks.junos.junos_user
+    vlans:
+      redirect: junipernetworks.junos.junos_vlans
+    vrf:
+      redirect: junipernetworks.junos.junos_vrf

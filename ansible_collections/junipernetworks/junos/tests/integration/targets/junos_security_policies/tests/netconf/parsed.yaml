@@ -1,0 +1,23 @@
+---
+- ansible.builtin.debug:
+    msg:
+      START junos_security_policies parsed integration tests on connection={{ ansible_connection
+      }}
+
+- name: Parse externally provided security_policies config to agnostic model
+  register: result
+  junipernetworks.junos.junos_security_policies:
+    running_config: "{{ lookup('file', './fixtures/parsed.xml') }}"
+    state: parsed
+
+- ansible.builtin.debug:
+    msg: "{{ result['parsed'] }}"
+
+- name: Assert that config was correctly parsed
+  ansible.builtin.assert:
+    that:
+      - "{{ merged['after']  == result['parsed'] }}"
+- ansible.builtin.debug:
+    msg:
+      END junos_security_policies parsed integration tests on connection={{ ansible_connection
+      }}

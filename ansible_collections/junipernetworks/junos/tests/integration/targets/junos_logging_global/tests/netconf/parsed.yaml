@@ -1,0 +1,20 @@
+---
+- ansible.builtin.debug:
+    msg:
+      START junos_logging_global parsed integration tests on connection={{ ansible_connection
+      }}
+
+- name: Parse externally provided logging_global config to agnostic model
+  register: result
+  junipernetworks.junos.junos_logging_global:
+    running_config: "{{ lookup('file', './fixtures/parsed.cfg') }}"
+    state: parsed
+
+- name: Assert that config was correctly parsed
+  ansible.builtin.assert:
+    that:
+      - "{{ merged['after']  == result['parsed'] }}"
+- ansible.builtin.debug:
+    msg:
+      END junos_logging_global parsed integration tests on connection={{ ansible_connection
+      }}

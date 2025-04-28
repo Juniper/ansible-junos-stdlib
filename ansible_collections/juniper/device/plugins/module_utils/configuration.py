@@ -33,12 +33,22 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-try:
-    from looseversion import LooseVersion
+#try:
+#    from looseversion import LooseVersion
 
-    HAS_LOOSE_VERSION = True
+#    HAS_LOOSE_VERSION = True
+#except ImportError:
+#    HAS_LOOSE_VERSION = False
+
+try:
+    from distutils.version import LooseVersion
 except ImportError:
-    HAS_LOOSE_VERSION = False
+    try:
+        from setuptools._distutils.version import LooseVersion
+    except ImportError:
+        LooseVersion = None
+
+HAS_LOOSE_VERSION = LooseVersion is not None
 # Non-standard library imports and checks
 try:
     from jnpr.junos.version import VERSION

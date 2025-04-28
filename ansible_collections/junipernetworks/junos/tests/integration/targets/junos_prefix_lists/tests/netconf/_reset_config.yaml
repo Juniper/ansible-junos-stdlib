@@ -1,0 +1,10 @@
+---
+- ansible.builtin.debug:
+    msg: "START junos_prefix_lists reset config on connection={{ ansible_connection }}"
+
+- name: Reset the prefix lists configuration
+  junipernetworks.junos.junos_config:
+    lines:
+      - delete policy-options
+- ansible.builtin.debug:
+    msg: "END junos_prefix_lists reset config on connection={{ ansible_connection }}"

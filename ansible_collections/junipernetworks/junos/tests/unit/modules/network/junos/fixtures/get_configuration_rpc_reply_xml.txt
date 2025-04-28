@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?><rpc-reply message-id="urn:uuid:72c481b8">
+        <configuration>
+                <version>20.3R2.9</version>
+                <system>
+                        <host-name>vsrx01</host-name>
+                        <domain-name>ansible.com</domain-name>
+                </system>
+        </configuration>
+</rpc-reply>

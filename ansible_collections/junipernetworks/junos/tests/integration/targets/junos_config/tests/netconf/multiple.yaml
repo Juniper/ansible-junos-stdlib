@@ -1,0 +1,43 @@
+---
+- ansible.builtin.debug: msg="START netconf/multiple.yaml on connection={{ ansible_connection }}"
+
+- name: setup
+  register: test
+  junipernetworks.junos.junos_config:
+    lines:
+      - set system host-name {{ inventory_hostname_short }}
+      - delete interfaces lo0
+
+- name: configure multiple commands
+  register: result
+  junipernetworks.junos.junos_config:
+    lines:
+      - set system host-name {{ inventory_hostname_short }}
+      - set interfaces lo0 unit 0 family inet address 192.0.2.1/32
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == true
+      - "'host-name;' not in result.diff.prepared"
+      - "'address 192.0.2.1/32' in result.diff.prepared"
+
+- name: check multiple commands idempotent
+  register: result
+  junipernetworks.junos.junos_config:
+    lines:
+      - set system host-name {{ inventory_hostname_short }}
+      - set interfaces lo0 unit 0 family inet address 192.0.2.1/32
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == false
+      - result.diff is not defined
+
+- name: teardown
+  register: test
+  junipernetworks.junos.junos_config:
+    lines:
+      - set system host-name {{ inventory_hostname_short }}
+      - delete interfaces lo0
+
+- ansible.builtin.debug: msg="END netconf/multiple.yaml on connection={{ ansible_connection }}"

@@ -1,0 +1,8 @@
+---
+- name: Populate config
+  junipernetworks.junos.junos_config:
+    lines:
+      - "set routing-options autonomous-system asdot-notation"
+      - "set routing-options autonomous-system loops 4"
+      - "set routing-options autonomous-system 2"
+      - "set routing-options router-id 12.12.12.12"

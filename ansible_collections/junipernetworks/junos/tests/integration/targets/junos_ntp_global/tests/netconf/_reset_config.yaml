@@ -1,0 +1,12 @@
+---
+- ansible.builtin.debug:
+    msg: "START junos_ntp_global reset config on connection={{ ansible_connection }}"
+
+- name: Reset the config releavent to ntp global resource
+  junipernetworks.junos.junos_config:
+    lines:
+      - delete system ntp
+      - delete routing-instances
+
+- ansible.builtin.debug:
+    msg: "END junos_ntp_global reset config on connection={{ ansible_connection }}"

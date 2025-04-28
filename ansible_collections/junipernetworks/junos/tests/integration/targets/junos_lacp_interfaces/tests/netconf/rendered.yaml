@@ -1,0 +1,33 @@
+---
+- ansible.builtin.debug:
+    msg: START junos_lacp_interfaces rendered integration tests on connection={{
+      ansible_connection }}
+
+- ansible.builtin.set_fact:
+    expected_rendered_output: '<nc:interfaces xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"><nc:interface><nc:name>ae1</nc:name><nc:aggregated-ether-options><nc:lacp><nc:periodic>fast</nc:periodic><nc:sync-reset>enable</nc:sync-reset><nc:system-id>00:00:00:00:00:02</nc:system-id><nc:system-priority>100</nc:system-priority></nc:lacp></nc:aggregated-ether-options></nc:interface><nc:interface><nc:name>ge-0/0/1</nc:name><nc:ether-options><nc:ieee-802.3ad><nc:lacp><nc:port-priority>100</nc:port-priority><nc:force-up/></nc:lacp></nc:ieee-802.3ad></nc:ether-options></nc:interface></nc:interfaces>'
+
+- name: Render platform specific commands from task input using rendered state
+  register: result
+  junipernetworks.junos.junos_lacp_interfaces:
+    config:
+      - name: ae1
+        period: fast
+        sync_reset: enable
+        system:
+          priority: 100
+          mac:
+            address: 00:00:00:00:00:02
+
+      - name: ge-0/0/1
+        port_priority: 100
+        force_up: true
+    state: rendered
+
+- name: Assert that correct set of commands were rendered
+  ansible.builtin.assert:
+    that:
+      - "{{ expected_rendered_output == result['rendered'] }}"
+
+- ansible.builtin.debug:
+    msg: END junos_lacp_interfaces rendered integration tests on connection={{
+      ansible_connection }}

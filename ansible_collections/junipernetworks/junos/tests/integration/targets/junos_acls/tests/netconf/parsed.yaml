@@ -1,0 +1,44 @@
+---
+- name: Debug task
+  ansible.builtin.debug:
+    msg:
+      START junos_acls parsed integration tests on connection={{ ansible_connection
+      }}
+
+- name: Set facts
+  ansible.builtin.set_fact:
+    expected_parsed_output:
+      - acls:
+          - aces:
+              - destination:
+                  address: "11.0.0.0/8"
+                  port_protocol:
+                    eq: "['who', 'radius']"
+                name: "1"
+                protocol: "['udp', 'vrrp']"
+                source:
+                  address: "10.0.0.0/8"
+              - destination:
+                  port_protocol:
+                    eq: "radius"
+                name: "2"
+            name: "from-cisco"
+        afi: ipv4
+
+- name: Parse externally provided acls config to agnostic model
+  register: result
+  junipernetworks.junos.junos_acls:
+    running_config: "{{ lookup('file', './fixtures/parsed.cfg') }}"
+    state: parsed
+
+- name: Assert that config was correctly parsed
+  ansible.builtin.assert:
+    that:
+      - "{{ expected_parsed_output | symmetric_difference(result['parsed']) |length ==\
+        \ 0 }}"
+
+- name: Debug task
+  ansible.builtin.debug:
+    msg:
+      END junos_acls parsed integration tests on connection={{ ansible_connection
+      }}

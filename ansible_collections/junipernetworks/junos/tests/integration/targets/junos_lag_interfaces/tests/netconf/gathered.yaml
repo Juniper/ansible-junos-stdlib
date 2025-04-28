@@ -1,0 +1,70 @@
+---
+- ansible.builtin.debug:
+    msg: START junos_lag_interfaces gathered integration tests on connection={{
+      ansible_connection }}
+
+- ansible.builtin.include_tasks: _remove_config.yaml
+
+- ansible.builtin.include_tasks: _base_config.yaml
+
+- ansible.builtin.set_fact:
+    expected_merged_output:
+      - name: ae1
+        members:
+          - member: ge-0/0/1
+            ether_option_type: "ether"
+          - member: ge-0/0/2
+            ether_option_type: "ether"
+        mode: active
+
+      - name: ae2
+        link_protection: true
+        members:
+          - member: ge-0/0/3
+            ether_option_type: "ether"
+            link_type: primary
+
+          - member: ge-0/0/4
+            ether_option_type: "ether"
+            link_type: backup
+        mode: passive
+
+- block:
+    - name: Merge the provided configuration with the exisiting running configuration
+      register: result
+      junipernetworks.junos.junos_lag_interfaces: &id001
+        config:
+          - name: ae1
+            members:
+              - member: ge-0/0/1
+              - member: ge-0/0/2
+            mode: active
+
+          - name: ae2
+            link_protection: true
+            members:
+              - member: ge-0/0/3
+                link_type: primary
+              - member: ge-0/0/4
+                link_type: backup
+            mode: passive
+        state: merged
+
+    - name: Gather lag interfaces facts using gathered state
+      register: result
+      junipernetworks.junos.junos_lag_interfaces:
+        state: gathered
+
+    - name: Assert that facts were correctly generated
+      ansible.builtin.assert:
+        that:
+          "{{ expected_merged_output | symmetric_difference(result['gathered']) |length\
+          \ == 0 }}"
+
+  always:
+    - ansible.builtin.include_tasks: _remove_config.yaml
+
+- ansible.builtin.debug:
+    msg:
+      END junos_lag_interfaces gathered integration tests on connection={{ ansible_connection
+      }}

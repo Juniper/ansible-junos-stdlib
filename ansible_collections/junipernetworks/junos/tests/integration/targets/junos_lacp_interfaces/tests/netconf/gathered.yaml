@@ -1,0 +1,59 @@
+---
+- ansible.builtin.debug:
+    msg: START junos_lacp_interfaces gathered integration tests on connection={{
+      ansible_connection }}
+
+- ansible.builtin.include_tasks: _remove_config.yaml
+
+- ansible.builtin.include_tasks: _base_config.yaml
+
+- ansible.builtin.set_fact:
+    expected_merged_output:
+      - name: ae1
+        period: fast
+        sync_reset: enable
+        system:
+          priority: 100
+          mac:
+            address: 00:00:00:00:00:02
+
+      - name: ge-0/0/1
+        port_priority: 100
+        force_up: true
+
+- block:
+    - name: Merge the provided configuration with the exisiting running configuration
+      register: result
+      junipernetworks.junos.junos_lacp_interfaces: &id001
+        config:
+          - name: ae1
+            period: fast
+            sync_reset: enable
+            system:
+              priority: 100
+              mac:
+                address: 00:00:00:00:00:02
+
+          - name: ge-0/0/1
+            port_priority: 100
+            force_up: true
+        state: merged
+
+    - name: Gather interfaces facts using gathered state
+      register: result
+      junipernetworks.junos.junos_lacp_interfaces:
+        state: gathered
+
+    - name: Assert that facts were correctly generated
+      ansible.builtin.assert:
+        that:
+          "{{ expected_merged_output | symmetric_difference(result['gathered']) |length\
+          \ == 0 }}"
+
+  always:
+    - ansible.builtin.include_tasks: _remove_config.yaml
+
+- ansible.builtin.debug:
+    msg:
+      END junos_lacp_interfaces gathered integration tests on connection={{ ansible_connection
+      }}

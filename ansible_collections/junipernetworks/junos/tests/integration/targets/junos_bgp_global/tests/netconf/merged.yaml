@@ -1,0 +1,129 @@
+---
+- name: Debug task
+  ansible.builtin.debug:
+    msg: "START junos_bgp_global merged integration tests on connection={{ ansible_connection }}"
+
+- block:
+    - name: Reset configuration
+      ansible.builtin.include_tasks: _reset_config.yaml
+
+    - name: Merge the provided configuration with the exisiting running configuration
+      junipernetworks.junos.junos_bgp_global: &merged
+        config:
+          as_number: "65534"
+          loops: 3
+          asdot_notation: true
+          accept_remote_nexthop: true
+          add_path_display_ipv4_address: true
+          advertise_from_main_vpn_tables: true
+          advertise_inactive: true
+          authentication_algorithm: "md5"
+          bgp_error_tolerance:
+            malformed_route_limit: 20000000
+          bmp:
+            monitor: true
+          damping: true
+          description: "This is configured with Junos_bgp resource module"
+          egress_te_sid_stats: true
+          hold_time: 5
+          holddown_all_stale_labels: true
+          include_mp_next_hop: true
+          log_updown: true
+          no_advertise_peer_as: true
+          no_aggregator_id: true
+          no_client_reflect: true
+          out_delay: 10
+          precision_timers: true
+          preference: "2"
+        state: merged
+      register: result
+
+    - name: Assert that before dicts were correctly generated
+      ansible.builtin.assert:
+        that: "{{ merged['before'] == result['before'] }}"
+
+    - name: Assert the configuration is reflected on host
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ merged['after'] == result['after'] }}"
+
+    - name: Merge the provided configuration with the existing running configuration (IDEMPOTENT)
+      junipernetworks.junos.junos_bgp_global: *merged
+      register: result
+
+    - name: Assert that the previous task was idempotent
+      ansible.builtin.assert:
+        that:
+          - result.changed == False
+
+    - name: Update the running configuration with providede configuration
+      junipernetworks.junos.junos_bgp_global:
+        config:
+          as_number: "65534"
+          loops: 2
+          asdot_notation: true
+          description: "This is updated with Junos_bgp resource module"
+          egress_te_backup_paths:
+            templates:
+              - path_name: "customer1"
+                peers:
+                  - "11.11.11.11"
+                  - "11.11.11.12"
+                  - "11.11.11.13"
+                remote_nexthop: "2.2.2.2"
+          groups:
+            - name: "internal"
+              type: "internal"
+              vpn_apply_export: true
+              out_delay: 30
+              accept_remote_nexthop: true
+              add_path_display_ipv4_address: true
+              peer_as: "65534"
+              allow:
+                - "all"
+                - "1.1.1.0/24"
+              neighbors:
+                - neighbor_address: "11.11.11.11"
+                  peer_as: "65534"
+                  out_delay: 11
+                - neighbor_address: "11.11.11.12"
+                  peer_as: "65534"
+                  out_delay: 12
+
+            - name: "external"
+              out_delay: 20
+              peer_as: "65534"
+              accept_remote_nexthop: true
+              add_path_display_ipv4_address: true
+              neighbors:
+                - neighbor_address: "12.12.12.12"
+                  peer_as: "65534"
+                  out_delay: 21
+                  accept_remote_nexthop: true
+                  add_path_display_ipv4_address: true
+                - neighbor_address: "11.11.11.13"
+                  peer_as: "65534"
+                  out_delay: 31
+                  accept_remote_nexthop: true
+                  add_path_display_ipv4_address: true
+      register: result
+
+    - name: Assert that before dicts were correctly generated
+      ansible.builtin.assert:
+        that: "{{ merged['after'] == result['before'] }}"
+
+    - name: Assert the configuration is reflected on host
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ merged['updated'] == result['after'] }}"
+
+  tags: merged
+  always:
+    - name: Reset configuration
+      ansible.builtin.include_tasks: _reset_config.yaml
+
+- name: Debug task
+  ansible.builtin.debug:
+    msg: "END junos_bgp_global merged integration tests on connection={{ ansible_connection }}"

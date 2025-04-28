@@ -1,0 +1,52 @@
+---
+- block:
+    - ansible.builtin.debug: msg="START connection={{ ansible_connection }} cli/caching.yaml"
+
+    - name: Remove description from interface
+      ignore_errors: true
+      junipernetworks.junos.junos_command: &rem
+        commands:
+          - configure
+          - delete interfaces ge-0/0/1 description
+          - commit
+          - exit
+
+    - name: Fetch configuration
+      ignore_errors: true
+      junipernetworks.junos.junos_command:
+        commands: show configuration interfaces ge-0/0/1
+      register: result
+
+    - ansible.builtin.assert:
+        that:
+          - '"description test-1;" not in result.stdout_lines'
+
+    - name: Fetch configuration again (from cache)
+      ignore_errors: true
+      junipernetworks.junos.junos_command:
+        commands: show configuration interfaces ge-0/0/1
+
+    - name: Configure description on interface
+      ignore_errors: true
+      junipernetworks.junos.junos_command:
+        commands:
+          - configure
+          - set interfaces ge-0/0/1 description test-1
+          - commit
+          - exit
+
+    - name: Fetch configuration from appliance
+      ignore_errors: true
+      junipernetworks.junos.junos_command:
+        commands: show configuration interfaces ge-0/0/1
+      register: result
+
+    - ansible.builtin.assert:
+        that:
+          - '"description test-1;" in result.stdout_lines[0]'
+
+  always:
+    - name: Remove description from interface
+      ignore_errors: true
+      junipernetworks.junos.junos_command: *rem
+  when: ansible_connection == "ansible.netcommon.network_cli" and ansible_network_single_user_mode|d(False)

@@ -1,0 +1,52 @@
+---
+- name: Debug task
+  ansible.builtin.debug:
+    msg:
+      START junos_bgp_global parsed integration tests on connection={{ ansible_connection
+      }}
+
+- name: Set facts
+  ansible.builtin.set_fact:
+    expected_parsed_output:
+      accept_remote_nexthop: true
+      add_path_display_ipv4_address: true
+      advertise_bgp_static:
+        policy: "static-to-bgp"
+      advertise_from_main_vpn_tables: true
+      advertise_inactive: true
+      as_number: "65432"
+      authentication_algorithm: "md5"
+      bmp:
+        monitor: true
+      damping: true
+      description: "This is configured with Junos_bgp resource module"
+      egress_te_sid_stats: true
+      hold_time: 5
+      holddown_all_stale_labels: true
+      include_mp_next_hop: true
+      log_updown: true
+      no_advertise_peer_as: true
+      no_aggregator_id: true
+      no_client_reflect: true
+      out_delay: 10
+      precision_timers: true
+      preference: "2"
+      remove_private:
+        set: true
+
+- name: Parse externally provided bgp_global config to agnostic model
+  register: result
+  junipernetworks.junos.junos_bgp_global:
+    running_config: "{{ lookup('file', './fixtures/parsed.cfg') }}"
+    state: parsed
+
+- name: Assert that config was correctly parsed
+  ansible.builtin.assert:
+    that:
+      - "{{ expected_parsed_output  == result['parsed'] }}"
+
+- name: Debug task
+  ansible.builtin.debug:
+    msg:
+      END junos_bgp_global parsed integration tests on connection={{ ansible_connection
+      }}

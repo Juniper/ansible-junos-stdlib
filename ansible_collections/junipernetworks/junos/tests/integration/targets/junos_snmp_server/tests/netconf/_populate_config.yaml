@@ -1,0 +1,23 @@
+---
+- name: Populate config
+  junipernetworks.junos.junos_config:
+    lines:
+      - "set snmp arp"
+      - "set snmp arp host-name-resolution"
+      - "set snmp client-list cl1"
+      - "set snmp client-list cl2"
+      - "set snmp client-list cl1 192.16.1.0/24"
+      - "set snmp client-list cl1 192.16.2.0/24"
+      - "set snmp client-list cl1 11.11.11.11 restrict"
+      - "set snmp client-list cl2 192.16.4.0/24"
+      - "set snmp community comm1"
+      - "set snmp community comm2"
+      - "set snmp community comm1 authorization read-write"
+      - "set snmp community comm1 client-list-name cl1"
+      - "set snmp community comm1 clients 24.0.0.0/32 restrict"
+      - "set snmp community comm1 clients 30.0.0.0/32 restrict"
+      - 'set routing-instances clv1 description "clv1"'
+      - 'set routing-instances clv2 description "clv2"'
+      - "set snmp routing-instance-access"
+      - "set snmp routing-instance-access access-list clv1"
+      - "set snmp routing-instance-access access-list clv2"

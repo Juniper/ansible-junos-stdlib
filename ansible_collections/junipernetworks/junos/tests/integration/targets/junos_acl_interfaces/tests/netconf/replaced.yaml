@@ -1,0 +1,51 @@
+---
+- name: Debug task
+  ansible.builtin.debug:
+    msg: "START junipernetworks.junos.junos_acl_interfaces replaced integration tests on connection={{ ansible_connection }}"
+
+- block:
+    - name: Reset configuration
+      ansible.builtin.include_tasks: _reset_config.yaml
+
+    - name: Initial configuration
+      ansible.builtin.include_tasks: _initial_config.yaml
+
+    - name: Set facts
+      ansible.builtin.set_fact:
+        config:
+          - name: ge-1/0/0
+            access_groups:
+              - afi: ipv4
+                acls:
+                  - name: initial_acl
+                    direction: in
+                  - name: second_acl
+                    direction: out
+                  - name: initial_acl
+                    direction: out
+
+    - name: Replace configuration of ACL
+      junipernetworks.junos.junos_acl_interfaces:
+        config:
+          - name: ge-1/0/0
+            access_groups:
+              - afi: ipv4
+                acls:
+                  - name: initial_acl
+                    direction: out
+        state: replaced
+      register: result
+
+    - name: Assert configuration
+      ansible.builtin.assert:
+        that:
+          - "{{ config|symmetric_difference(result.after) == [] }}"
+
+  tags: replaced
+  always:
+    - name: Reset configuration
+      ansible.builtin.include_tasks: _reset_config.yaml
+
+- name: Debug task
+  ansible.builtin.debug:
+    msg: "END junipernetworks.junos.junos_acl_interfaces replaced integration tests on connection={{ ansible_connection }}"

@@ -1,0 +1,10 @@
+---
+- name: Gather Operation Playbook
+  hosts: junos
+  gather_facts: false
+  collections:
+    - junipernetworks.junos
+  tasks:
+    - name: Gather interfaces running facts
+      junos_interfaces:
+        state: gathered

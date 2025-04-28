@@ -1,0 +1,58 @@
+---
+- name: Debug
+  ansible.builtin.debug:
+    msg: "START junipernetworks.junos.junos_acl_interfaces merged integration tests on connection={{ ansible_connection }}"
+
+- block:
+    - name: Reset configuration
+      ansible.builtin.include_tasks: _reset_config.yaml
+
+    - name: Set facts
+      ansible.builtin.set_fact:
+        config:
+          - name: ge-1/0/0
+            access_groups:
+              - afi: ipv4
+                acls:
+                  - name: second_acl
+                    direction: in
+                  - name: initial_acl
+                    direction: out
+
+    - name: Merge the provided configuration with the exisiting running configuration
+      junipernetworks.junos.junos_acl_interfaces: &merged
+        config:
+          - name: ge-1/0/0
+            access_groups:
+              - afi: ipv4
+                acls:
+                  - name: second_acl
+                    direction: in
+                  - name: initial_acl
+                    direction: out
+        state: merged
+      register: result
+
+    - name: Assert the configuration is reflected on host
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ config|symmetric_difference(result.after) == [] }}"
+
+    - name: Merge the provided configuration with the existing running configuration (IDEMPOTENT)
+      junipernetworks.junos.junos_acl_interfaces: *merged
+      register: result
+
+    - name: Assert that the previous task was idempotent
+      ansible.builtin.assert:
+        that:
+          - result.changed == False
+
+  tags: merged
+  always:
+    - name: Reset configuration
+      ansible.builtin.include_tasks: _reset_config.yaml
+
+- name: Debug task
+  ansible.builtin.debug:
+    msg: "END junipernetworks.junos.junos_acl_interfaces merged integration tests on connection={{ ansible_connection }}"
