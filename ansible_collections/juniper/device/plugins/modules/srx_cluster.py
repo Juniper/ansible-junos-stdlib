@@ -93,7 +93,7 @@ EXAMPLES = """
 - name: Manipulate the SRX cluster configuration of Junos SRX devices
   hosts: junos-all
   connection: local
-  gather_facts: no
+  gather_facts: false
   tasks:
     - name: Enable an SRX cluster
       juniper.device.srx_cluster:

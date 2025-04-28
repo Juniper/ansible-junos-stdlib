@@ -1,137 +1,137 @@
 ---
-    - name: TEST 1 - Execute single "show version" command.
-      juniper.device.command:
-        commands: "show version"
-      register: test1
+- name: TEST 1 - Execute single "show version" command.
+  juniper.device.command:
+    commands: "show version"
+  register: test1
 
-    - name: Check TEST 1
-      ansible.builtin.assert:
-        that:
-          test1.msg == "The command executed successfully."
+- name: Check TEST 1
+  ansible.builtin.assert:
+    that:
+      - test1.msg == "The command executed successfully."
 
-    - name: Creates directory
-      ansible.builtin.file:
-        path: out
-        state: directory
-        mode: '0644'
+- name: Creates directory
+  ansible.builtin.file:
+    path: out
+    state: directory
+    mode: '0644'
 
-    - name: TEST 2 - Execute three commands.
-      juniper.device.command:
-        commands:
-          - "show version"
-          - "show system uptime"
-          - "show interface terse"
-      register: test2
+- name: TEST 2 - Execute three commands.
+  juniper.device.command:
+    commands:
+      - "show version"
+      - "show system uptime"
+      - "show interface terse"
+  register: test2
 
-    - name: Check TEST 2
-      ansible.builtin.assert:
-        that:
-          - test2.results[0].command == "show version"
-          - test2.results[0].msg == "The command executed successfully."
-          - test2.results[1].command == "show system uptime"
-          - test2.results[1].msg == "The command executed successfully."
-          - test2.results[2].command == "show interface terse"
-          - test2.results[2].msg == "The command executed successfully."
+- name: Check TEST 2
+  ansible.builtin.assert:
+    that:
+      - test2.results[0].command == "show version"
+      - test2.results[0].msg == "The command executed successfully."
+      - test2.results[1].command == "show system uptime"
+      - test2.results[1].msg == "The command executed successfully."
+      - test2.results[2].command == "show interface terse"
+      - test2.results[2].msg == "The command executed successfully."
 
-    - name: Print the command output of each.
-      ansible.builtin.debug:
-        var: item.stdout
-      with_items: "{{ test2.results }}"
+- name: Print the command output of each.
+  ansible.builtin.debug:
+    var: item.stdout
+  with_items: "{{ test2.results }}"
 
-    - name: TEST 3 - Two commands with XML output.
-      juniper.device.command:
-        commands:
-          - "show route"
-          - "show version"
-        format: xml
-      register: test3
+- name: TEST 3 - Two commands with XML output.
+  juniper.device.command:
+    commands:
+      - "show route"
+      - "show version"
+    format: xml
+  register: test3
 
-    - name: Check TEST 3
-      ansible.builtin.assert:
-        that:
-          - test3.results[0].command == "show route"
-          - test3.results[0].msg == "The command executed successfully."
-          - test3.results[1].command == "show version"
-          - test3.results[1].msg == "The command executed successfully."
+- name: Check TEST 3
+  ansible.builtin.assert:
+    that:
+      - test3.results[0].command == "show route"
+      - test3.results[0].msg == "The command executed successfully."
+      - test3.results[1].command == "show version"
+      - test3.results[1].msg == "The command executed successfully."
 
-    - name: TEST 4 - show route with XML output - show version with JSON output
-      juniper.device.command:
-        commands:
-          - "show route"
-          - "show version"
-        formats:
-          - "xml"
-          - "json"
-      register: test4
+- name: TEST 4 - show route with XML output - show version with JSON output
+  juniper.device.command:
+    commands:
+      - "show route"
+      - "show version"
+    formats:
+      - "xml"
+      - "json"
+  register: test4
 
-    - name: Check TEST 4
-      ansible.builtin.assert:
-        that:
-          - test4.results[0].command == "show route"
-          - test4.results[0].msg == "The command executed successfully."
-          - test4.results[1].command == "show version"
-          - test4.results[1].msg == "The command executed successfully."
+- name: Check TEST 4
+  ansible.builtin.assert:
+    that:
+      - test4.results[0].command == "show route"
+      - test4.results[0].msg == "The command executed successfully."
+      - test4.results[1].command == "show version"
+      - test4.results[1].msg == "The command executed successfully."
 
-    - name: TEST 5 - save outputs in dest_dir
-      juniper.device.command:
-        commands:
-          - "show route"
-          - "show version"
-        dest_dir: "./out"
-      register: test5
+- name: TEST 5 - save outputs in dest_dir
+  juniper.device.command:
+    commands:
+      - "show route"
+      - "show version"
+    dest_dir: "./out"
+  register: test5
 
-    - name: Check TEST 5
-      ansible.builtin.assert:
-        that:
-          - test5.results[0].command == "show route"
-          - test5.results[0].msg == "The command executed successfully."
-          - test5.results[1].command == "show version"
-          - test5.results[1].msg == "The command executed successfully."
+- name: Check TEST 5
+  ansible.builtin.assert:
+    that:
+      - test5.results[0].command == "show route"
+      - test5.results[0].msg == "The command executed successfully."
+      - test5.results[1].command == "show version"
+      - test5.results[1].msg == "The command executed successfully."
 
-    - name: TEST 6 - save output to dest
-      juniper.device.command:
-        command: "show system uptime"
-        dest: "./out/{{ inventory_hostname }}.uptime.output"
-      register: test6
+- name: TEST 6 - save output to dest
+  juniper.device.command:
+    command: "show system uptime"
+    dest: "./out/{{ inventory_hostname }}.uptime.output"
+  register: test6
 
-    - name: Check TEST 6
-      ansible.builtin.assert:
-        that:
-          - test6.command == "show system uptime"
-          - test6.msg == "The command executed successfully."
+- name: Check TEST 6
+  ansible.builtin.assert:
+    that:
+      - test6.command == "show system uptime"
+      - test6.msg == "The command executed successfully."
 
-    - name: TEST 7 - save output to dest
-      juniper.device.command:
-        command:
-          - "show route"
-          - "show version"
-        dest: "./out/{{ inventory_hostname }}.commands.output"
-      register: test7
+- name: TEST 7 - save output to dest
+  juniper.device.command:
+    command:
+      - "show route"
+      - "show version"
+    dest: "./out/{{ inventory_hostname }}.commands.output"
+  register: test7
 
-    - name: Check TEST 7
-      ansible.builtin.assert:
-        that:
-          - test7.results[0].command == "show route"
-          - test7.results[0].msg == "The command executed successfully."
-          - test7.results[1].command == "show version"
-          - test7.results[1].msg == "The command executed successfully."
+- name: Check TEST 7
+  ansible.builtin.assert:
+    that:
+      - test7.results[0].command == "show route"
+      - test7.results[0].msg == "The command executed successfully."
+      - test7.results[1].command == "show version"
+      - test7.results[1].msg == "The command executed successfully."
 
-    - name: TEST 8 - Multiple commands, save outputs, but don't return them
-      juniper.device.command:
-        commands:
-          - "show route"
-          - "show version"
-        formats:
-          - "xml"
-          - "json"
-        dest_dir: "./out/"
-        return_output: false
-      register: test8
+- name: TEST 8 - Multiple commands, save outputs, but don't return them
+  juniper.device.command:
+    commands:
+      - "show route"
+      - "show version"
+    formats:
+      - "xml"
+      - "json"
+    dest_dir: "./out/"
+    return_output: false
+  register: test8
 
-    - name: Check TEST 8
-      ansible.builtin.assert:
-        that:
-          - test8.results[0].command == "show route"
-          - test8.results[0].msg == "The command executed successfully."
-          - test8.results[1].command == "show version"
-          - test8.results[1].msg == "The command executed successfully."
+- name: Check TEST 8
+  ansible.builtin.assert:
+    that:
+      - test8.results[0].command == "show route"
+      - test8.results[0].msg == "The command executed successfully."
+      - test8.results[1].command == "show version"
+      - test8.results[1].msg == "The command executed successfully."

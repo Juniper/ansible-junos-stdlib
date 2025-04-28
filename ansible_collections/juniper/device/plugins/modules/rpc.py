@@ -209,7 +209,7 @@ EXAMPLES = """
     - name: "Execute RPC with filters"
       juniper.device.rpc:
         rpcs:
-           - "get-config"
+          - "get-config"
         format: xml
         filter: <configuration><groups><name>re0</name></groups></configuration>
         attr: name=re0
@@ -255,10 +255,11 @@ EXAMPLES = """
         rpc: get-interface-information
         kwargs:
           interface_name: em1
-          media: True
+          media: true
         format: json
         dest: get_interface_information.conf
-      register: junos"""
+      register: junos
+"""
 
 RETURN = """
 attrs:

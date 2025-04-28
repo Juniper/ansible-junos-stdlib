@@ -1,55 +1,48 @@
 ---
-    - name: "TEST 1 - Ping Host DNS"
-      juniper.device.ping:
-        dest_ip: "{{ ansible_ssh_host }}"
-      register: test1
-      ignore_errors: true
+- name: TEST 1 - Ping Host DNS
+  juniper.device.ping:
+    dest_ip: "{{ ansible_ssh_host }}"
+  register: test1
+  ignore_errors: true
 
-    - name: Check TEST 1
-      ansible.builtin.assert:
-        that:
-          - test1.packet_loss == '0'
+- name: Check TEST 1
+  ansible.builtin.assert:
+    that:
+      - test1.packet_loss == '0'
 
-############
+- name: TEST 2 - Ping Wrong IP
+  juniper.device.ping:
+    dest_ip: 8.8.1.1
+  register: test2
+  ignore_errors: true
 
-    - name: "TEST 2 - Ping Wrong IP"
-      juniper.device.ping:
-        dest_ip: 8.8.1.1
-      register: test2
-      ignore_errors: true
+- name: Check TEST 2
+  ansible.builtin.assert:
+    that:
+      - test2.packet_loss == '100'
 
-    - name: Check TEST 2
-      ansible.builtin.assert:
-        that:
-          - test2.packet_loss == '100'
-#################
+- name: TEST 3 - Ping with 3 packets
+  juniper.device.ping:
+    dest_ip: "{{ ansible_ssh_host }}"
+    count: 3
+  register: test3
+  ignore_errors: true
 
-    - name: "TEST 3 - Change nbr packets"
-      juniper.device.ping:
-        dest_ip: "{{ ansible_ssh_host }}"
-        count: 3
-      register: test3
-      ignore_errors: true
+- name: Check TEST 3
+  ansible.builtin.assert:
+    that:
+      - test3.packets_sent == '3'
 
-    - name: Check TEST 3
-      ansible.builtin.assert:
-        that:
-          - test3.packets_sent == '3'
+- name: TEST 4 - Ping with DF-bit set
+  juniper.device.ping:
+    dest_ip: "{{ ansible_ssh_host }}"
+    count: 3
+    do_not_fragment: true
+    size: 64
+  register: test4
+  ignore_errors: true
 
-#################
-
-    - name: "TEST 4 - Ping with DF-bit set"
-      juniper.device.ping:
-        dest_ip: "{{ ansible_ssh_host }}"
-        count: 3
-        do_not_fragment: true
-        size: 64
-      register: test4
-      ignore_errors: true
-
-    - name: Check TEST 4
-      ansible.builtin.assert:
-        that:
-          - test4.packets_received == '3'
-
-#################
+- name: Check TEST 4
+  ansible.builtin.assert:
+    that:
+      - test4.packets_received == '3'

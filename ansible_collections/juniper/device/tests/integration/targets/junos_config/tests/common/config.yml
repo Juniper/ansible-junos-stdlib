@@ -1,155 +1,149 @@
----
-################
-    - name: Retrieve the committed configuration
-      juniper.device.config:
-        retrieve: 'committed'
-        diff: false
-        check: false
-        commit: false
-      register: test1
-      ignore_errors: true
-      tags: [test1]
+- name: Retrieve the committed configuration
+  juniper.device.config:
+    retrieve: 'committed'
+    diff: false
+    check: false
+    commit: false
+  register: test1
+  ignore_errors: true
+  tags: [test1]
 
-    - name: Check TEST 1
-      ansible.builtin.assert:
-        that:
-          - test1.config
-################
-    - name: Append .foo to the hostname using private config mode.
-      juniper.device.config:
-        config_mode: 'private'
-        load: 'merge'
-        lines:
-          - "set system host-name {{ inventory_hostname }}.foo"
-        comment: "Append .foo to the hostname"
-      register: test2
-      ignore_errors: true
-      tags: [test2]
+- name: Check TEST 1
+  ansible.builtin.assert:
+    that: test1.config
 
-    - name: Check TEST 2
-      ansible.builtin.assert:
-        that:
-          - test2.failed == False
-################
-    - name: Rollback to the previous config.
-      juniper.device.config:
-        config_mode: 'private'
-        rollback: 1
-      register: test3
-      ignore_errors: true
-      tags: [test3]
+- name: Append .foo to the hostname using private config mode.
+  juniper.device.config:
+    config_mode: 'private'
+    load: 'merge'
+    lines:
+      - "set system host-name {{ inventory_hostname }}.foo"
+    comment: "Append .foo to the hostname"
+  register: test2
+  ignore_errors: true
+  tags: [test2]
 
-    - name: Check TEST 3
-      ansible.builtin.assert:
-        that:
-          - test3.failed == False
-#################
-    - name: Save rescue configuration
-      juniper.device.command:
-        commands: "request system configuration rescue save"
-        formats:
-          - "xml"
+- name: Check TEST 2
+  ansible.builtin.assert:
+    that:
+      - test2.failed == False
 
-    - name: Configure syslog configuration
-      juniper.device.config:
-        load: 'merge'
-        lines:
-          - "set system syslog file TEST any any"
-        comment: "Configured system services"
+- name: Rollback to the previous config.
+  juniper.device.config:
+    config_mode: 'private'
+    rollback: 1
+  register: test3
+  ignore_errors: true
+  tags: [test3]
 
-    - name: Rollback to the rescue config.
-      juniper.device.config:
-        rollback: 'rescue'
-      register: test4
-    - name: Check TEST 4
-      ansible.builtin.assert:
-        that:
-          - test4.failed == False
-    - name: Clean up TEST 4
-      ansible.builtin.file:
-        path: out
-        state: absent
-###############
-    - name: Configure system services.
-      juniper.device.config:
-        config_mode: 'private'
-        load: 'merge'
-        lines:
-          - "set system services netconf ssh"
-        comment: "Configured system services"
+- name: Check TEST 3
+  ansible.builtin.assert:
+    that:
+      - test3.failed == False
 
-    - name: Retrieve [edit system services] of current committed config.
-      juniper.device.config:
-        retrieve: 'committed'
-        filter: 'system/services'
-        diff: true
-        check: false
-        commit: false
-      register: test5
-      ignore_errors: true
-      tags: [test5]
+- name: Save rescue configuration
+  juniper.device.command:
+    commands: "request system configuration rescue save"
+    formats:
+      - "xml"
 
-    - name: Check TEST 5
-      ansible.builtin.assert:
-        that:
-          - test5.failed == False
-          - "'system {' in test5.config_lines"
-#################
+- name: Configure syslog configuration
+  juniper.device.config:
+    load: 'merge'
+    lines:
+      - "set system syslog file TEST any any"
+    comment: "Configured system services"
 
-    - name: Confirm the previous commit with a commit check (but no commit)
-      juniper.device.config:
-        check: true
-        diff: false
-        commit: false
-      register: test6
+- name: Rollback to the rescue config.
+  juniper.device.config:
+    rollback: 'rescue'
+  register: test4
 
-    - name: Check TEST 6
-      ansible.builtin.assert:
-        that:
-          test6.changed == False
+- name: Check TEST 4
+  ansible.builtin.assert:
+    that:
+      - test4.failed == False
 
-#################
+- name: Clean up TEST 4
+  ansible.builtin.file:
+    path: out
+    state: absent
 
-    - name: Confirm the commit with a commit sync
-      juniper.device.config:
-        check: true
-        diff: false
-        comment: "Juniper Networks"
-        commit_sync: true
-      register: test7
+- name: Configure system services.
+  juniper.device.config:
+    config_mode: 'private'
+    load: 'merge'
+    lines:
+      - "set system services netconf ssh"
+    comment: "Configured system services"
 
-    - name: Check TEST 7
-      ansible.builtin.assert:
-        that:
-          - test7.changed == False
+- name: Retrieve [edit system services] of current committed config.
+  juniper.device.config:
+    retrieve: 'committed'
+    filter: 'system/services'
+    diff: true
+    check: false
+    commit: false
+  register: test5
+  ignore_errors: true
+  tags: [test5]
 
-#################
+- name: Check TEST 5
+  ansible.builtin.assert:
+    that:
+      - test5.failed == False
+      - "'system {' in test5.config_lines"
 
-    - name: Confirm the commit with a commit sync force
-      juniper.device.config:
-        check: true
-        diff: false
-        comment: "Juniper Networks"
-        commit_force_sync: true
-      register: test8
+- name: Confirm the previous commit with a commit check (but no commit)
+  juniper.device.config:
+    check: true
+    diff: false
+    commit: false
+  register: test6
 
-    - name: Check TEST 8
-      ansible.builtin.assert:
-        that:
-          test8.changed == False
-################
-    - name: Test commit timeout .
-      juniper.device.config:
-        load: 'merge'
-        lines:
-          - "set system host-name {{ inventory_hostname }}.foo"
-        comment: "Append .foo to the hostname"
-        timeout: 300
-      register: test9
-      ignore_errors: true
-      tags: [test9]
+- name: Check TEST 6
+  ansible.builtin.assert:
+    that:
+      test6.changed == False
 
-    - name: Check TEST 2
-      ansible.builtin.assert:
-        that:
-          - test9.failed == False
+- name: Confirm the commit with a commit sync
+  juniper.device.config:
+    check: true
+    diff: false
+    comment: "Juniper Networks"
+    commit_sync: true
+  register: test7
+
+- name: Check TEST 7
+  ansible.builtin.assert:
+    that:
+      - test7.changed == False
+
+- name: Confirm the commit with a commit sync force
+  juniper.device.config:
+    check: true
+    diff: false
+    comment: "Juniper Networks"
+    commit_force_sync: true
+  register: test8
+
+- name: Check TEST 8
+  ansible.builtin.assert:
+    that:
+      test8.changed == False
+
+- name: Test commit timeout
+  juniper.device.config:
+    load: 'merge'
+    lines:
+      - "set system host-name {{ inventory_hostname }}.foo"
+    comment: "Append .foo to the hostname"
+    timeout: 300
+  register: test9
+  ignore_errors: true
+  tags: [test9]
+
+- name: Check TEST 9
+  ansible.builtin.assert:
+    that:
+      - test9.failed == False

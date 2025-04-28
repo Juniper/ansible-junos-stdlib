@@ -181,7 +181,7 @@ EXAMPLES = """
         var: item.stdout
       with_items: "{{ response.results }}"
 
-    - name: show route with XML output - show version with JSON output
+    - name: Show route with XML output - show version with JSON output
       juniper.device.command:
         commands:
           - "show route"
@@ -200,7 +200,7 @@ EXAMPLES = """
         dest_dir: "../Output"
         return_output: false
 
-    - name: save output to dest
+    - name: Save output to dest
       juniper.device.command:
         command:
           - "show route"

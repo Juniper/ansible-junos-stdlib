@@ -1,23 +1,24 @@
 ---
-    - name: "TEST 1 - Check path MTU to host DNS"
-      juniper.device.pmtud:
-        dest_ip: "{{ ansible_ssh_host }}"
-      register: test1
-      ignore_errors: true
+- name: TEST 1 - Check path MTU to host DNS
+  juniper.device.pmtud:
+    dest_ip: "{{ ansible_ssh_host }}"
+  register: test1
+  ignore_errors: true
 
-    - name: Check TEST 1
-      ansible.builtin.assert:
-        that:
-          - 768 <= test1.inet_mtu <= 1500
+- name: Assert TEST 1 - MTU is in valid range
+  ansible.builtin.assert:
+    that:
+      - test1.inet_mtu >= 768
+      - test1.inet_mtu <= 1500
 
-    - name: "TEST 2 - Configure and check inet.mtu to host DNS"
-      juniper.device.pmtud:
-        dest_ip: "{{ ansible_ssh_host }}"
-        max_size: 700
-      register: test1
-      ignore_errors: true
+- name: TEST 2 - Configure and check inet.mtu to host DNS
+  juniper.device.pmtud:
+    dest_ip: "{{ ansible_ssh_host }}"
+    max_size: 700
+  register: test2
+  ignore_errors: true
 
-    - name: Check TEST 2
-      ansible.builtin.assert:
-        that:
-          - test1.inet_mtu <= 700
+- name: Assert TEST 2 - MTU respects max_size
+  ansible.builtin.assert:
+    that:
+      - test2.inet_mtu <= 700
