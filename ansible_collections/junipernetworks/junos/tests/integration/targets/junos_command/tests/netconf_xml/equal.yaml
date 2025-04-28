@@ -1,0 +1,40 @@
+---
+- name: Debug task
+  ansible.builtin.debug: msg="START netconf_xml/equal.yaml on connection={{ ansible_connection }}"
+
+- name: Run test == operator with xml encoding
+  register: result
+  junipernetworks.junos.junos_command:
+    commands:
+      - show version
+      - show interfaces lo0
+    wait_for:
+      - result[1].rpc-reply.interface-information.physical-interface.name == lo0
+    format: xml
+
+- name: Assertion
+  ansible.builtin.assert:
+    that:
+      - result.changed == false
+      - result.stdout is defined
+      - result.stdout_lines is defined
+
+- name: Test eq operator with json encoding
+  register: result
+  junipernetworks.junos.junos_command:
+    commands:
+      - show version
+      - show interfaces lo0
+    wait_for:
+      - result[1].rpc-reply.interface-information.physical-interface.name eq lo0
+    format: xml
+
+- name: Assertion
+  ansible.builtin.assert:
+    that:
+      - result.changed == false
+      - result.stdout is defined
+      - result.stdout_lines is defined
+
+- name: Debug task
+  ansible.builtin.debug: msg="END netconf_xml/equal.yaml on connection={{ ansible_connection }}"

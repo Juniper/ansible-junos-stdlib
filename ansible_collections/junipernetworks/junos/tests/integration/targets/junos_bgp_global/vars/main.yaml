@@ -1,0 +1,119 @@
+---
+merged:
+  before: {}
+
+  after:
+    accept_remote_nexthop: true
+    add_path_display_ipv4_address: true
+    advertise_from_main_vpn_tables: true
+    advertise_inactive: true
+    as_number: "65534"
+    asdot_notation: true
+    authentication_algorithm: "md5"
+    bgp_error_tolerance:
+      malformed_route_limit: 20000000
+    bmp:
+      monitor: true
+    damping: true
+    description: "This is configured with Junos_bgp resource module"
+    egress_te_sid_stats: true
+    hold_time: 5
+    holddown_all_stale_labels: true
+    include_mp_next_hop: true
+    log_updown: true
+    loops: 3
+    no_advertise_peer_as: true
+    no_aggregator_id: true
+    no_client_reflect: true
+    out_delay: 10
+    precision_timers: true
+    preference: "2"
+
+  updated:
+    accept_remote_nexthop: true
+    add_path_display_ipv4_address: true
+    advertise_from_main_vpn_tables: true
+    advertise_inactive: true
+    as_number: "65534"
+    asdot_notation: true
+    authentication_algorithm: "md5"
+    bgp_error_tolerance:
+      malformed_route_limit: 20000000
+    bmp:
+      monitor: true
+    damping: true
+    description: "This is updated with Junos_bgp resource module"
+    egress_te_backup_paths:
+      templates:
+        - path_name: "customer1"
+          peers:
+            - "11.11.11.11"
+            - "11.11.11.12"
+            - "11.11.11.13"
+          remote_nexthop: "2.2.2.2"
+    egress_te_sid_stats: true
+    groups:
+      - accept_remote_nexthop: true
+        add_path_display_ipv4_address: true
+        allow:
+          - "0.0.0.0/0"
+          - "1.1.1.0/24"
+        name: "internal"
+        neighbors:
+          - neighbor_address: "11.11.11.11"
+            out_delay: 11
+            peer_as: "65534"
+          - neighbor_address: "11.11.11.12"
+            out_delay: 12
+            peer_as: "65534"
+        out_delay: 30
+        peer_as: "65534"
+        type: "internal"
+        vpn_apply_export: true
+
+      - accept_remote_nexthop: true
+        add_path_display_ipv4_address: true
+        name: "external"
+        neighbors:
+          - accept_remote_nexthop: true
+            add_path_display_ipv4_address: true
+            neighbor_address: "12.12.12.12"
+            out_delay: 21
+            peer_as: "65534"
+
+          - accept_remote_nexthop: true
+            add_path_display_ipv4_address: true
+            neighbor_address: "11.11.11.13"
+            out_delay: 31
+            peer_as: "65534"
+        out_delay: 20
+        peer_as: "65534"
+    hold_time: 5
+    holddown_all_stale_labels: true
+    include_mp_next_hop: true
+    log_updown: true
+    loops: 2
+    no_advertise_peer_as: true
+    no_aggregator_id: true
+    no_client_reflect: true
+    out_delay: 10
+    precision_timers: true
+    preference: "2"
+
+replaced:
+  after:
+    bgp_error_tolerance:
+      malformed_route_limit: 20000000
+    bmp:
+      monitor: true
+    damping: true
+    description: "This is configured with Junos_bgp resource module"
+
+overridden:
+  after:
+    bgp_error_tolerance:
+      malformed_route_limit: 20000000
+    bmp:
+      monitor: true
+    damping: true
+    description: "This is configured with Junos_bgp resource module"

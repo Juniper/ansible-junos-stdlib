@@ -1,0 +1,24 @@
+---
+- ansible.builtin.debug:
+    msg: START junos_lacp rendered integration tests on connection={{
+      ansible_connection }}
+
+- ansible.builtin.set_fact:
+    expected_rendered_output: '<nc:chassis xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"><nc:aggregated-devices><nc:ethernet><nc:lacp><nc:system-priority>63</nc:system-priority><nc:link-protection><nc:non-revertive delete="delete"/></nc:link-protection></nc:lacp></nc:ethernet></nc:aggregated-devices></nc:chassis>'
+
+- name: Render platform specific commands from task input using rendered state
+  register: result
+  junipernetworks.junos.junos_lacp:
+    config:
+      system_priority: 63
+      link_protection: revertive
+    state: rendered
+
+- name: Assert that correct set of commands were rendered
+  ansible.builtin.assert:
+    that:
+      - "{{ expected_rendered_output == result['rendered'] }}"
+
+- ansible.builtin.debug:
+    msg: END junos_lacp rendered integration tests on connection={{
+      ansible_connection }}

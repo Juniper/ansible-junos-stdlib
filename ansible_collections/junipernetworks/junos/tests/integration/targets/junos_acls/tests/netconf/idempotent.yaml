@@ -1,0 +1,79 @@
+---
+- ansible.builtin.debug:
+    msg: "START junos_acls idempotence integration tests on connection={{ ansible_connection }}"
+
+- block:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+    - ansible.builtin.set_fact:
+        config:
+          - acls:
+              - aces:
+                  - name: ten_dot
+                    source:
+                      address: 10.0.0.0/8
+                      port_protocol:
+                        eq: bgp
+                    protocol: tcp
+                  - name: eleven_dot
+                    source:
+                      address: 11.0.0.0/8
+                      port_protocol:
+                        eq: bgp
+                    protocol: tcp
+                name: initial_acl
+              - aces:
+                  - name: twelve_dot
+                    source:
+                      address: 12.0.0.0/8
+                      port_protocol:
+                        eq: bgp
+                    protocol: tcp
+                name: second_acl
+              - aces:
+                  - name: thirteen_dot
+                    source:
+                      address:
+                        - 13.0.0.0/16
+                        - 13.1.0.0/16
+                      port_protocol:
+                        eq: bgp
+                    protocol: tcp
+                name: third_acl
+            afi: ipv4
+          - acls:
+              - aces:
+                  - name: colon_eleven
+                    source:
+                      address: ::11/128
+                      port_protocol:
+                        eq: 631
+                name: initial_acl6
+            afi: ipv6
+
+    - name: Test equivalence
+      junipernetworks.junos.junos_acls:
+        config: "{{ config }}"
+        state: merged
+      register: result
+
+    - ansible.builtin.assert:
+        that:
+          - result.changed == False
+
+    - name: Test idempotence
+      junipernetworks.junos.junos_acls:
+        config: "{{ config }}"
+        state: overridden
+      register: result
+
+    - ansible.builtin.assert:
+        that:
+          - result.changed == False
+
+  tags: idempotence
+  always:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+- ansible.builtin.debug:
+    msg: "END junos_acls idempotence integration tests on connection={{ ansible_connection }}"

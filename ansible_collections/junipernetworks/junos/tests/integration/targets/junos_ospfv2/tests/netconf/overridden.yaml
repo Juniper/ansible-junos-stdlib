@@ -1,0 +1,64 @@
+---
+- ansible.builtin.debug:
+    msg: "START junos_ospfv2 overridden integration tests on connection={{ ansible_connection }}"
+
+- block:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+    - ansible.builtin.include_tasks: _initial_config.yaml
+
+    - ansible.builtin.set_fact:
+        config:
+          - router_id: 10.200.16.75
+            areas:
+              - area_id: 0.0.0.100
+                stub:
+                  default_metric: 200
+                  set: true
+                interfaces:
+                  - name: so-0/0/0.0
+                    priority: 3
+                    metric: 5
+                    flood_reduction: true
+                    passive: true
+              - area_id: 0.0.0.200
+                interfaces:
+                  - name: ge-1/1/0.0
+                  - name: ge-2/2/0.0
+
+    - name: Override Junos OSPF config
+      junipernetworks.junos.junos_ospfv2:
+        config:
+          - router_id: 10.200.16.75
+            areas:
+              - area_id: 0.0.0.100
+                stub:
+                  default_metric: 200
+                  set: true
+                interfaces:
+                  - name: so-0/0/0.0
+                    priority: 3
+                    metric: 5
+                    flood_reduction: true
+                    passive: true
+              - area_id: 0.0.0.200
+                interfaces:
+                  - name: ge-1/1/0.0
+                  - name: ge-2/2/0.0
+        state: overridden
+      register: result
+
+    - name: Assert changed
+      ansible.builtin.assert: &changed
+        that:
+          - result.changed == True
+          - "{{ config|symmetric_difference(result.after) == [] }}"
+
+    - name: Assert changed
+      ansible.builtin.assert: *changed
+
+  tags: overridden
+  always:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+- ansible.builtin.debug:
+    msg: "END junos_ospfv2 overridden integration tests on connection={{ ansible_connection }}"

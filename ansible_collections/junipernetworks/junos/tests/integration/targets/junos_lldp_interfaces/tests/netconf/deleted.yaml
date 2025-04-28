@@ -1,0 +1,95 @@
+---
+- ansible.builtin.debug:
+    msg: START junos_lldp_interfaces deleted integration tests on connection={{
+      ansible_connection }}
+
+- name: get supported protocols
+  register: result
+  ignore_errors: true
+  junipernetworks.junos.junos_command:
+    commands: show lldp
+
+- name: lldp supported
+  ansible.builtin.set_fact:
+    lldp_supported: true
+  when: not result.failed
+
+- name: lldp not supported
+  ansible.builtin.set_fact:
+    lldp_supported: false
+  when: result.failed
+
+- block:
+    - ansible.builtin.include_tasks: _remove_config.yaml
+
+    - ansible.builtin.set_fact:
+        expected_deleted_output:
+          - name: ge-0/0/1
+
+    - name: Configure initial state for lldp interfaces
+      register: result
+      junipernetworks.junos.junos_lldp_interfaces: &id002
+        config:
+          - name: ge-0/0/1
+
+          - name: ge-0/0/2
+            enabled: false
+        state: merged
+
+    - name: Delete the provided lldp interface configuration from running configuration
+      register: result
+      junipernetworks.junos.junos_lldp_interfaces: &id001
+        config:
+          - name: ge-0/0/2
+        state: deleted
+
+    - name: Assert the configuration is reflected on host
+      ansible.builtin.assert:
+        that:
+          - "{{ expected_deleted_output | symmetric_difference(result['after'])\
+            \ |length == 0 }}"
+
+    - name:
+        Delete the provided lldp interface configuration from running configuration
+        (IDEMPOTENT)
+      register: result
+      junipernetworks.junos.junos_lldp_interfaces: *id001
+
+    - name: Assert that the previous task was idempotent
+      ansible.builtin.assert:
+        that:
+          - result['changed'] == false
+
+    - name: Configure initial state for interface
+      register: result
+      junipernetworks.junos.junos_lldp_interfaces: *id002
+
+    - name: Delete the all lldp interface configuration from running configuration
+      register: result
+      junipernetworks.junos.junos_lldp_interfaces:
+        state: deleted
+
+    - name: Assert the configuration is reflected on host
+      ansible.builtin.assert:
+        that:
+          - "{{ result['after'] == []}}"
+
+    - name:
+        Delete the all lldp interface configuration from running configuration
+        (IDEMPOTENT)
+      register: result
+      junipernetworks.junos.junos_lldp_interfaces:
+        state: deleted
+
+    - name: Assert that the previous task was idempotent
+      ansible.builtin.assert:
+        that:
+          - result['changed'] == false
+  always:
+    - ansible.builtin.include_tasks: _remove_config.yaml
+  when: lldp_supported
+
+- ansible.builtin.debug:
+    msg:
+      END junos_lldp_interfaces deleted integration tests on connection={{ ansible_connection
+      }}

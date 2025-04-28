@@ -1,0 +1,60 @@
+---
+- name: Debug task
+  ansible.builtin.debug:
+    msg: START junos_hostname round trip integration tests on connection={{
+      ansible_connection }}
+
+- block:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+    - name: Apply the provided configuration (base config)
+      register: base_config
+      junipernetworks.junos.junos_hostname:
+        config:
+          hostname: vsrx
+        state: merged
+
+    - name: Gather interfaces facts
+      junipernetworks.junos.junos_facts:
+        gather_subset:
+          - default
+        gather_network_resources:
+          - hostname
+
+    - name: Apply the provided configuration (config to be reverted)
+      register: result
+      junipernetworks.junos.junos_hostname:
+        config:
+          hostname: "vsrx14"
+        state: replaced
+
+    - name: Assert that changes were applied
+      ansible.builtin.assert:
+        that: result['changed'] == true
+
+    - name: Revert back to base config using facts round trip
+      register: revert
+      junipernetworks.junos.junos_hostname:
+        config: "{{ ansible_facts['network_resources']['hostname'] }}"
+        state: replaced
+
+    - name: Assert that before dicts are correct
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ result['after'] == revert['before'] }}"
+
+    - name: Assert that config was reverted
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ base_config['after'] == revert['after'] }}"
+  always:
+    - name: Reset configuration
+      ansible.builtin.include_tasks: _reset_config.yaml
+
+- name: Debug task
+  ansible.builtin.debug:
+    msg:
+      END junos_hostname round trip integration tests on connection={{ ansible_connection
+      }}

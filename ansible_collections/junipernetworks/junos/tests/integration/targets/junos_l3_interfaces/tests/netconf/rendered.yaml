@@ -1,0 +1,65 @@
+---
+- ansible.builtin.debug:
+    msg: START junos_l3_interfaces rendered integration tests on connection={{
+      ansible_connection }}
+
+- ansible.builtin.set_fact:
+    expected_rendered_output: '<nc:interfaces
+      xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
+      <nc:interface>
+      <nc:name>ge-0/0/1</nc:name>
+      <nc:unit>
+      <nc:name>0</nc:name>
+      <nc:family>
+      <nc:ethernet-switching>
+      <nc:interface-mode>access</nc:interface-mode>
+      <nc:vlan>
+      <nc:members>vlan100</nc:members>
+      </nc:vlan>
+      </nc:ethernet-switching>
+      </nc:family>
+      </nc:unit>
+      </nc:interface>
+      <nc:interface>
+      <nc:name>ge-0/0/2</nc:name>
+      <nc:unit>
+      <nc:name>0</nc:name>
+      <nc:family>
+      <nc:ethernet-switching>
+      <nc:interface-mode>trunk</nc:interface-mode>
+      <nc:vlan>
+      <nc:members>vlan200</nc:members>
+      <nc:members>vlan300</nc:members>
+      </nc:vlan>
+      </nc:ethernet-switching>
+      </nc:family>
+      </nc:unit>
+      <nc:native-vlan-id>400</nc:native-vlan-id>
+      </nc:interface>
+      </nc:interfaces>'
+
+- name: Render platform specific commands from task input using rendered state
+  register: result
+  junipernetworks.junos.junos_l3_interfaces:
+    config:
+      - name: ge-1/0/0
+        ipv4:
+          - address: 192.168.100.1/24
+          - address: 10.200.16.20/24
+        unit: 0
+
+      - name: ge-2/0/0
+        ipv4:
+          - address: 192.168.100.2/24
+          - address: 10.200.16.21/24
+        unit: 0
+    state: rendered
+
+- name: Assert that correct set of commands were rendered
+  ansible.builtin.assert:
+    that:
+      - "{{ expected_rendered_output == result['rendered'] }}"
+
+- ansible.builtin.debug:
+    msg: END junos_l3_interfaces rendered integration tests on connection={{
+      ansible_connection }}

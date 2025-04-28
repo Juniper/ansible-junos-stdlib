@@ -1,0 +1,88 @@
+---
+- ansible.builtin.debug:
+    msg: "START junos_snmp_server merged integration tests on connection={{ ansible_connection }}"
+
+- block:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+    - ansible.builtin.include_tasks: _initial_config.yaml
+
+    - name: Merge the provided configuration with the exisiting running configuration
+      junipernetworks.junos.junos_snmp_server: &merged
+        config:
+          arp:
+            set: true
+            host_name_resolution: true
+          client_lists:
+            - name: cl1
+              addresses:
+                - address: "192.16.1.0/24"
+                - address: "192.16.2.0/24"
+                - address: "11.11.11.11"
+                  restrict: true
+            - name: cl2
+              addresses:
+                - address: "192.16.4.0/24"
+          routing_instance_access:
+            set: true
+            access_lists:
+              - "clv1"
+              - "clv2"
+      register: result
+
+    - name: Assert that before dicts were correctly generated
+      ansible.builtin.assert:
+        that: "{{ merged['before'] == result['before'] }}"
+
+    - name: Assert the configuration is reflected on host
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ merged['after'] == result['after'] }}"
+
+    - name: Merge the provided configuration with the existing running configuration (IDEMPOTENT)
+      junipernetworks.junos.junos_snmp_server: *merged
+      register: result
+
+    - name: Assert that the previous task was idempotent
+      ansible.builtin.assert:
+        that:
+          - result.changed == False
+
+    - name: Update the running configuration with providede configuration
+      junipernetworks.junos.junos_snmp_server:
+        config:
+          communities:
+            - name: "comm1"
+              clients:
+                - address: "24.0.0.0/32"
+                  restrict: true
+                - address: "30.0.0.0/32"
+                  restrict: true
+              routing_instances:
+                - name: "clv1"
+                  clients:
+                    - address: "13.13.13.13/24"
+                      restrict: true
+                    - address: "24.0.0.0/32"
+                    - address: "30.0.0.0/32"
+                - name: "clv2"
+                  clients:
+                    - address: "15.15.15.15/24"
+      register: result
+
+    - name: Assert that before dicts were correctly generated
+      ansible.builtin.assert:
+        that: "{{ merged['after'] == result['before'] }}"
+
+    - name: Assert the configuration is reflected on host
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ merged['updated'] == result['after'] }}"
+
+  tags: merged
+  always:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+- ansible.builtin.debug:
+    msg: "END junos_snmp_server merged integration tests on connection={{ ansible_connection }}"

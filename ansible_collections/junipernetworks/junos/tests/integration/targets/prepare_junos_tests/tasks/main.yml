@@ -1,0 +1,4 @@
+---
+- name: Run the prepare steps if requested
+  ansible.builtin.include_tasks: prepare.yml
+  when: prepare_junos_tests_task | default(True) | bool

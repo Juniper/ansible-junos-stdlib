@@ -1,0 +1,72 @@
+---
+- ansible.builtin.debug: msg="START netconf/single.yaml on connection={{ ansible_connection }}"
+
+- name: setup
+  junipernetworks.junos.junos_config:
+    lines:
+      - set system host-name {{ inventory_hostname_short }}
+
+- name: configure single command
+  register: result
+  junipernetworks.junos.junos_config:
+    lines:
+      - set system host-name localhost
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == true
+      - "'+  host-name localhost;' in result.diff.prepared"
+
+- name: check single command idempotent
+  register: result
+  junipernetworks.junos.junos_config:
+    lines:
+      - set system host-name localhost
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == false
+
+- name: confirm previous commit
+  register: result
+  junipernetworks.junos.junos_config:
+    confirm_commit: true
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == true
+
+- name: teardown for rollback test
+  junipernetworks.junos.junos_config:
+    lines:
+      - delete system syslog file test1
+
+- name: Configure syslog file
+  register: result
+  junipernetworks.junos.junos_config:
+    lines:
+      - set system syslog file test1 any any
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == true
+      - result.diff.prepared is search("\+ *file test1")
+      - result.diff.prepared is search("\+ *any any")
+
+- name: Rollback junos config
+  register: result
+  junipernetworks.junos.junos_config:
+    rollback: 1
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == true
+      - result.diff.prepared is search("\+ *file test1")
+      - result.diff.prepared is search("\+ *any any")
+
+- name: teardown
+  junipernetworks.junos.junos_config:
+    lines:
+      - set system host-name {{ inventory_hostname_short }}
+
+- ansible.builtin.debug: msg="END netconf/single.yaml on connection={{ ansible_connection }}"

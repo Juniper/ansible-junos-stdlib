@@ -1,0 +1,101 @@
+---
+- ansible.builtin.debug:
+    msg: "START junos_ntp_global merged integration tests on connection={{ ansible_connection }}"
+
+- block:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+    - ansible.builtin.include_tasks: _initial_config.yaml
+
+    - name: Merge the provided configuration with the exisiting running configuration
+      junipernetworks.junos.junos_ntp_global: &merged
+        config:
+          boot_server: "78.46.194.186"
+          broadcasts:
+            - address: "172.16.255.255"
+              key: "50"
+              ttl: 200
+              version: 3
+              routing_instance_name: "rt1"
+            - address: "192.16.255.255"
+              key: "50"
+              ttl: 200
+              version: 3
+              routing_instance_name: "rt2"
+          broadcast_client: true
+          interval_range: 2
+          multicast_client: "224.0.0.1"
+          peers:
+            - peer: "78.44.194.186"
+            - peer: "172.44.194.186"
+              key_id: 10000
+              prefer: true
+              version: 3
+          servers:
+            - server: "48.46.194.186"
+              key_id: 34
+              prefer: true
+              version: 2
+              routing_instance: "rt1"
+            - server: "48.45.194.186"
+              key_id: 34
+              prefer: true
+              version: 2
+          source_addresses:
+            - source_address: "172.45.194.186"
+              routing_instance: "rt1"
+            - source_address: "171.45.194.186"
+              routing_instance: "rt2"
+          threshold:
+            value: 300
+            action: "accept"
+          trusted_keys:
+            - key_id: 3000
+            - key_id: 2000
+      register: result
+
+    - name: Assert that before dicts were correctly generated
+      ansible.builtin.assert:
+        that: "{{ merged['before'] == result['before'] }}"
+
+    - name: Assert the configuration is reflected on host
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ merged['after'] == result['after'] }}"
+
+    - name: Merge the provided configuration with the existing running configuration (IDEMPOTENT)
+      junipernetworks.junos.junos_ntp_global: *merged
+      register: result
+
+    - name: Assert that the previous task was idempotent
+      ansible.builtin.assert:
+        that:
+          - result.changed == False
+
+    - name: Update the running configuration with providede configuration
+      junipernetworks.junos.junos_ntp_global:
+        config:
+          interval_range: 3
+          peers:
+            - peer: "172.44.194.188"
+              key_id: 10000
+              prefer: true
+              version: 3
+      register: result
+
+    - name: Assert that before dicts were correctly generated
+      ansible.builtin.assert:
+        that: "{{ merged['after'] == result['before'] }}"
+
+    - name: Assert the configuration is reflected on host
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ merged['updated'] == result['after'] }}"
+
+  tags: merged
+  always:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+- ansible.builtin.debug:
+    msg: "END junos_ntp_global merged integration tests on connection={{ ansible_connection }}"

@@ -1,0 +1,65 @@
+---
+- ansible.builtin.debug:
+    msg: START junos_routing_instances gathered integration tests on connection={{ ansible_connection }}
+
+- block:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+    - ansible.builtin.include_tasks: _initial_config.yaml
+
+    - ansible.builtin.set_fact:
+        expected_gathered_output:
+          - description: "Configured by Ansible Content Team"
+            name: "forwardinst"
+            type: "forwarding"
+
+          - connector_id_advertise: true
+            interfaces:
+              - name: "gr-0/0/0.0"
+              - name: "sp-0/0/0.0"
+            name: "test"
+            route_distinguisher: "10.58.255.1:37"
+            type: "vrf"
+            vrf_exports:
+              - "test-policy"
+              - "test-policy-1"
+            vrf_imports:
+              - "test-policy"
+
+    - name: Merge the provided configuration with the exisiting running configuration
+      junipernetworks.junos.junos_routing_instances: &merged
+        config:
+          - name: "test"
+            type: "vrf"
+            route_distinguisher: "10.58.255.1:37"
+            vrf_imports:
+              - "test-policy"
+            vrf_exports:
+              - "test-policy"
+              - "test-policy-1"
+            interfaces:
+              - name: "sp-0/0/0.0"
+              - name: "gr-0/0/0.0"
+            connector_id_advertise: true
+          - name: "forwardinst"
+            type: "forwarding"
+            description: "Configured by Ansible Content Team"
+        state: merged
+
+    - name: Gather bgp address family facts using gathered state
+      register: result
+      junipernetworks.junos.junos_routing_instances:
+        state: gathered
+
+    - name: Assert that facts were correctly generated
+      ansible.builtin.assert:
+        that:
+          "{{ expected_gathered_output | symmetric_difference(result['gathered']) |length\
+          \ == 0 }}"
+  always:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+- ansible.builtin.debug:
+    msg:
+      END junos_routing_instances gathered integration tests on connection={{ ansible_connection
+      }}

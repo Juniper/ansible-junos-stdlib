@@ -1,0 +1,22 @@
+---
+- ansible.builtin.debug:
+    msg: "START junos_security_policies_global populate config on connection={{ ansible_connection }}"
+
+- name: Populate config
+  junipernetworks.junos.junos_config:
+    lines:
+      - set security policies default-policy permit-all
+      - set security policies policy-rematch extensive
+      - set security policies policy-stats system-wide enable
+      - set security policies pre-id-default-policy then log session-init
+      - set security policies pre-id-default-policy then session-timeout icmp 10
+      - set security policies pre-id-default-policy then session-timeout others 10
+      - set security policies traceoptions no-remote-trace
+      - set security policies traceoptions flag all
+      - set security policies traceoptions file files 3
+      - set security policies traceoptions file match /[A-Z]*/gm
+      - set security policies traceoptions file size 10240
+      - set security policies traceoptions file no-world-readable
+
+- ansible.builtin.debug:
+    msg: "END junos_security_policies_global populate config on connection={{ ansible_connection }}"

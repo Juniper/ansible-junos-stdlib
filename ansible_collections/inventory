@@ -1,0 +1,9 @@
+[junos]
+<ip>
+
+[junos:vars]
+ansible_network_os=junos
+ansible_ssh_user=ansible
+ansible_ssh_pass=Ansible
+ansible_connection=ansible.netcommon.netconf
+ansible_network_cli_ssh_type=libssh 

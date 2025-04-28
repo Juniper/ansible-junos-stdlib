@@ -1,0 +1,12 @@
+---
+- ansible.builtin.debug:
+    msg: "START junos_security_policies_global reset config on connection={{ ansible_connection }}"
+
+- name: Reset the config releavent to security policies global resource
+  junipernetworks.junos.junos_config:
+    lines:
+      - delete security policies
+      - delete system tracing
+
+- ansible.builtin.debug:
+    msg: "END junos_security_policies_global reset config on connection={{ ansible_connection }}"

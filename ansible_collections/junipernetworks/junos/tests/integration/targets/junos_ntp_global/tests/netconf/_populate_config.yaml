@@ -1,0 +1,21 @@
+---
+- name: Populate config
+  junipernetworks.junos.junos_config:
+    lines:
+      - "set system ntp boot-server 78.46.194.186"
+      - "set system ntp broadcast 172.16.255.255 key 50 ttl 200 version 3 routing-instance-name rt1"
+      - "set system ntp broadcast 192.16.255.255 key 50 ttl 200 version 3 routing-instance-name rt2"
+      - "set system ntp broadcast-client"
+      - "set system ntp multicast-client 224.0.0.1"
+      - "set system ntp interval-range 2"
+      - "set system ntp peer 78.44.194.186"
+      - "set system ntp peer 172.44.194.186 key 10000 prefer version 3"
+      - "set system ntp server 48.46.194.186"
+      - "set system ntp server 48.46.194.186 key 34 prefer routing-instance rt1 version 2"
+      - "set system ntp server 48.45.194.186 key 34 prefer version 2"
+      - "set system ntp source-address 172.45.194.186 routing-instance rt1"
+      - "set system ntp source-address 171.45.194.186 routing-instance rt2"
+      - "set system ntp trusted-key 2000"
+      - "set system ntp trusted-key 3000"
+      - "set system ntp threshold 300 action accept"
+      - "set system ntp trusted-key 3000"

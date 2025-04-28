@@ -1,0 +1,12 @@
+---
+merged:
+  before: {}
+
+  after:
+    hostname: "vsrx"
+
+  updated:
+    hostname: "vsrx14"
+
+  gathered:
+    hostname: "vsrx12"

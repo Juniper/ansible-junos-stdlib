@@ -1,0 +1,69 @@
+---
+- ansible.builtin.debug:
+    msg: "START junos_ospf_interfaces overridden integration tests on connection={{ ansible_connection }}"
+
+- block:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+    - ansible.builtin.include_tasks: _initial_config.yaml
+
+    - ansible.builtin.set_fact:
+        expected_config:
+          - address_family:
+              - afi: "ipv4"
+                processes:
+                  area:
+                    area_id: "0.0.0.1"
+                  priority: 6
+                  metric: 7
+            name: "ge-0/0/1.0"
+            router_id: "10.200.16.75"
+    - name: Merge the provided configuration with the exisiting running configuration
+      junipernetworks.junos.junos_ospf_interfaces: &merged
+        config:
+          - router_id: "10.200.16.75"
+            name: "ge-0/0/3.0"
+            address_family:
+              - afi: "ipv4"
+                processes:
+                  area:
+                    area_id: "0.0.0.3"
+                  priority: 3
+                  metric: 5
+        state: merged
+    - name: Override configuration
+      junipernetworks.junos.junos_ospf_interfaces: &overridden
+        config:
+          - router_id: "10.200.16.75"
+            name: "ge-0/0/1.0"
+            address_family:
+              - afi: "ipv4"
+                processes:
+                  area:
+                    area_id: "0.0.0.1"
+                  priority: 6
+                  metric: 7
+        state: overridden
+      register: result
+
+    - name: Assert the configuration is reflected on host
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ expected_config | symmetric_difference(result['after']) |length\
+            \ == 0 }}"
+
+    - name: Override the provided configuration with the existing running configuration (IDEMPOTENT)
+      junipernetworks.junos.junos_ospf_interfaces: *overridden
+      register: result
+
+    - name: Assert that the previous task was idempotent
+      ansible.builtin.assert:
+        that:
+          - result.changed == False
+
+  tags: overridden
+  always:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+- ansible.builtin.debug:
+    msg: "END junos_ospf_interfaces overridden integration tests on connection={{ ansible_connection }}"

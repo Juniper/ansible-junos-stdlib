@@ -1,0 +1,35 @@
+---
+- name: Debug task
+  ansible.builtin.debug:
+    msg: "START junos_bgp_global initial config on connection={{ ansible_connection }}"
+
+- name: Configure basic config relevant to BGP GLOBAL
+  junipernetworks.junos.junos_config:
+    lines:
+      - set routing-options autonomous-system 65534
+      - set routing-options autonomous-system loops 3
+      - set routing-options autonomous-system asdot-notation
+      - set protocols bgp accept-remote-nexthop
+      - set protocols bgp add-path-display-ipv4-address
+      - set protocols bgp advertise-from-main-vpn-tables
+      - set protocols bgp advertise-inactive
+      - set protocols bgp authentication-algorithm md5
+      - set protocols bgp bgp-error-tolerance malformed-route-limit 20000000
+      - set protocols bgp bmp monitor enable
+      - set protocols bgp damping
+      - set protocols bgp description "This is configured with Junos_bgp resource module"
+      - set protocols bgp egress-te-sid-stats
+      - set protocols bgp hold-time 5
+      - set protocols bgp holddown-all-stale-labels
+      - set protocols bgp include-mp-next-hop
+      - set protocols bgp log-updown
+      - set protocols bgp no-advertise-peer-as
+      - set protocols bgp no-aggregator-id
+      - set protocols bgp no-client-reflect
+      - set protocols bgp out-delay 10
+      - set protocols bgp precision-timers
+      - set protocols bgp preference 2
+
+- name: Debug task
+  ansible.builtin.debug:
+    msg: "END junos_bgp_global initial config on connection={{ ansible_connection }}"

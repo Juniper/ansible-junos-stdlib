@@ -1,0 +1,18 @@
+---
+- ansible.builtin.debug:
+    msg:
+      Start junos_static_routes teardown ansible_connection={{ ansible_connection
+      }}
+
+- name: Remove static route config
+  junipernetworks.junos.junos_static_routes:
+    config:
+      - address_families:
+          - afi: ipv4
+          - afi: ipv6
+    state: deleted
+
+- ansible.builtin.debug:
+    msg:
+      End junos_static_routes teardown ansible_connection={{ ansible_connection
+      }}

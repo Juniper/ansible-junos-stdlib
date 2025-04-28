@@ -1,0 +1,25 @@
+---
+- ansible.builtin.debug:
+    msg:
+      START junos_lacp parsed integration tests on connection={{ ansible_connection
+      }}
+
+- ansible.builtin.set_fact:
+    expected_parsed_output:
+      link_protection: revertive
+      system_priority: 63
+
+- name: Parse externally provided lacp config to agnostic model
+  register: result
+  junipernetworks.junos.junos_lacp:
+    running_config: "{{ lookup('file', './fixtures/parsed.cfg') }}"
+    state: parsed
+
+- name: Assert that config was correctly parsed
+  ansible.builtin.assert:
+    that:
+      - "{{ expected_parsed_output  == result['parsed'] }}"
+- ansible.builtin.debug:
+    msg:
+      END junos_lacp parsed integration tests on connection={{ ansible_connection
+      }}

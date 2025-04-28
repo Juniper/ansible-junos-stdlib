@@ -1,0 +1,131 @@
+---
+- name: Debug task
+  ansible.builtin.debug:
+    msg: "START junos_bgp_address_family overridden integration tests on connection={{ ansible_connection }}"
+
+- block:
+    - name: Reset configuration
+      ansible.builtin.include_tasks: _reset_config.yaml
+
+    - name: Set facts
+      ansible.builtin.set_fact:
+        expected_overridden_output:
+          address_family:
+            - afi: "evpn"
+              af_type:
+                - type: "signaling"
+                  accepted_prefix_limit:
+                    maximum: 21
+                    limit_threshold: 99
+                    idle_timeout_value: 2002
+                  delay_route_advertisements:
+                    max_delay_route_age: 20
+                    max_delay_routing_uptime: 32000
+                    min_delay_inbound_convergence: 32000
+                    min_delay_routing_uptime: 23000
+                  damping: true
+
+    - name: Merge the provided configuration with the exisiting running configuration
+      junipernetworks.junos.junos_bgp_address_family: &merged
+        config:
+          address_family:
+            - afi: "evpn"
+              af_type:
+                - type: "signaling"
+                  accepted_prefix_limit:
+                    maximum: 20
+                    limit_threshold: 98
+                    idle_timeout_value: 2001
+                  damping: true
+                  defer_initial_multipath_build:
+                    maximum_delay: 2
+            - afi: "inet"
+              af_type:
+                - type: "flow"
+                  legacy_redirect_ip_action:
+                    send: true
+                    receive: true
+                  loops: 4
+                  no_install: true
+                  output_queue_priority_expedited: true
+                  secondary_independent_resolution: true
+
+                - type: "unicast"
+                  extended_nexthop: true
+                  extended_nexthop_color: true
+                  local_ipv4_address: "9.9.9.9"
+
+                - type: "labeled-unicast"
+                  entropy_label:
+                    no_next_hop_validation: true
+                  explicit_null:
+                    connected_only: true
+                  per_prefix_label: true
+                  per_group_label: true
+                  prefix_limit:
+                    maximum: 20
+                    limit_threshold: 99
+                    forever: true
+                  resolve_vpn: true
+                  rib: "inet.3"
+                  route_refresh_priority_priority: 3
+
+                - type: "any"
+                  accepted_prefix_limit:
+                    maximum: 20
+                    limit_threshold: 99
+                    idle_timeout_value: 2000
+                  damping: true
+                  defer_initial_multipath_build:
+                    maximum_delay: 2
+                  delay_route_advertisements:
+                    max_delay_route_age: 20
+                    max_delay_routing_uptime: 32000
+                    min_delay_inbound_convergence: 32000
+                    min_delay_routing_uptime: 23000
+                  graceful_restart_forwarding_state_bit: "from-fib"
+        state: merged
+
+    - name: Override existing configuration with running configuration
+      junipernetworks.junos.junos_bgp_address_family: &overridden
+        config:
+          address_family:
+            - afi: "evpn"
+              af_type:
+                - type: "signaling"
+                  accepted_prefix_limit:
+                    maximum: 21
+                    limit_threshold: 99
+                    idle_timeout_value: 2002
+                  delay_route_advertisements:
+                    max_delay_route_age: 20
+                    max_delay_routing_uptime: 32000
+                    min_delay_inbound_convergence: 32000
+                    min_delay_routing_uptime: 23000
+                  damping: true
+        state: overridden
+      register: result
+
+    - name: Assert configuration
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ expected_overridden_output == result.after }}"
+
+    - name: Override the existing running configuration with the provided configuration (IDEMPOTENT)
+      junipernetworks.junos.junos_bgp_address_family: *overridden
+      register: result
+
+    - name: Assert that the previous task was idempotent
+      ansible.builtin.assert:
+        that:
+          - result.changed == False
+
+  tags: overridden
+  always:
+    - name: Reset configuration
+      ansible.builtin.include_tasks: _reset_config.yaml
+
+- name: Debug task
+  ansible.builtin.debug:
+    msg: "END junos_bgp_address_family overridden integration tests on connection={{ ansible_connection }}"
