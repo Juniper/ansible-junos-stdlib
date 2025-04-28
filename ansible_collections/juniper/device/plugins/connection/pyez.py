@@ -247,6 +247,13 @@ except ImportError:
     HAS_PYEZ_SCP = False
 
 try:
+    from jnpr.junos.utils.ftp import FTP
+
+    HAS_PYEZ_FTP = True
+except ImportError:
+    HAS_PYEZ_FTP = False
+
+try:
     import jnpr.junos.utils.config
 
     HAS_PYEZ_CONFIG = True
@@ -462,7 +469,7 @@ class Connection(NetworkConnectionBase):
         resp = self.dev.rpc.get_config(
             filter_xml, options, model, namespace, remove_ns, **kwarg
         )
-        if options['format'] == 'json':
+        if options["format"] == "json":
             return resp
         else:
             return etree.tostring(resp)
@@ -891,9 +898,7 @@ class Connection(NetworkConnectionBase):
             if got is not None:
                 msg += " Reboot successfully initiated. " "Reboot message: %s" % got
             else:
-                raise AnsibleError(
-                    " Did not find expected response from reboot RPC. "
-                )
+                raise AnsibleError(" Did not find expected response from reboot RPC. ")
         except self.pyez_exception.RpcTimeoutError as ex:
             try:
                 self.close(raise_exceptions=True)
@@ -934,7 +939,22 @@ class Connection(NetworkConnectionBase):
                 scp.put(local_file, remote_file)
         except (self.pyez_exception.RpcError, self.pyez_exception.ConnectError) as ex:
             raise AnsibleError(
-                "Failure checking the configuraton: {0}".format(str(ex))
+                "Failure to transfer the file: {0}".format(str(ex))
+            ) from ex
+
+    def ftp_file_copy_put(self, local_file, remote_file):
+        """Copy the file using ftp
+
+        Args:
+            local_file local file path/name.
+            remote_file: remote file path/name.
+        """
+        try:
+            with FTP(self.dev) as ftp:
+                return ftp.put(local_file, remote_file)
+        except (self.pyez_exception.RpcError, self.pyez_exception.ConnectError) as ex:
+            raise AnsibleError(
+                "Failure to transfer the file {0}".format(str(ex))
             ) from ex
 
     def scp_file_copy_get(self, remote_file, local_file):
@@ -949,5 +969,20 @@ class Connection(NetworkConnectionBase):
                 scp.get(remote_file, local_file)
         except (self.pyez_exception.RpcError, self.pyez_exception.ConnectError) as ex:
             raise AnsibleError(
-                "Failure checking the configuraton: {0}".format(str(ex))
+                "Failure to transfer the file: {0}".format(str(ex))
+            ) from ex
+
+    def ftp_file_copy_get(self, remote_file, local_file):
+        """Copy the file using ftp.
+
+        Args:
+            local_file local file path/name.
+            remote_file: remote file path/name.
+        """
+        try:
+            with FTP(self.dev) as ftp:
+                return ftp.get(remote_file, local_file)
+        except (self.pyez_exception.RpcError, self.pyez_exception.ConnectError) as ex:
+            raise AnsibleError(
+                "Failure to transfer the file: {0}".format(str(ex))
             ) from ex
