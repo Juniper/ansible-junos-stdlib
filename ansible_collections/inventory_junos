@@ -1,0 +1,8 @@
+[junos]
+192.168.150.168
+
+[junos:vars]
+ansible_network_os=juniper.device.junos
+ansible_ssh_user=root
+ansible_ssh_pass=root123
+ansible_connection=ansible.netcommon.netconf

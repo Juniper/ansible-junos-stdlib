@@ -1,0 +1,29 @@
+---
+- ansible.builtin.debug:
+    msg:
+      START junos_vlans parsed integration tests on connection={{ ansible_connection
+      }}
+
+- ansible.builtin.set_fact:
+    expected_parsed_output:
+      - name: vlan1
+        vlan_id: 1
+      - name: vlan2
+        vlan_id: 2
+        l3_interface: "irb.12"
+
+- name: Parse externally provided vlans config to agnostic model
+  register: result
+  junipernetworks.junos.junos_vlans:
+    running_config: "{{ lookup('file', './fixtures/parsed.cfg') }}"
+    state: parsed
+
+- name: Assert that config was correctly parsed
+  ansible.builtin.assert:
+    that:
+      - "{{ expected_parsed_output  == result['parsed'] }}"
+      - result['changed'] == false
+- ansible.builtin.debug:
+    msg:
+      END junos_vlans parsed integration tests on connection={{ ansible_connection
+      }}

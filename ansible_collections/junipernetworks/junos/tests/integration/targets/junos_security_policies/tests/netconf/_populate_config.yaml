@@ -1,0 +1,53 @@
+---
+- name: Populate config
+  junipernetworks.junos.junos_config:
+    lines:
+      - set security policies from-zone one to-zone two policy test_policy_1 match source-address a1
+      - set security policies from-zone one to-zone two policy test_policy_1 match source-address a3
+      - set security policies from-zone one to-zone two policy test_policy_1 match destination-address a2
+      - set security policies from-zone one to-zone two policy test_policy_1 match destination-address a4
+      - set security policies from-zone one to-zone two policy test_policy_1 match application junos-dhcp-relay
+      - set security policies from-zone one to-zone two policy test_policy_1 match application junos-finger
+      - set security policies from-zone one to-zone two policy test_policy_1 match source-identity authenticated-user
+      - set security policies from-zone one to-zone two policy test_policy_1 match source-identity unknown-user
+      - set security policies from-zone one to-zone two policy test_policy_1 match source-end-user-profile test_end_user_profile
+      - set security policies from-zone one to-zone two policy test_policy_1 match source-address-excluded
+      - set security policies from-zone one to-zone two policy test_policy_1 match destination-address-excluded
+      - set security policies from-zone one to-zone two policy test_policy_1 match dynamic-application any
+      - set security policies from-zone one to-zone two policy test_policy_1 match url-category Enhanced_Web_Chat
+      - set security policies from-zone one to-zone two policy test_policy_1 then deny
+      - set security policies from-zone one to-zone two policy test_policy_1 then log session-close
+      - set security policies from-zone one to-zone two policy test_policy_1 then count
+      - set security policies from-zone one to-zone two policy test_policy_2 match source-address a1
+      - set security policies from-zone one to-zone two policy test_policy_2 match destination-address any-ipv6
+      - set security policies from-zone one to-zone two policy test_policy_2 match application any
+      - set security policies from-zone one to-zone two policy test_policy_2 then reject
+      - set security policies from-zone one to-zone two policy test_policy_2 then reject profile test_dyn_app
+      - set security policies from-zone one to-zone two policy test_policy_2 then reject ssl-proxy profile-name SECURITY-SSL-PROXY
+      - set security policies from-zone one to-zone three policy test_policy_3 match source-address a1
+      - set security policies from-zone one to-zone three policy test_policy_3 match destination-address a2
+      - set security policies from-zone one to-zone three policy test_policy_3 match application any
+      - set security policies from-zone one to-zone three policy test_policy_3 then permit application-services application-traffic-control rule-set test_traffic_control
+      - set security policies from-zone one to-zone three policy test_policy_3 then permit application-services gprs-gtp-profile gtp1
+      - set security policies from-zone one to-zone three policy test_policy_3 then permit application-services icap-redirect test_icap
+      - set security policies from-zone one to-zone three policy test_policy_3 then permit application-services reverse-redirect-wx
+      - set security policies from-zone one to-zone three policy test_policy_3 then permit application-services uac-policy
+      - set security policies from-zone one to-zone three policy test_policy_3 then permit destination-address drop-untranslated
+      - set security policies from-zone one to-zone three policy test_policy_3 then permit firewall-authentication pass-through auth-user-agent Opera1
+      - set security policies from-zone one to-zone three policy test_policy_3 then permit firewall-authentication pass-through auth-only-browser
+      - set security policies from-zone one to-zone three policy test_policy_3 then permit firewall-authentication push-to-identity-management
+      - set security policies from-zone one to-zone three policy test_policy_3 then permit firewall-authentication user-firewall access-profile WEBAUTH
+      - set security policies from-zone one to-zone three policy test_policy_3 then permit firewall-authentication user-firewall auth-only-browser
+      - set security policies from-zone one to-zone three policy test_policy_3 then permit firewall-authentication user-firewall auth-user-agent Opera1
+      - set security policies from-zone one to-zone three policy test_policy_3 then permit firewall-authentication user-firewall web-redirect-to-https
+      - set security policies from-zone one to-zone three policy test_policy_3 then permit firewall-authentication web-authentication client-match FWClient1
+      - set security policies from-zone one to-zone three policy test_policy_3 then permit tcp-options initial-tcp-mss 64
+      - set security policies from-zone one to-zone three policy test_policy_3 then permit tcp-options window-scale
+      - set security policies global policy test_glob_1 match source-address any-ipv6
+      - set security policies global policy test_glob_1 match destination-address any-ipv6
+      - set security policies global policy test_glob_1 match application any
+      - set security policies global policy test_glob_1 then deny
+      - set security policies global policy test_glob_2 match source-address any-ipv6
+      - set security policies global policy test_glob_2 match destination-address any-ipv6
+      - set security policies global policy test_glob_2 match application any
+      - set security policies global policy test_glob_2 then deny

@@ -1,0 +1,25 @@
+---
+- name: Gather Operation Playbook
+  hosts: junos
+  gather_facts: false
+  collections:
+    - juniper.device
+  tasks:
+    - name: Gather Junos Facts
+      junos_facts:
+      register: junos_facts_output
+    - name: Gather interfaces running facts
+      junos_hostname:
+        state: gathered
+    - name: Gather interfaces running facts
+      junos_acls:
+        state: gathered
+    - name: Gather interfaces running facts
+      junos_interfaces:
+        state: gathered
+    - name: Gather interfaces running facts
+      junos_l2_interfaces:
+        state: gathered
+    - name: Gather interfaces running facts
+      junos_l3_interfaces:
+        state: gathered

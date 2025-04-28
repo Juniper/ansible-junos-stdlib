@@ -1,0 +1,75 @@
+2025-04-28 11:32:00,236 p=261951 u=rothakur n=ansible INFO| ansible-playbook [core 2.18.1.post0] (stable-2.18 48d7fd7456) last updated 2025/04/14 21:00:51 (GMT +550)
+  config file = /home/rothakur/juniperwork/ansible_collections/remote_pr/ansible-junos-stdlib/ansible_collections/ansible.cfg
+  configured module search path = ['/home/rothakur/.ansible/plugins/modules', '/usr/share/ansible/plugins/modules']
+  ansible python module location = /home/rothakur/juniperwork/ansible_collections/ansible-junos-stdlib/ansible_collections/ansible/ansible/lib/ansible
+  ansible collection location = /home/rothakur/juniperwork/ansible_collections/ansible-junos-stdlib/ansible_collections
+  executable location = /home/rothakur/juniperwork/ansible_collections/ansible-junos-stdlib/ansible_collections/ansible/ansible/bin/ansible-playbook
+  python version = 3.11.12 (main, Apr  9 2025, 00:00:00) [GCC 14.2.1 20240912 (Red Hat 14.2.1-3)] (/home/rothakur/venvs/ansidev_py311/bin/python)
+  jinja version = 3.1.2
+  libyaml = True
+2025-04-28 11:32:00,237 p=261951 u=rothakur n=ansible INFO| Using /home/rothakur/juniperwork/ansible_collections/remote_pr/ansible-junos-stdlib/ansible_collections/ansible.cfg as config file
+2025-04-28 11:32:00,330 p=261951 u=rothakur n=ansible INFO| host_list declined parsing /home/rothakur/juniperwork/ansible_collections/remote_pr/ansible-junos-stdlib/ansible_collections/inventory_junos as it did not pass its verify_file() method
+2025-04-28 11:32:00,330 p=261951 u=rothakur n=ansible INFO| script declined parsing /home/rothakur/juniperwork/ansible_collections/remote_pr/ansible-junos-stdlib/ansible_collections/inventory_junos as it did not pass its verify_file() method
+2025-04-28 11:32:00,330 p=261951 u=rothakur n=ansible INFO| auto declined parsing /home/rothakur/juniperwork/ansible_collections/remote_pr/ansible-junos-stdlib/ansible_collections/inventory_junos as it did not pass its verify_file() method
+2025-04-28 11:32:00,331 p=261951 u=rothakur n=ansible INFO| Parsed /home/rothakur/juniperwork/ansible_collections/remote_pr/ansible-junos-stdlib/ansible_collections/inventory_junos inventory source with ini plugin
+2025-04-28 11:32:00,380 p=261951 u=rothakur n=ansible INFO| redirecting (type: modules) junipernetworks.junos.junos_hostname to juniper.device.junos_hostname
+2025-04-28 11:32:00,397 p=261951 u=rothakur n=ansible WARNING| [WARNING]: errors were encountered during the plugin load for junos_hostname: ["'NoneType' object has no attribute 'get'"]
+
+2025-04-28 11:32:00,408 p=261951 u=rothakur n=ansible INFO| Skipping callback 'default', as we already have a stdout callback.
+2025-04-28 11:32:00,408 p=261951 u=rothakur n=ansible INFO| Skipping callback 'minimal', as we already have a stdout callback.
+2025-04-28 11:32:00,408 p=261951 u=rothakur n=ansible INFO| Skipping callback 'oneline', as we already have a stdout callback.
+2025-04-28 11:32:00,408 p=261951 u=rothakur n=ansible INFO| PLAYBOOK: junos_hostname.yml *************************************************************************************************
+2025-04-28 11:32:00,408 p=261951 u=rothakur n=ansible INFO| 1 plays in junos_hostname.yml
+2025-04-28 11:32:00,409 p=261951 u=rothakur n=ansible INFO| PLAY [Junos Hostname Config Management] **************************************************************************************
+2025-04-28 11:32:00,416 p=261951 u=rothakur n=ansible INFO| TASK [Gather Junos hostname] *************************************************************************************************
+2025-04-28 11:32:00,416 p=261951 u=rothakur n=ansible INFO| task path: /home/rothakur/juniperwork/ansible_collections/remote_pr/ansible-junos-stdlib/ansible_collections/junos_hostname.yml:8
+2025-04-28 11:32:00,468 p=261951 u=rothakur n=ansible INFO| redirecting (type: modules) junipernetworks.junos.junos_hostname to juniper.device.junos_hostname
+2025-04-28 11:32:00,471 p=261951 u=rothakur n=ansible INFO| redirecting (type: action) ansible.builtin.junos to junipernetworks.junos.junos
+2025-04-28 11:32:00,472 p=261951 u=rothakur n=ansible WARNING| [WARNING]: errors were encountered during the plugin load for junipernetworks.junos.junos: ["'NoneType' object has no
+attribute 'get'", "'NoneType' object has no attribute 'get'"]
+
+2025-04-28 11:32:00,905 p=261951 u=rothakur n=ansible INFO| network_os is set to juniper.device.junos
+2025-04-28 11:32:00,907 p=261951 u=rothakur n=ansible INFO| <192.168.150.168> ESTABLISH LOCAL CONNECTION FOR USER: rothakur
+2025-04-28 11:32:00,908 p=261951 u=rothakur n=ansible INFO| <192.168.150.168> EXEC /bin/sh -c '( umask 77 && mkdir -p "` echo /home/rothakur/.ansible/tmp/ansible-local-261951mctjdrav `"&& mkdir "` echo /home/rothakur/.ansible/tmp/ansible-local-261951mctjdrav/ansible-tmp-1745820120.9076986-261954-227109283481504 `" && echo ansible-tmp-1745820120.9076986-261954-227109283481504="` echo /home/rothakur/.ansible/tmp/ansible-local-261951mctjdrav/ansible-tmp-1745820120.9076986-261954-227109283481504 `" ) && sleep 0'
+2025-04-28 11:32:00,915 p=261951 u=rothakur n=ansible INFO| redirecting (type: modules) junipernetworks.junos.junos_hostname to juniper.device.junos_hostname
+2025-04-28 11:32:01,125 p=261951 u=rothakur n=ansible INFO| Using module file /home/rothakur/juniperwork/ansible_collections/ansible-junos-stdlib/ansible_collections/juniper/device/plugins/modules/junos_hostname.py
+2025-04-28 11:32:01,126 p=261951 u=rothakur n=ansible INFO| <192.168.150.168> PUT /home/rothakur/.ansible/tmp/ansible-local-261951mctjdrav/tmpcyhvb243 TO /home/rothakur/.ansible/tmp/ansible-local-261951mctjdrav/ansible-tmp-1745820120.9076986-261954-227109283481504/AnsiballZ_junos_hostname.py
+2025-04-28 11:32:01,126 p=261951 u=rothakur n=ansible INFO| <192.168.150.168> EXEC /bin/sh -c 'chmod u+x /home/rothakur/.ansible/tmp/ansible-local-261951mctjdrav/ansible-tmp-1745820120.9076986-261954-227109283481504/ /home/rothakur/.ansible/tmp/ansible-local-261951mctjdrav/ansible-tmp-1745820120.9076986-261954-227109283481504/AnsiballZ_junos_hostname.py && sleep 0'
+2025-04-28 11:32:01,129 p=261951 u=rothakur n=ansible INFO| <192.168.150.168> EXEC /bin/sh -c '/home/rothakur/venvs/ansidev_py311/bin/python /home/rothakur/.ansible/tmp/ansible-local-261951mctjdrav/ansible-tmp-1745820120.9076986-261954-227109283481504/AnsiballZ_junos_hostname.py && sleep 0'
+2025-04-28 11:32:01,529 p=262037 u=rothakur n=ncclient.transport.ssh INFO| Connected (version 2.0, client OpenSSH_7.3)
+2025-04-28 11:32:01,662 p=262037 u=rothakur n=ncclient.transport.ssh INFO| Authentication (publickey) failed.
+2025-04-28 11:32:01,755 p=262037 u=rothakur n=ncclient.transport.ssh INFO| Authentication (password) successful!
+2025-04-28 11:32:01,901 p=262037 u=rothakur n=ncclient.transport.ssh INFO| [host 192.168.150.168 session 0x7fe411ac7810] Sending:
+b'<?xml version="1.0" encoding="UTF-8"?><nc:hello xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"><nc:capabilities><nc:capability>urn:ietf:params:netconf:base:1.0</nc:capability><nc:capability>urn:ietf:params:netconf:base:1.1</nc:capability><nc:capability>urn:ietf:params:netconf:capability:writable-running:1.0</nc:capability><nc:capability>urn:ietf:params:netconf:capability:candidate:1.0</nc:capability><nc:capability>urn:ietf:params:netconf:capability:confirmed-commit:1.0</nc:capability><nc:capability>urn:ietf:params:netconf:capability:rollback-on-error:1.0</nc:capability><nc:capability>urn:ietf:params:netconf:capability:startup:1.0</nc:capability><nc:capability>urn:ietf:params:netconf:capability:url:1.0?scheme=http,ftp,file,https,sftp</nc:capability><nc:capability>urn:ietf:params:netconf:capability:validate:1.0</nc:capability><nc:capability>urn:ietf:params:netconf:capability:xpath:1.0</nc:capability><nc:capability>urn:ietf:params:netconf:capability:notification:1.0</nc:capability><nc:capability>urn:ietf:params:netconf:capability:interleave:1.0</nc:capability><nc:capability>urn:ietf:params:netconf:capability:with-defaults:1.0</nc:capability></nc:capabilities></nc:hello>]]>]]>'
+2025-04-28 11:32:01,942 p=262037 u=rothakur n=ncclient.transport.ssh INFO| [host 192.168.150.168 session 0x7fe411ac7810] Received message from host
+2025-04-28 11:32:01,942 p=262037 u=rothakur n=ncclient.transport.ssh INFO| [host 192.168.150.168 session-id 10900] initialized: session-id=10900 | server_capabilities=<dict_keyiterator object at 0x7fe411ad86d0>
+2025-04-28 11:32:01,943 p=262037 u=rothakur n=ncclient.operations.rpc INFO| [host 192.168.150.168 session-id 10900] Requesting 'ExecuteRpc'
+2025-04-28 11:32:02,042 p=262037 u=rothakur n=ncclient.transport.ssh INFO| [host 192.168.150.168 session-id 10900] Sending:
+b'<?xml version="1.0" encoding="UTF-8"?><nc:rpc xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="urn:uuid:53fefe9d-2da8-4b05-bcfd-2bb232fa5525"><nc:get-software-information/></nc:rpc>]]>]]>'
+2025-04-28 11:32:02,266 p=262037 u=rothakur n=ncclient.transport.ssh INFO| [host 192.168.150.168 session-id 10900] Received message from host
+2025-04-28 11:32:02,268 p=262037 u=rothakur n=ncclient.operations.rpc INFO| [host 192.168.150.168 session-id 10900] Requesting 'GetConfiguration'
+2025-04-28 11:32:02,367 p=262037 u=rothakur n=ncclient.transport.ssh INFO| [host 192.168.150.168 session-id 10900] Sending:
+b'<?xml version="1.0" encoding="UTF-8"?><nc:rpc xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="urn:uuid:dfabb840-3a15-492b-af50-5312aa68eea6"><nc:get-configuration format="xml"><configuration>\n                                    <system>\n                                    </system>\n                                </configuration></nc:get-configuration></nc:rpc>]]>]]>'
+2025-04-28 11:32:02,480 p=262037 u=rothakur n=ncclient.transport.ssh INFO| [host 192.168.150.168 session-id 10900] Received message from host
+2025-04-28 11:32:02,519 p=261951 u=rothakur n=ansible INFO| <192.168.150.168> EXEC /bin/sh -c 'rm -f -r /home/rothakur/.ansible/tmp/ansible-local-261951mctjdrav/ansible-tmp-1745820120.9076986-261954-227109283481504/ > /dev/null 2>&1 && sleep 0'
+2025-04-28 11:32:02,523 p=261951 u=rothakur n=ansible INFO| ok: [192.168.150.168] => {
+    "changed": false,
+    "gathered": {
+        "hostname": "test"
+    },
+    "invocation": {
+        "module_args": {
+            "config": null,
+            "running_config": null,
+            "state": "gathered"
+        }
+    }
+}
+2025-04-28 11:32:02,524 p=262037 u=rothakur n=ncclient.operations.rpc INFO| [host 192.168.150.168 session-id 10900] Requesting 'CloseSession'
+2025-04-28 11:32:02,581 p=262037 u=rothakur n=ncclient.transport.ssh INFO| [host 192.168.150.168 session-id 10900] Sending:
+b'<?xml version="1.0" encoding="UTF-8"?><nc:rpc xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0" message-id="urn:uuid:3df64b56-cdfb-40ce-897a-4a658ab29322"><nc:close-session/></nc:rpc>]]>]]>'
+2025-04-28 11:32:02,586 p=262037 u=rothakur n=ncclient.transport.ssh INFO| [host 192.168.150.168 session-id 10900] Received message from host
+2025-04-28 11:32:02,587 p=261951 u=rothakur n=ansible INFO| PLAY RECAP *******************************************************************************************************************
+2025-04-28 11:32:02,587 p=261951 u=rothakur n=ansible INFO| 192.168.150.168            : ok=1    changed=0    unreachable=0    failed=0    skipped=0    rescued=0    ignored=0   
+2025-04-28 11:32:02,687 p=262037 u=rothakur n=ncclient.operations.rpc INFO| [host 192.168.150.168 session-id 10900] Requesting 'CloseSession'
+2025-04-28 11:32:02,687 p=262037 u=rothakur n=ansible INFO| shutdown complete

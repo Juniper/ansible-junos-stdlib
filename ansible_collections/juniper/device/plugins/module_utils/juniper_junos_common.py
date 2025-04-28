@@ -623,7 +623,6 @@ class JuniperJunosModule(AnsibleModule):
         Returns:
             A JuniperJunosModule instance object.
         """
-
         if mutually_exclusive is None:
             mutually_exclusive = []
         if argument_spec is None:

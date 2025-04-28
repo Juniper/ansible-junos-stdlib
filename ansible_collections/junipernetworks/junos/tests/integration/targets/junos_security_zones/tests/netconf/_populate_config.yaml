@@ -1,0 +1,38 @@
+---
+- name: Populate config
+  junipernetworks.junos.junos_config:
+    lines:
+      - set security zones functional-zone management description "test description"
+      - set security zones functional-zone management screen test_screen
+      - set security zones functional-zone management interfaces ge-0/0/1
+      - set security zones functional-zone management interfaces ge-0/0/2
+      - set security zones functional-zone management host-inbound-traffic protocols all
+      - set security zones functional-zone management host-inbound-traffic protocols bgp except
+      - set security zones functional-zone management host-inbound-traffic system-services all
+      - set security zones functional-zone management host-inbound-traffic system-services dhcp except
+      - set security zones security-zone test_sec_zone1 screen test_screen
+      - set security zones security-zone test_sec_zone1 interfaces ge-0/0/3
+      - set security zones security-zone test_sec_zone1 interfaces ge-0/0/4
+      - set security zones security-zone test_sec_zone1 source-identity-log
+      - set security zones security-zone test_sec_zone1 tcp-rst
+      - set security zones security-zone test_sec_zone1 enable-reverse-reroute
+      - set security zones security-zone test_sec_zone1 description "test description"
+      - set security zones security-zone test_sec_zone1 application-tracking
+      - set security zones security-zone test_sec_zone1 advance-policy-based-routing-profile test_profile
+      - set security zones security-zone test_sec_zone1 host-inbound-traffic protocols all
+      - set security zones security-zone test_sec_zone1 host-inbound-traffic protocols bgp except
+      - set security zones security-zone test_sec_zone1 host-inbound-traffic system-services all
+      - set security zones security-zone test_sec_zone1 host-inbound-traffic system-services dhcp except
+      - set security zones security-zone test_sec_zone1 address-book address test_adr1 10.0.0.0/24 description "test desc"
+      - set security zones security-zone test_sec_zone1 address-book address test_adr2 dns-name 1.1.1.1 ipv6-only
+      - set security zones security-zone test_sec_zone1 address-book address test_adr3 range-address 10.2.0.1 to 10.2.0.2
+      - set security zones security-zone test_sec_zone1 address-book address test_adr4 wildcard-address 10.3.0.1/24
+      - set security zones security-zone test_sec_zone1 address-book address test_adr5 10.1.0.0/24 description "test desc"
+      - set security zones security-zone test_sec_zone1 address-book address-set test_adrset1 address test_adr1
+      - set security zones security-zone test_sec_zone1 address-book address-set test_adrset1 address test_adr2
+      - set security zones security-zone test_sec_zone1 address-book address-set test_adrset2 address test_adr3
+      - set security zones security-zone test_sec_zone1 address-book address-set test_adrset2 address test_adr4
+      - set security zones security-zone test_sec_zone1 address-book address-set test_adrset3 address test_adr5
+      - set security zones security-zone test_sec_zone1 address-book address-set test_adrset3 address-set test_adrset1
+      - set security zones security-zone test_sec_zone1 address-book address-set test_adrset3 address-set test_adrset2
+      - set security zones security-zone test_sec_zone1 address-book address-set test_adrset3 description "test description"

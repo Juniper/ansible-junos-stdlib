@@ -1,0 +1,49 @@
+---
+- ansible.builtin.debug:
+    msg: "START junos_acls overridden integration tests on connection={{ ansible_connection }}"
+
+- block:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+    - ansible.builtin.set_fact:
+        config:
+          - acls:
+              - aces:
+                  - name: ace_10
+                    grant: deny
+                    protocol: tcp
+                name: acl_1
+              - aces:
+                  - name: ace_20
+                    grant: deny
+                    protocol: udp
+                name: acl_2
+            afi: ipv4
+
+    - name: Override the entire running configuration with the provided configuration
+      junipernetworks.junos.junos_acls: &overridden
+        config: "{{ config }}"
+        state: overridden
+      register: result
+
+    - name: Assert the configuration is reflected on host
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ config|symmetric_difference(result.after) == [] }}"
+
+    - name: Override the entire running configuration with the provided configuration (IDEMPOTENT)
+      junipernetworks.junos.junos_acls: *overridden
+      register: result
+
+    - name: Assert that the previous task was idempotent
+      ansible.builtin.assert:
+        that:
+          - result.changed == False
+
+  tags: overridden
+  always:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+- ansible.builtin.debug:
+    msg: "END junos_acls overridden integration tests on connection={{ ansible_connection }}"

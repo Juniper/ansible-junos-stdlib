@@ -1,0 +1,44 @@
+---
+- ansible.builtin.debug:
+    msg: "START junos_routing_options overridden integration tests on connection={{ ansible_connection }}"
+
+- block:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+    - ansible.builtin.include_tasks: _populate_config.yaml
+
+    - name: Override configuration
+      junipernetworks.junos.junos_routing_options: &replaced
+        config:
+          autonomous_system:
+            as_number: 1
+            asdot_notation: true
+          router_id: "10.10.10.10"
+
+        state: replaced
+      register: result
+
+    - name: Assert that before dicts were correctly generated
+      ansible.builtin.assert:
+        that: "{{ merged['updated'] == result['before'] }}"
+
+    - name: Assert configuration
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ replaced['after'] == result.after }}"
+
+    - name: Replaced the provided configuration with the existing running configuration (IDEMPOTENT)
+      junipernetworks.junos.junos_routing_options: *replaced
+      register: result
+
+    - name: Assert that the previous task was idempotent
+      ansible.builtin.assert:
+        that:
+          - result.changed == False
+
+  tags: replaced
+  always:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+- ansible.builtin.debug:
+    msg: "END junos_routing_options overridden integration tests on connection={{ ansible_connection }}"

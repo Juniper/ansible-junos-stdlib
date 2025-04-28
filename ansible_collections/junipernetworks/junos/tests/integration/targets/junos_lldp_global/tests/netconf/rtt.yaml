@@ -1,0 +1,83 @@
+---
+- ansible.builtin.debug:
+    msg:
+      START junos_lldp_global round trip integration tests on connection={{ ansible_connection
+      }}
+
+- name: get supported protocols
+  register: result
+  ignore_errors: true
+  junipernetworks.junos.junos_command:
+    commands: show lldp
+
+- name: lldp supported
+  ansible.builtin.set_fact:
+    lldp_supported: true
+  when: not result.failed
+
+- name: lldp not supported
+  ansible.builtin.set_fact:
+    lldp_supported: false
+  when: result.failed
+
+- block:
+    - ansible.builtin.include_tasks: _remove_config.yaml
+
+    - ansible.builtin.set_fact:
+        expected_revert_output:
+          - interval: 10000
+            address: 10.1.1.1
+            transmit_delay: 400
+            hold_multiplier: 10
+
+    - name: Apply the provided configuration (base config)
+      register: base_config
+      junipernetworks.junos.junos_lldp_global:
+        config:
+          interval: 10000
+          address: 10.1.1.1
+          transmit_delay: 400
+          hold_multiplier: 10
+        state: merged
+
+    - name: Gather interfaces facts
+      junipernetworks.junos.junos_facts:
+        gather_subset:
+          - default
+        gather_network_resources:
+          - lldp_global
+
+    - name: Apply the provided configuration (config to be reverted)
+      register: result
+      junipernetworks.junos.junos_lldp_global:
+        config:
+          interval: 20000
+          address: 10.1.1.2
+          transmit_delay: 500
+          hold_multiplier: 5
+          enabled: false
+        state: replaced
+
+    - name: Assert that changes were applied
+      ansible.builtin.assert:
+        that: result['changed'] == true
+
+    - name: Revert back to base config using facts round trip
+      register: revert
+      junipernetworks.junos.junos_lldp_global:
+        config: "{{ ansible_facts['network_resources']['lldp_global'] }}"
+        state: replaced
+
+    - name: Assert that config was reverted
+      ansible.builtin.assert:
+        that:
+          "{{ expected_revert_output | symmetric_difference([revert['after']])\
+          \ |length == 0 }}"
+  always:
+    - ansible.builtin.include_tasks: _remove_config.yaml
+  when: lldp_supported
+
+- ansible.builtin.debug:
+    msg:
+      END junos_lldp_global round trip integration tests on connection={{ ansible_connection
+      }}

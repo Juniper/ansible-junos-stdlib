@@ -1,0 +1,10 @@
+---
+- name: 'Explicit host argument'
+  hosts: junos
+  connection: local
+  gather_facts: false
+
+  tasks:
+    - name: "Get facts"
+      juniper.device.facts:
+      register: response

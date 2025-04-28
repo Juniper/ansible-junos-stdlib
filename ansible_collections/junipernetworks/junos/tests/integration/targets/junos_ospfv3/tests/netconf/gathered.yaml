@@ -1,0 +1,38 @@
+---
+- ansible.builtin.debug:
+    msg: START junos_ospfv3 gathered integration tests on connection={{
+      ansible_connection }}
+
+- block:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+    - ansible.builtin.include_tasks: _initial_config.yaml
+
+    - ansible.builtin.set_fact:
+        expected_gathered_output:
+          - router_id: 10.200.16.75
+            areas:
+              - area_id: 0.0.0.100
+                interfaces:
+                  - name: so-0/0/0.0
+              - area_id: 0.0.0.200
+                interfaces:
+                  - name: ge-2/2/0.0
+
+    - name: Gather interfaces facts using gathered state
+      register: result
+      junipernetworks.junos.junos_ospfv3:
+        state: gathered
+
+    - name: Assert that facts were correctly generated
+      ansible.builtin.assert:
+        that:
+          "{{ expected_gathered_output | symmetric_difference(result['gathered']) |length\
+          \ == 0 }}"
+
+  always:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+- ansible.builtin.debug:
+    msg:
+      END junos_ospfv3 gathered integration tests on connection={{ ansible_connection
+      }}

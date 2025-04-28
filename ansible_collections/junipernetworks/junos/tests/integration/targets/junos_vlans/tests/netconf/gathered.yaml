@@ -1,0 +1,35 @@
+---
+- ansible.builtin.debug:
+    msg: START junos_vlans gathered integration tests on connection={{ ansible_connection }}
+
+- block:
+    - ansible.builtin.include_tasks: _remove_config.yaml
+
+    - ansible.builtin.include_tasks: _initial_config.yaml
+
+    - ansible.builtin.set_fact:
+        expected_gathered_output:
+          - name: vlan1
+            vlan_id: 1
+          - name: vlan2
+            vlan_id: 2
+            l3_interface: "irb.12"
+
+    - name: Gather bgp address family facts using gathered state
+      register: result
+      junipernetworks.junos.junos_vlans:
+        state: gathered
+
+    - name: Assert that facts were correctly generated
+      ansible.builtin.assert:
+        that:
+          - "{{ expected_gathered_output | symmetric_difference(result['gathered']) |length\
+            \ == 0 }}"
+          - result['changed'] == false
+  always:
+    - ansible.builtin.include_tasks: _remove_config.yaml
+
+- ansible.builtin.debug:
+    msg:
+      END junos_vlans gathered integration tests on connection={{ ansible_connection
+      }}

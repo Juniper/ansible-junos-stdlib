@@ -300,7 +300,6 @@ try:
 except ImportError:
     HAS_YAML_VERSION = None
 
-# import q
 logging.getLogger("ncclient").setLevel(logging.INFO)
 
 

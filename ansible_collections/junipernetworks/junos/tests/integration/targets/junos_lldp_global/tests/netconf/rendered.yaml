@@ -1,0 +1,26 @@
+---
+- ansible.builtin.debug:
+    msg: START junos_lldp_global rendered integration tests on connection={{
+      ansible_connection }}
+
+- ansible.builtin.set_fact:
+    expected_rendered_output: '<nc:protocols xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"><nc:lldp><nc:management-address>10.1.1.1</nc:management-address><nc:advertisement-interval>10000</nc:advertisement-interval><nc:transmit-delay>400</nc:transmit-delay><nc:hold-multiplier>10</nc:hold-multiplier><nc:disable delete="delete"/></nc:lldp></nc:protocols>'
+
+- name: Render platform specific commands from task input using rendered state
+  register: result
+  junipernetworks.junos.junos_lldp_global:
+    config:
+      interval: 10000
+      address: 10.1.1.1
+      transmit_delay: 400
+      hold_multiplier: 10
+    state: rendered
+
+- name: Assert that correct set of commands were rendered
+  ansible.builtin.assert:
+    that:
+      - "{{ expected_rendered_output == result['rendered'] }}"
+
+- ansible.builtin.debug:
+    msg: END junos_lldp_global rendered integration tests on connection={{
+      ansible_connection }}

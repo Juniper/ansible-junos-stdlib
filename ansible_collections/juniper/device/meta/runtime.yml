@@ -1,1 +1,10 @@
-requires_ansible: ">=2.10"
+requires_ansible: ">=2.15.0"
+plugin_routing:
+  plugins:
+  modules:
+    hostname:
+      redirect: juniper.device.junos_hostname
+    interfaces:
+      redirect: juniper.device.junos_interfaces
+    acls:
+      redirect: juniper.device.junos_acls

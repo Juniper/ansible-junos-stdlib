@@ -1,0 +1,57 @@
+---
+- ansible.builtin.debug:
+    msg: "START junos_snmp_server overridden integration tests on connection={{ ansible_connection }}"
+
+- block:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+    - ansible.builtin.include_tasks: _initial_config.yaml
+    - ansible.builtin.include_tasks: _populate_config.yaml
+
+    - name: Override configuration
+      junipernetworks.junos.junos_snmp_server: &overridden
+        config:
+          contact: "ansiblesupport11@redhat.com"
+          customization:
+            ether_stats_ifd_only: true
+          description: "Local SNMP Server"
+          engine_id:
+            use_mac_address: true
+          filter_duplicates: true
+          filter_interfaces:
+            all_internal_interfaces: true
+            interfaces:
+              - "eth1"
+              - "eth2"
+            set: true
+          views:
+            - name: "all"
+              oids:
+                - oid: ".1"
+        state: overridden
+      register: result
+
+    - name: Assert that before dicts were correctly generated
+      ansible.builtin.assert:
+        that: "{{ gathered['facts'] == result['before'] }}"
+
+    - name: Assert configuration
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ replaced['after'] == result['after'] }}"
+
+    - name: Replaced the provided configuration with the existing running configuration (IDEMPOTENT)
+      junipernetworks.junos.junos_snmp_server: *overridden
+      register: result
+
+    - name: Assert that the previous task was idempotent
+      ansible.builtin.assert:
+        that:
+          - result.changed == False
+
+  tags: overridden
+  always:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+- ansible.builtin.debug:
+    msg: "END junos_snmp_server overridden integration tests on connection={{ ansible_connection }}"

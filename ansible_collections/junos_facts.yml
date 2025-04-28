@@ -1,0 +1,11 @@
+---
+- name: Test Junos Facts Module
+  hosts: junos
+  gather_facts: false
+  collections:
+    - junipernetworks.junos
+  tasks:
+    - name: Gather Junos Facts
+      junos_facts:
+    #  register: junos_facts_output
+

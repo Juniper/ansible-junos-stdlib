@@ -1,0 +1,99 @@
+---
+- ansible.builtin.debug:
+    msg: START junos_logging_global gathered integration tests on connection={{ ansible_connection }}
+
+- block:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+    - ansible.builtin.include_tasks: _initial_config.yaml
+
+    - name: Pre gathered operation configuration
+      junipernetworks.junos.junos_logging_global:
+        config:
+          allow_duplicates: true
+          archive:
+            set: true
+            no_binary_data: true
+            files: 10
+            file_size: "5m"
+            no_world_readable: true
+          console:
+            any:
+              level: "info"
+            authorization:
+              level: "any"
+            change_log:
+              level: "critical"
+            ftp:
+              level: "none"
+          files:
+            - name: "file101"
+              allow_duplicates: true
+            - name: "file102"
+              allow_duplicates: true
+              any:
+                level: "any"
+              structured_data:
+                set: true
+            - name: "file103"
+              archive:
+                set: true
+                no_binary_data: true
+                files: 10
+                file_size: "65578"
+                no_world_readable: true
+              explicit_priority: true
+              match: "^set*"
+              match_strings:
+                - "^delete"
+                - "^prompt"
+          hosts:
+            - name: host111
+              exclude_hostname: true
+              allow_duplicates: true
+              any:
+                level: "any"
+              structured_data:
+                set: true
+                brief: true
+              facility_override: "ftp"
+              log_prefix: "field"
+              match: "^set*"
+              match_strings:
+                - "^delete"
+                - "^prompt"
+              port: 1231
+              routing_instance: "inst11"
+              source_address: "11.1.1.11"
+          routing_instance: "inst11"
+          log_rotate_frequency: 45
+          source_address: "33.33.33.33"
+          time_format:
+            millisecond: true
+            year: true
+          users:
+            - name: "user1"
+              allow_duplicates: true
+            - name: "user2"
+              allow_duplicates: true
+              any:
+                level: "any"
+              user:
+                level: info
+        state: merged
+
+    - name: Gather interfaces facts using gathered state
+      register: result
+      junipernetworks.junos.junos_logging_global:
+        state: gathered
+
+    - name: Assert that facts were correctly generated
+      ansible.builtin.assert:
+        that: "{{ merged['after'] == result['gathered'] }}"
+
+  always:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+- ansible.builtin.debug:
+    msg:
+      END junos_logging_global gathered integration tests on connection={{ ansible_connection
+      }}

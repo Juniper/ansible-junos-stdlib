@@ -1,0 +1,24 @@
+---
+- ansible.builtin.debug:
+    msg: START junos_routing_options gathered integration tests on connection={{ ansible_connection }}
+
+- block:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+    - ansible.builtin.include_tasks: _populate_config.yaml
+
+    - name: Gather interfaces facts using gathered state
+      register: result
+      junipernetworks.junos.junos_routing_options:
+        state: gathered
+
+    - name: Assert that facts were correctly generated
+      ansible.builtin.assert:
+        that: "{{ merged['updated'] == result['gathered'] }}"
+
+  always:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+- ansible.builtin.debug:
+    msg:
+      END junos_routing_options gathered integration tests on connection={{ ansible_connection
+      }}

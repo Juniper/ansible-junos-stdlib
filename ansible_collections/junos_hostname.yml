@@ -1,0 +1,11 @@
+---
+- name: Junos Hostname Config Management
+  hosts: junos
+  gather_facts: false
+  collections:
+    - junipernetworks.junos
+  tasks:
+    - name: Gather Junos hostname
+      junos_hostname:
+        state: gathered
+

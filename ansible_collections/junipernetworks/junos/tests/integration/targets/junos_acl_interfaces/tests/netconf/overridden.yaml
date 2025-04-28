@@ -1,0 +1,51 @@
+---
+- name: Debug task
+  ansible.builtin.debug:
+    msg: "START junipernetworks.junos.junos_acl_interfaces overridden integration tests on connection={{ ansible_connection }}"
+
+- block:
+    - name: Reset configuration
+      ansible.builtin.include_tasks: _reset_config.yaml
+
+    - name: Initial configuration
+      ansible.builtin.include_tasks: _initial_config.yaml
+
+    - name: Set facts
+      ansible.builtin.set_fact:
+        config:
+          - name: ge-1/0/0
+            access_groups:
+              - afi: ipv4
+                acls:
+                  - name: initial_acl
+                    direction: in
+
+    - name: Override configuration of ACL
+      junipernetworks.junos.junos_acl_interfaces:
+        config:
+          - name: ge-1/0/0
+            access_groups:
+              - afi: ipv4
+                acls:
+                  - name: initial_acl
+                    direction: in
+        state: overridden
+      register: result
+
+    - name: Assert changed
+      ansible.builtin.assert: &changed
+        that:
+          - result.changed == True
+          - "{{ config|symmetric_difference(result.after) == [] }}"
+
+    - name: Assert changed
+      ansible.builtin.assert: *changed
+
+  tags: overridden
+  always:
+    - name: Reset configuration
+      ansible.builtin.include_tasks: _reset_config.yaml
+
+- name: Debug task
+  ansible.builtin.debug:
+    msg: "END junipernetworks.junos.junos_acl_interfaces overridden integration tests on connection={{ ansible_connection }}"

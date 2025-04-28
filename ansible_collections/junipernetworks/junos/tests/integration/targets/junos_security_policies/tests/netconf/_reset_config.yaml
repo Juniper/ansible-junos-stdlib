@@ -1,0 +1,22 @@
+---
+- ansible.builtin.debug:
+    msg: "START junos_security_policies reset config on connection={{ ansible_connection }}"
+
+- name: Reset the config releavent to security policies resources
+  junipernetworks.junos.junos_config:
+    lines:
+      - delete security
+      - delete services
+      - delete class-of-service
+      - delete access
+      - delete interfaces ge-0/0/0
+      - delete interfaces ge-0/0/1
+      - delete interfaces ge-0/0/2
+
+- name: Reset the generated security certificates
+  junipernetworks.junos.junos_command:
+    commands:
+      - clear security pki local-certificate all
+
+- ansible.builtin.debug:
+    msg: "END junos_security_policies reset config on connection={{ ansible_connection }}"
