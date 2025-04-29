@@ -1,0 +1,30 @@
+---
+name: "CI"
+
+concurrency:
+  group: ${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+on:  # yamllint disable-line rule:truthy
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  ansible-lint:
+    uses: ./.github/workflows/ansible_lint.yaml
+  all_green:
+    if: ${{ always() && (github.event_name != 'schedule') }}
+    needs:
+      - ansible-lint
+    runs-on: ubuntu-latest
+    steps:
+      - run: >-
+          python -c "assert 'failure' not in
+          set([
+          '${{ needs.ansible-lint.result }}'
+          ])"
