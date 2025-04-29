@@ -3,6 +3,7 @@ from setuptools import setup
 
 from version import VERSION
 
+
 setup(
     name="ansible-junos-stdlib",
     version=VERSION,

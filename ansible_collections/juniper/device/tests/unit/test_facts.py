@@ -1,6 +1,7 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
+
 from ansible_collections.juniper.device.plugins.modules.facts import (
     get_facts_dict,
     main,
@@ -41,7 +42,7 @@ def test_get_facts_dict(mock_junos_module):
 
 
 @patch(
-    "ansible_collections.juniper.device.plugins.module_utils.juniper_junos_common.JuniperJunosModule"
+    "ansible_collections.juniper.device.plugins.module_utils.juniper_junos_common.JuniperJunosModule",
 )
 @patch(
     "ansible_collections.juniper.device.plugins.module_utils.configuration.MIN_JXMLEASE_VERSION",

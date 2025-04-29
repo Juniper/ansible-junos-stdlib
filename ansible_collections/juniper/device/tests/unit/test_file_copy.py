@@ -1,10 +1,12 @@
 from unittest.mock import patch
+
 import pytest
+
 from ansible_collections.juniper.device.plugins.modules.file_copy import main
 
 
 @patch(
-    "ansible_collections.juniper.device.plugins.module_utils.juniper_junos_common.JuniperJunosModule"
+    "ansible_collections.juniper.device.plugins.module_utils.juniper_junos_common.JuniperJunosModule",
 )
 @patch(
     "ansible_collections.juniper.device.plugins.module_utils.configuration.MIN_JXMLEASE_VERSION",
@@ -25,15 +27,18 @@ def test_file_copy_put(mock_junos_module):
         main()
 
         mock_instance.scp_file_copy_put.assert_called_once_with(
-            "/local/testfile.txt", "/remote/testfile.txt"
+            "/local/testfile.txt",
+            "/remote/testfile.txt",
         )
         mock_instance.exit_json.assert_called_once_with(
-            msg="File copied successfully", changed=True, failed=False
+            msg="File copied successfully",
+            changed=True,
+            failed=False,
         )
 
 
 @patch(
-    "ansible_collections.juniper.device.plugins.module_utils.juniper_junos_common.JuniperJunosModule"
+    "ansible_collections.juniper.device.plugins.module_utils.juniper_junos_common.JuniperJunosModule",
 )
 @patch(
     "ansible_collections.juniper.device.plugins.module_utils.configuration.MIN_JXMLEASE_VERSION",
@@ -54,10 +59,13 @@ def test_file_copy_get(mock_junos_module):
         main()
 
         mock_instance.scp_file_copy_get.assert_called_once_with(
-            "/remote/testfile.txt", "/local/testfile.txt"
+            "/remote/testfile.txt",
+            "/local/testfile.txt",
         )
         mock_instance.exit_json.assert_called_once_with(
-            msg="File copied successfully", changed=True, failed=False
+            msg="File copied successfully",
+            changed=True,
+            failed=False,
         )
 
 

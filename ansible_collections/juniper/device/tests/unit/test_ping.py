@@ -1,5 +1,7 @@
 from unittest.mock import patch
+
 import pytest
+
 from ansible_collections.juniper.device.plugins.modules.ping import main
 
 
@@ -15,7 +17,7 @@ def create_ping_response(success=True):
 
 # Test for valid ping parameters
 @patch(
-    "ansible_collections.juniper.device.plugins.module_utils.juniper_junos_common.JuniperJunosModule"
+    "ansible_collections.juniper.device.plugins.module_utils.juniper_junos_common.JuniperJunosModule",
 )
 def test_ping_valid_ping_params(mock_junos_module):
     mock_instance = mock_junos_module.return_value
@@ -77,7 +79,7 @@ def test_ping_valid_ping_params(mock_junos_module):
 
 # Test for invalid acceptable_percent_loss
 @patch(
-    "ansible_collections.juniper.device.plugins.module_utils.juniper_junos_common.JuniperJunosModule"
+    "ansible_collections.juniper.device.plugins.module_utils.juniper_junos_common.JuniperJunosModule",
 )
 def test_ping_invalid_acceptable_percent_loss(mock_junos_module):
     mock_instance = mock_junos_module.return_value
@@ -89,13 +91,13 @@ def test_ping_invalid_acceptable_percent_loss(mock_junos_module):
     with patch("sys.exit") as mock_exit:
         main()
         mock_instance.fail_json.assert_called_once_with(
-            msg="The value of the acceptable_percent_lossoption (150) is a percentage and must have a value between 0 and 100."
+            msg="The value of the acceptable_percent_lossoption (150) is a percentage and must have a value between 0 and 100.",
         )
 
 
 # Test for ping failure
 @patch(
-    "ansible_collections.juniper.device.plugins.module_utils.juniper_junos_common.JuniperJunosModule"
+    "ansible_collections.juniper.device.plugins.module_utils.juniper_junos_common.JuniperJunosModule",
 )
 def test_ping_ping_failure(mock_junos_module):
     mock_instance = mock_junos_module.return_value

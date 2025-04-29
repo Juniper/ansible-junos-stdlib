@@ -1,8 +1,10 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
-from ansible_collections.juniper.device.plugins.modules.command import main
+
 from lxml import etree
+
+from ansible_collections.juniper.device.plugins.modules.command import main
 
 
 # Mock the necessary functions and classes
@@ -11,7 +13,7 @@ from lxml import etree
     new="1.0.0",
 )
 @patch(
-    "ansible_collections.juniper.device.plugins.module_utils.juniper_junos_common.JuniperJunosModule"
+    "ansible_collections.juniper.device.plugins.module_utils.juniper_junos_common.JuniperJunosModule",
 )
 def test_command_text(mock_junos_module):
     # Set up the mock module instance
@@ -54,7 +56,7 @@ def test_command_text(mock_junos_module):
     new="1.0.0",
 )
 @patch(
-    "ansible_collections.juniper.device.plugins.module_utils.juniper_junos_common.JuniperJunosModule"
+    "ansible_collections.juniper.device.plugins.module_utils.juniper_junos_common.JuniperJunosModule",
 )
 def test_command_xml(mock_junos_module):
     # Set up the mock module instance
@@ -89,7 +91,9 @@ def test_command_xml(mock_junos_module):
 
             # Prepare expected XML output
             expected_xml_output = etree.tostring(
-                mock_xml_response, pretty_print=True, encoding="unicode"
+                mock_xml_response,
+                pretty_print=True,
+                encoding="unicode",
             )
 
             # Assertions to check if the main function behaves as expected
@@ -105,7 +109,9 @@ def test_command_xml(mock_junos_module):
                 parsed_output=mock_instance.jxmlease.parse_etree(mock_xml_response),
             )
             mock_instance.dev.rpc.assert_called_once_with(
-                command_element, ignore_warning=None, normalize=True
+                command_element,
+                ignore_warning=None,
+                normalize=True,
             )
 
 
@@ -115,7 +121,7 @@ def test_command_xml(mock_junos_module):
     new="1.0.0",
 )
 @patch(
-    "ansible_collections.juniper.device.plugins.module_utils.juniper_junos_common.JuniperJunosModule"
+    "ansible_collections.juniper.device.plugins.module_utils.juniper_junos_common.JuniperJunosModule",
 )
 def test_multiple_commands_text(mock_junos_module):
     # Set up the mock module instance
@@ -187,7 +193,7 @@ def test_multiple_commands_text(mock_junos_module):
     new="1.0.0",
 )
 @patch(
-    "ansible_collections.juniper.device.plugins.module_utils.juniper_junos_common.JuniperJunosModule"
+    "ansible_collections.juniper.device.plugins.module_utils.juniper_junos_common.JuniperJunosModule",
 )
 def test_command_dest(mock_junos_module):
     # Set up the mock module instance
@@ -227,7 +233,9 @@ def test_command_dest(mock_junos_module):
                 stdout_lines=["Output text"],
             )
             mock_save_text_output.assert_called_once_with(
-                "show version", "text", "Output text"
+                "show version",
+                "text",
+                "Output text",
             )
 
 
@@ -239,7 +247,7 @@ def test_command_dest(mock_junos_module):
     new="1.0.0",
 )
 @patch(
-    "ansible_collections.juniper.device.plugins.module_utils.juniper_junos_common.JuniperJunosModule"
+    "ansible_collections.juniper.device.plugins.module_utils.juniper_junos_common.JuniperJunosModule",
 )
 def test_command_dest_dir(mock_junos_module):
     # Set up the mock module instance
@@ -279,7 +287,9 @@ def test_command_dest_dir(mock_junos_module):
                 stdout_lines=["Output text"],
             )
             mock_save_text_output.assert_called_once_with(
-                "show version", "text", "Output text"
+                "show version",
+                "text",
+                "Output text",
             )
 
 

@@ -238,4 +238,3 @@
       ansible.builtin.assert:
         that:
           - test2.msg == 'File pushed OK'
-

@@ -33,6 +33,7 @@
 
 from __future__ import absolute_import, division, print_function
 
+
 __metaclass__ = type
 
 ANSIBLE_METADATA = {
@@ -285,7 +286,10 @@ def main():
             ),
             max_size=dict(type="int", required=False, default=1500),
             max_range=dict(
-                type="int", required=False, choices=MAX_SIZE_CHOICES, default=512
+                type="int",
+                required=False,
+                choices=MAX_SIZE_CHOICES,
+                default=512,
             ),
             source=dict(
                 type="str",
@@ -310,7 +314,7 @@ def main():
         junos_module.fail_json(
             msg="The value of the max_size option(%d) "
             "must be between %d and %d."
-            % (params["max_size"], INET_MIN_MTU_SIZE, INET_MAX_MTU_SIZE)
+            % (params["max_size"], INET_MIN_MTU_SIZE, INET_MAX_MTU_SIZE),
         )
 
     # Initialize ping parameters.
@@ -348,7 +352,7 @@ def main():
             "dest": ping_params.get("host"),
             "dest_ip": ping_params.get("host"),
             "source_ip": ping_params.get("source"),
-        }
+        },
     )
 
     # Execute a minimally-sized ping just to verify basic connectivity.
@@ -356,7 +360,9 @@ def main():
     ping_params["size"] = str(INET_MIN_MTU_SIZE - INET_AND_ICMP_HEADER_SIZE)
     results_for_minimal = dict(results)
     results_for_minimal = junos_module.ping(
-        ping_params, acceptable_percent_loss=100, results=results_for_minimal
+        ping_params,
+        acceptable_percent_loss=100,
+        results=results_for_minimal,
     )
     if round(float(results_for_minimal.get("packet_loss", 100))) == 100:
         results["msg"] = "Basic connectivity to %s failed." % (results["host"])
@@ -379,7 +385,9 @@ def main():
         ping_params["size"] = str(test_size - INET_AND_ICMP_HEADER_SIZE)
         current_results = dict(results)
         current_results = junos_module.ping(
-            ping_params, acceptable_percent_loss=100, results=current_results
+            ping_params,
+            acceptable_percent_loss=100,
+            results=current_results,
         )
         loss = round(float(current_results.get("packet_loss", 100)))
         if loss < 100 and test_size == params["max_size"]:
@@ -405,7 +413,7 @@ def main():
             "decreasing max_size(%d) or increasing "
             "max_range(%d)."
             % (results["host"], min_test_size, params["max_size"], params["max_range"]),
-            **results
+            **results,
         )
 
     # Return results.

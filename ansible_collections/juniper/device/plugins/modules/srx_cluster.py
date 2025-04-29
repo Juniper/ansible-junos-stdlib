@@ -33,6 +33,7 @@
 
 from __future__ import absolute_import, division, print_function
 
+
 __metaclass__ = type
 
 ANSIBLE_METADATA = {
@@ -155,10 +156,16 @@ def main():
     junos_module = juniper_junos_common.JuniperJunosModule(
         argument_spec=dict(
             enable=dict(
-                type="bool", required=True, aliases=["cluster_enable"], default=None
+                type="bool",
+                required=True,
+                aliases=["cluster_enable"],
+                default=None,
             ),
             cluster_id=dict(
-                type="int", required=False, aliases=["cluster"], default=None
+                type="int",
+                required=False,
+                aliases=["cluster"],
+                default=None,
             ),
             node_id=dict(type="int", required=False, aliases=["node"], default=None),
         ),
@@ -180,7 +187,7 @@ def main():
         if cluster_id < 0 or cluster_id > 255:
             junos_module.fail_json(
                 msg="The cluster_id option (%s) must have "
-                "an integer value between 0 and 255." % (cluster_id)
+                "an integer value between 0 and 255." % (cluster_id),
             )
 
     # node_id must be between 0 and 1
@@ -188,7 +195,7 @@ def main():
         if node_id < 0 or node_id > 1:
             junos_module.fail_json(
                 msg="The node_id option (%s) must have a "
-                "value of 0 or 1." % (node_id)
+                "value of 0 or 1." % (node_id),
             )
 
     # Initialize the results. Assume failure until we know it's success.
@@ -280,12 +287,14 @@ def main():
                         )
                     else:
                         resp = junos_module._pyez_conn.set_chassis_cluster_enable(
-                            cluster_id=str(cluster_id), node=str(node_id)
+                            cluster_id=str(cluster_id),
+                            node=str(node_id),
                         )
                 else:
                     if junos_module.conn_type == "local":
                         resp = junos_module.dev.rpc.set_chassis_cluster_disable(
-                            reboot=True, normalize=True
+                            reboot=True,
+                            normalize=True,
                         )
                     else:
                         try:

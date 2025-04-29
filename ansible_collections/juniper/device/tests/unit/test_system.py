@@ -1,11 +1,12 @@
 from unittest.mock import MagicMock, patch
 
 import pytest
+
 from ansible_collections.juniper.device.plugins.modules.system import main
 
 
 @patch(
-    "ansible_collections.juniper.device.plugins.module_utils.juniper_junos_common.JuniperJunosModule"
+    "ansible_collections.juniper.device.plugins.module_utils.juniper_junos_common.JuniperJunosModule",
 )
 def test_reboot_action(MockJuniperJunosModule):
     # Create a mock instance of JuniperJunosModule
@@ -51,7 +52,7 @@ def test_reboot_action(MockJuniperJunosModule):
 
 
 @patch(
-    "ansible_collections.juniper.device.plugins.module_utils.juniper_junos_common.JuniperJunosModule"
+    "ansible_collections.juniper.device.plugins.module_utils.juniper_junos_common.JuniperJunosModule",
 )
 def test_shutdown_action(MockJuniperJunosModule):
     # Create a mock instance of JuniperJunosModule
@@ -97,7 +98,7 @@ def test_shutdown_action(MockJuniperJunosModule):
 
 
 @patch(
-    "ansible_collections.juniper.device.plugins.module_utils.juniper_junos_common.JuniperJunosModule"
+    "ansible_collections.juniper.device.plugins.module_utils.juniper_junos_common.JuniperJunosModule",
 )
 def test_zeroize_action(MockJuniperJunosModule):
     # Create a mock instance of JuniperJunosModule

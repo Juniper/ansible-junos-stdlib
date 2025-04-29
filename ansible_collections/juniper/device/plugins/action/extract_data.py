@@ -35,6 +35,7 @@ from __future__ import absolute_import, division, print_function
 
 import os
 
+
 connection_spec_fallbacks = {
     "host": ["host", "hostname", "ip", "ansible_host", "inventory_hostname"],
     "user": [

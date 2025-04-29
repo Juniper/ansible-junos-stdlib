@@ -33,6 +33,7 @@
 
 from __future__ import absolute_import, division, print_function
 
+
 __metaclass__ = type
 
 ANSIBLE_METADATA = {
@@ -184,16 +185,18 @@ failed:
 import json
 import os.path
 
+
 """From Ansible 2.1, Ansible uses Ansiballz framework for assembling modules
 But custom module_utils directory is supported from Ansible 2.3
 Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project/J8FL7Z1J1Mw """
 
 from ansible.module_utils._text import to_bytes
 
-# Ansiballz packages module_utils into ansible.module_utils
-
 from ansible_collections.juniper.device.plugins.module_utils import configuration as cfg
 from ansible_collections.juniper.device.plugins.module_utils import juniper_junos_common
+
+
+# Ansiballz packages module_utils into ansible.module_utils
 
 
 def get_facts_dict(junos_module):
@@ -235,7 +238,7 @@ def get_facts_dict(junos_module):
     if "junos_info" in facts and facts["junos_info"] is not None:
         for key in facts["junos_info"]:
             facts["junos_info"][key]["object"] = dict(
-                facts["junos_info"][key]["object"]
+                facts["junos_info"][key]["object"],
             )
     return facts
 
@@ -268,7 +271,8 @@ def save_facts(junos_module, facts):
             junos_module.logger.debug("Facts saved to: %s.", file_path)
         except IOError:
             junos_module.fail_json(
-                msg="Unable to save facts. Failed to open " "the %s file." % (file_path)
+                msg="Unable to save facts. Failed to open "
+                "the %s file." % (file_path),
             )
 
 
@@ -305,7 +309,7 @@ def save_inventory(junos_module, inventory):
         except IOError:
             junos_module.fail_json(
                 msg="Unable to save inventory. Failed to "
-                "open the %s file." % (file_path)
+                "open the %s file." % (file_path),
             )
 
 
@@ -317,7 +321,9 @@ def main():
     junos_module = juniper_junos_common.JuniperJunosModule(
         argument_spec=dict(
             config_format=dict(
-                choices=config_format_choices, required=False, default=None
+                choices=config_format_choices,
+                required=False,
+                default=None,
             ),
             savedir=dict(type="path", required=False, default=None),
         ),
@@ -346,11 +352,12 @@ def main():
                 inventory = junos_module.get_chassis_inventory()
             junos_module.logger.debug("Inventory gathered.")
             save_inventory(
-                junos_module, junos_module.etree.tostring(inventory, pretty_print=True)
+                junos_module,
+                junos_module.etree.tostring(inventory, pretty_print=True),
             )
         except junos_module.pyez_exception.RpcError as ex:
             junos_module.fail_json(
-                msg="Unable to retrieve hardware " "inventory: %s" % (str(ex))
+                msg="Unable to retrieve hardware " "inventory: %s" % (str(ex)),
             )
 
     config_format = junos_module.params.get("config_format")
@@ -365,7 +372,10 @@ def main():
 
     # Return response.
     junos_module.exit_json(
-        changed=False, failed=False, ansible_facts={"junos": facts}, facts=facts
+        changed=False,
+        failed=False,
+        ansible_facts={"junos": facts},
+        facts=facts,
     )
 
 

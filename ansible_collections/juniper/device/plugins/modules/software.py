@@ -33,6 +33,7 @@
 
 from __future__ import absolute_import, division, print_function
 
+
 __metaclass__ = type
 
 ANSIBLE_METADATA = {
@@ -386,6 +387,7 @@ import os.path
 import re
 import time
 
+
 try:
     # Python 3.x
     from urllib.parse import urlparse
@@ -463,7 +465,10 @@ def main():
     # Define the argument spec.
     software_argument_spec = dict(
         local_package=dict(
-            required=False, aliases=["package"], type="path", default=None
+            required=False,
+            aliases=["package"],
+            type="path",
+            default=None,
         ),
         remote_package=dict(
             required=False,
@@ -503,7 +508,10 @@ def main():
         cleanfs_timeout=dict(required=False, type="int", default=300),
         install_timeout=dict(required=False, type="int", default=1800),
         kwargs=dict(
-            required=False, aliases=["kwarg", "args", "arg"], type="dict", default=None
+            required=False,
+            aliases=["kwarg", "args", "arg"],
+            type="dict",
+            default=None,
         ),
     )
     # Save keys for later. Must do because software_argument_spec gets
@@ -553,13 +561,13 @@ def main():
     if url is not None and local_package is not None:
         junos_module.fail_json(
             msg="There remote_package (%s) is a URL. "
-            "The local_package option is not allowed." % remote_package
+            "The local_package option is not allowed." % remote_package,
         )
 
     if url is not None and no_copy is True:
         junos_module.fail_json(
             msg="There remote_package (%s) is a URL. "
-            "The no_copy option is not allowed." % remote_package
+            "The no_copy option is not allowed." % remote_package,
         )
 
     if url is None:
@@ -571,7 +579,7 @@ def main():
             if local_filename == "":
                 junos_module.fail_json(
                     msg="There is no filename component to "
-                    "the local_package (%s)." % local_package
+                    "the local_package (%s)." % local_package,
                 )
         elif remote_package is not None:
             # remote package was, so we must assume no_copy.
@@ -582,7 +590,7 @@ def main():
                 junos_module.fail_json(
                     msg="The local_package (%s) is not a "
                     "valid file on the local Ansible "
-                    "control machine." % local_package
+                    "control machine." % local_package,
                 )
             elif pkg_set is not None:
                 pkg_set = [os.path.abspath(item) for item in pkg_set]
@@ -590,7 +598,7 @@ def main():
                     if not os.path.isfile(pkg_set_item):
                         junos_module.fail_json(
                             msg="The pkg (%s) is not a valid file on the local"
-                            " Ansible control machine." % pkg_set_item
+                            " Ansible control machine." % pkg_set_item,
                         )
 
         if remote_filename == "":
@@ -601,7 +609,7 @@ def main():
             junos_module.fail_json(
                 msg="The filename of the remote_package "
                 "(%s) must be the same as the filename "
-                "of the local_package (%s)." % (remote_filename, local_filename)
+                "of the local_package (%s)." % (remote_filename, local_filename),
             )
 
     # If no_copy is True, then we need to turn off cleanfs to keep from
@@ -633,11 +641,20 @@ def main():
             junos_info = facts["junos_info"]
             for current_re in junos_info:
                 if (facts["vmhost"]) and (current_re in facts["vmhost_info"]):
-                    current_version = facts["vmhost_info"][current_re]["vmhost_version_set_b"]
-                    if facts["vmhost_info"][current_re]["vmhost_current_root_set"] == "p":
-                        current_version = parse_version_from_filename(facts["vmhost_info"][current_re]["vmhost_version_set_b"])
+                    current_version = facts["vmhost_info"][current_re][
+                        "vmhost_version_set_b"
+                    ]
+                    if (
+                        facts["vmhost_info"][current_re]["vmhost_current_root_set"]
+                        == "p"
+                    ):
+                        current_version = parse_version_from_filename(
+                            facts["vmhost_info"][current_re]["vmhost_version_set_b"],
+                        )
                     else:
-                        current_version = parse_version_from_filename(facts["vmhost_info"][current_re]["vmhost_version_set_p"])
+                        current_version = parse_version_from_filename(
+                            facts["vmhost_info"][current_re]["vmhost_version_set_p"],
+                        )
                 else:
                     current_version = junos_info[current_re]["text"]
                 if target_version != current_version:
@@ -660,9 +677,13 @@ def main():
                 re_name = junos_module._pyez_conn.get_re_name()
             if (facts["vmhost"]) and (re_name in facts["vmhost_info"]):
                 if facts["vmhost_info"][re_name]["vmhost_current_root_set"] == "p":
-                    current_version = parse_version_from_filename(facts["vmhost_info"][re_name]["vmhost_version_set_b"])
+                    current_version = parse_version_from_filename(
+                        facts["vmhost_info"][re_name]["vmhost_version_set_b"],
+                    )
                 else:
-                    current_version = parse_version_from_filename(facts["vmhost_info"][re_name]["vmhost_version_set_p"])
+                    current_version = parse_version_from_filename(
+                        facts["vmhost_info"][re_name]["vmhost_version_set_p"],
+                    )
             else:
                 current_version = facts["version"]
             if target_version != current_version:
@@ -760,11 +781,14 @@ def main():
                     # Handling reboot of specific VC members
                     if member_id is not None:
                         results["msg"] += junos_module._pyez_conn.reboot_api(
-                            all_re, install_params.get("vmhost"), member_id=member_id
+                            all_re,
+                            install_params.get("vmhost"),
+                            member_id=member_id,
                         )
                     else:
                         results["msg"] += junos_module._pyez_conn.reboot_api(
-                            all_re, install_params.get("vmhost")
+                            all_re,
+                            install_params.get("vmhost"),
                         )
                 except Exception as err:  # pylint: disable=broad-except
                     if "ConnectionError" in str(type(err)):
@@ -786,7 +810,7 @@ def main():
                     restore_timeout = junos_module.dev.timeout
                     if junos_module.dev.timeout > 5:
                         junos_module.logger.debug(
-                            "Decreasing device RPC timeout to 5 seconds."
+                            "Decreasing device RPC timeout to 5 seconds.",
                         )
                         junos_module.dev.timeout = 5
                     try:
@@ -801,7 +825,11 @@ def main():
                             )
                         else:
                             got = junos_module.sw.reboot(
-                                0, None, all_re, None, install_params.get("vmhost")
+                                0,
+                                None,
+                                all_re,
+                                None,
+                                install_params.get("vmhost"),
                             )
                         junos_module.dev.timeout = restore_timeout
                     except Exception:  # pylint: disable=broad-except
@@ -857,7 +885,7 @@ def main():
                         junos_module.close()
                     except junos_module.ncclient_exception.TimeoutExpiredError:
                         junos_module.logger.debug(
-                            "Ignoring TimeoutError for close call"
+                            "Ignoring TimeoutError for close call",
                         )
 
                 junos_module.logger.debug("Reboot RPC successfully initiated.")

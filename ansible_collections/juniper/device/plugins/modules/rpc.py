@@ -32,9 +32,11 @@
 
 from __future__ import absolute_import, division, print_function
 
+
 __metaclass__ = type
 
 from ansible.module_utils.six import iteritems
+
 
 ANSIBLE_METADATA = {
     "metadata_version": "1.1",
@@ -383,10 +385,16 @@ def main():
             ),
             attrs=dict(required=False, type="str", aliases=["attr"], default=None),
             filter=dict(
-                required=False, type="str", aliases=["filter_xml"], default=None
+                required=False,
+                type="str",
+                aliases=["filter_xml"],
+                default=None,
             ),
             dest=dict(
-                required=False, type="path", aliases=["destination"], default=None
+                required=False,
+                type="path",
+                aliases=["destination"],
+                default=None,
             ),
             dest_dir=dict(
                 required=False,
@@ -426,14 +434,14 @@ def main():
         if format not in valid_formats:
             junos_module.fail_json(
                 msg="The value %s in formats is invalid. "
-                "Must be one of: %s" % (format, ", ".join(map(str, valid_formats)))
+                "Must be one of: %s" % (format, ", ".join(map(str, valid_formats))),
             )
     # Correct number of format values?
     if len(formats) != 1 and len(formats) != len(rpcs):
         junos_module.fail_json(
             msg="The formats option must have a single "
             "value, or one value per rpc. There "
-            "are %d rpcs and %d formats." % (len(rpcs), len(formats))
+            "are %d rpcs and %d formats." % (len(rpcs), len(formats)),
         )
     # Same format for all rpcs
     elif len(formats) == 1 and len(rpcs) > 1:
@@ -442,14 +450,16 @@ def main():
     # Check over kwargs
     kwstring = junos_module.params.get("kwargs")
     kwargs = junos_module.parse_arg_to_list_of_dicts(
-        "kwargs", kwstring, allow_bool_values=True
+        "kwargs",
+        kwstring,
+        allow_bool_values=True,
     )
     if kwargs is not None:
         if len(kwargs) != len(rpcs):
             junos_module.fail_json(
                 msg="The kwargs option must have one value "
                 "per rpc. There are %d rpcs and %d "
-                "kwargs." % (len(rpcs), len(kwargs))
+                "kwargs." % (len(rpcs), len(kwargs)),
             )
     else:
         kwargs = [None] * len(rpcs)
@@ -462,7 +472,7 @@ def main():
             junos_module.fail_json(
                 msg="The attrs option must have one value"
                 "per rpc. There are %d rpcs and %d "
-                "attrs." % (len(rpcs), len(attrs))
+                "attrs." % (len(rpcs), len(attrs)),
             )
     else:
         attrs = [None] * len(rpcs)
@@ -473,7 +483,7 @@ def main():
             junos_module.fail_json(
                 msg="The filter option is only valid "
                 "when the rpcs option value is a "
-                "single 'get-config' RPC."
+                "single 'get-config' RPC.",
             )
 
     results = list()
@@ -516,16 +526,18 @@ def main():
                 # with severity warning during get_config
                 if junos_module.conn_type == "local":
                     resp = junos_module.dev.rpc.get_config(
-                        filter_xml=filter, options=attr, **kwarg
+                        filter_xml=filter,
+                        options=attr,
+                        **kwarg,
                     )
                 else:
                     resp = junos_module.get_config(
-                        filter_xml=filter, options=attr, **kwarg
+                        filter_xml=filter,
+                        options=attr,
+                        **kwarg,
                     )
                 result["msg"] = 'The "get-config" RPC executed successfully.'
-                junos_module.logger.debug(
-                    "The 'get-config' RPC executed successfully."
-                )
+                junos_module.logger.debug("The 'get-config' RPC executed successfully.")
             else:
                 if kwarg is not None:
                     # Add kwarg
@@ -550,7 +562,9 @@ def main():
                 else:
                     try:
                         resp = junos_module.get_rpc(
-                            rpc, ignore_warning=ignore_warning, format=format
+                            rpc,
+                            ignore_warning=ignore_warning,
+                            format=format,
                         )
                     except Exception as ex:
                         if "RpcError" in (str(ex)):
@@ -582,7 +596,9 @@ def main():
         parsed_output = None
         if resp is True:
             text_output = ""
-        elif (isinstance(resp, junos_module.etree._Element)) or (isinstance(resp, dict)):
+        elif (isinstance(resp, junos_module.etree._Element)) or (
+            isinstance(resp, dict)
+        ):
             # Handle the output based on format
             if format == "text":
                 text_output = resp.text

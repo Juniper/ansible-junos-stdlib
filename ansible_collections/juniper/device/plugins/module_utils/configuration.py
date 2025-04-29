@@ -31,6 +31,7 @@
 #
 from __future__ import absolute_import, division, print_function
 
+
 __metaclass__ = type
 
 try:
@@ -218,7 +219,10 @@ def check_jsnapy(minimum=None):
         - jsnapy version < minimum.
     """
     return _check_library(
-        "jsnapy", HAS_JSNAPY_VERSION, JSNAPY_INSTALLATION_URL, minimum=minimum
+        "jsnapy",
+        HAS_JSNAPY_VERSION,
+        JSNAPY_INSTALLATION_URL,
+        minimum=minimum,
     )
 
 
@@ -234,7 +238,10 @@ def check_jxmlease(minimum=None):
         - jxmlease version < minimum.
     """
     return _check_library(
-        "jxmlease", HAS_JXMLEASE_VERSION, JXMLEASE_INSTALLATION_URL, minimum=minimum
+        "jxmlease",
+        HAS_JXMLEASE_VERSION,
+        JXMLEASE_INSTALLATION_URL,
+        minimum=minimum,
     )
 
 
@@ -269,7 +276,10 @@ def check_yaml(minimum=None):
         - yaml version < minimum.
     """
     return _check_library(
-        "yaml", HAS_YAML_VERSION, YAML_INSTALLATION_URL, minimum=minimum
+        "yaml",
+        HAS_YAML_VERSION,
+        YAML_INSTALLATION_URL,
+        minimum=minimum,
     )
 
 

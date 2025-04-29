@@ -31,6 +31,7 @@ sys.path.insert(1, os.path.abspath(".."))
 # Import ansible2rst so that RST files can be generated.
 import ansible2rst
 
+
 # Call ansible2rst.main() to generate RST files.
 ansible2rst.main()
 
@@ -65,6 +66,7 @@ copyright = "2014-2017, Juniper Networks, Inc"
 # built documents.
 #
 from version import VERSION
+
 
 # The short X.Y version.
 version = VERSION
@@ -171,7 +173,7 @@ html_static_path = ["_static"]
 html_sidebars = {
     "**": [
         "globaltoc.html",
-    ]
+    ],
 }
 
 # Additional templates that should be rendered to pages, maps page names to
@@ -264,7 +266,7 @@ man_pages = [
         "Junos Ansible Collection Modules Documentation",
         ["Juniper Networks, Inc."],
         1,
-    )
+    ),
 ]
 
 # If true, show URL addresses after external links.
