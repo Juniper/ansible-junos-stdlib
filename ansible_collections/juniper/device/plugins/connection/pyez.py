@@ -892,7 +892,7 @@ class Connection(NetworkConnectionBase):
                 msg += " Reboot successfully initiated. " "Reboot message: %s" % got
             else:
                 raise AnsibleError(" Did not find expected response from reboot RPC .")
-        except pyez_exception.RpcTimeoutError as ex:
+        except self.pyez_exception.RpcTimeoutError as ex:
             try:
                 self.close(raise_exceptions=True)
                 # This means the device wasn't already disconnected.
