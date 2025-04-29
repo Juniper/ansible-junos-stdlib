@@ -11,7 +11,7 @@ galaxy_info:
       versions:
         - all
   galaxy_tags:
-  - networking
-  - junos
-  - juniper
+    - networking
+    - junos
+    - juniper
 dependencies: []

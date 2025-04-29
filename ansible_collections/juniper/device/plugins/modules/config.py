@@ -33,6 +33,7 @@
 
 from __future__ import absolute_import, division, print_function
 
+
 __metaclass__ = type
 
 ANSIBLE_METADATA = {
@@ -822,6 +823,7 @@ msg:
 # Standard library imports
 import time
 
+
 """From Ansible 2.1, Ansible uses Ansiballz framework for assembling modules
 But custom module_utils directory is supported from Ansible 2.3
 Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project/J8FL7Z1J1Mw """
@@ -854,24 +856,42 @@ def main():
             ephemeral_instance=dict(type="str", required=False, default=None),
             rollback=dict(type="str", required=False, default=None),
             load=dict(
-                choices=config_action_choices, type="str", required=False, default=None
+                choices=config_action_choices,
+                type="str",
+                required=False,
+                default=None,
             ),
             src=dict(
-                type="path", required=False, aliases=["source", "file"], default=None
+                type="path",
+                required=False,
+                aliases=["source", "file"],
+                default=None,
             ),
             lines=dict(type="list", required=False, default=None),
             template=dict(
-                type="path", required=False, aliases=["template_path"], default=None
+                type="path",
+                required=False,
+                aliases=["template_path"],
+                default=None,
             ),
             vars=dict(
-                type="dict", required=False, aliases=["template_vars"], default=None
+                type="dict",
+                required=False,
+                aliases=["template_vars"],
+                default=None,
             ),
             url=dict(type="str", required=False, default=None),
             format=dict(
-                choices=config_format_choices, type="str", required=False, default=None
+                choices=config_format_choices,
+                type="str",
+                required=False,
+                default=None,
             ),
             model=dict(
-                required=False, choices=config_model_choices, type="str", default=None
+                required=False,
+                choices=config_model_choices,
+                type="str",
+                default=None,
             ),
             remove_ns=dict(required=False, type="bool", default=None),
             namespace=dict(required=False, type="str", default=None),
@@ -882,7 +902,10 @@ def main():
                 default=None,
             ),
             diff=dict(
-                required=False, type="bool", aliases=["compare", "diffs"], default=None
+                required=False,
+                type="bool",
+                aliases=["compare", "diffs"],
+                default=None,
             ),
             diffs_file=dict(type="path", required=False, default=None),
             dest_dir=dict(
@@ -900,10 +923,16 @@ def main():
             ),
             options=dict(type="dict", required=False, default={}),
             filter=dict(
-                required=False, type="str", aliases=["filter_xml"], default=None
+                required=False,
+                type="str",
+                aliases=["filter_xml"],
+                default=None,
             ),
             dest=dict(
-                type="path", required=False, aliases=["destination"], default=None
+                type="path",
+                required=False,
+                aliases=["destination"],
+                default=None,
             ),
             commit=dict(required=False, type="bool", default=None),
             commit_empty_changes=dict(required=False, type="bool", default=False),
@@ -911,7 +940,10 @@ def main():
             commit_sync=dict(required=False, type="bool", default=False),
             commit_force_sync=dict(required=False, type="bool", default=False),
             confirmed=dict(
-                required=False, type="int", aliases=["confirm"], default=None
+                required=False,
+                type="int",
+                aliases=["confirm"],
+                default=None,
             ),
             timeout=dict(required=False, type="int", default=30),
             comment=dict(required=False, type="str", default=None),
@@ -1007,7 +1039,7 @@ def main():
                 "but none of 'src', 'lines', "
                 "'template', or 'url' are specified. "
                 "Must specify one of the 'src', "
-                "'lines', 'template', or 'url' options." % (load)
+                "'lines', 'template', or 'url' options." % (load),
             )
 
     # format is valid if retrieve is not None or load is not None.
@@ -1017,7 +1049,7 @@ def main():
                 msg="The format option (%s) is specified, "
                 "but neither 'load' or 'retrieve' are "
                 "specified. Must specify one of "
-                "'load' or 'retrieve' options." % (format)
+                "'load' or 'retrieve' options." % (format),
             )
 
     # dest_dir is valid if retrieve is not None or diff is True.
@@ -1027,7 +1059,7 @@ def main():
                 msg="The dest_dir option (%s) is specified,"
                 " but neither 'retrieve' or 'diff' "
                 "are specified. Must specify one of "
-                "'retrieve' or 'diff' options." % (dest_dir)
+                "'retrieve' or 'diff' options." % (dest_dir),
             )
 
     # dest is valid if retrieve is not None
@@ -1036,7 +1068,7 @@ def main():
             junos_module.fail_json(
                 msg="The dest option (%s) is specified,"
                 " but 'retrieve' is not specified. "
-                "Must specify the 'retrieve' option." % (dest)
+                "Must specify the 'retrieve' option." % (dest),
             )
 
     # diffs_file is valid if diff is True
@@ -1044,7 +1076,7 @@ def main():
         if diff is False:
             junos_module.fail_json(
                 msg="The diffs_file option (%s) is "
-                "specified, but 'diff' is false." % (diffs_file)
+                "specified, but 'diff' is false." % (diffs_file),
             )
 
     # commit_empty_changes is valid if commit is True
@@ -1055,7 +1087,7 @@ def main():
                 "is true, but 'commit' is false. "
                 "The commit_empty_changes option "
                 "may only be specified when "
-                "'commit' is true."
+                "'commit' is true.",
             )
 
     # comment is valid if commit is True
@@ -1063,7 +1095,7 @@ def main():
         if commit is False:
             junos_module.fail_json(
                 msg="The comment option (%s) is "
-                "specified, but 'commit' is false." % (comment)
+                "specified, but 'commit' is false." % (comment),
             )
 
     # confirmed is valid if commit is True
@@ -1071,13 +1103,13 @@ def main():
         if commit is False:
             junos_module.fail_json(
                 msg="The confirmed option (%s) is "
-                "specified, but 'commit' is false." % (confirmed)
+                "specified, but 'commit' is false." % (confirmed),
             )
         # Must be greater >= 1.
         if confirmed < 1:
             junos_module.fail_json(
                 msg="The confirmed option (%s) must have a "
-                "positive integer value." % (confirmed)
+                "positive integer value." % (confirmed),
             )
 
     # check_commit_wait is valid if check is True and commit is True
@@ -1085,18 +1117,18 @@ def main():
         if commit is False:
             junos_module.fail_json(
                 msg="The check_commit_wait option (%s) is "
-                "specified, but 'commit' is false." % (check_commit_wait)
+                "specified, but 'commit' is false." % (check_commit_wait),
             )
         if check is False:
             junos_module.fail_json(
                 msg="The check_commit_wait option (%s) is "
-                "specified, but 'check' is false." % (check_commit_wait)
+                "specified, but 'check' is false." % (check_commit_wait),
             )
         # Must be greater >= 1.
         if check_commit_wait < 1:
             junos_module.fail_json(
                 msg="The check_commit_wait option (%s) "
-                "must have a positive integer value." % (check_commit_wait)
+                "must have a positive integer value." % (check_commit_wait),
             )
 
     # Initialize the results. Assume failure until we know it's success.
@@ -1111,7 +1143,7 @@ def main():
     results["msg"] += "opened"
 
     junos_module.logger.debug(
-        "Step 2 - Load configuration data into the candidate configuration database."
+        "Step 2 - Load configuration data into the candidate configuration database.",
     )
     if rollback is not None:
         junos_module.rollback_configuration(id=rollback)
@@ -1122,12 +1154,18 @@ def main():
     elif load is not None:
         if src is not None:
             junos_module.load_configuration(
-                action=load, src=src, ignore_warning=ignore_warning, format=format
+                action=load,
+                src=src,
+                ignore_warning=ignore_warning,
+                format=format,
             )
             results["file"] = src
         elif lines is not None:
             junos_module.load_configuration(
-                action=load, lines=lines, ignore_warning=ignore_warning, format=format
+                action=load,
+                lines=lines,
+                ignore_warning=ignore_warning,
+                format=format,
             )
         elif template is not None:
             junos_module.load_configuration(
@@ -1139,13 +1177,16 @@ def main():
             )
         elif url is not None:
             junos_module.load_configuration(
-                action=load, url=url, ignore_warning=ignore_warning, format=format
+                action=load,
+                url=url,
+                ignore_warning=ignore_warning,
+                format=format,
             )
         else:
             junos_module.fail_json(
                 msg="The load option was set to: %s, but "
                 "no 'src', 'lines', 'template', or "
-                "'url' option was set." % (load)
+                "'url' option was set." % (load),
             )
         # Assume configuration changed in case we don't perform a diff later.
         # If diff is set, we'll check for actual differences later.
@@ -1153,7 +1194,7 @@ def main():
         results["msg"] += ", loaded"
 
     junos_module.logger.debug(
-        "Step 3 - Check the validity of the candidate configuration database."
+        "Step 3 - Check the validity of the candidate configuration database.",
     )
     if check is True:
         junos_module.check_configuration()
@@ -1162,7 +1203,7 @@ def main():
     junos_module.logger.debug(
         "Step 4 - Determine differences between the "
         "candidate and committed configuration "
-        "databases."
+        "databases.",
     )
     if diff is True or junos_module._diff:
         diff = junos_module.diff_configuration(ignore_warning)
@@ -1178,7 +1219,7 @@ def main():
         results["msg"] += ", diffed"
 
     junos_module.logger.debug(
-        "Step 5 - Retrieve the configuration database from the Junos device."
+        "Step 5 - Retrieve the configuration database from the Junos device.",
     )
     if retrieve is not None:
         if format is None:

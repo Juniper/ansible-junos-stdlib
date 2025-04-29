@@ -33,6 +33,7 @@
 
 from __future__ import absolute_import, division, print_function
 
+
 __metaclass__ = type
 
 ANSIBLE_METADATA = {
@@ -306,7 +307,7 @@ def main():
     if action != "reboot" and vmhost is True:
         junos_module.fail_json(
             msg="The vmhost option can only be used when "
-            'the action option has the value "reboot".'
+            'the action option has the value "reboot".',
         )
 
     # Four actions are expected - reboot, shutdown, halt and zeroize
@@ -317,12 +318,12 @@ def main():
         if (at is not None) or (in_min != 0) or (other_re is True):
             junos_module.fail_json(
                 msg="The options at, in_min and other_re can only be used when "
-                'the action option has the value "zeroize"'
+                'the action option has the value "zeroize"',
             )
     elif media is True:  # media option only applies to zeroize action.
         junos_module.fail_json(
             msg="The media option can only be used when "
-            'the action option has the value "zeroize".'
+            'the action option has the value "zeroize".',
         )
 
     # Set initial results values. Assume failure until we know it's success.
@@ -354,7 +355,13 @@ def main():
                     )
             else:
                 results["msg"] = junos_module._pyez_conn.system_api(
-                    action, in_min, at, all_re, vmhost, other_re, media
+                    action,
+                    in_min,
+                    at,
+                    all_re,
+                    vmhost,
+                    other_re,
+                    media,
                 )
             results["failed"] = False
         else:
@@ -367,7 +374,7 @@ def main():
                 if at == "now" or (in_min == 0 and at is None):
                     if junos_module.dev.timeout > 5:
                         junos_module.logger.debug(
-                            "Decreasing device RPC timeout to 5 seconds."
+                            "Decreasing device RPC timeout to 5 seconds.",
                         )
                         junos_module.dev.timeout = 5
 
@@ -389,11 +396,21 @@ def main():
                             )
                     else:
                         got = junos_module.sw.reboot(
-                            in_min, at, all_re, None, vmhost, other_re
+                            in_min,
+                            at,
+                            all_re,
+                            None,
+                            vmhost,
+                            other_re,
                         )
                 elif action == "shutdown":
                     got = junos_module.sw.poweroff(
-                        in_min, at, None, all_re, other_re, vmhost
+                        in_min,
+                        at,
+                        None,
+                        all_re,
+                        other_re,
+                        vmhost,
                     )
                 elif action == "halt":
                     got = junos_module.sw.halt(in_min, at, all_re, other_re)

@@ -33,6 +33,7 @@
 
 from __future__ import absolute_import, division, print_function
 
+
 __metaclass__ = type
 
 import hashlib
@@ -42,6 +43,7 @@ import os
 
 # Standard library imports
 from argparse import ArgumentParser
+
 
 try:
     import jnpr
@@ -58,10 +60,11 @@ except ImportError:
 from ansible.module_utils._text import to_bytes
 from ansible.module_utils.basic import AnsibleModule, boolean
 from ansible.module_utils.common.validation import check_type_dict
-from ansible.module_utils.six import string_types
 
 # Ansible imports
 from ansible.module_utils.connection import Connection
+from ansible.module_utils.six import string_types
+
 
 try:
     from jnpr.junos.utils.sw import SW
@@ -439,7 +442,10 @@ connection_spec = {
         no_log=True,
     ),
     "cs_user": dict(
-        type="str", aliases=["console_username"], required=False, default=None
+        type="str",
+        aliases=["console_username"],
+        required=False,
+        default=None,
     ),
     "cs_passwd": dict(
         type="str",
@@ -652,7 +658,9 @@ class JuniperJunosModule(AnsibleModule):
         mutually_exclusive += top_spec_mutually_exclusive
         # Call parent's __init__()
         super(JuniperJunosModule, self).__init__(
-            argument_spec=argument_spec, mutually_exclusive=mutually_exclusive, **kwargs
+            argument_spec=argument_spec,
+            mutually_exclusive=mutually_exclusive,
+            **kwargs,
         )
 
         # initialize the parameters
@@ -729,7 +737,7 @@ class JuniperJunosModule(AnsibleModule):
                 except ValueError:
                     self.fail_json(
                         msg="The port option (%s) must be an "
-                        "integer value." % (self.params["port"])
+                        "integer value." % (self.params["port"]),
                     )
             else:
                 self.params["port"] = self.params["port"]
@@ -745,12 +753,12 @@ class JuniperJunosModule(AnsibleModule):
             if self.params.get("baud") is not None:
                 self.fail_json(
                     msg="The baud option (%s) is not valid when "
-                    "mode == none." % (self.params.get("baud"))
+                    "mode == none." % (self.params.get("baud")),
                 )
             if self.params.get("attempts") is not None:
                 self.fail_json(
                     msg="The attempts option (%s) is not valid when "
-                    "mode == none." % (self.params.get("attempts"))
+                    "mode == none." % (self.params.get("attempts")),
                 )
 
     def get_connection(self):
@@ -881,14 +889,14 @@ class JuniperJunosModule(AnsibleModule):
             except ValueError as ex:
                 self.fail_json(
                     msg="Unable to parse the console value (%s). "
-                    "Error: %s" % (console_string, str(ex))
+                    "Error: %s" % (console_string, str(ex)),
                 )
             except Exception:
                 self.fail_json(
                     msg="Unable to parse the console value (%s). "
                     "The value of the console argument is "
                     "typically in the format '--telnet "
-                    "<console_hostname>,<console_port_number>'." % (console_string)
+                    "<console_hostname>,<console_port_number>'." % (console_string),
                 )
 
     def _setup_logging(self):
@@ -947,7 +955,7 @@ class JuniperJunosModule(AnsibleModule):
             logfile = self.params.get("logfile")
         elif self.params.get("logdir") is not None:
             logfile = os.path.normpath(
-                self.params.get("logdir") + "/" + self.params.get("host") + ".log"
+                self.params.get("logdir") + "/" + self.params.get("host") + ".log",
             )
         # Create the FileHandler and attach it.
         if logfile is not None:
@@ -956,7 +964,7 @@ class JuniperJunosModule(AnsibleModule):
                 handler.setLevel(level)
                 # Create a custom formatter.
                 formatter = logging.Formatter(
-                    "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+                    "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
                 )
                 # add formatter to handler
                 handler.setFormatter(formatter)
@@ -967,13 +975,16 @@ class JuniperJunosModule(AnsibleModule):
                     logging.getLogger(name).addHandler(handler)
             except IOError as ex:
                 self.fail_json(
-                    msg="Unable to open the log file %s. %s" % (logfile, str(ex))
+                    msg="Unable to open the log file %s. %s" % (logfile, str(ex)),
                 )
         # Use the CustomAdapter to add host information.
         return CustomAdapter(logger, {"host": self.params.get("host")})
 
     def parse_arg_to_list_of_dicts(
-        self, option_name, string_val, allow_bool_values=False
+        self,
+        option_name,
+        string_val,
+        allow_bool_values=False,
     ):
         """Parses string_val into a list of dicts with bool and/or str values.
 
@@ -1011,7 +1022,7 @@ class JuniperJunosModule(AnsibleModule):
                 self.fail_json(
                     msg="The value of the %s option (%s) is "
                     "invalid. Unable to translate into "
-                    "a list of dicts. %s" % (option_name, string_val, str(exc))
+                    "a list of dicts. %s" % (option_name, string_val, str(exc)),
                 )
 
         # Now, if it's a dict, let's make it a list of one dict
@@ -1021,7 +1032,7 @@ class JuniperJunosModule(AnsibleModule):
         if not isinstance(kwargs, list):
             self.fail_json(
                 msg="The value of the %s option (%s) is invalid. "
-                "Unable to translate into a list of dicts." % (option_name, string_val)
+                "Unable to translate into a list of dicts." % (option_name, string_val),
             )
         # We've got a list, traverse each element to make sure it's a dict.
         return_val = []
@@ -1036,14 +1047,14 @@ class JuniperJunosModule(AnsibleModule):
                     self.fail_json(
                         msg="The value of the %s option (%s) is "
                         "invalid. Unable to translate into a "
-                        "list of dicts %s." % (option_name, string_val, str(exc))
+                        "list of dicts %s." % (option_name, string_val, str(exc)),
                     )
             # Now if it's not a dict, there's a problem.
             if not isinstance(kwarg, dict):
                 self.fail_json(
                     msg="The value of the kwargs option (%s) is "
                     "%s. Unable to translate into a list "
-                    "of dicts." % (option_name, string_val)
+                    "of dicts." % (option_name, string_val),
                 )
             # check if allow_bool_values passed in kwargs
             if "allow_bool_values" in kwarg:
@@ -1057,7 +1068,7 @@ class JuniperJunosModule(AnsibleModule):
                     self.fail_json(
                         msg="The value of the %s option (%s) "
                         "is invalid. Unable to translate into "
-                        "a list of dicts." % (option_name, string_val)
+                        "a list of dicts." % (option_name, string_val),
                     )
                 if allow_bool_values is True:
                     # Try to convert it to a boolean value. Will be None if it
@@ -1100,7 +1111,7 @@ class JuniperJunosModule(AnsibleModule):
             self.fail_json(
                 msg="The value of the ignore_warning option "
                 "(%s) is invalid. Unexpected type (%s)."
-                % (ignore_warn_list[0], type(ignore_warn_list[0]))
+                % (ignore_warn_list[0], type(ignore_warn_list[0])),
             )
         elif len(ignore_warn_list) > 1:
             for ignore_warn in ignore_warn_list:
@@ -1110,13 +1121,13 @@ class JuniperJunosModule(AnsibleModule):
                         "option (%s) is invalid. "
                         "Element (%s) has unexpected "
                         "type (%s)."
-                        % (str(ignore_warn_list), ignore_warn, type(ignore_warn))
+                        % (str(ignore_warn_list), ignore_warn, type(ignore_warn)),
                     )
             return ignore_warn_list
         else:
             self.fail_json(
                 msg="The value of the ignore_warning option "
-                "(%s) is invalid." % (ignore_warn_list)
+                "(%s) is invalid." % (ignore_warn_list),
             )
 
     def parse_rollback_option(self):
@@ -1149,7 +1160,7 @@ class JuniperJunosModule(AnsibleModule):
         self.fail_json(
             msg="The value of the rollback option (%s) is invalid. "
             "Must be the string 'rescue' or an int between "
-            "0 and 49." % (str(rollback))
+            "0 and 49." % (str(rollback)),
         )
 
     def open(self):
@@ -1245,7 +1256,7 @@ class JuniperJunosModule(AnsibleModule):
                 self.fail_json(
                     msg="Ephemeral instance is specified while the mode "
                     "is not ephemeral.Specify the mode as ephemeral or "
-                    "do not specify the instance."
+                    "do not specify the instance.",
                 )
             if self.dev is None:
                 self.open()
@@ -1255,20 +1266,24 @@ class JuniperJunosModule(AnsibleModule):
                     config.lock()
                 elif config.mode == "private":
                     self.dev.rpc.open_configuration(
-                        private=True, ignore_warning=ignore_warn
+                        private=True,
+                        ignore_warning=ignore_warn,
                     )
                 elif config.mode == "dynamic":
                     self.dev.rpc.open_configuration(
-                        dynamic=True, ignore_warning=ignore_warn
+                        dynamic=True,
+                        ignore_warning=ignore_warn,
                     )
                 elif config.mode == "batch":
                     self.dev.rpc.open_configuration(
-                        batch=True, ignore_warning=ignore_warn
+                        batch=True,
+                        ignore_warning=ignore_warn,
                     )
                 elif config.mode == "ephemeral":
                     if ephemeral_instance is None:
                         self.dev.rpc.open_configuration(
-                            ephemeral=True, ignore_warning=ignore_warn
+                            ephemeral=True,
+                            ignore_warning=ignore_warn,
                         )
                     else:
                         self.dev.rpc.open_configuration(
@@ -1278,7 +1293,7 @@ class JuniperJunosModule(AnsibleModule):
             except (pyez_exception.ConnectError, pyez_exception.RpcError) as ex:
                 self.fail_json(
                     msg="Unable to open the configuration in %s "
-                    "mode: %s" % (config.mode, str(ex))
+                    "mode: %s" % (config.mode, str(ex)),
                 )
             self.config = config
             self.logger.debug("Configuration opened in %s mode.", config.mode)
@@ -1362,14 +1377,14 @@ class JuniperJunosModule(AnsibleModule):
             self.fail_json(
                 msg="The configuration database % is not in the "
                 "list of recognized configuration databases: "
-                "%s." % (database, str(CONFIG_DATABASE_CHOICES))
+                "%s." % (database, str(CONFIG_DATABASE_CHOICES)),
             )
 
         if format not in CONFIG_FORMAT_CHOICES:
             self.fail_json(
                 msg="The configuration format % is not in the list "
                 "of recognized configuration formats: %s."
-                % (format, str(CONFIG_FORMAT_CHOICES))
+                % (format, str(CONFIG_FORMAT_CHOICES)),
             )
 
         options.update({"database": database, "format": format})
@@ -1410,39 +1425,39 @@ class JuniperJunosModule(AnsibleModule):
             if not isinstance(config, self.etree._Element):
                 self.fail_json(
                     msg="Unexpected configuration type returned. "
-                    "Configuration is: %s" % (str(config))
+                    "Configuration is: %s" % (str(config)),
                 )
             if model is None and config.tag != "configuration-text":
                 self.fail_json(
                     msg="Unexpected XML tag returned. "
                     "Configuration is: %s"
-                    % (self.etree.tostring(config, pretty_print=True))
+                    % (self.etree.tostring(config, pretty_print=True)),
                 )
             return_val = (config.text, None)
         elif format == "set":
             if not isinstance(config, self.etree._Element):
                 self.fail_json(
                     msg="Unexpected configuration type returned. "
-                    "Configuration is: %s" % (str(config))
+                    "Configuration is: %s" % (str(config)),
                 )
             if model is None and config.tag != "configuration-set":
                 self.fail_json(
                     msg="Unexpected XML tag returned. "
                     "Configuration is: %s"
-                    % (self.etree.tostring(config, pretty_print=True))
+                    % (self.etree.tostring(config, pretty_print=True)),
                 )
             return_val = (config.text, config.text.splitlines())
         elif format == "xml":
             if not isinstance(config, self.etree._Element):
                 self.fail_json(
                     msg="Unexpected configuration type returned. "
-                    "Configuration is: %s" % (str(config))
+                    "Configuration is: %s" % (str(config)),
                 )
             if model is None and config.tag != "configuration":
                 self.fail_json(
                     msg="Unexpected XML tag returned. "
                     "Configuration is: %s"
-                    % (self.etree.tostring(config, pretty_print=True))
+                    % (self.etree.tostring(config, pretty_print=True)),
                 )
             return_val = (
                 self.etree.tostring(config, pretty_print=True),
@@ -1452,7 +1467,7 @@ class JuniperJunosModule(AnsibleModule):
             return_val = (json.dumps(config), config)
         else:
             self.fail_json(
-                msg="Unable to return configuration in %s format." % (format)
+                msg="Unable to return configuration in %s format." % (format),
             )
         return return_val
 
@@ -1488,7 +1503,7 @@ class JuniperJunosModule(AnsibleModule):
                 self.pyez_exception.ConnectError,
             ) as ex:
                 self.fail_json(
-                    msg="Unable to load the rescue configuraton: " "%s" % (str(ex))
+                    msg="Unable to load the rescue configuraton: " "%s" % (str(ex)),
                 )
         elif id >= 0 and id <= 49:
             self.logger.debug("Loading rollback %d configuration.", id)
@@ -1501,7 +1516,7 @@ class JuniperJunosModule(AnsibleModule):
             ) as ex:
                 self.fail_json(
                     msg="Unable to load the rollback %d "
-                    "configuraton: %s" % (id, str(ex))
+                    "configuraton: %s" % (id, str(ex)),
                 )
         else:
             self.fail_json(msg="Unrecognized rollback configuraton value: %s" % (id))
@@ -1618,7 +1633,8 @@ class JuniperJunosModule(AnsibleModule):
             load_args["template_path"] = template
             load_args["template_vars"] = vars
             self.logger.debug(
-                "Loading the configuration from the %s template.", template
+                "Loading the configuration from the %s template.",
+                template,
             )
         if url is not None:
             load_args["url"] = url
@@ -1904,7 +1920,7 @@ class JuniperJunosModule(AnsibleModule):
             except IOError:
                 self.fail_json(
                     msg="Unable to save output. Failed to "
-                    "open the %s file." % (file_path)
+                    "open the %s file." % (file_path),
                 )
 
     def get_config(
@@ -1917,7 +1933,12 @@ class JuniperJunosModule(AnsibleModule):
         **kwarg,
     ):
         response = self._pyez_conn.get_config(
-            filter_xml, options, model, namespace, remove_ns, **kwarg
+            filter_xml,
+            options,
+            model,
+            namespace,
+            remove_ns,
+            **kwarg,
         )
         if options["format"] == "json":
             return response
@@ -1929,7 +1950,9 @@ class JuniperJunosModule(AnsibleModule):
         rpc_str = xmltodict.parse(rpc_1)
         # json.dumps(rpc_str)
         response = self._pyez_conn.get_rpc_resp(
-            rpc_str, ignore_warning=ignore_warning, format=format
+            rpc_str,
+            ignore_warning=ignore_warning,
+            format=format,
         )
         if format == "json":
             return response
@@ -2008,13 +2031,14 @@ class JuniperJunosModule(AnsibleModule):
             else:
                 self._pyez_conn.scp_file_copy_put(local_file, remote_file)
             self.logger.info(
-                "computing remote MD5 checksum on: {0}".format(remote_file)
+                "computing remote MD5 checksum on: {0}".format(remote_file),
             )
             remote_checksum = self.remote_md5(remote_file, "put")
             self.logger.info("Remote checksum: {0}".format(remote_checksum))
             if remote_checksum != local_checksum:
                 status = "Transfer failed (different MD5 between local and remote) {0} | {1}".format(
-                    local_checksum, remote_checksum
+                    local_checksum,
+                    remote_checksum,
                 )
                 self.logger.error(status)
                 self.fail_json(msg=status)
@@ -2063,13 +2087,14 @@ class JuniperJunosModule(AnsibleModule):
             else:
                 self._pyez_conn.ftp_file_copy_put(local_file, remote_file)
             self.logger.info(
-                "computing remote MD5 checksum on: {0}".format(remote_file)
+                "computing remote MD5 checksum on: {0}".format(remote_file),
             )
             remote_checksum = self.remote_md5(remote_file, "put")
             self.logger.info("Remote checksum: {0}".format(remote_checksum))
             if remote_checksum != local_checksum:
                 status = "Transfer failed (different MD5 between local and remote) {0} | {1}".format(
-                    local_checksum, remote_checksum
+                    local_checksum,
+                    remote_checksum,
                 )
                 self.logger.error(status)
                 self.fail_json(msg=status)
@@ -2127,7 +2152,8 @@ class JuniperJunosModule(AnsibleModule):
             self.logger.info("Local checksum: {0}".format(local_checksum))
             if remote_checksum != local_checksum:
                 status = "Transfer failed (different MD5 between local and remote) {0} | {1}".format(
-                    local_checksum, remote_checksum
+                    local_checksum,
+                    remote_checksum,
                 )
                 self.logger.error(status)
                 self.fail_json(msg=status)
@@ -2178,7 +2204,8 @@ class JuniperJunosModule(AnsibleModule):
             self.logger.info("Local checksum: {0}".format(local_checksum))
             if remote_checksum != local_checksum:
                 status = "Transfer failed (different MD5 between local and remote) {0} | {1}".format(
-                    local_checksum, remote_checksum
+                    local_checksum,
+                    remote_checksum,
                 )
                 self.logger.error(status)
                 self.fail_json(msg=status)

@@ -33,6 +33,7 @@
 
 from __future__ import absolute_import, division, print_function
 
+
 __metaclass__ = type
 
 ANSIBLE_METADATA = {
@@ -144,7 +145,10 @@ def main():
     junos_module = juniper_junos_common.JuniperJunosModule(
         argument_spec=dict(
             protocol=dict(
-                type="str", choices=["scp", "ftp"], required=False, default="scp"
+                type="str",
+                choices=["scp", "ftp"],
+                required=False,
+                default="scp",
             ),
             local_dir=dict(type="str", required=True, default=None),
             remote_dir=dict(type="str", required=True, default=None),
@@ -152,7 +156,10 @@ def main():
             transfer_filename=dict(type="str", required=False, default=None),
             checksum=dict(type="bool", required=False, default=True),
             action=dict(
-                type="str", choices=["put", "get"], required=True, default=None
+                type="str",
+                choices=["put", "get"],
+                required=True,
+                default=None,
             ),
         ),
         supports_check_mode=True,
@@ -179,14 +186,16 @@ def main():
         if protocol == "scp":
             if check_sum is False:
                 output = junos_module.scp_file_copy_put_without_checksum(
-                    local_file, remote_file
+                    local_file,
+                    remote_file,
                 )
             else:
                 output = junos_module.scp_file_copy_put(local_file, remote_file)
         elif protocol == "ftp":
             if check_sum is False:
                 output = junos_module.ftp_file_copy_put_without_checksum(
-                    local_file, remote_file
+                    local_file,
+                    remote_file,
                 )
             else:
                 output = junos_module.ftp_file_copy_put(local_file, remote_file)
@@ -201,14 +210,16 @@ def main():
         if params["protocol"] == "scp":
             if check_sum is False:
                 output = junos_module.scp_file_copy_get_without_checksum(
-                    remote_file, local_file
+                    remote_file,
+                    local_file,
                 )
             else:
                 output = junos_module.scp_file_copy_get(remote_file, local_file)
         elif params["protocol"] == "ftp":
             if check_sum is False:
                 output = junos_module.ftp_file_copy_get_without_checksum(
-                    remote_file, local_file
+                    remote_file,
+                    local_file,
                 )
             else:
                 output = junos_module.ftp_file_copy_get(remote_file, local_file)

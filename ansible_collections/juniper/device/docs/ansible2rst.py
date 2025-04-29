@@ -21,23 +21,24 @@
 # along with Ansible.  If not, see <http://www.gnu.org/licenses/>.
 #
 
-import cgi
 import datetime
 import os
 import re
 import warnings
+
+from collections.abc import MutableMapping, MutableSequence, MutableSet
+
 import yaml
-from jinja2 import Environment, FileSystemLoader
-from six import print_
 
-from collections.abc import MutableMapping, MutableSet, MutableSequence
-
+from ansible.errors import AnsibleError
 from ansible.module_utils._text import to_bytes
 from ansible.module_utils.six import iteritems, string_types
 from ansible.parsing.plugin_docs import read_docstring
 from ansible.parsing.yaml.loader import AnsibleLoader
 from ansible.plugins.loader import fragment_loader
-from ansible.errors import AnsibleError
+from jinja2 import Environment, FileSystemLoader
+from six import print_
+
 
 try:
     from html import escape as html_escape
@@ -50,6 +51,7 @@ except ImportError:
 
 
 from ansible import __version__ as ansible_version
+
 
 #####################################################################################
 # constants and paths
@@ -238,7 +240,7 @@ def add_fragments(doc, filename):
         ):
             raise Exception(
                 "missing options in fragment (%s), possibly misformatted?: %s"
-                % (fragment_name, filename)
+                % (fragment_name, filename),
             )
 
         for key, value in iteritems(fragment):
@@ -253,7 +255,7 @@ def add_fragments(doc, filename):
                 else:
                     raise Exception(
                         "Attempt to extend a documentation fragement (%s) of unknown type: %s"
-                        % (fragment_name, filename)
+                        % (fragment_name, filename),
                     )
             doc[key] = value
 
@@ -294,7 +296,7 @@ def process_module(fname, template, outputname, aliases=None):
         if field in doc and doc[field] in (None, ""):
             print_(
                 "%s: WARNING: MODULE field '%s' DOCUMENTATION is null/empty value=%s"
-                % (fname, field, doc[field])
+                % (fname, field, doc[field]),
             )
 
     #
@@ -322,7 +324,8 @@ def process_module(fname, template, outputname, aliases=None):
             # Error out if there's no description
             if "description" not in doc["options"][k]:
                 raise AnsibleError(
-                    "Missing required description for option %s in %s " % (k, module_name)
+                    "Missing required description for option %s in %s "
+                    % (k, module_name),
                 )
 
             # Error out if required isn't a boolean (people have been putting
@@ -332,12 +335,12 @@ def process_module(fname, template, outputname, aliases=None):
             if not isinstance(required_value, bool):
                 raise AnsibleError(
                     "Invalid required value '%s' for option '%s' in '%s' (must be truthy)"
-                    % (required_value, k, module_name)
+                    % (required_value, k, module_name),
                 )
 
             # Strip old version_added information for options
             if "version_added" in doc["options"][k] and too_old(
-                doc["options"][k]["version_added"]
+                doc["options"][k]["version_added"],
             ):
                 del doc["options"][k]["version_added"]
 
@@ -355,7 +358,7 @@ def process_module(fname, template, outputname, aliases=None):
             if "description" not in doc["connection_options"][k]:
                 raise AnsibleError(
                     "Missing required description for connection_option %s in %s "
-                    % (k, module_name)
+                    % (k, module_name),
                 )
 
             # Error out if required isn't a boolean (people have been putting
@@ -365,19 +368,19 @@ def process_module(fname, template, outputname, aliases=None):
             if not isinstance(required_value, bool):
                 raise AnsibleError(
                     "Invalid required value '%s' for connection_option '%s' in '%s' (must be truthy)"
-                    % (required_value, k, module_name)
+                    % (required_value, k, module_name),
                 )
 
             # Strip old version_added information for options
             if "version_added" in doc["connection_options"][k] and too_old(
-                doc["connection_options"][k]["version_added"]
+                doc["connection_options"][k]["version_added"],
             ):
                 del doc["connection_options"][k]["version_added"]
 
             # Make sure description is a list of lines for later formatting
             if not isinstance(doc["connection_options"][k]["description"], list):
                 doc["connection_options"][k]["description"] = [
-                    doc["connection_options"][k]["description"]
+                    doc["connection_options"][k]["description"],
                 ]
             connection_option_names.append(k)
     connection_option_names.sort()
@@ -390,7 +393,7 @@ def process_module(fname, template, outputname, aliases=None):
             if "description" not in doc["logging_options"][k]:
                 raise AnsibleError(
                     "Missing required description for logging_option %s in %s "
-                    % (k, module_name)
+                    % (k, module_name),
                 )
 
             # Error out if required isn't a boolean (people have been putting
@@ -400,19 +403,19 @@ def process_module(fname, template, outputname, aliases=None):
             if not isinstance(required_value, bool):
                 raise AnsibleError(
                     "Invalid required value '%s' for logging_option '%s' in '%s' (must be truthy)"
-                    % (required_value, k, module_name)
+                    % (required_value, k, module_name),
                 )
 
             # Strip old version_added information for options
             if "version_added" in doc["logging_options"][k] and too_old(
-                doc["logging_options"][k]["version_added"]
+                doc["logging_options"][k]["version_added"],
             ):
                 del doc["logging_options"][k]["version_added"]
 
             # Make sure description is a list of lines for later formatting
             if not isinstance(doc["logging_options"][k]["description"], list):
                 doc["logging_options"][k]["description"] = [
-                    doc["logging_options"][k]["description"]
+                    doc["logging_options"][k]["description"],
                 ]
             logging_option_names.append(k)
     logging_option_names.sort()
@@ -434,7 +437,7 @@ def process_module(fname, template, outputname, aliases=None):
         except Exception as e:
             print_(
                 "%s:%s:yaml error:%s:returndocs=%s"
-                % (fname, module_name, e, returndocs)
+                % (fname, module_name, e, returndocs),
             )
             doc["returndocs"] = None
             doc["returndocs_keys"] = None

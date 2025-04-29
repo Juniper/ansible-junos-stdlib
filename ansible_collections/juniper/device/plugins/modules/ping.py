@@ -33,6 +33,7 @@
 
 from __future__ import absolute_import, division, print_function
 
+
 __metaclass__ = type
 
 ANSIBLE_METADATA = {
@@ -403,7 +404,10 @@ def main():
             default=None,
         ),
         acceptable_percent_loss=dict(
-            type="int", required=False, aliases=["acceptable_packet_loss"], default=0
+            type="int",
+            required=False,
+            aliases=["acceptable_packet_loss"],
+            default=0,
         ),
     )
 
@@ -448,7 +452,7 @@ def main():
         junos_module.fail_json(
             msg="The value of the acceptable_percent_loss"
             "option (%d) is a percentage and must have "
-            "a value between 0 and 100." % (params["acceptable_percent_loss"])
+            "a value between 0 and 100." % (params["acceptable_percent_loss"]),
         )
 
     # All of the params keys which are also keys in ping_argument_spec are the
@@ -481,7 +485,7 @@ def main():
             "host": params.get("dest"),
             "dest_ip": params.get("dest"),
             "source_ip": params.get("source"),
-        }
+        },
     )
 
     # Execute the ping.

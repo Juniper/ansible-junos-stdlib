@@ -33,6 +33,7 @@
 
 from __future__ import absolute_import, division, print_function
 
+
 __metaclass__ = type
 
 ANSIBLE_METADATA = {
@@ -200,6 +201,7 @@ msg:
 # Standard Library imports
 import os.path
 
+
 """From Ansible 2.1, Ansible uses Ansiballz framework for assembling modules
 But custom module_utils directory is supported from Ansible 2.3
 Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project/J8FL7Z1J1Mw """
@@ -217,7 +219,10 @@ def main():
     junos_module = juniper_junos_common.JuniperJunosModule(
         argument_spec=dict(
             action=dict(
-                required=True, choices=JSNAPY_ACTION_CHOICES, type="str", default=None
+                required=True,
+                choices=JSNAPY_ACTION_CHOICES,
+                type="str",
+                default=None,
             ),
             test_files=dict(required=False, type="list", default=None),
             config_file=dict(required=False, type="path", default=None),
@@ -263,7 +268,7 @@ def main():
         else:
             junos_module.fail_json(
                 msg="Unable to locate the %s config file "
-                "at %s or %s." % (config_file, config_file_path, config_dir_file_path)
+                "at %s or %s." % (config_file, config_file_path, config_dir_file_path),
             )
     elif test_files is not None and len(test_files) > 0:
         data = {"tests": []}
@@ -278,7 +283,7 @@ def main():
             else:
                 junos_module.fail_json(
                     msg="Unable to locate the %s test file "
-                    "at %s or %s." % (test_file, test_file_path, test_dir_file_path)
+                    "at %s or %s." % (test_file, test_file_path, test_dir_file_path),
                 )
     else:
         junos_module.fail_json(msg="No config_file or test_files specified.")
@@ -290,32 +295,41 @@ def main():
         if action == "check":
             if junos_module.conn_type != "local":
                 responses = junos_module._pyez_conn.invoke_jsnapy(
-                    data=data, action="check"
+                    data=data,
+                    action="check",
                 )
             else:
                 responses = jsa.check(
-                    data=data, dev=junos_module.dev, pre_file="PRE", post_file="POST"
+                    data=data,
+                    dev=junos_module.dev,
+                    pre_file="PRE",
+                    post_file="POST",
                 )
         elif action == "snapcheck":
             if junos_module.conn_type != "local":
                 responses = junos_module._pyez_conn.invoke_jsnapy(
-                    data=data, action="snapcheck"
+                    data=data,
+                    action="snapcheck",
                 )
             else:
                 responses = jsa.snapcheck(
-                    data=data, dev=junos_module.dev, pre_file="PRE"
+                    data=data,
+                    dev=junos_module.dev,
+                    pre_file="PRE",
                 )
         elif action == "snap_pre":
             if junos_module.conn_type != "local":
                 responses = junos_module._pyez_conn.invoke_jsnapy(
-                    data=data, action="snap_pre"
+                    data=data,
+                    action="snap_pre",
                 )
             else:
                 responses = jsa.snap(data=data, dev=junos_module.dev, file_name="PRE")
         elif action == "snap_post":
             if junos_module.conn_type != "local":
                 responses = junos_module._pyez_conn.invoke_jsnapy(
-                    data=data, action="snap_post"
+                    data=data,
+                    action="snap_post",
                 )
             else:
                 responses = jsa.snap(data=data, dev=junos_module.dev, file_name="POST")
@@ -327,7 +341,7 @@ def main():
         junos_module.pyez_exception.ConnectError,
     ) as ex:
         junos_module.fail_json(
-            msg="Error communicating with the device: %s" % (str(ex))
+            msg="Error communicating with the device: %s" % (str(ex)),
         )
     except Exception as ex:
         junos_module.fail_json(msg="Uncaught exception - please report: %s" % (str(ex)))
@@ -369,7 +383,7 @@ def main():
             results["total_failed"] = responses["total_failed"]
             results["test_results"] = responses["test_results"]
             total_tests = int(responses["total_passed"]) + int(
-                responses["total_failed"]
+                responses["total_failed"],
             )
             results["total_tests"] = total_tests
             pass_percentage = 0
@@ -392,7 +406,7 @@ def main():
     else:
         junos_module.fail_json(
             msg="Unexpected JSNAPy responses. Type: %s."
-            "Responses: %s" % (type(responses), str(responses))
+            "Responses: %s" % (type(responses), str(responses)),
         )
 
     # If we made it this far, it's success.
@@ -418,7 +432,9 @@ def main():
                                     )
                                     text_msg = str(data)
                                     junos_module.save_text_output(
-                                        test_name, "text", text_msg
+                                        test_name,
+                                        "text",
+                                        text_msg,
                                     )
             else:
                 # For connection pyez
@@ -436,7 +452,9 @@ def main():
                                     )
                                     text_msg = str(data)
                                     junos_module.save_text_output(
-                                        test_name, "text", text_msg
+                                        test_name,
+                                        "text",
+                                        text_msg,
                                     )
 
     junos_module.exit_json(**results)

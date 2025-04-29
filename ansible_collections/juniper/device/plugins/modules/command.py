@@ -33,6 +33,7 @@
 
 from __future__ import absolute_import, division, print_function
 
+
 __metaclass__ = type
 
 ANSIBLE_METADATA = {
@@ -285,6 +286,7 @@ stdout_lines:
 
 import sys
 
+
 """From Ansible 2.1, Ansible uses Ansiballz framework for assembling modules
 But custom module_utils directory is supported from Ansible 2.3
 Reference for the issue: https://groups.google.com/forum/#!topic/ansible-project/J8FL7Z1J1Mw """
@@ -312,7 +314,10 @@ def main():
                 default=None,
             ),
             dest=dict(
-                required=False, type="path", aliases=["destination"], default=None
+                required=False,
+                type="path",
+                aliases=["destination"],
+                default=None,
             ),
             dest_dir=dict(
                 required=False,
@@ -348,7 +353,7 @@ def main():
             if (
                 "show configuration" in command
                 and "display set" in command[pipe_index:]
-                and "|" not in command[pipe_index + 1 :]
+                and "|" not in command[(pipe_index + 1) :]
             ):
                 continue
             # Any other "| display " should use the format option instead.
@@ -357,13 +362,13 @@ def main():
                     junos_module.fail_json(
                         msg="The pipe modifier (%s) in the command "
                         '(%s) is not supported. Use format: "%s" '
-                        "instead." % (command[pipe_index:], command, valid_format)
+                        "instead." % (command[pipe_index:], command, valid_format),
                     )
             # Any other "| " is going to produce an error anyway, so fail
             # with a meaningful message.
             junos_module.fail_json(
                 msg="The pipe modifier (%s) in the command "
-                "(%s) is not supported." % (command[pipe_index:], command)
+                "(%s) is not supported." % (command[pipe_index:], command),
             )
 
     # Check over formats
@@ -378,14 +383,14 @@ def main():
         if format not in valid_formats:
             junos_module.fail_json(
                 msg="The value %s in formats is invalid. "
-                "Must be one of: %s" % (format, ", ".join(map(str, valid_formats)))
+                "Must be one of: %s" % (format, ", ".join(map(str, valid_formats))),
             )
     # Correct number of format values?
     if len(formats) != 1 and len(formats) != len(commands):
         junos_module.fail_json(
             msg="The formats option must have a single "
             "value, or one value per command. There "
-            "are %d commands and %d formats." % (len(commands), len(formats))
+            "are %d commands and %d formats." % (len(commands), len(formats)),
         )
     # Same format for all commands
     elif len(formats) == 1 and len(commands) > 1:
@@ -409,11 +414,15 @@ def main():
             rpc.text = command
             if junos_module.conn_type == "local":
                 resp = junos_module.dev.rpc(
-                    rpc, ignore_warning=ignore_warning, normalize=bool(format == "xml")
+                    rpc,
+                    ignore_warning=ignore_warning,
+                    normalize=bool(format == "xml"),
                 )
             else:
                 resp = junos_module.get_rpc(
-                    rpc, ignore_warning=ignore_warning, format=format
+                    rpc,
+                    ignore_warning=ignore_warning,
+                    format=format,
                 )
             result["msg"] = "The command executed successfully."
             junos_module.logger.debug("Command %s executed successfully.", command)
@@ -422,7 +431,9 @@ def main():
             junos_module.pyez_exception.RpcError,
         ) as ex:
             junos_module.logger.debug(
-                'Unable to execute "%s". Error: %s', command, str(ex)
+                'Unable to execute "%s". Error: %s',
+                command,
+                str(ex),
             )
             result["msg"] = "Unable to execute the command: %s. Error: %s" % (
                 command,
@@ -435,7 +446,9 @@ def main():
         parsed_output = None
         if resp is True:
             text_output = ""
-        elif (isinstance(resp, junos_module.etree._Element)) or (isinstance(resp, dict)):
+        elif (isinstance(resp, junos_module.etree._Element)) or (
+            isinstance(resp, dict)
+        ):
             # Handle the output based on format
             if format == "text":
                 if resp.tag in ["output", "rpc-reply"]:
@@ -448,13 +461,16 @@ def main():
                     result["msg"] = "Unexpected text response tag: %s." % ((resp.tag))
                     results.append(result)
                     junos_module.logger.debug(
-                        "Unexpected text response tag %s.", resp.tag
+                        "Unexpected text response tag %s.",
+                        resp.tag,
                     )
                     continue
             elif format == "xml":
                 encode = None if sys.version < "3" else "unicode"
                 text_output = junos_module.etree.tostring(
-                    resp, pretty_print=True, encoding=encode
+                    resp,
+                    pretty_print=True,
+                    encoding=encode,
                 )
                 parsed_output = junos_module.jxmlease.parse_etree(resp)
                 junos_module.logger.debug("XML output set.")

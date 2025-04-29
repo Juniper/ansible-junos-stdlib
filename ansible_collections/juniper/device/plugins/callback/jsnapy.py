@@ -33,13 +33,14 @@
 
 from __future__ import absolute_import, division, print_function
 
+
 __metaclass__ = type
 
 import json
 import pprint
 
-from ansible.module_utils.six import iteritems
 from ansible import constants as C
+from ansible.module_utils.six import iteritems
 from ansible.plugins.callback import CallbackBase
 
 
@@ -102,7 +103,7 @@ class CallbackModule(CallbackBase):
                             if ("count" in testlet) and testlet["count"]["fail"] != 0:
                                 if not has_printed_banner:
                                     self._display.banner(
-                                        "JSNAPy Results for: " + str(host)
+                                        "JSNAPy Results for: " + str(host),
                                     )
                                     has_printed_banner = True
 
@@ -128,7 +129,7 @@ class CallbackModule(CallbackBase):
                             elif testlet["count"]["pass"] != 0:
                                 if not has_printed_banner:
                                     self._display.banner(
-                                        "JSNAPy Results for: " + str(host)
+                                        "JSNAPy Results for: " + str(host),
                                     )
                                     has_printed_banner = True
 

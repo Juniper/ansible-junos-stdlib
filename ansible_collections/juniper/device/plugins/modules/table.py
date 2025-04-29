@@ -36,6 +36,7 @@
 
 from __future__ import absolute_import, division, print_function
 
+
 __metaclass__ = type
 
 ANSIBLE_METADATA = {
@@ -281,6 +282,7 @@ resource:
 # Standard library imports
 import os.path
 
+
 # Constants
 RESPONSE_CHOICES = ["list_of_dicts", "juniper_items"]
 
@@ -341,7 +343,10 @@ def main():
             file=dict(type="path", required=True, default=None),
             table=dict(type="str", required=False, default=None),
             path=dict(
-                type="path", required=False, aliases=["directory", "dir"], default=None
+                type="path",
+                required=False,
+                aliases=["directory", "dir"],
+                default=None,
             ),
             kwargs=dict(
                 required=False,
@@ -371,7 +376,7 @@ def main():
     if not file.endswith(".yml") and not file.endswith(".yaml"):
         junos_module.fail_json(
             msg="The value of the file option must end "
-            "with the .yml or .yaml extension"
+            "with the .yml or .yaml extension",
         )
 
     # If needed, get the default path
@@ -386,20 +391,22 @@ def main():
         with open(file_name, "r") as fp:
             try:
                 junos_module.logger.debug(
-                    "Attempting to parse YAML from : %s.", file_name
+                    "Attempting to parse YAML from : %s.",
+                    file_name,
                 )
                 table_view = junos_module.yaml.safe_load(fp)
                 junos_module.logger.debug(
-                    "YAML from %s successfully parsed.", file_name
+                    "YAML from %s successfully parsed.",
+                    file_name,
                 )
             except junos_module.yaml.YAMLError as ex:
                 junos_module.fail_json(
                     msg="Failed parsing YAML file %s. "
-                    "Error: %s" % (file_name, str(ex))
+                    "Error: %s" % (file_name, str(ex)),
                 )
     except IOError:
         junos_module.fail_json(
-            msg="The file name %s could not be opened for" "reading." % (file_name)
+            msg="The file name %s could not be opened for" "reading." % (file_name),
         )
     junos_module.logger.debug("%s successfully read.", file_name)
 
@@ -415,7 +422,7 @@ def main():
                     junos_module.fail_json(
                         msg="The file name %s contains multiple table "
                         "definitions. Specify the desired table with the "
-                        "table option." % (file_name)
+                        "table option." % (file_name),
                     )
                 table = key
 
@@ -423,7 +430,7 @@ def main():
         junos_module.fail_json(
             msg="No table definition was found in the %s file. Specify a "
             "value for the file option which contains a valid table/view "
-            "definition." % (file_name)
+            "definition." % (file_name),
         )
     junos_module.logger.debug("Table: %s", table)
 
@@ -433,7 +440,7 @@ def main():
     except Exception as ex:
         junos_module.fail_json(
             msg="Unable to create a table loader from the "
-            "%s file. Error: %s" % (file_name, str(ex))
+            "%s file. Error: %s" % (file_name, str(ex)),
         )
     try:
         # there is a limitation of JSON for persistent connection.
@@ -452,14 +459,15 @@ def main():
         junos_module.logger.debug("Data retrieved from %s successfully.", table)
     except KeyError:
         junos_module.fail_json(
-            msg="Unable to find table %s in the " "%s file." % (table, file_name)
+            msg="Unable to find table %s in the " "%s file." % (table, file_name),
         )
     except (
         junos_module.pyez_exception.ConnectError,
         junos_module.pyez_exception.RpcError,
     ) as ex:
         junos_module.fail_json(
-            msg="Unable to retrieve data from table %s. " "Error: %s" % (table, str(ex))
+            msg="Unable to retrieve data from table %s. "
+            "Error: %s" % (table, str(ex)),
         )
 
     if data is not None:
@@ -468,10 +476,12 @@ def main():
         except Exception as ex:
             junos_module.fail_json(
                 msg="Unable to parse table %s data into "
-                "items. Error: %s" % (table, str(ex))
+                "items. Error: %s" % (table, str(ex)),
             )
         junos_module.logger.debug(
-            "Successfully retrieved %d items from %s.", len_data, table
+            "Successfully retrieved %d items from %s.",
+            len_data,
+            table,
         )
         results["msg"] = "Successfully retrieved %d items from %s." % (len_data, table)
 
