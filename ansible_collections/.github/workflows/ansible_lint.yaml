@@ -48,4 +48,4 @@ jobs:
       - name: Run ansible-lint
         shell: bash
         working-directory: ${{ steps.inputs.outputs.working_directory }}
-        run: ansible-lint ${{ inputs.args }}
+        run: cd ansible_collections/juniper/device/; ansible-lint
