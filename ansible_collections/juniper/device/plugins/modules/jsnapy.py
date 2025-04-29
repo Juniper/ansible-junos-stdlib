@@ -133,8 +133,8 @@ EXAMPLES = """
 
     - name: Test based on a test_file directly
       juniper.device.jsnapy:
-       action: "snapcheck"
-       test_files: "tests/test_junos_interface.yaml"
+        action: "snapcheck"
+        test_files: "tests/test_junos_interface.yaml"
       register: test2
     - name: Verify all JSNAPy tests passed
       ansible.builtin.assert:

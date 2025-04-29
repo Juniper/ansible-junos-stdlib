@@ -1,38 +1,46 @@
 ---
-    - name: Retrieve LLDP Neighbor Information Using PyEZ-included Table
-      juniper.device.table:
-        file: "lldp.yml"
-      register: test1
-      ignore_errors: true
-      tags: [test1]
+- name: Retrieve LLDP Neighbor Information Using PyEZ-included Table
+  juniper.device.table:
+    file: "lldp.yml"
+  register: test1
+  ignore_errors: true
+  tags: [test1]
 
-    - name: Check TEST 1
-      ansible.builtin.assert:
-        that:
-          - test1.msg == "Successfully retrieved 0 items from LLDPNeighborTable."
+- name: Check TEST 1 - Validate LLDP Neighbor Information Retrieval
+  ansible.builtin.assert:
+    that:
+      - test1.msg == "Successfully retrieved 0 items from LLDPNeighborTable."
+  tags: [test1]
 
-    - name: Retrieve routes within 192.68.1/8
-      juniper.device.table:
-        file: "routes.yml"
-        table: "RouteTable"
-        kwargs:
-          destination: "192.68.1.0/8"
-        response_type: "juniper_items"
-      register: test2
+- name: Retrieve routes within 192.68.1/8
+  juniper.device.table:
+    file: "routes.yml"
+    table: "RouteTable"
+    kwargs:
+      destination: "192.68.1.0/8"
+    response_type: "juniper_items"
+  register: test2
+  ignore_errors: true
+  tags: [test2]
 
-    - name: Check TEST 2
-      ansible.builtin.assert:
-        that:
-          - test2.msg == "Successfully retrieved 1 items from RouteTable."
+- name: Check TEST 2 - Validate Route Table Retrieval
+  ansible.builtin.assert:
+    that:
+      - test2.msg == "Successfully retrieved 1 items from RouteTable."
+  tags: [test2]
 
-    - name: Retrieve ethernet devices
-      juniper.device.table:
-        file: "ethport.yml"
-        table: "EthPortTable"
-        kwargs:
-          interface_name: ge-0/0/0
-      register: test3
-    - name: Check TEST 3
-      ansible.builtin.assert:
-        that:
-          - test3.msg == "Successfully retrieved 1 items from EthPortTable."
+- name: Retrieve ethernet devices
+  juniper.device.table:
+    file: "ethport.yml"
+    table: "EthPortTable"
+    kwargs:
+      interface_name: ge-0/0/0
+  register: test3
+  ignore_errors: true
+  tags: [test3]
+
+- name: Check TEST 3 - Validate Ethernet Port Table Retrieval
+  ansible.builtin.assert:
+    that:
+      - test3.msg == "Successfully retrieved 1 items from EthPortTable."
+  tags: [test3]

@@ -744,12 +744,12 @@ EXAMPLES = """
         port: "22"
         retrieve: 'committed'
         format: xml
-        commit: no
-        check: no
-        diff: no
+        commit: false
+        check: false
+        diff: false
         dest_dir: "/tmp/"
         filter: <configuration><groups><name>re0</name></groups></configuration>
-        return_output: True
+        return_output: true
       register: config_output
 """
 

@@ -172,12 +172,12 @@ EXAMPLES = """
     - name: Power off the other RE of the device.
       juniper.device.system:
         action: "shutdown"
-        othe_re: True
+        othe_re: true
 
     - name: Reboot this RE at 8pm today.
       juniper.device.system:
         action: "reboot"
-        all_re: False
+        all_re: false
         at: "20:00"
 
     - name: Halt the system on 25 January 2018 at 4pm.
@@ -198,12 +198,12 @@ EXAMPLES = """
     - name: Zeroize the local RE only.
       juniper.device.system:
         action: "zeroize"
-        all_re: False
+        all_re: false
 
     - name: Zeroize all REs and overwrite medea.
       juniper.device.system:
         action: "zeroize"
-        media: True
+        media: true
 """
 
 RETURN = """

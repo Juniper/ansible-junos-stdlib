@@ -700,8 +700,8 @@ class Connection(NetworkConnectionBase):
                 self.config.rescue(action="reload")
                 self.queue_message("log", "Rescue configuration loaded.")
             except (
-                self.pyez_exception.RpcError,
-                self.pyez_exception.ConnectError,
+                pyez_exception.RpcError,
+                pyez_exception.ConnectError,
             ) as ex:
                 raise AnsibleError(
                     "Unable to load the rescue configuraton: " "%s" % (str(ex))
@@ -714,8 +714,8 @@ class Connection(NetworkConnectionBase):
                     "log", "Rollback {} configuration loaded.".format(id)
                 )
             except (
-                self.pyez_exception.RpcError,
-                self.pyez_exception.ConnectError,
+                pyez_exception.RpcError,
+                pyez_exception.ConnectError,
             ) as ex:
                 raise AnsibleError(
                     "Unable to load the rollback %d " "configuraton: %s" % (id, str(ex))
@@ -734,7 +734,7 @@ class Connection(NetworkConnectionBase):
         try:
             self.config.commit_check()
             self.queue_message("log", "Configuration checked.")
-        except (self.pyez_exception.RpcError, self.pyez_exception.ConnectError) as ex:
+        except (pyez_exception.RpcError, pyez_exception.ConnectError) as ex:
             raise AnsibleError("Failure checking the configuraton: %s" % (str(ex)))
 
     def diff_configuration(self, ignore_warning=False):
@@ -750,7 +750,7 @@ class Connection(NetworkConnectionBase):
             diff = self.config.diff(rb_id=0, ignore_warning=ignore_warning)
             self.queue_message("log", "Configuration diff completed.")
             return diff
-        except (self.pyez_exception.RpcError, self.pyez_exception.ConnectError) as ex:
+        except (pyez_exception.RpcError, pyez_exception.ConnectError) as ex:
             raise AnsibleError("Failure diffing the configuraton: %s" % (str(ex)))
 
     def load_configuration(self, config, load_args):
@@ -767,7 +767,7 @@ class Connection(NetworkConnectionBase):
                 self.queue_message("log", "Load args %s." % str(load_args))
                 self.config.load(**load_args)
             self.queue_message("log", "Configuration loaded.")
-        except (self.pyez_exception.RpcError, self.pyez_exception.ConnectError) as ex:
+        except (pyez_exception.RpcError, pyez_exception.ConnectError) as ex:
             raise AnsibleError("Failure loading the configuraton: %s" % (str(ex)))
 
     def commit_configuration(
@@ -804,7 +804,7 @@ class Connection(NetworkConnectionBase):
                 sync=sync,
             )
             self.queue_message("log", "Configuration committed.")
-        except (self.pyez_exception.RpcError, self.pyez_exception.ConnectError) as ex:
+        except (pyez_exception.RpcError, pyez_exception.ConnectError) as ex:
             raise AnsibleError("Failure committing the configuraton: %s" % (str(ex)))
 
     def system_api(
@@ -844,17 +844,17 @@ class Connection(NetworkConnectionBase):
                 msg = "Did not find expected RPC response."
             else:
                 msg = "%s successfully initiated. Response got %s" % (action, got)
-        except self.pyez_exception.RpcTimeoutError as ex:
+        except pyez_exception.RpcTimeoutError as ex:
             try:
                 self.close(raise_exceptions=True)
                 # This means the device wasn't already disconnected.
                 raise AnsibleError(
                     "%s failed. %s may not have been " "initiated." % (action, action)
                 )
-            except (self.pyez_exception.RpcError, self.pyez_exception.ConnectError):
+            except (pyez_exception.RpcError, pyez_exception.ConnectError):
                 # This is expected. The device has already disconnected.
                 msg = "%s succeeded." % (action)
-        except (self.pyez_exception.RpcError, self.pyez_exception.ConnectError) as ex:
+        except (pyez_exception.RpcError, pyez_exception.ConnectError) as ex:
             raise AnsibleError("%s failed. Error: %s" % (action, str(ex)))
         return msg
 
@@ -871,7 +871,7 @@ class Connection(NetworkConnectionBase):
             )
             self.queue_message("log", str(msg))
             return msg
-        except (self.pyez_exception.ConnectError, self.pyez_exception.RpcError) as ex:
+        except (pyez_exception.ConnectError, pyez_exception.RpcError) as ex:
             raise AnsibleError("Installation failed. Error: %s" % str(ex))
 
     def reboot_api(self, all_re, vmhost, member_id=None):
@@ -905,9 +905,9 @@ class Connection(NetworkConnectionBase):
                 # This means the device wasn't already disconnected.
                 raise AnsibleError(" Reboot failed. It may not have been initiated.")
             except (
-                self.pyez_exception.RpcError,
-                self.pyez_exception.RpcTimeoutError,
-                self.pyez_exception.ConnectError,
+                pyez_exception.RpcError,
+                pyez_exception.RpcTimeoutError,
+                pyez_exception.ConnectError,
             ):
                 # This is expected. The device has already disconnected.
                 msg += " Reboot succeeded."
@@ -915,7 +915,7 @@ class Connection(NetworkConnectionBase):
                 # This is not really expected. Still consider reboot success as
                 # Looks like rpc was consumed but no response as its rebooting.
                 msg += " Reboot succeeded. Ignoring close error."
-        except (self.pyez_exception.RpcError, self.pyez_exception.ConnectError) as ex:
+        except (pyez_exception.RpcError, pyez_exception.ConnectError) as ex:
             raise AnsibleError(" Reboot failed. Error: %s" % (str(ex)))
         else:
             try:
@@ -937,7 +937,7 @@ class Connection(NetworkConnectionBase):
         try:
             with SCP(self.dev, progress=True) as scp:
                 scp.put(local_file, remote_file)
-        except (self.pyez_exception.RpcError, self.pyez_exception.ConnectError) as ex:
+        except (pyez_exception.RpcError, pyez_exception.ConnectError) as ex:
             raise AnsibleError(
                 "Failure to transfer the file: {0}".format(str(ex))
             ) from ex
@@ -967,7 +967,7 @@ class Connection(NetworkConnectionBase):
         try:
             with SCP(self.dev, progress=True) as scp:
                 scp.get(remote_file, local_file)
-        except (self.pyez_exception.RpcError, self.pyez_exception.ConnectError) as ex:
+        except (pyez_exception.RpcError, pyez_exception.ConnectError) as ex:
             raise AnsibleError(
                 "Failure to transfer the file: {0}".format(str(ex))
             ) from ex

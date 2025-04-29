@@ -1,4 +1,4 @@
-### REQUIRED
+# REQUIRED
 
 # The namespace of the collection. This can be a company/brand/organization or product namespace under which all
 # content lives. May only contain alphanumeric characters and underscores. Additionally namespaces cannot start with
@@ -17,7 +17,7 @@ readme: README.md
 # A list of the collection's content authors. Can be just the name or in the format 'Full Name <email> (url)
 # @nicks:irc/im.site#channel'
 authors:
-- Juniper Networks <jnpr-community-netdev@juniper.net>
+  - Juniper Networks <jnpr-community-netdev@juniper.net>
 
 # A short summary description of the collection
 description: set of Ansible modules that perform specific operational and configuration tasks on devices running Junos OS.
@@ -25,11 +25,18 @@ description: set of Ansible modules that perform specific operational and config
 # Either a single license or a list of licenses for content inside of a collection. Ansible Galaxy currently only
 # accepts L(SPDX,https://spdx.org/licenses/) licenses. This key is mutually exclusive with 'license_file'
 license:
-- Apache-2.0
+  - Apache-2.0
 
 # A list of tags you want to associate with the collection for indexing/searching. A tag name has the same character
 # requirements as 'namespace' and 'name'
-tags: ['juniper', 'junos', 'network']
+tags:
+  - juniper
+  - junos
+  - networking
+
+# Ignore docs configuration
+build_ignore:
+  - antsibull-docs.cfg
 
 # Collections that this collection requires to be installed for it to be usable. The key of the dict is the
 # collection label 'namespace.name'. The value is a version range
