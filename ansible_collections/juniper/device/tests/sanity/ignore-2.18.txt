@@ -14,6 +14,4 @@ plugins/modules/pmtud.py validate-modules!skip # waiting for bug fix in module v
 plugins/connection/pyez.py validate-modules!skip # waiting for bug fix in module validator
 plugins/action/extract_data.py action-plugin-docs
 plugins/action/juniper_junos_common_action.py action-plugin-docs
-plugins/connection/pyez.py compile-3.12!skip
-plugins/connection/pyez.py import-3.12!skip
 plugins/callback/jsnapy.py ansible-doc!skip
