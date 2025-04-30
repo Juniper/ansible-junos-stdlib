@@ -6,17 +6,21 @@ Juniper Device Collection Release Notes
 Changelog for Juniper Device Ansible Collection
 ===========================
 
-Version 1.0.8 (2025-04-28)
+Version 1.0.8 (2025-04-30)
 ---------------------------
 Enhancements
 ------------
 - Supported juniper.device.software: VMHost device software upgrade with version check to use the details of "show vmhost version" (#709).
 - Supported ansible-test sanity unit test and pytest framework (#718).
 - Supported ansible-test network-integration framework (#713).
+- Supported pre-commit hook #743
+- Enhanced file_copy modules to support SCP, FTP, checksum and transfer-file
 
 Bugs Fixed
 ----------
 - Fixed typo in juniper.device.config module with format: "json" (#711).
+- Fixed ansible-lint and PyEZ exception issues #738
+- Fix to handle RPC response in JSON format of type <class 'dict'> #730
 
 Version 1.0.7 (2024-12-19)
 ---------------------------
