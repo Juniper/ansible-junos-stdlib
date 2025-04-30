@@ -3,5 +3,5 @@
   ansible.builtin.include_tasks: local.yml
 
 
-- name: Invoke netconf tasks
-  ansible.builtin.include_tasks: pyez.yml
+#- name: Invoke netconf tasks
+#  ansible.builtin.include_tasks: pyez.yml

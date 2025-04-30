@@ -1,38 +1,246 @@
 ---
-- name: Creates file log.txt
+- name: Creates file scp_log.txt
   ansible.builtin.file:
-    path: /var/tmp/log.txt
+    path: /var/tmp/scp_log.txt
     state: touch
     mode: '0644'
 
-- name: Delete local file log.txt
+- name: Creates file ftp_log.txt
   ansible.builtin.file:
-    path: /tmp/log.txt
+    path: /var/tmp/ftp_log.txt
+    state: touch
+    mode: '0644'
+
+- name: Creates file default_log.txt
+  ansible.builtin.file:
+    path: /var/tmp/default_log.txt
+    state: touch
+    mode: '0644'
+
+- name: Creates file transfer_log.txt
+  ansible.builtin.file:
+    path: /var/tmp/transfer_log.txt
+    state: touch
+    mode: '0644'
+
+- name: Creates file checksum_log.txt
+  ansible.builtin.file:
+    path: /var/tmp/checksum_log.txt
+    state: touch
+    mode: '0644'
+
+- name: Delete local file scp_log.txt
+  ansible.builtin.file:
+    path: /tmp/scp_log.txt
     state: absent
 
-- name: Copy file to remote device
+- name: Delete local file ftp_log.txt
+  ansible.builtin.file:
+    path: /tmp/ftp_log.txt
+    state: absent
+
+- name: Delete local file default_log.txt
+  ansible.builtin.file:
+    path: /tmp/default_log.txt
+    state: absent
+
+- name: Delete local file local_log.txt
+  ansible.builtin.file:
+    path: /tmp/local_log.txt
+    state: absent
+
+- name: Delete local file checksum_log.txt
+  ansible.builtin.file:
+    path: /tmp/checksum_log.txt
+    state: absent
+
+- name: "File copy ftp put"
   juniper.device.file_copy:
+    protocol: ftp
     local_dir: /var/tmp
     remote_dir: /var/log
-    file: log.txt
+    file: ftp_log.txt
     action: put
   register: test1
   ignore_errors: true
 
-- name: Check file copy put
+- name: Check ftp file copy put
   ansible.builtin.assert:
     that:
-      - test1.msg == 'File pushed OK' or test1.msg == 'File already present, skipping the scp'
+      - test1.msg == 'File pushed OK'
 
-- name: Copy file from remote device
+- name: "File copy ftp get"
   juniper.device.file_copy:
+    protocol: ftp
     local_dir: /tmp
     remote_dir: /var/log
-    file: log.txt
+    file: ftp_log.txt
     action: get
   register: test2
 
-- name: Check file copy get
+- name: Check ftp file copy get
   ansible.builtin.assert:
     that:
       - test2.msg == 'File pushed OK'
+
+- name: "File copy scp put"
+  juniper.device.file_copy:
+    protocol: scp
+    local_dir: /var/tmp
+    remote_dir: /var/log
+    file: scp_log.txt
+    action: put
+  register: test1
+  ignore_errors: true
+
+- name: Check scp file copy put
+  ansible.builtin.assert:
+    that:
+      - test1.msg == 'File pushed OK'
+
+- name: "File copy get by scp"
+  juniper.device.file_copy:
+    protocol: scp
+    local_dir: /tmp
+    remote_dir: /var/log
+    file: scp_log.txt
+    action: get
+  register: test2
+
+- name: Check scp file copy get
+  ansible.builtin.assert:
+    that:
+      - test2.msg == 'File pushed OK'
+
+- name: "File copy put by default scp"
+  juniper.device.file_copy:
+    local_dir: /var/tmp
+    remote_dir: /var/log
+    file: default_log.txt
+    action: put
+  register: test1
+  ignore_errors: true
+
+- name: Check ftp file copy put
+  ansible.builtin.assert:
+    that:
+      - test1.msg == 'File pushed OK'
+
+- name: "File copy get by default scp"
+  juniper.device.file_copy:
+    local_dir: /tmp
+    remote_dir: /var/log
+    file: default_log.txt
+    action: get
+  register: test2
+
+- name: Check scp file copy get
+  ansible.builtin.assert:
+    that:
+      - test2.msg == 'File pushed OK'
+
+- name: "File copy put by default scp with checksum false option"
+  juniper.device.file_copy:
+    local_dir: /var/tmp
+    remote_dir: /var/log
+    file: checksum_log.txt
+    action: put
+    checksum: false
+  register: test1
+  ignore_errors: true
+
+- name: Check ftp file copy put
+  ansible.builtin.assert:
+    that:
+      - test1.msg == 'File pushed OK'
+
+- name: "File copy get by default scp with checksum false option"
+  juniper.device.file_copy:
+    local_dir: /tmp
+    remote_dir: /var/log
+    file: checksum_log.txt
+    action: get
+    checksum: false
+  register: test2
+
+- name: Check default file copy get
+  ansible.builtin.assert:
+    that:
+      - test2.msg == 'File pushed OK'
+
+
+- name: "File copy put by scp with transfer filename parameter"
+  juniper.device.file_copy:
+    protocol: scp
+    local_dir: /var/tmp
+    remote_dir: /var/log
+    file: default_log.txt
+    transfer_filename: transfer_log.txt
+    checksum: False
+    action: put
+  register: test1
+  ignore_errors: true
+
+- name: Check scp file copy put
+  ansible.builtin.assert:
+    that:
+      - test1.msg == 'File pushed OK'
+
+- name: "File copy get by scp with transfer filename parameter"
+  juniper.device.file_copy:
+    protocol: scp
+    local_dir: /tmp
+    remote_dir: /var/log
+    checksum: False
+    file: transfer_log.txt
+    transfer_filename: local_log.txt
+    action: get
+  register: test2
+
+- name: Check scp file copy get
+  ansible.builtin.assert:
+    that:
+      - test2.msg == 'File pushed OK'
+
+- name: "File copy put by ftp with transfer filename parameter"
+  juniper.device.file_copy:
+    protocol: ftp
+    local_dir: /var/tmp
+    remote_dir: /var/log
+    file: transfer_log.txt
+    transfer_filename: remote_log.txt
+    checksum: false
+    action: put
+  register: test1
+  ignore_errors: true
+
+- name: Check ftp file copy put
+  ansible.builtin.assert:
+    that:
+      - test1.msg == 'File pushed OK'
+
+- name: "File copy get by ftp with transfer filename parameter"
+  juniper.device.file_copy:
+    protocol: ftp
+    local_dir: /var/tmp
+    remote_dir: /var/log
+    checksum: False
+    file: remote_log.txt
+    transfer_filename: remote_log.txt
+    action: get
+  register: test2
+
+- name: Check ftp file copy get
+  ansible.builtin.assert:
+    that:
+      - test2.msg == 'File pushed OK'
+
+- name: "Remove /var/log/*log* files"
+  juniper.device.command:
+    commands: "file delete /var/log/*log*"
+  register: test1
+
+- name: "Remove /var/log/*log* files"
+  ansible.builtin.assert:
+    that:
+      test1.msg == "The command executed successfully."
