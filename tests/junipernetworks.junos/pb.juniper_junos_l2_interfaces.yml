@@ -1,5 +1,7 @@
+# Note: This functional test requires switching to be enabled on interfaces.
+
 - name: Functional Test - junos_l2_interfaces module
-  hosts: junos
+  hosts: junos_device
   gather_facts: false
   connection: netconf
   collections:

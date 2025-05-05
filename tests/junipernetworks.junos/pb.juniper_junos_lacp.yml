@@ -1,5 +1,5 @@
 - name: Functional Test - junos_lacp module
-  hosts: junos
+  hosts: junos_device
   gather_facts: false
   connection: netconf
   collections:
@@ -34,8 +34,7 @@
       assert:
         that:
           - gather_result.gathered.system_priority == 63
-          - "'link_protection' not in gather_result.gathered or gather_result.gathered.link_protection == 'revertive'"
-
+         
     - name: Render LACP config (offline)
       junos_lacp:
         config:

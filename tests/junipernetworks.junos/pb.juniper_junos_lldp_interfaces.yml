@@ -58,6 +58,4 @@
         state: rendered
       register: rendered_lldp
 
-    - name: Debug rendered XML
-      ansible.builtin.debug:
-        var: rendered_lldp.rendered
+    

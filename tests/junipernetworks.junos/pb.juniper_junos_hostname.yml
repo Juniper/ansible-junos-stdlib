@@ -1,5 +1,5 @@
 - name: Functional Test - junos_hostname module
-  hosts: junos
+  hosts: junos_device
   gather_facts: false
   connection: netconf
   collections:

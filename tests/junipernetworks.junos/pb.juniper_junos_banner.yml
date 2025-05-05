@@ -1,5 +1,5 @@
 - name: Functional Test - junos_banner module
-  hosts: junos
+  hosts: junos_device
   gather_facts: false
   connection: netconf
   collections:
@@ -12,7 +12,7 @@
 
   tasks:
     - name: Pre-clean - Remove login banner if exists
-      junos_banner:
+      junipernetworks.junos.junos_banner:
         banner: login
         state: absent
       register: preclean_result
@@ -23,7 +23,7 @@
           - preclean_result.changed in [true, false]
 
     - name: Apply login banner with state present
-      junos_banner:
+      junipernetworks.junos.junos_banner:
         banner: login
         text: "{{ login_banner_text }}"
         state: present
@@ -37,9 +37,7 @@
     - name: Deactivate the login banner
       junipernetworks.junos.junos_banner:
         banner: login
-        text: |
-          this is my login banner
-          used for testing purposes
+        text: "{{ login_banner_text }}"
         state: present
         active: false
       register: deactivate_result 
@@ -50,7 +48,7 @@
           - deactivate_result.changed == true
 
     - name: Reactivate the login banner
-      junos_banner:
+      junipernetworks.junos.junos_banner:
         banner: login
         state: present
         active: true
@@ -65,7 +63,7 @@
           - reactivate_result.changed == true
 
     - name: Post-clean - Remove login banner
-      junos_banner:
+      junipernetworks.junos.junos_banner:
         banner: login
         state: absent
       register: postclean_result

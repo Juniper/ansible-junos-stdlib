@@ -1,5 +1,5 @@
 - name: Functional Test - junos_config module
-  hosts: junos
+  hosts: junos_device
   gather_facts: false
   connection: netconf
   collections:
@@ -12,11 +12,12 @@
         lines:
           - delete interfaces ge-0/0/1 unit 0 description
         comment: "Clean up test interface config"
+      register: preclean_result
 
     - name: Assert pre-clean successful
       assert:
         that:
-          - "'delete interfaces' in apply_result.commands[0] or apply_result.changed in [true, false]"
+          - preclean_result.changed in [true, false]
 
     - name: Apply test config - set interface description
       junipernetworks.junos.junos_config:
@@ -56,7 +57,6 @@
       assert:
         that:
           - backup_result.backup_path is defined
-          
 
     - name: Post-clean - delete test configuration
       junos_config:
