@@ -59,6 +59,7 @@ options:
     - name: host
     - name: hostname
     - name: ip
+    - name: inventory_hostname
   port:
     description:
     - Specifies the port on the remote device that listens for connections when establishing
