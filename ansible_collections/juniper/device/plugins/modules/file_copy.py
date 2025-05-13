@@ -109,7 +109,7 @@ EXAMPLES = """
         remote_dir: /var/log
         local_dir: /tmp
         action: get
-        checksum: True
+        checksum: true
         file: log.txt
     - name: Copy a local file into /var/tmp on the remote device
       juniper.device.file_copy:
@@ -117,7 +117,7 @@ EXAMPLES = """
         remote_dir: /var/tmp
         local_dir: /tmp
         action: put
-        checksum: False
+        checksum: false
         file: license.txt
 """
 
