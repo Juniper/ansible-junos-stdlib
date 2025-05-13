@@ -1,0 +1,8 @@
+---
+- name: Invoke netconf tasks
+  ansible.builtin.include_tasks: cli.yaml
+  tags: ["network_cli"]
+
+- name: Invoke netconf tasks
+  ansible.builtin.include_tasks: netconf.yaml
+  tags: ["netconf"]

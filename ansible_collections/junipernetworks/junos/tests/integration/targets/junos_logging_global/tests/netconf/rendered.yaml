@@ -1,0 +1,29 @@
+---
+- ansible.builtin.debug:
+    msg: START junos_logging_global rendered integration tests on connection={{
+      ansible_connection }}
+
+- ansible.builtin.set_fact:
+    expected_rendered_output: '<nc:system xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"><nc:syslog><nc:allow-duplicates/><nc:archive><nc:files>10</nc:files><nc:no-binary-data/><nc:size>65578</nc:size><nc:no-world-readable/></nc:archive></nc:syslog></nc:system>'
+
+- name: Render platform specific commands from task input using rendered state
+  register: result
+  junipernetworks.junos.junos_logging_global:
+    config:
+      allow_duplicates: true
+      archive:
+        set: true
+        no_binary_data: true
+        files: 10
+        file_size: "65578"
+        no_world_readable: true
+    state: rendered
+
+- name: Assert that correct set of commands were rendered
+  ansible.builtin.assert:
+    that:
+      - "{{ expected_rendered_output == result['rendered'] }}"
+
+- ansible.builtin.debug:
+    msg: END junos_logging_global rendered integration tests on connection={{
+      ansible_connection }}

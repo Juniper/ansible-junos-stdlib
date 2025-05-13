@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rpc-reply message-id="urn:uuid:0cadb4e8-5bba-47f4-986e-72906227007f">
+    <configuration changed-seconds="1590139550" changed-localtime="2020-05-22 09:25:50 UTC">
+        <interfaces>
+            <interface>
+                <name>ge-0/0/1</name>
+                <description>Configured by Ansible</description>
+                <disable/>
+                <speed>100m</speed>
+                <mtu>1024</mtu>
+                <hold-time>
+                    <up>2000</up>
+                    <down>2200</down>
+                </hold-time>
+                <link-mode>full-duplex</link-mode>
+                <unit>
+                    <name>0</name>
+                    <family>
+                        <ethernet-switching>
+                            <interface-mode>access</interface-mode>
+                            <vlan>
+                                <members>vlan100</members>
+                            </vlan>
+                        </ethernet-switching>
+                    </family>
+                </unit>
+            </interface>
+            <interface>
+                <name>ge-0/0/2</name>
+                <description>Configured by Ansible</description>
+                <native-vlan-id>400</native-vlan-id>
+                <speed>10m</speed>
+                <mtu>2048</mtu>
+                <hold-time>
+                    <up>3000</up>
+                    <down>3200</down>
+                </hold-time>
+                <unit>
+                    <name>0</name>
+                    <family>
+                        <ethernet-switching>
+                            <interface-mode>trunk</interface-mode>
+                            <vlan>
+                                <members>vlan200</members>
+                                <members>vlan300</members>
+                            </vlan>
+                        </ethernet-switching>
+                    </family>
+                </unit>
+            </interface>
+        </interfaces>
+    </configuration>
+</rpc-reply>

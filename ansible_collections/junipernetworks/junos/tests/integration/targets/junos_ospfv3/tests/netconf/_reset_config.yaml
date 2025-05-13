@@ -1,0 +1,11 @@
+---
+- ansible.builtin.debug:
+    msg: "START junos_ospfv3 reset config on connection={{ ansible_connection }}"
+
+- name: Reset configuration for ospf3 and routing-options
+  junipernetworks.junos.junos_config:
+    lines:
+      - delete protocols ospf3
+      - delete routing-options
+- ansible.builtin.debug:
+    msg: "END junos_ospfv3 reset config on connection={{ ansible_connection }}"

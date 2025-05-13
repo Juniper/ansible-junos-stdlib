@@ -1,0 +1,141 @@
+---
+- ansible.builtin.debug:
+    msg:
+      START junos_logging_global round trip integration tests on connection={{
+      ansible_connection }}
+
+- block:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+    - ansible.builtin.include_tasks: _initial_config.yaml
+
+    - name: Apply the provided configuration (base config)
+      register: base_config
+      junipernetworks.junos.junos_logging_global:
+        config:
+          allow_duplicates: true
+          archive:
+            set: true
+            no_binary_data: true
+            files: 10
+            file_size: "5m"
+            no_world_readable: true
+          console:
+            any:
+              level: "info"
+            authorization:
+              level: "any"
+            change_log:
+              level: "critical"
+            ftp:
+              level: "none"
+          files:
+            - name: "file101"
+              allow_duplicates: true
+            - name: "file102"
+              allow_duplicates: true
+              any:
+                level: "any"
+              structured_data:
+                set: true
+            - name: "file103"
+              archive:
+                set: true
+                no_binary_data: true
+                files: 10
+                file_size: "65578"
+                no_world_readable: true
+              explicit_priority: true
+              match: "^set*"
+              match_strings:
+                - "^delete"
+                - "^prompt"
+          hosts:
+            - name: host111
+              exclude_hostname: true
+              allow_duplicates: true
+              any:
+                level: "any"
+              structured_data:
+                set: true
+                brief: true
+              facility_override: "ftp"
+              log_prefix: "field"
+              match: "^set*"
+              match_strings:
+                - "^delete"
+                - "^prompt"
+              port: 1231
+              routing_instance: "inst11"
+              source_address: "11.1.1.11"
+          routing_instance: "inst11"
+          log_rotate_frequency: 45
+          source_address: "33.33.33.33"
+          time_format:
+            millisecond: true
+            year: true
+          users:
+            - name: "user1"
+              allow_duplicates: true
+            - name: "user2"
+              allow_duplicates: true
+              any:
+                level: "any"
+              user:
+                level: info
+        state: merged
+
+    - name: Gather interfaces facts
+      junipernetworks.junos.junos_facts:
+        gather_subset:
+          - default
+        gather_network_resources:
+          - logging_global
+
+    - name: Apply the provided configuration (config to be reverted)
+      register: result
+      junipernetworks.junos.junos_logging_global:
+        config:
+          allow_duplicates: true
+          archive:
+            set: true
+            no_binary_data: true
+            files: 12
+            file_size: "5m"
+            no_world_readable: true
+          console:
+            any:
+              level: "info"
+            authorization:
+              level: "info"
+            change_log:
+              level: "info"
+        state: replaced
+
+    - name: Assert that changes were applied
+      ansible.builtin.assert:
+        that: result['changed'] == true
+
+    - name: Revert back to base config using facts round trip
+      register: revert
+      junipernetworks.junos.junos_logging_global:
+        config: "{{ ansible_facts['network_resources']['logging_global'] }}"
+        state: replaced
+
+    - name: Assert that before dicts are correct
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ result['after'] == revert['before'] }}"
+
+    - name: Assert that config was reverted
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ base_config['after'] == revert['after'] }}"
+  always:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+- ansible.builtin.debug:
+    msg:
+      END junos_logging_global round trip integration tests on connection={{ ansible_connection
+      }}

@@ -1,0 +1,12 @@
+---
+- name: Invoke netconf netconf tasks
+  ansible.builtin.include_tasks: netconf.yaml
+
+- name: Invoke cli tasks
+  ansible.builtin.include_tasks: cli_config.yaml
+  tags:
+    - network_cli
+
+- name: Invoke tasks
+  ansible.builtin.include_tasks: redirection.yaml
+  when: ansible_version.full is version('2.10.0', '>=')

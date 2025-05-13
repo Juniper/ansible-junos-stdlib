@@ -1,0 +1,12 @@
+---
+- ansible.builtin.debug:
+    msg: "START junos_routing_options reset config on connection={{ ansible_connection }}"
+
+- name: Reset routing options configuration
+  junipernetworks.junos.junos_config:
+    lines:
+      - delete routing-options router-id
+      - delete routing-options autonomous-system
+
+- ansible.builtin.debug:
+    msg: "END junos_routing_options reset config on connection={{ ansible_connection }}"

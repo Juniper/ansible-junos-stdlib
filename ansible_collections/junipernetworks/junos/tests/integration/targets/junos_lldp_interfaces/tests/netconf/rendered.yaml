@@ -1,0 +1,26 @@
+---
+- ansible.builtin.debug:
+    msg: START junos_lldp_interfaces rendered integration tests on connection={{
+      ansible_connection }}
+
+- ansible.builtin.set_fact:
+    expected_rendered_output: '<nc:protocols xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"><nc:lldp><nc:interface><nc:name>ge-0/0/1</nc:name><nc:disable delete="delete"/></nc:interface><nc:interface><nc:name>ge-0/0/2</nc:name><nc:disable/></nc:interface></nc:lldp></nc:protocols>'
+
+- name: Render platform specific commands from task input using rendered state
+  register: result
+  junipernetworks.junos.junos_lldp_interfaces:
+    config:
+      - name: ge-0/0/1
+
+      - name: ge-0/0/2
+        enabled: false
+    state: rendered
+
+- name: Assert that correct set of commands were rendered
+  ansible.builtin.assert:
+    that:
+      - "{{ expected_rendered_output == result['rendered'] }}"
+
+- ansible.builtin.debug:
+    msg: END junos_lldp_interfaces rendered integration tests on connection={{
+      ansible_connection }}

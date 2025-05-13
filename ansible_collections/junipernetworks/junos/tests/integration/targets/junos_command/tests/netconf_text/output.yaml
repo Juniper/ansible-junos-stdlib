@@ -1,0 +1,78 @@
+---
+- name: Debug task
+  ansible.builtin.debug:
+    msg="START netconf_text/output.yaml on connection={{ ansible_connection
+    }}"
+
+- name: Get output for single command
+  register: result
+  junipernetworks.junos.junos_command:
+    commands: show version
+    display: text
+
+- name: Assertion
+  ansible.builtin.assert:
+    that:
+      - result.changed == false
+      - result.stdout is defined
+      - result.stdout_lines is defined
+
+- name: Get output for multiple commands
+  register: result
+  junipernetworks.junos.junos_command:
+    commands:
+      - show version
+      - show route
+    display: text
+
+- name: Assertion
+  ansible.builtin.assert:
+    that:
+      - result.changed == false
+      - result.stdout is defined
+      - result.stdout_lines is defined
+
+- name: get output for partial config commands
+  register: result
+  junipernetworks.junos.junos_command:
+    commands:
+      - show configuration system syslog
+    display: text
+
+- name: Assertion
+  ansible.builtin.assert:
+    that:
+      - result.changed == false
+      - result.stdout is defined
+      - result.stdout_lines is defined
+
+- name: Get output for single command with cli transport
+  register: result
+  junipernetworks.junos.junos_command:
+    commands: show version
+    display: text
+
+- name: Assertion
+  ansible.builtin.assert:
+    that:
+      - result.changed == false
+      - result.stdout is defined
+      - result.stdout_lines is defined
+
+- name: Get output for multiple commands with cli transport
+  register: result
+  junipernetworks.junos.junos_command:
+    commands:
+      - show version
+      - show route
+    display: text
+
+- name: Assertion
+  ansible.builtin.assert:
+    that:
+      - result.changed == false
+      - result.stdout is defined
+      - result.stdout_lines is defined
+
+- name: Debug task
+  ansible.builtin.debug: msg="END netconf_text/output.yaml on connection={{ ansible_connection }}"

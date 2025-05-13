@@ -1,0 +1,5 @@
+---
+- name: Invoke netconf play
+  ansible.builtin.include_tasks: netconf.yaml
+  tags:
+    - netconf

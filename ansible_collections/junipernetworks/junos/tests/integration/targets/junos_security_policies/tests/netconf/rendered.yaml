@@ -1,0 +1,124 @@
+---
+- ansible.builtin.debug:
+    msg:
+      START junos_security_policies rendered integration tests on connection={{
+      ansible_connection }}
+
+- ansible.builtin.set_fact:
+    expected_rendered_output: '<nc:security xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"><nc:policies><nc:policy><nc:from-zone-name>one</nc:from-zone-name><nc:to-zone-name>two</nc:to-zone-name><nc:policy><nc:name>test_policy_1</nc:name><nc:match><nc:source-address>a1</nc:source-address><nc:source-address>a3</nc:source-address><nc:source-address-excluded/><nc:destination-address>a2</nc:destination-address><nc:destination-address>a4</nc:destination-address><nc:destination-address-excluded/><nc:application>junos-dhcp-relay</nc:application><nc:application>junos-finger</nc:application><nc:source-end-user-profile>test_end_user_profile</nc:source-end-user-profile><nc:source-identity>unknown-user</nc:source-identity><nc:url-category>Enhanced_Web_Chat</nc:url-category><nc:dynamic-application>any</nc:dynamic-application></nc:match><nc:then><nc:deny/><nc:count> </nc:count><nc:log><nc:session-close/></nc:log></nc:then></nc:policy><nc:policy><nc:name>test_policy_2</nc:name><nc:match><nc:source-address>a1</nc:source-address><nc:destination-address>any-ipv6</nc:destination-address><nc:application>any</nc:application></nc:match><nc:then><nc:reject> <nc:profile>test_dyn_app</nc:profile><nc:ssl-proxy> <nc:profile-name>SECURITY-SSL-PROXY</nc:profile-name></nc:ssl-proxy></nc:reject></nc:then></nc:policy></nc:policy><nc:policy><nc:from-zone-name>one</nc:from-zone-name><nc:to-zone-name>three</nc:to-zone-name><nc:policy><nc:name>test_policy_3</nc:name><nc:match><nc:source-address>a1</nc:source-address><nc:destination-address>a2</nc:destination-address><nc:application>any</nc:application></nc:match><nc:then><nc:permit><nc:application-services><nc:application-traffic-control><nc:rule-set>test_traffic_control</nc:rule-set></nc:application-traffic-control><nc:gprs-gtp-profile>gtp1</nc:gprs-gtp-profile><nc:icap-redirect>test_icap</nc:icap-redirect><nc:reverse-redirect-wx/><nc:uac-policy> </nc:uac-policy></nc:application-services><nc:firewall-authentication><nc:push-to-identity-management/><nc:web-authentication> <nc:client-match>FWClient1</nc:client-match></nc:web-authentication></nc:firewall-authentication><nc:tcp-options> <nc:initial-tcp-mss>64</nc:initial-tcp-mss><nc:window-scale/></nc:tcp-options></nc:permit></nc:then></nc:policy></nc:policy><nc:global><nc:policy><nc:name>test_glob_1</nc:name><nc:match><nc:source-address>any-ipv6</nc:source-address><nc:destination-address>any-ipv6</nc:destination-address><nc:application>any</nc:application></nc:match><nc:then><nc:deny/></nc:then></nc:policy><nc:policy><nc:name>test_glob_2</nc:name><nc:match><nc:source-address>any-ipv6</nc:source-address><nc:destination-address>any-ipv6</nc:destination-address><nc:application>any</nc:application></nc:match><nc:then><nc:deny/></nc:then></nc:policy></nc:global></nc:policies></nc:security>'
+
+- name: Render platform specific commands from task input using rendered state
+  register: result
+  junipernetworks.junos.junos_security_policies:
+    config:
+      from_zones:
+        - name: one
+          to_zones:
+            - name: two
+              policies:
+                - match:
+                    application:
+                      names:
+                        - junos-dhcp-relay
+                        - junos-finger
+                    destination_address:
+                      addresses:
+                        - a2
+                        - a4
+                    destination_address_excluded: true
+                    dynamic_application:
+                      names:
+                        - any
+                    source_address:
+                      addresses:
+                        - a1
+                        - a3
+                    source_address_excluded: true
+                    source_end_user_profile: test_end_user_profile
+                    source_identity:
+                      unknown_user: true
+                    url_category:
+                      names:
+                        - Enhanced_Web_Chat
+                  name: test_policy_1
+                  then:
+                    count: true
+                    deny: true
+                    log:
+                      session_close: true
+                - match:
+                    application:
+                      any: true
+                    destination_address:
+                      any_ipv6: true
+                    source_address:
+                      addresses:
+                        - a1
+                  name: test_policy_2
+                  then:
+                    reject:
+                      enable: true
+                      profile: test_dyn_app
+                      ssl_proxy:
+                        enable: true
+                        profile_name: SECURITY-SSL-PROXY
+            - name: three
+              policies:
+                - match:
+                    application:
+                      any: true
+                    destination_address:
+                      addresses:
+                        - a2
+                    source_address:
+                      addresses:
+                        - a1
+                  name: test_policy_3
+                  then:
+                    permit:
+                      application_services:
+                        application_traffic_control_rule_set: test_traffic_control
+                        gprs_gtp_profile: gtp1
+                        icap_redirect: test_icap
+                        reverse_redirect_wx: "True"
+                        uac_policy:
+                          enable: true
+                      firewall_authentication:
+                        push_to_identity_management: true
+                        web_authentication:
+                          - FWClient1
+                      tcp_options:
+                        initial_tcp_mss: 64
+                        window_scale: true
+      global:
+        policies:
+          - match:
+              application:
+                any: true
+              destination_address:
+                any_ipv6: true
+              source_address:
+                any_ipv6: true
+            name: test_glob_1
+            then:
+              deny: true
+          - match:
+              application:
+                any: true
+              destination_address:
+                any_ipv6: true
+              source_address:
+                any_ipv6: true
+            name: test_glob_2
+            then:
+              deny: true
+    state: rendered
+
+- name: Assert that correct set of commands were rendered
+  ansible.builtin.assert:
+    that:
+      - "{{ expected_rendered_output == result['rendered'] }}"
+
+- ansible.builtin.debug:
+    msg: END junos_security_policies rendered integration tests on connection={{
+      ansible_connection }}

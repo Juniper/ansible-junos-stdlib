@@ -1,0 +1,20 @@
+---
+- ansible.builtin.debug:
+    msg: "START junos_ospf_interfaces initial config on connection={{ ansible_connection }}"
+
+- name: Set initial configuration for ospf interfaces
+  junipernetworks.junos.junos_ospf_interfaces:
+    config:
+      - router_id: "10.200.16.75"
+        name: "ge-0/0/2.0"
+        address_family:
+          - afi: "ipv4"
+            processes:
+              area:
+                area_id: "0.0.0.2"
+              priority: 3
+              metric: 5
+    state: merged
+
+- ansible.builtin.debug:
+    msg: "END junos_ospf_interfaces initial config on connection={{ ansible_connection }}"

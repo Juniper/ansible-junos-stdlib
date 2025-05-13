@@ -1,0 +1,63 @@
+---
+- ansible.builtin.debug: msg="START net_put on connection={{ ansible_connection}}"
+
+- name: Create a 250mb file
+  ansible.builtin.command: "fallocate -l 1M /tmp/250mbfile"
+  args:
+    creates: /tmp/250mbfile
+
+- name: Check if the file exists
+  ansible.builtin.stat:
+    path: /tmp/250mbfile
+  register: file_stat
+
+- name: Verify file creation
+  ansible.builtin.assert:
+    that:
+      - file_stat.stat.exists == true
+
+- name: copy file from ansible controller to a network device using scp
+  ansible.netcommon.net_put:
+    src: /tmp/250mbfile
+    protocol: scp
+    dest: 250mbfile
+    check_destination: false
+  register: result
+
+- name: Verify file transfer of scp file
+  ansible.builtin.assert:
+    that:
+      - result.destination == '250mbfile'
+      - result.failed == false
+
+- name: Delete file from network device
+  junipernetworks.junos.junos_command:
+    commands:
+      - file delete 250mbfile
+
+- name: copy file from ansible controller to a network device using sftp
+  ansible.netcommon.net_put:
+    src: /tmp/250mbfile
+    protocol: sftp
+    dest: 250mbfile
+    check_destination: false
+  register: result
+
+- name: Verify file transfer of sftp file
+  ansible.builtin.assert:
+    that:
+      - result.destination == '250mbfile'
+      - result.failed == false
+
+- name: Delete file from network device
+  junipernetworks.junos.junos_command:
+    commands:
+      - file delete 250mbfile
+
+- name: Delete the file from ansible controller
+  ansible.builtin.file:
+    path: /tmp/250mbfile
+    state: absent
+  when: file_stat.stat.exists
+
+- ansible.builtin.debug: msg="END net_put on connection={{ ansible_connection }}"

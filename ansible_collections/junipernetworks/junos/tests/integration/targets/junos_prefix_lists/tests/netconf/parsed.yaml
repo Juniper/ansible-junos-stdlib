@@ -1,0 +1,30 @@
+---
+- ansible.builtin.debug:
+    msg:
+      START junos_prefix_lists parsed integration tests on connection={{ ansible_connection
+      }}
+
+- ansible.builtin.set_fact:
+    expected_parsed_output:
+      - name: "64510"
+      - address_prefixes:
+          - 172.16.1.16/28
+          - 172.16.1.32/28
+        dynamic_db: true
+        name: "64500"
+
+- name: Parse externally provided prefix_lists config to agnostic model
+  register: result
+  junipernetworks.junos.junos_prefix_lists:
+    running_config: "{{ lookup('file', './fixtures/parsed.cfg') }}"
+    state: parsed
+
+- name: Assert that config was correctly parsed
+  ansible.builtin.assert:
+    that:
+      - "{{ expected_parsed_output | symmetric_difference(result['parsed']) |length\
+        \ == 0 }}"
+- ansible.builtin.debug:
+    msg:
+      END junos_prefix_lists parsed integration tests on connection={{ ansible_connection
+      }}
