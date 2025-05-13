@@ -3,6 +3,7 @@
   hosts: all
   gather_facts: false
   tasks:
+
     - name: "TEST 1 - Ping Host DNS"
       juniper.device.ping:
         dest_ip: "{{ ansible_ssh_host }}"
@@ -14,7 +15,7 @@
         that:
           - test1.packet_loss == '0'
 
-############
+    ################################################
 
     - name: "TEST 2 - Ping Wrong IP"
       juniper.device.ping:
@@ -26,7 +27,8 @@
       ansible.builtin.assert:
         that:
           - test2.packet_loss == '100'
-#################
+
+    ################################################
 
     - name: "TEST 3 - Change nbr packets"
       juniper.device.ping:
@@ -40,7 +42,7 @@
         that:
           - test3.packets_sent == '3'
 
-#################
+    ################################################
 
     - name: "TEST 4 - Ping with DF-bit set"
       juniper.device.ping:
@@ -56,4 +58,66 @@
         that:
           - test4.packets_received == '3'
 
-#################
+    ################################################
+
+    - name: "TEST 5 - Acceptable packet loss"
+      juniper.device.ping:
+        dest_ip: 8.8.1.1
+        acceptable_percent_loss: 50
+      register: test5
+      ignore_errors: true
+
+    - name: Check TEST 5
+      ansible.builtin.assert:
+        that:
+          - test5.packet_loss == '100'
+          - test5.acceptable_percent_loss == '50'
+
+    ################################################
+
+    - name: "TEST 6 - TTL and rapid=false"
+      juniper.device.ping:
+        dest_ip: "{{ ansible_ssh_host }}"
+        ttl: 15
+        count: 10
+        rapid: false
+      register: test6
+      ignore_errors: true
+
+    - name: Check TEST 6
+      ansible.builtin.assert:
+        that:
+          - test6.ttl == '15'
+          - test6.rapid == false
+
+    ################################################
+
+    - name: "TEST 7 - Ping with source IP"
+      juniper.device.ping:
+        dest_ip: "{{ ansible_ssh_host }}"
+        source: "{{ ansible_ssh_host }}"
+      register: test7
+      ignore_errors: true
+
+    - name: Check TEST 7
+      ansible.builtin.assert:
+        that:
+          - test7.source == test7.source_ip
+
+    ################################################
+
+    - name: "TEST 8 - Ping from routing-instance"
+      juniper.device.ping:
+        dest_ip: "{{ ansible_ssh_host }}"
+        routing_instance: "default"
+      register: test8
+      ignore_errors: true
+
+    - name: Check TEST 8
+      ansible.builtin.assert:
+        that:
+          - test8.routing_instance == 'default'
+
+    ################################################
+
+    

@@ -140,3 +140,47 @@
           - test8.results[0].msg == "The command executed successfully."
           - test8.results[1].command == "show version"
           - test8.results[1].msg == "The command executed successfully."
+
+
+    - name: TEST 9 - Multi-command text output 
+      juniper.device.command:
+        commands:
+          - "show system uptime"
+          - "show version"
+        formats:
+          - "text"
+          - "text"
+      register: test9
+
+    - name: Check TEST 9 - Ensure output for both commands exists
+      ansible.builtin.assert:
+        that:
+          - test9.results[0].stdout is defined
+          - test9.results[1].stdout is defined
+
+    - name: Ensure output directory exists
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/out"
+        state: directory
+        mode: '0755'
+      delegate_to: localhost
+      run_once: true
+
+    - name: TEST 10 - Save text output of commands to dest_dir
+      juniper.device.command:
+        commands:
+          - "show version"
+          - "show interfaces terse"
+        format: text
+        dest_dir: "{{ playbook_dir }}/out"
+      register: test12
+
+    - name: Check TEST 10 - Command execution status
+      ansible.builtin.assert:
+        that:
+          - test12.results[0].msg == "The command executed successfully."
+          - test12.results[1].msg == "The command executed successfully."
+
+
+
+        

@@ -41,3 +41,5 @@
       ansible.builtin.assert:
         that:
           - test3.msg == "Successfully retrieved 1 items from EthPortTable."
+
+    

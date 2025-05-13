@@ -4,7 +4,7 @@
   gather_facts: false
 
   tasks:
-    - name: Enable an SRX cluster
+    - name: TEST 1 - Enable an SRX cluster
       juniper.device.srx_cluster:
         enable: true
         cluster_id: 4
@@ -12,7 +12,7 @@
       register: test1
       tags: [test1]
 
-    - name: Print the response.
+    - name: Print TEST 1 response
       ansible.builtin.debug:
         var: test1
 
@@ -33,13 +33,13 @@
         port: 830
         timeout: 5
 
-    - name: Disable an SRX cluster
+    - name: TEST 2 - Disable an SRX cluster
       juniper.device.srx_cluster:
         enable: false
       register: test2
       tags: [test2]
 
-    - name: Print the response.
+    - name: Print TEST 2 response
       ansible.builtin.debug:
         var: test2
 
@@ -48,3 +48,46 @@
         that:
           - test2.failed == false
       tags: [test2]
+
+    - name: TEST 3 - Enable cluster without node_id (Should fail)
+      juniper.device.srx_cluster:
+        enable: true
+        cluster_id: 4
+      register: test3
+      ignore_errors: true
+      tags: [test3]
+
+    - name: Check TEST 3
+      ansible.builtin.assert:
+        that:
+          - test3.failed
+      tags: [test3]
+
+    - name: TEST 4 - Enable cluster without cluster_id (Should fail)
+      juniper.device.srx_cluster:
+        enable: true
+        node_id: 0
+      register: test4
+      ignore_errors: true
+      tags: [test4]
+
+    - name: Check TEST 4
+      ansible.builtin.assert:
+        that:
+          - test4.failed
+      tags: [test4]
+
+    - name: TEST 6 - Enable cluster in check mode (dry run)
+      juniper.device.srx_cluster:
+        enable: true
+        cluster_id: 4
+        node_id: 0
+      register: test6
+      check_mode: yes
+      tags: [test6]
+
+    - name: Check TEST 6
+      ansible.builtin.assert:
+        that:
+          - test6.changed in [true, false]
+      tags: [test6]

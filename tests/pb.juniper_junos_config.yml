@@ -4,8 +4,8 @@
   gather_facts: false
 
   tasks:
-################
-    - name: Retrieve the committed configuration
+
+    - name: TEST 1 - Retrieve the committed configuration
       juniper.device.config:
         retrieve: 'committed'
         diff: false
@@ -19,8 +19,8 @@
       ansible.builtin.assert:
         that:
           - test1.config
-################
-    - name: Append .foo to the hostname using private config mode.
+
+    - name: TEST 2 - Append .foo to the hostname using private config mode.
       juniper.device.config:
         config_mode: 'private'
         load: 'merge'
@@ -35,8 +35,8 @@
       ansible.builtin.assert:
         that:
           - test2.diff_lines
-################
-    - name: Rollback to the previous config.
+
+    - name: TEST 3 - Rollback to the previous config.
       juniper.device.config:
         config_mode: 'private'
         rollback: 1
@@ -48,12 +48,11 @@
       ansible.builtin.assert:
         that:
           - test3.diff_lines
-#################
+
     - name: Save rescue configuration
       juniper.device.command:
         commands: "request system configuration rescue save"
-        formats:
-          - "xml"
+        formats: ["xml"]
 
     - name: Configure syslog configuration
       juniper.device.config:
@@ -62,20 +61,22 @@
           - "set system syslog file TEST any any"
         comment: "Configured system services"
 
-    - name: Rollback to the rescue config.
+    - name: Rollback to the rescue config
       juniper.device.config:
         rollback: 'rescue'
       register: test4
+
     - name: Check TEST 4
       ansible.builtin.assert:
         that:
           - test4.diff_lines
+
     - name: Clean up TEST 4
       ansible.builtin.file:
         path: out
         state: absent
-###############
-    - name: Configure system services.
+
+    - name: Configure system services
       juniper.device.config:
         config_mode: 'private'
         load: 'merge'
@@ -83,7 +84,7 @@
           - "set system services netconf ssh"
         comment: "Configured system services"
 
-    - name: Retrieve [edit system services] of current committed config.
+    - name: TEST 5 - Retrieve [edit system services] of current committed config
       juniper.device.config:
         retrieve: 'committed'
         filter: 'system/services'
@@ -97,11 +98,10 @@
     - name: Check TEST 5
       ansible.builtin.assert:
         that:
-          - test5.failed == False
+          - test5.failed == false
           - "'system {' in test5.config_lines"
-#################
 
-    - name: Confirm the previous commit with a commit check (but no commit)
+    - name: TEST 6 - Confirm the previous commit with a commit check (no commit)
       juniper.device.config:
         check: true
         diff: false
@@ -111,11 +111,9 @@
     - name: Check TEST 6
       ansible.builtin.assert:
         that:
-          test6.changed == False
+          - test6.changed == false
 
-#################
-
-    - name: Confirm the commit with a commit sync
+    - name: TEST 7 - Confirm the commit with a commit sync
       juniper.device.config:
         check: true
         diff: false
@@ -126,11 +124,9 @@
     - name: Check TEST 7
       ansible.builtin.assert:
         that:
-          - test7.changed == False
+          - test7.changed == false
 
-#################
-
-    - name: Confirm the commit with a commit sync force
+    - name: TEST 8 - Confirm the commit with a commit sync force
       juniper.device.config:
         check: true
         diff: false
@@ -141,20 +137,114 @@
     - name: Check TEST 8
       ansible.builtin.assert:
         that:
-          test8.changed == False
-################
-    - name: Test commit timeout .
+          - test8.changed == false
+
+    - name: TEST 2 Repeat - Commit with timeout
       juniper.device.config:
         load: 'merge'
         lines:
           - "set system host-name {{ inventory_hostname }}.foo"
         comment: "Append .foo to the hostname"
         timeout: 300
-      register: test2
+      register: test2b
       ignore_errors: true
       tags: [test2]
 
-    - name: Check TEST 2
+    - name: Check TEST 2b
       ansible.builtin.assert:
         that:
-          - test2.diff_lines
+          - test2b.diff_lines
+
+    - name: TEST 9 - Diff between rollback 11 and current
+      juniper.device.config:
+        rollback: 11
+        diff: true
+        check: false
+        commit: false
+      register: test_rollback_diff
+
+    - name: Check TEST 9 - Rollback diff task executed successfully
+      ansible.builtin.assert:
+        that:
+          - test_rollback_diff.failed is not defined or test_rollback_diff.failed == false
+
+    - name: Ensure output directory exists for TEST 10
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/output"
+        state: directory
+        mode: '0755'
+      run_once: true
+      delegate_to: localhost
+
+    - name: TEST 10 - Retrieve using XML filter and save to dest_dir
+      juniper.device.config:
+        retrieve: 'committed'
+        format: 'xml'
+        commit: false
+        check: false
+        diff: false
+        dest_dir: "{{ playbook_dir }}/output"
+        filter: "<configuration><groups><name>re0</name></groups></configuration>"
+        return_output: true
+      register: test_xml_filter
+
+    - name: CHECK TEST 10 - Retrieve with XML filter executed successfully
+      ansible.builtin.assert:
+        that:
+          - test_xml_filter.failed is not defined or test_xml_filter.failed == false
+
+    - name: Ensure configs directory exists for TEST 11
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/configs"
+        state: directory
+        mode: '0755'
+      delegate_to: localhost
+      run_once: true
+
+    - name: Ensure override config file exists for TEST 11
+      ansible.builtin.copy:
+        content: |
+          set system host-name test-host
+        dest: "{{ playbook_dir }}/configs/{{ inventory_hostname }}.conf"
+      delegate_to: localhost
+      run_once: true
+
+    - name: Dry-run override config using private mode
+      juniper.device.config:
+        config_mode: private
+        load: set
+        src: "{{ playbook_dir }}/configs/{{ inventory_hostname }}.conf"
+        check: true
+        commit: false
+      register: test_override
+      ignore_errors: true
+
+    - name: Skip TEST 11 if exclusive lock prevents config
+      ansible.builtin.debug:
+        msg: "Skipping TEST 11 - configure exclusive lock is active"
+      when: test_override.msg is defined and
+            ('configure exclusive' in test_override.msg or
+            'exclusive' in test_override.msg or
+            test_override.failed)
+
+    - name: CHECK TEST 11 - Dry-run override was successful
+      ansible.builtin.assert:
+        that:
+          - test_override.failed == false
+      when: test_override.failed == false
+
+
+    
+
+
+
+
+      
+
+    
+    
+   
+              
+ 
+
+

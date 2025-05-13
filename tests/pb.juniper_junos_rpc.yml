@@ -4,7 +4,7 @@
   gather_facts: false
 
   tasks:
-#################
+################
     - name: "Execute single RPC get-software-information without any kwargs"
       juniper.device.rpc:
         rpcs:
@@ -274,3 +274,129 @@
         that:
           - test1.msg == "The RPC executed successfully."
       tags: [test13]
+
+   #################
+
+    - name: TEST 14 - RPC with ignore_warning
+      juniper.device.rpc:
+        rpcs:
+          - get-software-information
+        ignore_warning: true
+      register: test14
+      tags: [test14]
+
+    - name: Check TEST 14
+      ansible.builtin.assert:
+        that:
+          - test14.msg == "The RPC executed successfully."
+      tags: [test14]
+
+    #################
+    
+    - name: Ensure logdir exists
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/rpc_logs"
+        state: directory
+        mode: "0755"
+      delegate_to: localhost
+      run_once: true
+      tags: [test15]
+
+    - name: TEST 15 - RPC with logdir
+      juniper.device.rpc:
+        rpcs:
+          - get-software-information
+        logdir: "{{ playbook_dir }}/rpc_logs"
+      register: test15
+      tags: [test15]
+
+    - name: Check TEST 15 log file
+      ansible.builtin.stat:
+        path: "{{ playbook_dir }}/rpc_logs/{{ inventory_hostname }}.log"
+      register: stat_result_log15
+      delegate_to: localhost
+
+    - name: Clean up logdir
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/rpc_logs"
+        state: absent
+      delegate_to: localhost
+      run_once: true
+      tags: [test15]
+
+    #################
+
+    - name: Ensure output directory exists for TEST 16
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/rpc_output"
+        state: directory
+        mode: '0755'
+      delegate_to: localhost
+      run_once: true
+      tags: [test16]
+
+    - name: TEST 16 - RPC with return_output false and dest_dir
+      juniper.device.rpc:
+        rpcs:
+          - get-software-information
+        return_output: false
+        dest_dir: "{{ playbook_dir }}/rpc_output"
+      register: test16
+      tags: [test16]
+
+    - name: Assert TEST 16 has no output returned
+      ansible.builtin.assert:
+        that:
+          - test16.stdout is not defined
+      tags: [test16]
+
+    - name: Clean up TEST 16 output dir
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/rpc_output"
+        state: absent
+      delegate_to: localhost
+      run_once: true
+      tags: [test16]
+    
+    #################
+
+    - name: TEST 17 - RPC with attrs (attribute applied without kwargs)
+      juniper.device.rpc:
+        rpcs:
+          - get-config
+        attrs:
+          format: text
+        filter: "<configuration><interfaces/></configuration>"
+      register: test17
+      tags: [test17]
+
+    - name: Check TEST 17
+      ansible.builtin.assert:
+        that:
+          - test17.stdout is defined
+          - "'<configuration' in test17.stdout"
+      tags: [test17]
+
+    #################
+
+    - name: TEST 18 - RPCs with different formats
+      juniper.device.rpc:
+        rpcs:
+          - get-software-information
+          - get-interface-information
+        kwargs:
+          - {}
+          - interface_name: lo0.0
+        formats:
+          - xml
+          - text
+      register: test18
+      tags: [test18]
+
+    - name: Check TEST 18
+      ansible.builtin.assert:
+        that:
+          - test18.results[0].msg == "The RPC executed successfully."
+          - test18.results[1].msg == "The RPC executed successfully."
+      tags: [test18]
+   

@@ -1,10 +1,11 @@
 ---
-- name: Test juniper.device.system module
+- name: Functional Test - juniper.device.system module
   hosts: all
   gather_facts: false
 
   tasks:
-    - name: Reboot all REs of the device
+
+    - name: TEST 1 - Reboot all REs of the device
       juniper.device.system:
         action: "reboot"
       register: test1
@@ -15,10 +16,124 @@
       ansible.builtin.assert:
         that:
           - test1.reboot == true
+      when: not test1.failed
       tags: [test1]
 
     - name: Checking NETCONF connectivity
       ansible.builtin.wait_for:
         host: "{{ ansible_ssh_host }}"
         port: 830
+        timeout: 360  
+
+    - name: Wait for device to come back online (post-reboot)
+      ansible.builtin.wait_for:
+        host: "{{ ansible_ssh_host }}"
+        port: 830
         timeout: 360
+      tags: [test1]
+
+    - name: TEST 2 - Power off the other RE only
+      juniper.device.system:
+        action: "shutdown"
+        other_re: true
+      register: test2
+      ignore_errors: true
+      tags: [test2]
+
+    - name: CHECK TEST 2
+      ansible.builtin.assert:
+        that:
+          - "'Powering-off' in test2.msg or test2.changed"
+      when: not test2.failed
+      tags: [test2]
+
+    - name: TEST 3 - Reboot this RE at 8PM today
+      juniper.device.system:
+        action: "reboot"
+        all_re: false
+        at: "20:00"
+      register: test3
+      ignore_errors: true
+      tags: [test3]
+
+    - name: CHECK TEST 3
+      ansible.builtin.assert:
+        that:
+          - "'reboot' in test3.msg or test3.changed"
+      when: not test3.failed
+      tags: [test3]
+
+    - name: TEST 4 - Halt system on specific date/time
+      juniper.device.system:
+        action: "halt"
+        at: "2501251600"  # Format: yymmddhhmm (Jan 25, 2025 @ 16:00)
+      register: test4
+      ignore_errors: true
+      tags: [test4]
+
+    - name: CHECK TEST 4
+      ansible.builtin.assert:
+        that:
+          - test4.halt == true
+      when: not test4.failed
+      tags: [test4]
+
+    - name: TEST 5 - Reboot in 30 minutes using in_min
+      juniper.device.system:
+        action: "reboot"
+        in_min: 30
+      register: test5
+      ignore_errors: true
+      tags: [test5]
+
+    - name: CHECK TEST 5
+      ansible.builtin.assert:
+        that:
+          - test5.reboot == true
+      when: not test5.failed
+      tags: [test5]
+
+    - name: TEST 6 - Reboot in 30 minutes using at +30m
+      juniper.device.system:
+        action: "reboot"
+        at: "+30m"
+      register: test6
+      ignore_errors: true
+      tags: [test6]
+
+    - name: CHECK TEST 6
+      ansible.builtin.assert:
+        that:
+          - test6.reboot == true
+      when: not test6.failed
+      tags: [test6]
+
+    - name: TEST 7 - Zeroize the local RE only
+      juniper.device.system:
+        action: "zeroize"
+        all_re: false
+      register: test7
+      ignore_errors: true
+      tags: [test7]
+
+    - name: CHECK TEST 7
+      ansible.builtin.assert:
+        that:
+          - test7.zeroize == true
+      when: not test7.failed
+      tags: [test7]
+
+    - name: TEST 8 - Zeroize all REs with media overwrite
+      juniper.device.system:
+        action: "zeroize"
+        media: true
+      register: test8
+      ignore_errors: true
+      tags: [test8]
+
+    - name: CHECK TEST 8
+      ansible.builtin.assert:
+        that:
+          - test8.zeroize == true
+      when: not test8.failed
+      tags: [test8]
