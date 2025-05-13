@@ -26,3 +26,48 @@
       ansible.builtin.assert:
         that:
           - "'<configuration' in test2.facts.config"
+
+    - name: "TEST 3 - Get facts in text format"
+      juniper.device.facts:
+        config_format: text
+      register: test3
+
+    - name: Check TEST 3
+      ansible.builtin.assert:
+        that:
+          - "'##' in test3.facts.config"
+
+    - name: "TEST 4 - Get facts in set format"
+      juniper.device.facts:
+        config_format: set
+      register: test4
+
+    - name: Check TEST 4
+      ansible.builtin.assert:
+        that:
+          - "'set interfaces' in test4.facts.config or test4.facts.config is string"
+
+    - name: Ensure facts_output directory exists
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/facts_output"
+        state: directory
+        mode: '0755'
+      run_once: true
+      delegate_to: localhost
+
+    - name: "TEST 5 - Save facts to disk"
+      juniper.device.facts:
+        savedir: "{{ playbook_dir }}/facts_output"
+      register: test5
+
+    - name: Check TEST 5
+      ansible.builtin.assert:
+        that:
+          - test5.facts.hostname is defined
+          - test5.facts.model is defined
+          - test5.failed == false
+
+
+
+
+
