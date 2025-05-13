@@ -16,7 +16,7 @@ on:  # yamllint disable-line rule:truthy
 
 jobs:
   ansible-lint:
-    uses: ./.github/workflows/ansible_lint.yaml
+    uses: ./.github/workflows/ansible_lint.yml
   all_green:
     if: ${{ always() && (github.event_name != 'schedule') }}
     needs:
