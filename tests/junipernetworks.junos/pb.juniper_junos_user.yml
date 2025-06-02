@@ -1,3 +1,5 @@
+# Please ensure the 'passlib' library is installed before running this test (pip install passlib).
+
 ---
 - name: Functional Test - junos_user module
   hosts: netconf_connection_testcases

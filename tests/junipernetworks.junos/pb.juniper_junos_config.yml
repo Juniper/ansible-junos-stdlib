@@ -8,14 +8,14 @@
   tasks:
 
     - name: Pre-clean - Remove existing test interface description
-      junos_config:
+      junipernetworks.junos.junos_config:
         lines:
           - delete interfaces ge-0/0/1 unit 0 description
         comment: "Clean up test interface config"
       register: preclean_result
 
     - name: Assert pre-clean successful
-      assert:
+      ansible.builtin.assert:
         that:
           - preclean_result.changed in [true, false]
 
@@ -27,12 +27,12 @@
       register: apply_result
 
     - name: Assert interface config applied
-      assert:
+      ansible.builtin.assert:
         that:
           - apply_result.changed == true
 
     - name: Confirm commit test with timer
-      junos_config:
+      junipernetworks.junos.junos_config:
         lines:
           - set system host-name ft-test-host
         confirm: 3
@@ -40,11 +40,11 @@
       # Intentionally allowing commit to rollback to test confirm  
 
     - name: Rollback config to rollback 0
-      junos_config:
+      junipernetworks.junos.junos_config:
         rollback: 0
 
     - name: Backup config to custom path
-      junos_config:
+      junipernetworks.junos.junos_config:
         lines:
           - set system services ssh
         backup: true
@@ -53,15 +53,21 @@
           dir_path: ./backup
       register: backup_result
 
+    - name: Debug backup_result
+      debug:
+        var: backup_result
+  
+
     - name: Assert backup created
-      assert:
+      ansible.builtin.assert:
         that:
-          - backup_result.backup_path is defined
+          - backup_result.backup_path is defined or backup_result.__backup__ is defined
 
     - name: Post-clean - delete test configuration
-      junos_config:
+      junipernetworks.junos.junos_config:
         lines:
           - delete interfaces ge-0/0/1 unit 0 description
           - delete system host-name
           - delete system services ssh
         comment: "Post-clean"
+

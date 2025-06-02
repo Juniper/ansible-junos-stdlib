@@ -1,11 +1,20 @@
 - name: Functional Test - junos_snmp_server (all states)
-  hosts: netconf_connection_testcases
+  hosts: junos_device
   gather_facts: false
   connection: netconf
   collections:
     - junipernetworks.junos
 
   tasks:
+    - name: Ensure routing instances clv1 and clv2 exist
+      junipernetworks.junos.junos_routing_instances:
+        config:
+          - name: clv1
+            type: virtual-router
+          - name: clv2
+            type: virtual-router
+        state: merged
+
     - name: Render SNMP server configuration (dry-run XML)
       junipernetworks.junos.junos_snmp_server:
         config:
@@ -38,7 +47,7 @@
           - result_parsed.parsed is defined
           - result_parsed.changed == false
 
-    - name: Merge SNMP server configuration (may fail if RI clv1/clv2 don't exist)
+    - name: Merge SNMP server configuration
       junipernetworks.junos.junos_snmp_server:
         config:
           arp:
@@ -61,7 +70,11 @@
               - clv2
         state: merged
       register: result_merge
-      ignore_errors: true  # Skip if routing instances clv1/clv2 are not present
+
+    - name: Assert merged SNMP config
+      assert:
+        that:
+          - result_merge.changed is defined
 
     - name: Replace SNMP server configuration
       junipernetworks.junos.junos_snmp_server:
@@ -84,6 +97,11 @@
         state: replaced
       register: result_replaced
 
+    - name: Assert replaced SNMP config
+      assert:
+        that:
+          - result_replaced.changed is defined
+
     - name: Override SNMP server configuration
       junipernetworks.junos.junos_snmp_server:
         config:
@@ -105,6 +123,11 @@
         state: overridden
       register: result_overridden
 
+    - name: Assert overridden SNMP config
+      assert:
+        that:
+          - result_overridden.changed is defined
+
     - name: Gather SNMP server configuration from device
       junipernetworks.junos.junos_snmp_server:
         state: gathered
@@ -122,9 +145,8 @@
         state: deleted
       register: result_deleted
 
-    - name: Assert config states
+    - name: Assert deleted SNMP config
       assert:
         that:
-          - result_replaced.changed is defined
-          - result_overridden.changed is defined
           - result_deleted.changed is defined
+
