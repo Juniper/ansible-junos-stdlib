@@ -225,3 +225,95 @@
           - test8.total_passed == 0
           - test8.total_tests == 1
       tags: [test8]
+
+################################################################
+## TEST 9 
+#################################################################
+
+    - name: Ensure logs directory exists for TEST 9
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/logs"
+        state: directory
+        mode: '0755'
+      delegate_to: localhost
+      run_once: true
+      tags: [test9]
+
+    - name: TEST 9 - Use test_files and logfile only
+      juniper.device.jsnapy:
+        action: snapcheck
+        dir: "{{ playbook_dir }}/config"
+        test_files:
+          - junos_jsnapy/test_loopback.yml
+        logfile: "{{ playbook_dir }}/logs/jsnapy_loopback_{{ inventory_hostname }}.log"
+      register: test9
+      ignore_errors: true
+      tags: [test9]
+
+    - name: Check TEST 9
+      ansible.builtin.assert:
+        that:
+          - test9 is defined
+          - test9.failed is not defined or not test9.failed
+          - test9.total_tests >= 0
+      tags: [test9]
+
+###########################################################################
+## TEST 10
+###########################################################################
+    - name: Ensure logs directory exists for TEST 10
+      ansible.builtin.file:
+        path: "{{ playbook_dir }}/logs"
+        state: directory
+        mode: '0755'
+      delegate_to: localhost
+      run_once: true
+      tags: [test10]
+
+    - name: TEST 10 - Use test_files with logdir and level
+      juniper.device.jsnapy:
+        action: snapcheck
+        dir: "{{ playbook_dir }}/config"
+        test_files:
+          - junos_jsnapy/test_loopback.yml
+        logdir: "{{ playbook_dir }}/logs"
+        level: INFO
+      register: test10
+      ignore_errors: true
+      tags: [test10]
+
+    - name: Check TEST 10
+      ansible.builtin.assert:
+        that:
+          - test10.passPercentage is defined
+          - test10.total_failed == 0
+      tags: [test10]
+
+##############################################################
+## TEST 11 
+##############################################################
+    - name: TEST 11 - Use logdir for check action
+      juniper.device.jsnapy:
+        action: check
+        dir: junos_jsnapy
+        test_files: "test_loopback.yml"
+        logdir: "{{ playbook_dir }}/logs"
+      register: test11
+      ignore_errors: true
+      tags: [test11]
+
+    - name: Check TEST 11
+      ansible.builtin.assert:
+        that:
+          - test11.passPercentage is defined
+          - test11.passPercentage >= 0
+          - test11.final_result is defined
+      tags: [test11]
+
+
+    
+
+
+
+
+

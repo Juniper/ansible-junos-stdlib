@@ -1,0 +1,71 @@
+---
+- name: Functional Test - junos_lacp_interfaces module
+  hosts: netconf_connection_testcases
+  gather_facts: false
+  connection: netconf
+
+  tasks:
+
+    - name: Pre-clean - Delete LACP attributes on ae0
+      junipernetworks.junos.junos_lacp_interfaces:
+        config:
+          - name: ae0
+        state: deleted
+      ignore_errors: true
+
+    - name: Merge LACP configuration onto ae0
+      junipernetworks.junos.junos_lacp_interfaces:
+        config:
+          - name: ae0
+            period: fast
+            sync_reset: enable
+            system:
+              priority: 100
+              mac:
+                address: 00:00:00:00:00:02
+        state: merged
+
+    - name: Replace LACP configuration on ae0
+      junipernetworks.junos.junos_lacp_interfaces:
+        config:
+          - name: ae0
+            period: slow
+        state: replaced
+
+    - name: Override all LACP configuration on ae0
+      junipernetworks.junos.junos_lacp_interfaces:
+        config:
+          - name: ae0
+            system:
+              priority: 300
+              mac:
+                address: 00:00:00:00:00:03
+        state: overridden
+
+    - name: Gather LACP interfaces
+      junipernetworks.junos.junos_lacp_interfaces:
+        state: gathered
+      register: gather_result
+
+    - name: Extract gathered interface names
+      set_fact:
+        gathered_names: "{{ gather_result.gathered | map(attribute='name') | list }}"
+
+    - name: Assert ae0 is present in gathered result
+      ansible.builtin.assert:
+        that:
+          - "'ae0' in gathered_names"
+        fail_msg: "Expected interface ae0 not found in gathered result"
+        success_msg: "Successfully found ae0 in gathered result"
+
+    - name: Render platform-specific XML from input config
+      junipernetworks.junos.junos_lacp_interfaces:
+        config:
+          - name: ae0
+            period: fast
+            sync_reset: enable
+            system:
+              priority: 100
+              mac:
+                address: 00:00:00:00:00:02
+        state: rendered

@@ -1,0 +1,48 @@
+# Please ensure the 'passlib' library is installed before running this test (pip install passlib).
+
+---
+- name: Functional Test - junos_user module
+  hosts: netconf_connection_testcases
+  gather_facts: false
+  connection: ansible.netcommon.netconf
+
+  tasks:
+    - name: Ensure test user is absent before test
+      junipernetworks.junos.junos_user:
+        name: ansible_test_user
+        state: absent
+      ignore_errors: true
+
+    - name: Create a new user account with optional SSH key
+      junipernetworks.junos.junos_user:
+        name: ansible_test_user
+        role: super-user
+        sshkey: "{{ user_ssh_key | default(omit) }}"
+        full_name: "Ansible Test User"
+        state: present
+      # Note: Provide SSH key using:
+      # ansible-playbook pb.juniper_junos_user.yml -e "user_ssh_key={{ lookup('file', '~/.ssh/id_rsa.pub') }}"
+
+    - name: Set user password (SHA-512 hashed)
+      junipernetworks.junos.junos_user:
+        name: ansible_test_user
+        role: super-user
+        encrypted_password: "{{ 'testpass123' | password_hash('sha512') }}"
+        state: present
+
+    - name: Create a list of additional users
+      junipernetworks.junos.junos_user:
+        aggregate:
+          - { name: test_user1, full_name: "Operator User", role: operator, state: present }
+          - { name: test_user2, full_name: "ReadOnly User", role: read-only, state: present }
+
+    - name: Delete additional users
+      junipernetworks.junos.junos_user:
+        aggregate:
+          - { name: test_user1, full_name: "Operator User", role: operator, state: absent }
+          - { name: test_user2, full_name: "ReadOnly User", role: read-only, state: absent }
+
+    - name: Remove the test user account
+      junipernetworks.junos.junos_user:
+        name: ansible_test_user
+        state: absent
