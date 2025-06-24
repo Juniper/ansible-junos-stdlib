@@ -2,24 +2,14 @@
 requires_ansible: ">=2.15.0"
 plugin_routing:
   action:
-    # junos_facts:
-    #   redirect: juniper.device.junos_facts
-    # junos_hostname:
-    #   redirect: juniper.device.hostname
-    # junos_acls:
-    #   redirect: juniper.device.acls
-    # junos_interfaces:
-    #   redirect: juniper.device.interfaces
-    # netconf:
-    #   redirect: juniper.device.junos
   modules:
-    junos_acl_interfaces: #debug
+    junos_acl_interfaces:
       redirect: juniper.device.junos_acl_interfaces
-    junos_banner: #debug
+    junos_banner:
       redirect: juniper.device.junos_banner
-    junos_command: #debug
+    junos_command:
       redirect: juniper.device.junos_command
-    junos_config: #debug
+    junos_config:
       redirect: juniper.device.junos_config
     junos_facts:
       redirect: juniper.device.junos_facts
@@ -34,51 +24,51 @@ plugin_routing:
     junos_l3_interfaces:
       redirect: juniper.device.junos_l3_interfaces
     junos_lacp:
-      redirect: juniper.device.junos.junos_lacp
+      redirect: juniper.device.junos_lacp
     junos_lacp_interfaces:
       redirect: juniper.device.junos_lacp_interfaces
-    lag_interfaces:
+    junos_lag_interfaces:
       redirect: juniper.device.junos_lag_interfaces
-    lldp_global:
+    junos_lldp_global:
       redirect: juniper.device.junos_lldp_global
     junos_bgp_global:
       redirect: juniper.device.junos_bgp_global
-    junos_bgp_address_family: #debug
+    junos_bgp_address_family:
       redirect: juniper.device.junos_bgp_address_family
-    routing_instances:
+    junos_routing_instances:
       redirect: juniper.device.junos_routing_instances
-    prefix_lists:
+    junos_prefix_lists:
       redirect: juniper.device.junos_prefix_lists
-    logging_global:
+    junos_logging_global:
       redirect: juniper.device.junos_logging_global
-    ntp_global:
+    junos_ntp_global:
       redirect: juniper.device.junos_ntp_global
-    security_policies:
+    junos_security_policies:
       redirect: juniper.device.junos_security_policies
-    security_policies_global:
+    junos_security_policies_global:
       redirect: juniper.device.junos_security_policies_global
-    security_zones:
+    junos_security_zones:
       redirect: juniper.device.junos_security_zones
-    snmp_server:
+    junos_snmp_server:
       redirect: juniper.device.junos_snmp_server
-    routing_options:
+    junos_routing_options:
       redirect: juniper.device.junos_routing_options
-    lldp_interfaces:
+    junos_lldp_interfaces:
       redirect: juniper.device.junos_lldp_interfaces
-    netconf:
+    junos_netconf:
       redirect: juniper.device.junos_netconf
-    ospfv2:
+    junos_ospfv2:
       redirect: juniper.device.junos_ospfv2
-    ospfv3:
+    junos_ospfv3:
       redirect: juniper.device.junos_ospfv3
-    ospf_interfaces:
+    junos_ospf_interfaces:
       redirect: juniper.device.junos_ospf_interfaces
-    package:
+    junos_package:
       redirect: juniper.device.junos_package
-    ping:
-      redirect: juniper.device.junos_ping
-    rpc:
+    junos_rpc:
       redirect: juniper.device.junos_rpc
+    junos_ping:
+      redirect: juniper.device.junos_ping
     scp:
       redirect: juniper.device.junos_scp
       deprecation:
@@ -88,13 +78,13 @@ plugin_routing:
       deprecation:
         removal_date: "2025-01-01"
         warning_text: See the plugin documentation for more details
-    static_routes:
+    junos_static_routes:
       redirect: juniper.device.junos_static_routes
-    system:
+    junos_system:
       redirect: juniper.device.junos_system
-    user:
+    junos_user:
       redirect: juniper.device.junos_user
-    vlans:
+    junos_vlans:
       redirect: juniper.device.junos_vlans
-    vrf:
+    junos_vrf:
       redirect: juniper.device.junos_vrf
