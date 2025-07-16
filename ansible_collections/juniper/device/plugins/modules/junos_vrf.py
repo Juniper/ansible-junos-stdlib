@@ -19,7 +19,7 @@ description:
   devices.  It allows playbooks to manage individual or the entire VRF collection.
 version_added: 1.0.0
 extends_documentation_fragment:
-- junipernetworks.junos.junos
+- juniper.device.junos
 options:
   name:
     description:

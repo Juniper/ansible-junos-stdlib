@@ -44,19 +44,19 @@ CLI_SUPPORTED_MODULES = ["junos_netconf", "junos_ping", "junos_command"]
 
 class ActionModule(ActionNetworkModule):
     def run(self, tmp=None, task_vars=None):
-        
+
         del tmp  # tmp no longer has any effect
 
         module_name = self._task.action.split(".")[-1]
         self._task.collections.append("juniper.device")
-        self._config_module = True if module_name in ["junos_config", "config"] else False
+        self._config_modul = True if module_name in ["junos_config", "config"] else False
         persistent_connection = self._play_context.connection.split(".")[-1]
         warnings = []
 
         if self._play_context.connection == "local":
             provider = load_provider(junos_provider_spec, self._task.args)
             pc = copy.deepcopy(self._play_context)
-            #pc.network_os = "juniper.device.junos"
+            # pc.network_os = "juniper.device.junos"
             pc.network_os = "juniper.device.device"
             pc.remote_addr = provider["host"] or self._play_context.remote_addr
 

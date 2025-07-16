@@ -56,6 +56,6 @@ desktop.ini
 
 # VC Code
 .vscode
+ansible_collections/ansible
 ansible_collections/ansible.netcommon-8.0.1.info
 ansible_collections/ansible.utils-6.0.0.info
-ansible_collections/ansible
