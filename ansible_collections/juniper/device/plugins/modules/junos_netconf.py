@@ -22,7 +22,7 @@ description:
   in the task by default netconf will be enabled on port 830 only.
 version_added: 1.0.0
 extends_documentation_fragment:
-- junipernetworks.junos.junos
+- juniper.device.junos
 options:
   netconf_port:
     description:

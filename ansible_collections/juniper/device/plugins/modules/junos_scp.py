@@ -18,7 +18,7 @@ description:
 - This module transfers files via SCP from or to remote devices running Junos.
 version_added: 1.0.0
 extends_documentation_fragment:
-- junipernetworks.junos.junos
+- juniper.device.junos
 deprecated:
   why: Updated modules released with more functionality
   alternative: Use M(ansible.netcommon.net_get), M(ansible.netcommon.net_put) instead.

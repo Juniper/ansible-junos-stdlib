@@ -41,8 +41,7 @@ options:
 
 import json
 import re
-
-from ansible.errors import AnsibleConnectionFailure
+from .exceptions import AnsibleConnectionFailure
 from ansible.module_utils._text import to_native, to_text
 from ansible.module_utils.six import string_types
 from ansible_collections.ansible.netcommon.plugins.plugin_utils.netconf_base import (

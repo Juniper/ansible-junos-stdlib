@@ -20,7 +20,7 @@ description:
   performing rollback operations and zeroing the active configuration on the device.
 version_added: 1.0.0
 extends_documentation_fragment:
-- junipernetworks.junos.junos
+- juniper.device.junos
 options:
   lines:
     description:

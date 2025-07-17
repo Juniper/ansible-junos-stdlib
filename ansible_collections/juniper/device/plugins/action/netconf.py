@@ -44,7 +44,7 @@ CLI_SUPPORTED_MODULES = ["junos_netconf", "junos_ping", "junos_command"]
 
 class ActionModule(ActionNetworkModule):
     def run(self, tmp=None, task_vars=None):
-        
+
         del tmp  # tmp no longer has any effect
 
         module_name = self._task.action.split(".")[-1]
