@@ -21,7 +21,7 @@ description:
   not met.
 version_added: 1.0.0
 extends_documentation_fragment:
-- junipernetworks.junos.junos
+- juniper.device.junos
 options:
   commands:
     description:
