@@ -21,30 +21,6 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-DOCUMENTATION = r"""
----
-module: junos
-short_description: Action plugin for Junos operations on Juniper devices
-description:
-  - This action plugin handles Junos operations for Juniper devices.
-  - It provides the necessary connection setup and module routing.
-version_added: "1.0.0"
-author:
-  - Juniper Networks
-notes:
-  - This is an action plugin that handles Junos operations.
-"""
-
-EXAMPLES = r"""
-# This action plugin is used internally by Junos modules
-# No direct usage examples as this is an action plugin
-"""
-
-RETURN = r"""
-# This action plugin handles Junos operations
-# Return values are handled by the calling module
-"""
-
 import copy
 import sys
 

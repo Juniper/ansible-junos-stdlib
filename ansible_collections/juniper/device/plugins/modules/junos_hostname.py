@@ -38,7 +38,6 @@ ANSIBLE_METADATA = {
 }
 
 DOCUMENTATION = """
----
 module: junos_hostname
 version_added: 2.9.0
 short_description: Manage Hostname server configuration on Junos devices.
