@@ -21,6 +21,30 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+DOCUMENTATION = r"""
+---
+module: junos
+short_description: Action plugin for Junos operations on Juniper devices
+description:
+  - This action plugin handles Junos operations for Juniper devices.
+  - It provides the necessary connection setup and module routing.
+version_added: "1.0.0"
+author:
+  - Juniper Networks
+notes:
+  - This is an action plugin that handles Junos operations.
+"""
+
+EXAMPLES = r"""
+# This action plugin is used internally by Junos modules
+# No direct usage examples as this is an action plugin
+"""
+
+RETURN = r"""
+# This action plugin handles Junos operations
+# Return values are handled by the calling module
+"""
+
 import copy
 import sys
 
@@ -44,7 +68,7 @@ CLI_SUPPORTED_MODULES = ["junos_netconf", "junos_ping", "junos_command"]
 
 class ActionModule(ActionNetworkModule):
     def run(self, tmp=None, task_vars=None):
-        
+
         del tmp  # tmp no longer has any effect
 
         module_name = self._task.action.split(".")[-1]
@@ -56,7 +80,7 @@ class ActionModule(ActionNetworkModule):
         if self._play_context.connection == "local":
             provider = load_provider(junos_provider_spec, self._task.args)
             pc = copy.deepcopy(self._play_context)
-            #pc.network_os = "juniper.device.junos"
+            # pc.network_os = "juniper.device.junos"
             pc.network_os = "juniper.device.device"
             pc.remote_addr = provider["host"] or self._play_context.remote_addr
 

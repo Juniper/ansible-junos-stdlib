@@ -11,7 +11,7 @@ __metaclass__ = type
 
 
 DOCUMENTATION = """
-module: junos_facts
+module: tbrdevice_facts
 author: Nathaniel Case (@Qalthos)
 short_description: Collect facts from remote devices running Juniper Junos
 description:

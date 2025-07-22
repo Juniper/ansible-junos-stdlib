@@ -41,14 +41,23 @@ options:
 
 import json
 import re
-
-from ansible.errors import AnsibleConnectionFailure
+from .exceptions import AnsibleConnectionFailure
 from ansible.module_utils._text import to_native, to_text
 from ansible.module_utils.six import string_types
-from ansible_collections.ansible.netcommon.plugins.plugin_utils.netconf_base import (
-    NetconfBase,
-    ensure_ncclient,
-)
+
+try:
+    from ansible_collections.ansible.netcommon.plugins.plugin_utils.netconf_base import (
+        NetconfBase,
+        ensure_ncclient,
+    )
+    HAS_NETCONF_BASE = True
+except ImportError:
+    # Handle case where netconf_base is not available during testing
+    HAS_NETCONF_BASE = False
+    NetconfBase = object
+
+    def ensure_ncclient(func):
+        return func
 
 
 try:

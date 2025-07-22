@@ -17,7 +17,7 @@
     file: "routes.yml"
     table: "RouteTable"
     kwargs:
-      destination: "192.68.1.0/8"
+      destination: "192.0.2.2/32"
     response_type: "juniper_items"
   register: test2
   ignore_errors: true

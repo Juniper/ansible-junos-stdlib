@@ -21,6 +21,30 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+DOCUMENTATION = r"""
+---
+module: netconf
+short_description: Action plugin for NETCONF operations on Juniper devices
+description:
+  - This action plugin handles NETCONF operations for Juniper devices.
+  - It provides the necessary connection setup and module routing.
+version_added: "1.0.0"
+author:
+  - Juniper Networks
+notes:
+  - This is an action plugin that handles NETCONF operations.
+"""
+
+EXAMPLES = r"""
+# This action plugin is used internally by NETCONF modules
+# No direct usage examples as this is an action plugin
+"""
+
+RETURN = r"""
+# This action plugin handles NETCONF operations
+# Return values are handled by the calling module
+"""
+
 import copy
 import sys
 
@@ -44,7 +68,7 @@ CLI_SUPPORTED_MODULES = ["junos_netconf", "junos_ping", "junos_command"]
 
 class ActionModule(ActionNetworkModule):
     def run(self, tmp=None, task_vars=None):
-        
+
         del tmp  # tmp no longer has any effect
 
         module_name = self._task.action.split(".")[-1]

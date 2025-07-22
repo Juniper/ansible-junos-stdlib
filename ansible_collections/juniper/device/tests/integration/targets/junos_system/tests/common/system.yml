@@ -1,4 +1,13 @@
 ---
+
+- name: Checking NETCONF connectivity
+  ansible.builtin.wait_for:
+    host: "{{ ansible_ssh_host }}"
+    port: 830
+    timeout: 360
+    delay: 60
+  tags: [test3]
+
 - name: Reboot all REs of the device
   juniper.device.system:
     action: "reboot"
@@ -17,5 +26,5 @@
     host: "{{ ansible_ssh_host }}"
     port: 830
     timeout: 360
-    state: started  # Ensures the state is 'started', meaning the service is running.
+    delay: 60
   tags: [test2]

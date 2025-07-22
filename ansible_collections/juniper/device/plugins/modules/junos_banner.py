@@ -19,7 +19,7 @@ description:
   to add or remote banner text from the active running configuration.
 version_added: 1.0.0
 extends_documentation_fragment:
-- junipernetworks.junos.junos
+- juniper.device.junos
 options:
   banner:
     description:

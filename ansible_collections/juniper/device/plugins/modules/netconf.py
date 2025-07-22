@@ -31,7 +31,8 @@ __metaclass__ = type
 
 
 DOCUMENTATION = """
-module: junos_netconf
+---
+module: netconf
 author: Peter Sprygada (@privateip)
 short_description: Configures the Junos Netconf system service
 description:

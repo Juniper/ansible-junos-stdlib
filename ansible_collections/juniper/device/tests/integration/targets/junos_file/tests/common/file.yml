@@ -54,6 +54,16 @@
     path: /tmp/checksum_log.txt
     state: absent
 
+- name: "Remove /var/log/*log* files"
+  juniper.device.command:
+    commands: "file delete /var/log/*log*"
+  register: test1
+
+- name: "Remove /var/log/*log* files"
+  ansible.builtin.assert:
+    that:
+      test1.msg == "The command executed successfully."
+
 - name: "File copy ftp put"
   juniper.device.file_copy:
     protocol: ftp

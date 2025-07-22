@@ -11,7 +11,7 @@ __metaclass__ = type
 
 
 DOCUMENTATION = """
-module: junos_command
+module: junos
 author: Peter Sprygada (@privateip)
 short_description: Run arbitrary commands on an Juniper JUNOS device
 description:
