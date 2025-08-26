@@ -11,16 +11,9 @@ This collection is hosted on the Ansible Galaxy website under the collection
 The `juniper.device` collection includes a set of Ansible modules that perform specific operational and configuration tasks on devices running Junos OS.
 These tasks include: installing and upgrading Junos OS, provisioning new Junos devices in the network, loading configuration changes,
 retrieving information, and resetting, rebooting, or shutting down managed devices.  Please refer to the
-[INSTALLATION](#installation) section for instructions on installing this collection.
+[INSTALLATION](https://github.com/Juniper/ansible-junos-stdlib/blob/master/README.md#installation) section for instructions on installing this collection.
 
-## Two Sets of Ansible Modules for Junos devices
-
-Since Ansible version >= 2.1, Ansible also natively includes
-[core modules for Junos](https://docs.ansible.com/ansible/latest/collections/junipernetworks/junos/index.html#plugins-in-junipernetworks-junos). The Junos modules included
-in Ansible core have names which begin with the prefix `junos_`. The Junos modules included in this `Juniper.device`
-collection have names starting with module types. These two sets of Junos modules can coexist on the same
-Ansible control machine, and an Ansible playbook may invoke a module from either (or both) sets. Juniper Networks recommends
-using the modules in `juniper.device` collection when writing new playbooks that manage Junos devices.
+This collection is compatible with [junipernetworks.junos](https://github.com/ansible-collections/junipernetworks.junos) certified collection.
 
 ## Overview of Modules
 
@@ -78,7 +71,7 @@ should be added to the Ansible configuration file in order to allow the jsnapy c
 
 ## INSTALLATION
 
-You must have the [DEPENDENCIES](#dependencies) installed on your system.
+You must have the [DEPENDENCIES](https://github.com/Juniper/ansible-junos-stdlib/blob/master/README.md#dependencies) installed on your system.
 Check requirements.txt for the dependencies.
 
 ### NOTICES
@@ -111,7 +104,7 @@ For more information visit - https://docs.ansible.com/ansible/latest/user_guide/
 
 ### Git clone
 
-For testing you can `git clone` this repo and run the `env-setup` script in the repo directory:
+For testing you can `git clone` [this repo](https://github.com/Juniper/ansible-junos-stdlib.git) and run the `env-setup` script in the repo directory:
 
   user@ansible-junos-stdlib> source env-setup
 
@@ -167,7 +160,7 @@ This example outlines how to use Ansible to install or upgrade the software imag
 This modules requires the following to be installed on the Ansible control machine:
 
 - Python >= 3.8
-- [Ansible](http://www.ansible.com) 2.9 or later
+- [Ansible](https://pypi.org/project/ansible/) 2.9 or later
 - Junos [py-junos-eznc](https://github.com/Juniper/py-junos-eznc) 2.6.0 or later
 - [jxmlease](https://github.com/Juniper/jxmlease) 1.0.1 or later
 - [xmltodict](https://pypi.org/project/xmltodict/) 0.13.0 or later
@@ -179,16 +172,14 @@ Apache 2.0
 
 ## SUPPORT
 
-Support for this `juniper.device` collection is provided by the community and Juniper Networks. If you have an
-issue with a module in the `juniper.device` collection, you may:
+As a Red Hat Ansible [Certified Content](https://catalog.redhat.com/en/search?searchType=Software), this collection is entitled to [support](https://access.redhat.com/support/) through [Ansible Automation Platform](https://www.redhat.com/en/technologies/management/ansible) (AAP) using the **Create issue** button on the top right corner.
+
+If a support case cannot be opened with Red Hat and the collection has been obtained either from [Galaxy](https://galaxy.ansible.com/ui/) or [GitHub](https://github.com/Juniper/ansible-junos-stdlib), there is community support available, you may:
 
 - Open a [GitHub issue](https://github.com/Juniper/ansible-junos-stdlib/issues).
 - Post a question on our [Google Group](https://groups.google.com/forum/#!forum/junos-python-ez)
 - Email [jnpr-community-netdev@juniper.net](jnpr-community-netdev@juniper.net)
 - Open a [JTAC Case](https://www.juniper.net/casemanager/#/create)
-
-Support for the Junos modules included in Ansible core is provided by Ansible. If you have an issue with an Ansible
-core module you should open a [Github issue against the Ansible project](https://github.com/ansible/ansible/issues).
 
 ## CONTRIBUTORS
 
