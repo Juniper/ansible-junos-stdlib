@@ -1,0 +1,152 @@
+- name: Functional Test - junos_snmp_server (all states)
+  hosts: all
+  gather_facts: false
+  connection: netconf
+  collections:
+    - junipernetworks.junos
+
+  tasks:
+    - name: Ensure routing instances clv1 and clv2 exist
+      junipernetworks.junos.junos_routing_instances:
+        config:
+          - name: clv1
+            type: virtual-router
+          - name: clv2
+            type: virtual-router
+        state: merged
+
+    - name: Render SNMP server configuration (dry-run XML)
+      junipernetworks.junos.junos_snmp_server:
+        config:
+          arp:
+            set: true
+            host_name_resolution: true
+          routing_instance_access:
+            set: true
+            access_lists:
+              - clv1
+              - clv2
+        state: rendered
+      register: result_rendered
+
+    - name: Assert rendered SNMP config
+      assert:
+        that:
+          - result_rendered.rendered is defined
+          - result_rendered.changed == false
+
+    - name: Parse SNMP server config from XML
+      junipernetworks.junos.junos_snmp_server:
+        running_config: "{{ lookup('file', 'parsed_configs/parsed_snmp.cfg') }}"
+        state: parsed
+      register: result_parsed
+
+    - name: Assert parsed SNMP config
+      assert:
+        that:
+          - result_parsed.parsed is defined
+          - result_parsed.changed == false
+
+    - name: Merge SNMP server configuration
+      junipernetworks.junos.junos_snmp_server:
+        config:
+          arp:
+            set: true
+            host_name_resolution: true
+          client_lists:
+            - name: cl1
+              addresses:
+                - address: "192.16.1.0/24"
+                - address: "192.16.2.0/24"
+                - address: "11.11.11.11"
+                  restrict: true
+            - name: cl2
+              addresses:
+                - address: "192.16.4.0/24"
+          routing_instance_access:
+            set: true
+            access_lists:
+              - clv1
+              - clv2
+        state: merged
+      register: result_merge
+
+    - name: Assert merged SNMP config
+      assert:
+        that:
+          - result_merge.changed is defined
+
+    - name: Replace SNMP server configuration
+      junipernetworks.junos.junos_snmp_server:
+        config:
+          contact: "ansiblesupport11@redhat.com"
+          customization:
+            ether_stats_ifd_only: true
+          description: "Local SNMP Server"
+          engine_id:
+            local: "local1"
+            use_default_ip_address: true
+            use_mac_address: true
+          filter_duplicates: true
+          filter_interfaces:
+            set: true
+            all_internal_interfaces: true
+            interfaces:
+              - eth1
+              - eth2
+        state: replaced
+      register: result_replaced
+
+    - name: Assert replaced SNMP config
+      assert:
+        that:
+          - result_replaced.changed is defined
+
+    - name: Override SNMP server configuration
+      junipernetworks.junos.junos_snmp_server:
+        config:
+          contact: "ansiblesupport11@redhat.com"
+          customization:
+            ether_stats_ifd_only: true
+          description: "Local SNMP Server"
+          engine_id:
+            local: "local1"
+            use_default_ip_address: true
+            use_mac_address: true
+          filter_duplicates: true
+          filter_interfaces:
+            set: true
+            all_internal_interfaces: true
+            interfaces:
+              - eth1
+              - eth2
+        state: overridden
+      register: result_overridden
+
+    - name: Assert overridden SNMP config
+      assert:
+        that:
+          - result_overridden.changed is defined
+
+    - name: Gather SNMP server configuration from device
+      junipernetworks.junos.junos_snmp_server:
+        state: gathered
+      register: result_gathered
+
+    - name: Assert gathered SNMP config
+      assert:
+        that:
+          - result_gathered.gathered is defined
+          - result_gathered.changed == false
+
+    - name: Delete SNMP server configuration
+      junipernetworks.junos.junos_snmp_server:
+        config: {}
+        state: deleted
+      register: result_deleted
+
+    - name: Assert deleted SNMP config
+      assert:
+        that:
+          - result_deleted.changed is defined
+

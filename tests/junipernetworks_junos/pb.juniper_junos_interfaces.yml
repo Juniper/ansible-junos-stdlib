@@ -1,0 +1,64 @@
+- name: Functional Test - junos_interfaces module
+  hosts: all
+  gather_facts: false
+  connection: netconf
+  collections:
+    - junipernetworks.junos
+
+  tasks:
+    - name: Pre-clean - Delete test configuration if present
+      junipernetworks.junos.junos_interfaces:
+        config:
+          - name: ge-0/0/1
+            units:
+              - name: 0
+        state: deleted
+      ignore_errors: true
+
+    - name: Apply test config with state merged
+      junipernetworks.junos.junos_interfaces:
+        config:
+          - name: ge-0/0/1
+            description: "FT updated interface"
+            enabled: true
+            mtu: 1800
+            units:
+              - name: 0
+                description: "FT logical unit"
+        state: merged
+      register: merge_result
+
+    - name: Gather current interface config
+      junipernetworks.junos.junos_interfaces:
+        state: gathered
+      register: gathered_result
+
+    - name: Assert merged interface config applied
+      assert:
+        that:
+          - merge_result.changed is defined
+          - gathered_result.gathered is defined
+          - gathered_result.gathered | selectattr("name", "equalto", "ge-0/0/1") | list | length > 0
+
+    - name: Render config offline (no connection to device)
+      junipernetworks.junos.junos_interfaces:
+        config:
+          - name: ge-0/0/1
+            description: Render test
+        state: rendered
+      register: render_result
+
+    - name: Assert rendered config returned
+      assert:
+        that:
+          - render_result.rendered is defined
+          - render_result.rendered | length > 0
+
+    - name: Post-clean - Delete test configuration
+      junipernetworks.junos.junos_interfaces:
+        config:
+          - name: ge-0/0/1
+            units:
+              - name: 0
+        state: deleted
+      ignore_errors: true

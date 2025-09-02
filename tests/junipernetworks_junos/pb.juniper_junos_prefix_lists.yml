@@ -1,0 +1,118 @@
+- name: Functional Test - junos_prefix_lists module
+  hosts: all
+  gather_facts: false
+  connection: netconf
+  collections:
+    - junipernetworks.junos
+
+  tasks:
+    - name: Pre-clean - Delete all prefix-lists if present
+      junos_prefix_lists:
+        state: deleted
+      ignore_errors: true
+
+    - name: Apply prefix-lists using merged
+      junos_prefix_lists:
+        config:
+          - name: Internal
+            address_prefixes:
+              - 172.16.1.32
+              - 172.16.3.32
+          - name: Test1
+            dynamic_db: true
+          - name: Test2
+            address_prefixes:
+              - 172.16.2.32
+              - 172.16.7.32
+              - 172.16.9.32
+        state: merged
+      register: merged_result
+
+    - name: Assert merged result
+      assert:
+        that:
+          - merged_result.changed == true
+
+    - name: Gather prefix-lists
+      junos_prefix_lists:
+        state: gathered
+      register: gathered_result
+
+    - name: Assert gathered prefix-lists
+      assert:
+        that:
+          - gathered_result.gathered is defined
+          - gathered_result.gathered | length > 0
+
+    - name: Replace prefix-list Test2 with new prefixes
+      junos_prefix_lists:
+        config:
+          - name: Test2
+            address_prefixes:
+              - 172.16.4.32
+              - 172.16.8.32
+              - 172.16.9.32
+        state: replaced
+      register: replaced_result
+
+    - name: Assert replaced result
+      assert:
+        that:
+          - replaced_result.changed == true
+
+    - name: Override prefix-lists with only Test2 entries
+      junos_prefix_lists:
+        config:
+          - name: Test2
+            address_prefixes:
+              - 172.16.4.32/28
+              - 172.16.8.32/28
+              - 172.16.9.32/28
+        state: overridden
+      register: overridden_result
+
+    - name: Assert overridden result
+      assert:
+        that:
+          - overridden_result.changed == true
+
+    - name: Render prefix-lists offline
+      junos_prefix_lists:
+        config:
+          - name: Internal
+            address_prefixes:
+              - 172.16.1.32
+              - 172.16.3.32
+          - name: Test1
+            dynamic_db: true
+          - name: Test2
+            address_prefixes:
+              - 172.16.2.32
+              - 172.16.7.32
+              - 172.16.9.32
+        state: rendered
+      register: rendered_result
+
+    - name: Assert rendered output
+      assert:
+        that:
+          - rendered_result.rendered is defined
+          - rendered_result.rendered | length > 0
+
+    - name: Post-clean - Delete specific prefix-lists
+      junos_prefix_lists:
+        config:
+          - name: Test1
+          - name: Test2
+        state: deleted
+      register: deleted_result
+
+    - name: Assert deleted specific prefix-lists
+      assert:
+        that:
+          - deleted_result.changed == true
+
+    - name: Final clean - Delete all prefix-lists
+      junos_prefix_lists:
+        state: deleted
+      ignore_errors: true

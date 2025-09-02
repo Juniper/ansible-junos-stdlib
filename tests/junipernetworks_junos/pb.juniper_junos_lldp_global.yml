@@ -1,0 +1,75 @@
+- name: Functional Test - junos_lldp_global module
+  hosts: all
+  connection: ansible.netcommon.netconf
+  gather_facts: false
+  collections:
+    - junipernetworks.junos
+
+  tasks:
+
+    - name: Merge LLDP global configuration
+      junipernetworks.junos.junos_lldp_global:
+        config:
+          interval: 10000
+          address: 10.1.1.1
+          transmit_delay: 400
+          hold_multiplier: 10
+        state: merged
+      register: merge_result
+
+    - name: Assert LLDP global merge applied
+      assert:
+        that:
+          - merge_result.changed == true
+
+    - name: Replace LLDP global configuration
+      junipernetworks.junos.junos_lldp_global:
+        config:
+          address: 20.2.2.2
+          hold_multiplier: 5
+          enabled: false
+        state: replaced
+      register: replace_result
+
+    - name: Assert LLDP global replace applied
+      assert:
+        that:
+          - replace_result.changed == true
+
+    - name: Gather LLDP global configuration
+      junipernetworks.junos.junos_lldp_global:
+        state: gathered
+      register: gather_result
+
+    - name: Assert LLDP address is correctly configured
+      assert:
+        that:
+          - gather_result.gathered.address == "20.2.2.2"
+          - gather_result.gathered.hold_multiplier == 5
+          - gather_result.gathered.enabled == false
+
+    - name: Render LLDP global configuration to XML
+      junipernetworks.junos.junos_lldp_global:
+        config:
+          interval: 10000
+          address: 10.1.1.1
+          transmit_delay: 400
+          hold_multiplier: 10
+        state: rendered
+      register: render_result
+
+    - name: Assert rendered LLDP config is valid
+      assert:
+        that:
+          - render_result.rendered is defined
+          - render_result.rendered | length > 0
+
+    - name: Delete LLDP global configuration
+      junipernetworks.junos.junos_lldp_global:
+        state: deleted
+      register: delete_result
+
+    - name: Assert LLDP global config deleted
+      assert:
+        that:
+          - delete_result.changed == true

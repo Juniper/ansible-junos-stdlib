@@ -1,0 +1,12 @@
+[junos]
+x.x.x.x
+
+[junos:vars]
+ansible_network_os=junipernetworks.junos.junos
+ansible_ssh_user=xyz
+ansible_ssh_pass=xyz
+ansible_connection=ansible.netcommon.network_cli
+
+[all:vars]
+ansible_python_interpreter=<path>
+

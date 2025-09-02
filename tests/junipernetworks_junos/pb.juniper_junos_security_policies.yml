@@ -1,0 +1,27 @@
+- name: Functional Test - junos_security_policies (parsed and rendered only)
+  hosts: all
+  gather_facts: no
+  connection: ansible.netcommon.netconf
+
+  tasks:
+    - name: Render security policy config
+      junipernetworks.junos.junos_security_policies:
+        config:
+          global:
+            policies:
+              - name: test_glob_1
+                match:
+                  application:
+                    any: true
+                  source_address:
+                    any_ipv6: true
+                  destination_address:
+                    any_ipv6: true
+                then:
+                  deny: true
+        state: rendered
+
+    - name: Parse from saved running config
+      junipernetworks.junos.junos_security_policies:
+        running_config: "{{ lookup('file', './parsed_configs/parsed_security_policies.cfg') }}"
+        state: parsed
