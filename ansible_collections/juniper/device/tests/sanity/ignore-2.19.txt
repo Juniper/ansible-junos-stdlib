@@ -1,0 +1,17 @@
+plugins/callback/jsnapy.py validate-modules!skip # waiting for issue 729 fix
+plugins/modules/command.py validate-modules!skip # waiting for issue 729 fix
+plugins/modules/config.py validate-modules!skip # waiting for issue 729 fix
+plugins/modules/facts.py validate-modules!skip # waiting for issue 729 fix
+plugins/modules/file_copy.py validate-modules!skip # waiting for issue 729 fix
+plugins/modules/jsnapy.py validate-modules!skip # waiting for issue 729 fix
+plugins/modules/ping.py validate-modules!skip # waiting for issue 729 fix
+plugins/modules/table.py validate-modules!skip # waiting for issue 729 fix
+plugins/modules/system.py validate-modules!skip # waiting for issue 729 fix
+plugins/modules/srx_cluster.py validate-modules!skip # waiting for issue 729 fix
+plugins/modules/software.py validate-modules!skip # waiting for issue 729 fix
+plugins/modules/rpc.py validate-modules!skip # waiting for issue 729 fix
+plugins/modules/pmtud.py validate-modules!skip # waiting for issue 729 fix
+plugins/connection/pyez.py validate-modules!skip # waiting for issue 729 fix
+plugins/action/extract_data.py action-plugin-docs
+plugins/action/juniper_junos_common_action.py action-plugin-docs
+plugins/callback/jsnapy.py ansible-doc!skip
