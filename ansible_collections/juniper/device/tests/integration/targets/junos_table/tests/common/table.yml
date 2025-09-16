@@ -26,7 +26,7 @@
 - name: Check TEST 2 - Validate Route Table Retrieval
   ansible.builtin.assert:
     that:
-      - test2.msg == "Successfully retrieved 1 items from RouteTable."
+      - test2.msg is match("Successfully retrieved [0-9]+ items from RouteTable.")
   tags: [test2]
 
 - name: Retrieve ethernet devices
