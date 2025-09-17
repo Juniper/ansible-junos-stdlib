@@ -238,3 +238,36 @@
       ansible.builtin.assert:
         that:
           - test2.msg == 'File pushed OK'
+
+    - name: "TEST 3 - Get non-existent file"
+      juniper.device.file_copy:
+        remote_dir: /var/log
+        local_dir: /tmp
+        file: no_such_file.txt
+        action: get
+      register: test3
+      ignore_errors: true
+
+    - name: Check TEST 3
+      ansible.builtin.assert:
+        that:
+          - "'not found' in test3.msg or test3.failed"
+
+    - name: "TEST 4 - Put to invalid remote path"
+      juniper.device.file_copy:
+        remote_dir: /root/invalid
+        local_dir: /var/tmp
+        file: log.txt
+        action: put
+      register: test4
+      ignore_errors: true
+
+    - name: Check TEST 4
+      ansible.builtin.assert:
+        that:
+          - "'Permission denied' in test4.msg or test4.failed"
+
+
+
+
+

@@ -25,3 +25,56 @@
       ansible.builtin.assert:
         that:
           - test1.inet_mtu <= 700
+ 
+
+    - name: TEST 3 - PMTUD with max_range and max_size
+      juniper.device.pmtud:
+        dest_ip: "{{ ansible_ssh_host }}"
+        max_size: 65496
+        max_range: 65536
+      register: test3
+      ignore_errors: true
+
+    - name: Check TEST 3
+      ansible.builtin.assert:
+        that:
+          - test3.inet_mtu | int <= 65496
+
+    - name: "TEST 4 - PMTUD from specific interface"
+      juniper.device.pmtud:
+        dest_ip: "{{ ansible_ssh_host }}"
+        interface: "ge-0/0/1.0"  
+      register: test4
+
+    - name: Check TEST 4
+      ansible.builtin.assert:
+        that:
+          - test4.inet_mtu is defined
+          - test4.inet_mtu | int >= 768
+
+    - name: "TEST 5 - PMTUD with source IP"
+      juniper.device.pmtud:
+        dest_ip: "{{ ansible_ssh_host }}"
+        source: "{{ ansible_ssh_host }}"
+      register: test5
+
+    - name: Check TEST 5
+      ansible.builtin.assert:
+        that:
+          - test5.inet_mtu is defined
+          - test5.inet_mtu | int >= 768
+
+    - name: "TEST 6 - PMTUD with routing instance"
+      juniper.device.pmtud:
+        dest_ip: "{{ ansible_ssh_host }}"
+        routing_instance: "default"  
+      register: test6
+
+    - name: Check TEST 6
+      ansible.builtin.assert:
+        that:
+          - test6.inet_mtu is defined
+          - test6.inet_mtu | int >= 768
+
+        
+      

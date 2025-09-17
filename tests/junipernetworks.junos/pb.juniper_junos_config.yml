@@ -1,0 +1,73 @@
+- name: Functional Test - junos_config module
+  hosts: junos_device
+  gather_facts: false
+  connection: netconf
+  collections:
+    - junipernetworks.junos
+
+  tasks:
+
+    - name: Pre-clean - Remove existing test interface description
+      junipernetworks.junos.junos_config:
+        lines:
+          - delete interfaces ge-0/0/1 unit 0 description
+        comment: "Clean up test interface config"
+      register: preclean_result
+
+    - name: Assert pre-clean successful
+      ansible.builtin.assert:
+        that:
+          - preclean_result.changed in [true, false]
+
+    - name: Apply test config - set interface description
+      junipernetworks.junos.junos_config:
+        lines:
+          - set interfaces ge-0/0/1 unit 0 description "FT Test interface"
+        comment: "Apply test config"
+      register: apply_result
+
+    - name: Assert interface config applied
+      ansible.builtin.assert:
+        that:
+          - apply_result.changed == true
+
+    - name: Confirm commit test with timer
+      junipernetworks.junos.junos_config:
+        lines:
+          - set system host-name ft-test-host
+        confirm: 3
+        comment: "Test commit confirmation"
+      # Intentionally allowing commit to rollback to test confirm  
+
+    - name: Rollback config to rollback 0
+      junipernetworks.junos.junos_config:
+        rollback: 0
+
+    - name: Backup config to custom path
+      junipernetworks.junos.junos_config:
+        lines:
+          - set system services ssh
+        backup: true
+        backup_options:
+          filename: ssh_backup.cfg
+          dir_path: ./backup
+      register: backup_result
+
+    - name: Debug backup_result
+      debug:
+        var: backup_result
+  
+
+    - name: Assert backup created
+      ansible.builtin.assert:
+        that:
+          - backup_result.backup_path is defined or backup_result.__backup__ is defined
+
+    - name: Post-clean - delete test configuration
+      junipernetworks.junos.junos_config:
+        lines:
+          - delete interfaces ge-0/0/1 unit 0 description
+          - delete system host-name
+          - delete system services ssh
+        comment: "Post-clean"
+

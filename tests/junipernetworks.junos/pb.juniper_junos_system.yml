@@ -1,0 +1,73 @@
+- name: Functional Test - junos_system module
+  hosts: junos_device
+  gather_facts: false
+  connection: netconf
+  collections:
+    - junipernetworks.junos
+
+  tasks:
+
+    - name: Pre-clean - Remove system configuration
+      junipernetworks.junos.junos_system:
+        hostname: junos01
+        domain_name: test.example.com
+        domain_search:
+          - ansible.com
+          - redhat.com
+          - juniper.net
+        name_servers:
+          - 8.8.8.8
+          - 8.8.4.4
+        state: absent
+      register: preclean_result
+
+    - name: Assert pre-clean result
+      assert:
+        that:
+          - preclean_result is not failed
+
+    - name: Configure hostname, domain name, and domain search
+      junipernetworks.junos.junos_system:
+        hostname: junos01
+        domain_name: test.example.com
+        domain_search:
+          - ansible.com
+          - redhat.com
+          - juniper.net
+      register: configure_hostname_domain
+
+    - name: Assert hostname and domain name configured
+      assert:
+        that:
+          - configure_hostname_domain.changed == true
+
+    - name: Configure name servers
+      junipernetworks.junos.junos_system:
+        name_servers:
+          - 8.8.8.8
+          - 8.8.4.4
+      register: configure_nameservers
+
+    - name: Assert name servers configured
+      assert:
+        that:
+          - configure_nameservers.changed == true
+
+    - name: Cleanup - Remove system configuration
+      junipernetworks.junos.junos_system:
+        hostname: junos01
+        domain_name: test.example.com
+        domain_search:
+          - ansible.com
+          - redhat.com
+          - juniper.net
+        name_servers:
+          - 8.8.8.8
+          - 8.8.4.4
+        state: absent
+      register: cleanup_result
+
+    - name: Assert final clean-up
+      assert:
+        that:
+          - cleanup_result.changed == true
