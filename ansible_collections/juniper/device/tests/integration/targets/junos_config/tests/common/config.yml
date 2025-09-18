@@ -164,4 +164,3 @@
     that:
       - test3.diff_lines is defined
       - test3.diff_lines | length > 0
-
