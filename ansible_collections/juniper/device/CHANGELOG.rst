@@ -6,6 +6,21 @@ Juniper Device Collection Release Notes
 Changelog for Juniper Device Ansible Collection
 ===========================
 
+Version 1.0.9 (2025-09-23)
+---------------------------
+Enhancements
+------------
+- None
+
+Bugs Fixed
+----------
+- Fixed the Software Installation RPC Error Handling #765
+- Fixed ansible lint issues #752
+- Fixed Ansible Automation Hub certification review comments #766
+- Fixed GitHub workflow minor issues. #751
+- Fixed Incorrect ConnectionError Exception Detection in software.py #770
+- Removed the deprecated Looseversion in Python3.12 and added support for packaging.version #771
+
 Version 1.0.8 (2025-04-30)
 ---------------------------
 Enhancements
