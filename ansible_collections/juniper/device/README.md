@@ -69,7 +69,7 @@ This modules requires the following to be installed on the Ansible control machi
 - [jxmlease](https://github.com/Juniper/jxmlease) 1.0.1 or later
 - [xmltodict](https://pypi.org/project/xmltodict/) 0.13.0 or later
 - [jsnapy](https://github.com/Juniper/jsnapy) 1.3.7 or later
-- [looseversion](https://github.com/effigies/looseversion) 1.3.0 or later
+- [packaging](https://github.com/pypa/packaging) 25.0 or later
 
 
 ## Installation

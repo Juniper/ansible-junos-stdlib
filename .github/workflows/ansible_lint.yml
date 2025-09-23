@@ -44,7 +44,7 @@ jobs:
       - name: Install ansible-lint from pip
         shell: bash
         run: |
-          pip install ansible-compat==24.10.0 ansible-lint
+          pip install ansible-compat==25.1.1 ansible-lint
           ansible-lint --version
       - name: Run ansible-lint
         shell: bash

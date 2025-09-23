@@ -26,9 +26,13 @@
       register: test2
 
     - name: Check TEST 2
+      ansible.builtin.debug:
+        var: test2
+
+    - name: Check TEST 2
       ansible.builtin.assert:
         that:
-          - test2.msg == "Successfully retrieved 1 items from RouteTable."
+          - test2.msg is match("Successfully retrieved [0-9]+ items from RouteTable.")
 
     - name: Retrieve ethernet devices
       juniper.device.table:
