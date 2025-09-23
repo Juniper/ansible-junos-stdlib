@@ -10,7 +10,7 @@
 
 - name: Check TEST 1
   ansible.builtin.assert:
-    that: test1.config is defined 
+    that: test1.config is defined
 
 - name: Append .foo to the hostname using private config mode.
   juniper.device.config:
