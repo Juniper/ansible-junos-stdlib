@@ -51,11 +51,11 @@ For each failed test, a log will be printed after the RECAP of the playbook as s
     Value of 'peer-state' not 'is-equal' at '//bgp-information/bgp-peer' with {"peer-as": "65200", "peer-state": "Active", "peer-address": "100.0.0.21"}
 
 Callback plugins are not activated by default. They must be manually added to the Ansible
-configuration file under the `[defaults]` section using the variable `callback_whitelist`. Specifically, these lines
+configuration file under the `[defaults]` section using the variable `callbacks_enabled = juniper.device.jsnapy`. Specifically, these lines
 should be added to the Ansible configuration file in order to allow the jsnapy callback plugin:
 
     [defaults]
-    callback_whitelist = jsnapy
+    callbacks_enabled = juniper.device.jsnapy 
 
 [Official Juniper documentation](http://www.juniper.net/techpubs/en_US/release-independent/junos-ansible/information-products/pathway-pages/index.html) (detailed information, including examples)
 
