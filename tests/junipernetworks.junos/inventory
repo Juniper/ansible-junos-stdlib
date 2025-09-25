@@ -1,0 +1,15 @@
+[netconf_connection_testcases]
+junos_device ansible_host=xx.xx.xx.xx
+
+[local_connection_testcases]
+localhost ansible_connection=local ansible_network_os=none
+
+[network_cli_testcases]
+junos_netconf_device ansible_host=xx.xx.xx.xx ansible_connection=network_cli ansible_network_os=junipernetworks.junos.junos ansible_user=xx ansible_password=xx
+
+[all:vars]
+ansible_python_interpreter=/path/to/venv/bin/python
+ansible_connection=netconf
+ansible_network_os=junipernetworks.junos.junos
+ansible_user=xx
+ansible_password=xx
