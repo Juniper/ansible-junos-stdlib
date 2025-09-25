@@ -640,7 +640,7 @@ def main():
         if all_re is True:
             junos_info = facts["junos_info"]
             for current_re in junos_info:
-                if (facts["vmhost"]) and (current_re in facts["vmhost_info"]):
+                if (facts.get("vmhost")) and (current_re in facts["vmhost_info"]):
                     current_version = facts["vmhost_info"][current_re][
                         "vmhost_version_set_b"
                     ]
@@ -675,7 +675,7 @@ def main():
                 re_name = junos_module.dev.re_name
             else:
                 re_name = junos_module._pyez_conn.get_re_name()
-            if (facts["vmhost"]) and (re_name in facts["vmhost_info"]):
+            if (facts.get("vmhost")) and (re_name in facts["vmhost_info"]):
                 if facts["vmhost_info"][re_name]["vmhost_current_root_set"] == "p":
                     current_version = parse_version_from_filename(
                         facts["vmhost_info"][re_name]["vmhost_version_set_b"],
@@ -834,7 +834,7 @@ def main():
                         junos_module.dev.timeout = restore_timeout
                     except Exception:  # pylint: disable=broad-except
                         junos_module.dev.timeout = restore_timeout
-                        if not facts["vmhost"]:  # To handle vmhost reboot PR 1375936
+                        if not facts.get("vmhost"):  # To handle vmhost reboot PR 1375936
                             raise
                     junos_module.logger.debug("Reboot RPC executed.")
 
