@@ -1,0 +1,65 @@
+
+
+- name: Functional Test - junos_command module
+  hosts: all
+  gather_facts: false
+  collections:
+    - junipernetworks.junos
+
+  tasks:
+    - name: Run show version
+      junipernetworks.junos.junos_command:
+        commands: show version
+      register: version_output
+
+    - name: Assert show version output is returned
+      assert:
+        that:
+          - version_output.stdout is defined
+          - "'Junos' in version_output.stdout[0]"
+
+    - name: Run show version with wait_for condition (positive match)
+      junipernetworks.junos.junos_command:
+        commands: show version
+      register: show_version_wait_positive
+
+    - name: Assert wait_for with positive match passed
+      assert:
+        that:
+          - show_version_wait_positive.stdout is defined
+          - show_version_wait_positive.failed_conditions is not defined
+
+    - name: Run multiple commands
+      junipernetworks.junos.junos_command:
+        commands:
+          - show version
+          - show interfaces terse
+      register: multi_output
+
+    - name: Assert multiple commands worked
+      assert:
+        that:
+          - multi_output.stdout | length == 2
+          - "'Interface' in multi_output.stdout[1]"
+
+    - name: Run show version with json output
+      junipernetworks.junos.junos_command:
+        commands: show version
+        display: json
+      register: json_output
+
+    - name: Assert json output is returned
+      assert:
+        that:
+          - json_output.stdout is defined
+          
+    - name: Run RPC get-software-information
+      junipernetworks.junos.junos_command:
+        commands: show version | display json 
+      register: rpc_output
+
+    - name: Assert RPC output
+      assert:
+        that:
+          - rpc_output.stdout is defined
+          - rpc_output.stdout[0] is string
