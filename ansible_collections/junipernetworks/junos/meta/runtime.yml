@@ -68,15 +68,6 @@ plugin_routing:
       redirect: juniper.device.junos_rpc
     junos_ping:
       redirect: juniper.device.junos_ping
-    scp:
-      redirect: juniper.device.junos_scp
-      deprecation:
-        removal_date: "2025-01-01"
-        warning_text: See the plugin documentation for more details
-    junos_scp:
-      deprecation:
-        removal_date: "2025-01-01"
-        warning_text: See the plugin documentation for more details
     junos_static_routes:
       redirect: juniper.device.junos_static_routes
     junos_system:

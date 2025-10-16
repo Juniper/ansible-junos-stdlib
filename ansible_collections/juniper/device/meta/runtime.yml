@@ -1,5 +1,5 @@
 ---
-requires_ansible: ">=2.17.0"
+requires_ansible: ">=2.16.0"
 plugin_routing:
   modules:
     hostname:
@@ -44,15 +44,6 @@ plugin_routing:
       redirect: juniper.device.junos_routing_instances
     routing_options:
       redirect: juniper.device.junos_routing_options
-    scp:
-      redirect: juniper.device.junos_scp
-      deprecation:
-        removal_date: "2025-01-01"
-        warning_text: See the plugin documentation for more details
-    junos_scp:
-      deprecation:
-        removal_date: "2025-01-01"
-        warning_text: See the plugin documentation for more details
     security_policies:
       redirect: juniper.device.junos_security_policies
     security_policies_global:

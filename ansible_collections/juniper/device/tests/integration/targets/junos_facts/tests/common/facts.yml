@@ -7,10 +7,11 @@
 - name: Check TEST 1
   ansible.builtin.assert:
     that:
-      - test1.facts.hostname
-      - test1.facts.serialnumber
-      - test1.facts.model
-      - test1.facts.fqdn
+      - test1.facts.hostname is defined and test1.facts.hostname | length > 0
+      - test1.facts.serialnumber is defined and test1.facts.serialnumber | length > 0
+      - test1.facts.model is defined and test1.facts.model | length > 0
+      - test1.facts.fqdn is defined and test1.facts.fqdn | length > 0
+
 
 - name: TEST 2 - get facts in xml format
   juniper.device.facts:

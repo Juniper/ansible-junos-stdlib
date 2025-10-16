@@ -171,7 +171,7 @@
 - name: Check TEST 8 - Handle RPC Error
   ansible.builtin.assert:
     that:
-      - '"Unable to execute the RPC" or "MODULE FAILURE" in test8.msg'
+      - "'Unable to execute the RPC' in test8.msg or 'MODULE FAILURE' in test8.msg"
   tags: [test8]
 
 # #################

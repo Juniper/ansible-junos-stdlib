@@ -842,7 +842,7 @@ class Connection(NetworkConnectionBase):
         member_id=None,
     ):
         """Triggers the system calls like reboot, shutdown, halt and zeroize to device."""
-        msg = None
+        msg = ""
         if action != "zeroize":
             if at == "now" or (in_min == 0 and at is None):
                 if self.dev.timeout > 5:
@@ -914,7 +914,7 @@ class Connection(NetworkConnectionBase):
 
     def reboot_api(self, all_re, vmhost, member_id=None):
         """reboots the device."""
-        msg = None
+        msg = ""
         try:
             restore_timeout = self.dev.timeout
             if self.dev.timeout > 5:

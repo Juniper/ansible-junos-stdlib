@@ -742,7 +742,7 @@ def main():
             try:
                 results["msg"] = junos_module._pyez_conn.software_api(install_params)
             except Exception as err:  # pylint: disable=broad-except
-                if "ConnectionError" in str(type(err)):
+                if "ConnectionError" in str(err):
                     # If Exception is ConnectionError, it is excpected
                     # Device installation inititated succesfully
                     junos_module.logger.debug("Package successfully installed.")
@@ -791,7 +791,7 @@ def main():
                             install_params.get("vmhost"),
                         )
                 except Exception as err:  # pylint: disable=broad-except
-                    if "ConnectionError" in str(type(err)):
+                    if "ConnectionError" in str(err):
                         # If Exception is ConnectionError, it is excpected
                         # Device reboot inititated succesfully
                         junos_module.logger.debug("Reboot RPC executed.")

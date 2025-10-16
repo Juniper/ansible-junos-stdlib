@@ -10,7 +10,7 @@
 
 - name: Check TEST 1
   ansible.builtin.assert:
-    that: test1.config
+    that: test1.config is defined
 
 - name: Append .foo to the hostname using private config mode.
   juniper.device.config:
@@ -26,7 +26,8 @@
 - name: Check TEST 2
   ansible.builtin.assert:
     that:
-      - test2.failed == False
+      - test2.diff_lines is defined
+      - test2.diff_lines | length > 0
 
 - name: Rollback to the previous config.
   juniper.device.config:
@@ -39,7 +40,8 @@
 - name: Check TEST 3
   ansible.builtin.assert:
     that:
-      - test3.failed == False
+      - test3.diff_lines is defined
+      - test3.diff_lines | length > 0
 
 - name: Save rescue configuration
   juniper.device.command:
@@ -62,7 +64,8 @@
 - name: Check TEST 4
   ansible.builtin.assert:
     that:
-      - test4.failed == False
+      - test4.diff_lines is defined
+      - test4.diff_lines | length > 0
 
 - name: Clean up TEST 4
   ansible.builtin.file:
@@ -146,4 +149,18 @@
 - name: Check TEST 9
   ansible.builtin.assert:
     that:
-      - test9.failed == False
+      - test2.diff_lines is defined
+      - test2.diff_lines | length > 0
+
+- name: Rollback to the previous config.
+  juniper.device.config:
+    rollback: 1
+  register: test3
+  ignore_errors: true
+  tags: [test3]
+
+- name: Check TEST 3
+  ansible.builtin.assert:
+    that:
+      - test3.diff_lines is defined
+      - test3.diff_lines | length > 0

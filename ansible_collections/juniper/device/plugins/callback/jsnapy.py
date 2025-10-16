@@ -36,6 +36,56 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+DOCUMENTATION = """
+---
+name: jsnapy
+type: callback
+author: Juniper Networks, Roslan Zaki, Damien Garros, Stacy Smith (@stacywsmith)
+short_description: Formats and prints JSNAPy test results for Junos devices
+description: |
+  This callback plugin provides extra logging and human-readable output for JSNAPy test results executed via Ansible.
+  It collects and displays pass/fail details for each JSNAPy test when the action is snapcheck or check.
+  The jsnapy callback plugin is disabled by default. To enable the jsnapy callback plugin, add the
+  callbacks_enabled = juniper.device.jsnapy statement to the Ansible configuration file.
+  Example:
+    [defaults]
+    callbacks_enabled = juniper.device.jsnapy
+  For more information on JSNAPy, see https://github.com/Juniper/jsnapy and
+  https://www.juniper.net/documentation/en_US/day-one-books/DO_JSNAPy.zip.
+options: {}
+"""
+
+
+EXAMPLES = """
+- name: Run JSNAPy snapcheck
+  hosts: junos-all
+  connection: local
+  gather_facts: false
+  tasks:
+    - name: Run JSNAPy snapcheck
+      juniper.device.jsnapy:
+        action: "snapcheck"
+        test_files: "tests/test_junos_interface.yaml"
+      register: test_result
+    - name: Print JSNAPy test results
+      ansible.builtin.debug:
+        var: test_result
+"""
+
+RETURN = """
+test_results:
+  description:
+    - Detailed results of each JSNAPy test executed, including pass/fail counts and test details.
+  returned: always
+  type: dict
+msg:
+  description:
+    - Human-readable summary of JSNAPy validation, printed to the console by the callback plugin.
+  returned: always
+  type: str
+"""
+
+
 import json
 import pprint
 

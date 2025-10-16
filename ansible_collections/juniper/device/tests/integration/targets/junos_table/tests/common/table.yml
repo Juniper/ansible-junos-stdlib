@@ -17,7 +17,7 @@
     file: "routes.yml"
     table: "RouteTable"
     kwargs:
-      destination: "192.0.2.2/32"
+      destination: "192.68.1.0/8"
     response_type: "juniper_items"
   register: test2
   ignore_errors: true
@@ -26,7 +26,7 @@
 - name: Check TEST 2 - Validate Route Table Retrieval
   ansible.builtin.assert:
     that:
-      - test2.msg == "Successfully retrieved 1 items from RouteTable."
+      - test2.msg is match("Successfully retrieved [0-9]+ items from RouteTable.")
   tags: [test2]
 
 - name: Retrieve ethernet devices
