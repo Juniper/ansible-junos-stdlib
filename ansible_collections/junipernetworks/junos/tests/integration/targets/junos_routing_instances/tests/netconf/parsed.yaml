@@ -1,0 +1,39 @@
+---
+- ansible.builtin.debug:
+    msg:
+      START junos_routing_instances parsed integration tests on connection={{ ansible_connection
+      }}
+
+- ansible.builtin.set_fact:
+    expected_parsed_output:
+      - description: "Configured by Ansible Content Team"
+        name: "forwardinst"
+        type: "forwarding"
+
+      - connector_id_advertise: true
+        interfaces:
+          - name: "gr-0/0/0.0"
+          - name: "sp-0/0/0.0"
+        name: "test"
+        route_distinguisher: "10.58.255.1:37"
+        type: "vrf"
+        vrf_exports:
+          - "test-policy"
+          - "test-policy-1"
+        vrf_imports:
+          - "test-policy"
+
+- name: Parse externally provided routing_instances config to agnostic model
+  register: result
+  junipernetworks.junos.junos_routing_instances:
+    running_config: "{{ lookup('file', './fixtures/parsed.cfg') }}"
+    state: parsed
+
+- name: Assert that config was correctly parsed
+  ansible.builtin.assert:
+    that:
+      - "{{ expected_parsed_output  == result['parsed'] }}"
+- ansible.builtin.debug:
+    msg:
+      END junos_routing_instances parsed integration tests on connection={{ ansible_connection
+      }}

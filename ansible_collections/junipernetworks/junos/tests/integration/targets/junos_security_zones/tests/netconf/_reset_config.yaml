@@ -1,0 +1,16 @@
+---
+- ansible.builtin.debug:
+    msg: "START junos_security_zones reset config on connection={{ ansible_connection }}"
+
+- name: Reset the config releavent to security zones resource
+  junipernetworks.junos.junos_config:
+    lines:
+      - delete security
+      - delete routing-instances
+      - delete interfaces ge-0/0/1
+      - delete interfaces ge-0/0/2
+      - delete interfaces ge-0/0/3
+      - delete interfaces ge-0/0/4
+
+- ansible.builtin.debug:
+    msg: "END junos_security_zones reset config on connection={{ ansible_connection }}"

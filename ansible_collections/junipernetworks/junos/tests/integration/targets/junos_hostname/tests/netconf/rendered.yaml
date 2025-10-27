@@ -1,0 +1,26 @@
+---
+- name: Debug task
+  ansible.builtin.debug:
+    msg: START junos_hostname rendered integration tests on connection={{
+      ansible_connection }}
+
+- name: Set facts
+  ansible.builtin.set_fact:
+    expected_rendered_output: '<nc:system xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"><nc:host-name>vsrx14</nc:host-name></nc:system>'
+
+- name: Render platform specific commands from task input using rendered state
+  register: result
+  junipernetworks.junos.junos_hostname:
+    config:
+      hostname: "vsrx14"
+    state: rendered
+
+- name: Assert that correct set of commands were rendered
+  ansible.builtin.assert:
+    that:
+      - "{{ expected_rendered_output == result['rendered'] }}"
+
+- name: Debug task
+  ansible.builtin.debug:
+    msg: END junos_hostname rendered integration tests on connection={{
+      ansible_connection }}

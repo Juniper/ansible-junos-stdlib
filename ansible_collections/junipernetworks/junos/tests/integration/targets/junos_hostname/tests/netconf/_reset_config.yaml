@@ -1,0 +1,13 @@
+---
+- name: Debug task
+  ansible.builtin.debug:
+    msg: "START junos_hostname reset config on connection={{ ansible_connection }}"
+
+- name: Reset the config releavent to ntp global resource
+  junipernetworks.junos.junos_config:
+    lines:
+      - delete system host-name
+
+- name: Debug task
+  ansible.builtin.debug:
+    msg: "END junos_hostname reset config on connection={{ ansible_connection }}"

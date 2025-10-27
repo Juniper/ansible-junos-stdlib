@@ -1,0 +1,62 @@
+---
+- ansible.builtin.debug:
+    msg:
+      START junos_prefix_lists empty_config integration tests on connection={{
+      ansible_connection }}
+
+- name: Merged with empty config should give appropriate error message
+  register: result
+  ignore_errors: true
+  junipernetworks.junos.junos_prefix_lists:
+    config:
+    state: merged
+
+- ansible.builtin.assert:
+    that:
+      - result.msg == 'value of config parameter must not be empty for state merged'
+
+- name: Replaced with empty config should give appropriate error message
+  register: result
+  ignore_errors: true
+  junipernetworks.junos.junos_prefix_lists:
+    config:
+    state: replaced
+
+- ansible.builtin.assert:
+    that:
+      - result.msg == 'value of config parameter must not be empty for state replaced'
+
+- name: Override with empty config should give appropriate error message
+  register: result
+  ignore_errors: true
+  junipernetworks.junos.junos_prefix_lists:
+    config:
+    state: overridden
+
+- ansible.builtin.assert:
+    that:
+      - result.msg == 'value of config parameter must not be empty for state overridden'
+
+- name: Parsed with empty running_config should give appropriate error message
+  register: result
+  ignore_errors: true
+  junipernetworks.junos.junos_prefix_lists:
+    running_config:
+    state: parsed
+
+- ansible.builtin.debug:
+    msg: result
+- ansible.builtin.assert:
+    that:
+      - result.msg == 'value of running_config parameter must not be empty for state parsed'
+
+- name: Rendered with empty config should give appropriate error message
+  register: result
+  ignore_errors: true
+  junipernetworks.junos.junos_prefix_lists:
+    config:
+    state: rendered
+
+- ansible.builtin.assert:
+    that:
+      - result.msg == 'value of config parameter must not be empty for state rendered'

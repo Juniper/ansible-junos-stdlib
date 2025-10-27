@@ -1,0 +1,195 @@
+- name: Functional Test - junos_logging_global
+  hosts: all
+  gather_facts: no
+  connection: ansible.netcommon.netconf
+
+  vars:
+    routing_instance_name: inst11
+    logging_source_address: "1.1.1.1"
+    logging_host_address: "2.2.2.2"
+
+  tasks:
+
+    - name: Ensure routing instance exists
+      junipernetworks.junos.junos_config:
+        lines:
+          - "set routing-instances {{ routing_instance_name }} instance-type virtual-router"
+        comment: "Pre-create routing instance required for syslog"
+        update: merge
+
+    - name: MERGED - Full logging configuration
+      junipernetworks.junos.junos_logging_global:
+        config:
+          allow_duplicates: true
+          archive:
+            set: true
+            no_binary_data: true
+            files: 10
+            file_size: 65578
+            no_world_readable: true
+          console:
+            any:
+              level: "info"
+            authorization:
+              level: "any"
+            change_log:
+              level: "critical"
+            ftp:
+              level: "none"
+          files:
+            - name: "file101"
+              allow_duplicates: true
+            - name: "file102"
+              allow_duplicates: true
+              any:
+                level: "any"
+              structured_data:
+                set: true
+            - name: "file103"
+              archive:
+                set: true
+                no_binary_data: true
+                files: 10
+                file_size: 65578
+                no_world_readable: true
+              explicit_priority: true
+              match: "^set*"
+              match_strings:
+                - "^delete"
+                - "^prompt"
+          hosts:
+            - name: host111
+              exclude_hostname: true
+              allow_duplicates: true
+              any:
+                level: "any"
+              structured_data:
+                set: true
+                brief: true
+              facility_override: "ftp"
+              log_prefix: "field"
+              match: "^set*"
+              match_strings:
+                - "^delete"
+                - "^prompt"
+              port: 1231
+              routing_instance: "{{ routing_instance_name }}"
+              source_address: "{{ logging_host_address }}"
+          routing_instance: "{{ routing_instance_name }}"
+          log_rotate_frequency: 45
+          source_address: "{{ logging_source_address }}"
+          time_format:
+            millisecond: true
+            year: true
+          users:
+            - name: "user1"
+              allow_duplicates: true
+            - name: "user2"
+              allow_duplicates: true
+              any:
+                level: "any"
+              user:
+                level: info
+        state: merged
+
+    - name: REPLACED - Replace logging configuration
+      junipernetworks.junos.junos_logging_global:
+        config:
+          files:
+            - name: "file104"
+              allow_duplicates: true
+            - name: "file102"
+              allow_duplicates: true
+              any:
+                level: "any"
+              structured_data:
+                set: true
+          hosts:
+            - name: host222
+              exclude_hostname: true
+              allow_duplicates: true
+              any:
+                level: "any"
+              structured_data:
+                set: true
+                brief: true
+              facility_override: "ftp"
+              log_prefix: "field"
+              match: "^set*"
+              match_strings:
+                - "^delete"
+                - "^prompt"
+              port: 1231
+              routing_instance: "{{ routing_instance_name }}"
+              source_address: "{{ logging_host_address }}"
+          users:
+            - name: "user1"
+              allow_duplicates: true
+            - name: "user2"
+              allow_duplicates: true
+              any:
+                level: "any"
+              user:
+                level: info
+        state: replaced
+
+    - name: OVERRIDDEN - Override entire logging config
+      junipernetworks.junos.junos_logging_global:
+        config:
+          files:
+            - name: "file104"
+              allow_duplicates: true
+            - name: "file102"
+              allow_duplicates: true
+              any:
+                level: "any"
+              structured_data:
+                set: true
+          hosts:
+            - name: host222
+              exclude_hostname: true
+              allow_duplicates: true
+              any:
+                level: "any"
+              structured_data:
+                set: true
+                brief: true
+              facility_override: "ftp"
+              log_prefix: "field"
+              match: "^set*"
+              match_strings:
+                - "^delete"
+                - "^prompt"
+              port: 1231
+              routing_instance: "{{ routing_instance_name }}"
+              source_address: "{{ logging_host_address }}"
+          users:
+            - name: "user1"
+              allow_duplicates: true
+            - name: "user2"
+              allow_duplicates: true
+              any:
+                level: "any"
+              user:
+                level: info
+        state: overridden
+
+    - name: GATHERED - Gather current logging config
+      junipernetworks.junos.junos_logging_global:
+        state: gathered
+      register: gathered_output
+
+    - name: RENDERED - Render config into XML
+      junipernetworks.junos.junos_logging_global:
+        config: "{{ gathered_output.gathered }}"
+        state: rendered
+
+    - name: PARSED - Load from parsed.cfg
+      junipernetworks.junos.junos_logging_global:
+        running_config: "{{ lookup('file', './parsed_configs/parsed_logging_global.cfg') }}"
+        state: parsed
+
+    - name: DELETED - Delete all logging config
+      junipernetworks.junos.junos_logging_global:
+        config: {}
+        state: deleted

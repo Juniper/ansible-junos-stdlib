@@ -1,0 +1,30 @@
+- name: Functional Test - junos_netconf module
+  hosts: all
+  gather_facts: false
+  connection: network_cli
+  collections:
+    - junipernetworks.junos
+
+  tasks:
+    - name: Enable NETCONF service on port 830
+      junipernetworks.junos.junos_netconf:
+        netconf_port: 830
+        state: present
+      register: enable_result
+
+    - name: Assert NETCONF service was enabled
+      assert:
+        that:
+          - enable_result.changed is defined
+          - enable_result.commands | length > 0
+
+    - name: Disable NETCONF service
+      junipernetworks.junos.junos_netconf:
+        state: absent
+      register: disable_result
+
+    - name: Assert NETCONF service was disabled
+      assert:
+        that:
+          - disable_result.changed is defined
+          - disable_result.commands | length > 0

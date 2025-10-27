@@ -1,0 +1,26 @@
+---
+- ansible.builtin.debug:
+    msg: "START junos_snmp_server deleted integration tests on connection={{ ansible_connection }}"
+
+- block:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+    - ansible.builtin.include_tasks: _initial_config.yaml
+    - ansible.builtin.include_tasks: _populate_config.yaml
+    - ansible.builtin.set_fact:
+        config: {}
+    - name: Delete all snmp_server config from the device
+      junipernetworks.junos.junos_snmp_server:
+        state: deleted
+      register: result
+
+    - name: Assert changed
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ config == result.after }}"
+
+  always:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+- ansible.builtin.debug:
+    msg: "END junos_snmp_server deleted integration tests on connection={{ ansible_connection }}"

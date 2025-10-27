@@ -1,0 +1,41 @@
+- name: Functional Test - junos_security_zones module
+  hosts: all
+  gather_facts: false
+  connection: netconf
+  collections:
+    - junipernetworks.junos
+
+  tasks:
+
+    - name: Render Security Zone config to XML
+      junipernetworks.junos.junos_security_zones:
+        config:
+          zones:
+            - name: trust
+              description: "Trusted zone"
+              interfaces:
+                - ge-0/0/1.0
+              host_inbound_traffic:
+                system_services:
+                  - name: ssh
+                  - name: ping
+        state: rendered
+      register: result_rendered
+
+    - name: Assert rendered output
+      assert:
+        that:
+          - result_rendered.rendered is defined
+          - result_rendered.changed == false
+
+    - name: Parse Security Zone config from file
+      junipernetworks.junos.junos_security_zones:
+        running_config: "{{ lookup('file', 'parsed_configs/parsed_security_zones.cfg') }}"
+        state: parsed
+      register: result_parsed
+
+    - name: Assert parsed zone config
+      assert:
+        that:
+          - result_parsed.parsed is defined
+          - result_parsed.changed == false

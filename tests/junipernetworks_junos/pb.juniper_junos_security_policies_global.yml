@@ -1,0 +1,37 @@
+- name: Functional Test - junos_security_policies_global (parsed, rendered, gathered)
+  hosts: all
+  gather_facts: no
+  connection: netconf
+
+  tasks:
+
+    - name: PARSED - Parse running config from local file
+      junipernetworks.junos.junos_security_policies_global:
+        running_config: "{{ lookup('file', './parsed_configs/parsed_security_policies_global.cfg') }}"
+        state: parsed
+
+    - name: RENDERED - Render the provided config
+      junipernetworks.junos.junos_security_policies_global:
+        config:
+          default_policy: deny-all
+          policy_rematch:
+            enable: true
+          policy_stats:
+            enable: true
+          pre_id_default_policy_action:
+            log:
+              session_init: true
+            session_timeout:
+              icmp: 10
+              others: 10
+          traceoptions:
+            file:
+              files: 4
+              match: /[A-Z]*/gm
+              size: 10k
+              no_world_readable: true
+            flag: all
+            no_remote_trace: true
+        state: rendered
+
+    

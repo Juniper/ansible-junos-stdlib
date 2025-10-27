@@ -1,1 +1,60 @@
+---
 requires_ansible: ">=2.16.0"
+plugin_routing:
+  modules:
+    hostname:
+      redirect: juniper.device.junos_hostname
+    interfaces:
+      redirect: juniper.device.junos_interfaces
+    acls:
+      redirect: juniper.device.junos_acls
+    acl_interfaces:
+      redirect: juniper.device.junos_acl_interfaces
+    banner:
+      redirect: juniper.device.junos_banner
+    bgp_address_family:
+      redirect: juniper.device.junos_bgp_address_family
+    bgp_global:
+      redirect: juniper.device.junos_bgp_global
+    lacp:
+      redirect: juniper.device.junos_lacp
+    lacp_interfaces:
+      redirect: juniper.device.junos_lacp_interfaces
+    lldp_global:
+      redirect: juniper.device.junos_lldp_global
+    lldp_interfaces:
+      redirect: juniper.device.junos_lldp_interfaces
+    logging_global:
+      redirect: juniper.device.junos_logging_global
+    netconf:
+      redirect: juniper.device.junos_netconf
+    ntp_global:
+      redirect: juniper.device.junos_ntp_global
+    ospf_interfaces:
+      redirect: juniper.device.junos_ospf_interfaces
+    ospfv2:
+      redirect: juniper.device.junos_ospfv2
+    ospfv3:
+      redirect: juniper.device.junos_ospfv3
+    package:
+      redirect: juniper.device.junos_package
+    prefix_lists:
+      redirect: juniper.device.junos_prefix_lists
+    routing_instances:
+      redirect: juniper.device.junos_routing_instances
+    routing_options:
+      redirect: juniper.device.junos_routing_options
+    security_policies:
+      redirect: juniper.device.junos_security_policies
+    security_policies_global:
+      redirect: juniper.device.junos_security_policies_global
+    security_zones:
+      redirect: juniper.device.junos_security_zones
+    snmp_server:
+      redirect: juniper.device.junos_snmp_server
+    static_routes:
+      redirect: juniper.device.junos_static_routes
+    user:
+      redirect: juniper.device.junos_user
+    vlans:
+      redirect: juniper.device.junos_vlans

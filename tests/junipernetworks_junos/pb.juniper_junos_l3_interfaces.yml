@@ -1,0 +1,73 @@
+- name: Functional Test - junos_l3_interfaces module
+  hosts: all
+  gather_facts: false
+  connection: netconf
+  collections:
+    - junipernetworks.junos
+
+  tasks:
+
+    - name: Pre-clean - Delete L3 logical interfaces if present
+      junos_l3_interfaces:
+        config:
+          - name: ge-0/0/1
+          - name: ge-0/0/2
+        state: deleted
+      ignore_errors: true
+
+    - name: Apply L3 configuration (merge)
+      junos_l3_interfaces:
+        config:
+          - name: ge-0/0/1
+            ipv4:
+              - address: 192.168.1.10/24
+            ipv6:
+              - address: 2001:db8::1/64
+          - name: ge-0/0/2
+            ipv4:
+              - address: dhcp
+        state: merged
+      register: merge_result
+
+    - name: Assert L3 config applied
+      assert:
+        that:
+          - merge_result.changed is defined
+          - merge_result.after | selectattr("name", "equalto", "ge-0/0/1") | list | length > 0
+          - merge_result.after | selectattr("name", "equalto", "ge-0/0/2") | list | length > 0
+
+    - name: Gather L3 interfaces
+      junos_l3_interfaces:
+        state: gathered
+      register: gathered_result
+
+    - name: Assert L3 interfaces gathered
+      assert:
+        that:
+          - gathered_result.gathered | selectattr("name", "equalto", "ge-0/0/1") | list | length > 0
+          - gathered_result.gathered | selectattr("name", "equalto", "ge-0/0/2") | list | length > 0
+
+    - name: Render L3 config (offline)
+      junos_l3_interfaces:
+        config:
+          - name: ge-0/0/1
+            ipv4:
+              - address: 192.168.1.10/24
+            ipv6:
+              - address: 2001:db8::1/64
+        state: rendered
+      register: render_result
+
+    - name: Assert rendered config is present
+      assert:
+        that:
+          - render_result.rendered is defined
+          - render_result.rendered | length > 0
+
+    - name: Post-clean - Delete test L3 configuration
+      junos_l3_interfaces:
+        config:
+          - name: ge-0/0/1
+          - name: ge-0/0/2
+        state: deleted
+      ignore_errors: true

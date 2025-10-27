@@ -1,0 +1,69 @@
+- name: Functional Test - junos_vrf module
+  hosts: all
+  gather_facts: false
+  connection: netconf
+  collections:
+    - junipernetworks.junos
+
+  tasks:
+    - name: Pre-clean conflicting routing-instances
+      junipernetworks.junos.junos_config:
+        lines:
+          - delete routing-instances test-1
+          - delete routing-instances test-2
+        comment: "Cleanup existing VRFs"
+       
+    - name: Preconfigure required interfaces
+      junipernetworks.junos.junos_config:
+        lines:
+          - set interfaces ge-0/0/2.0 family inet address 192.0.2.2/24
+          - set interfaces ge-0/0/3.0 family inet address 192.0.2.3/24
+          - set interfaces ge-0/0/4.0 family inet address 192.0.2.4/24
+          - set interfaces ge-0/0/5.0 family inet address 192.0.2.5/24
+        comment: "Ensure full logical units configured"    
+
+    - name: Deactivate VRF test-1
+      junipernetworks.junos.junos_vrf:
+        name: test-1
+        active: false
+        rd: 192.0.2.1:10
+        target: target:65514:113
+        interfaces:
+          - ge-0/0/3.0
+          - ge-0/0/2.0
+        description: test-vrf-1
+      register: deactivate_result
+
+    - name: Assert VRF test-1 deactivated
+      assert:
+        that: deactivate_result.changed == true
+
+    - name: Remove VRF test-1
+      junipernetworks.junos.junos_vrf:
+        name: test-1
+        description: test-vrf-1
+        interfaces:
+          - ge-0/0/3.0
+          - ge-0/0/2.0
+        rd: 192.0.2.1:10
+        target: target:65514:113
+        state: absent
+      register: remove_test1
+
+    - name: Assert VRF test-1 removed
+      assert:
+        that: remove_test1.changed == true
+
+    - name: Remove VRF test-2
+      junipernetworks.junos.junos_vrf:
+        name: test-2
+        description: test-vrf-2
+        interfaces:
+          - ge-0/0/4.0
+          - ge-0/0/5.0
+        rd: 192.0.2.2:10
+        target: target:65515:114
+        state: absent
+      register: remove_test2
+
+    

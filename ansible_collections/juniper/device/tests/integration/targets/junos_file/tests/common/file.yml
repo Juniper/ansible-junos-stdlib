@@ -54,6 +54,16 @@
     path: /tmp/checksum_log.txt
     state: absent
 
+- name: "Remove /var/log/*log* files"
+  juniper.device.command:
+    commands: "file delete /var/log/*log*"
+  register: test1
+
+- name: "Remove /var/log/*log* files"
+  ansible.builtin.assert:
+    that:
+      test1.msg == "The command executed successfully."
+
 - name: "File copy ftp put"
   juniper.device.file_copy:
     protocol: ftp
@@ -176,7 +186,7 @@
     remote_dir: /var/log
     file: default_log.txt
     transfer_filename: transfer_log.txt
-    checksum: false
+    checksum: False
     action: put
   register: test1
   ignore_errors: true
@@ -191,7 +201,7 @@
     protocol: scp
     local_dir: /tmp
     remote_dir: /var/log
-    checksum: false
+    checksum: False
     file: transfer_log.txt
     transfer_filename: local_log.txt
     action: get
@@ -224,7 +234,7 @@
     protocol: ftp
     local_dir: /var/tmp
     remote_dir: /var/log
-    checksum: false
+    checksum: False
     file: remote_log.txt
     transfer_filename: remote_log.txt
     action: get

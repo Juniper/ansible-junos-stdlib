@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?><rpc-reply message-id="urn:uuid:72c481b8">
+    <configuration-text>
+	version 20.3R2.9;
+	system {
+    		host-name vsrx01;
+    		domain-name ansible.com;
+	}
+    </configuration-text>
+</rpc-reply>

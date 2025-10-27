@@ -1,0 +1,7 @@
+# For CML
+virl2-client==2.6.1
+
+# Unit test runner
+pytest-ansible
+pytest-xdist
+pytest-cov

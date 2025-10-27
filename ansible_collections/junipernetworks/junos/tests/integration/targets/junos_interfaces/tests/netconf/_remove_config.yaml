@@ -1,0 +1,21 @@
+---
+- name: Debug task
+  ansible.builtin.debug:
+    msg:
+      Start junos_nterfaces deleted remove interface config ansible_connection={{
+      ansible_connection }}
+
+- name: Setup - remove interface config
+  junipernetworks.junos.junos_config:
+    lines:
+      - delete interfaces ge-0/0/1
+      - delete interfaces ge-0/0/2
+      - delete interfaces ge-0/0/3
+      - delete interfaces lo0
+      - delete interfaces fe-0/0/2
+
+- name: Debug task
+  ansible.builtin.debug:
+    msg:
+      End junos_nterfaces deleted remove interface config ansible_connection={{
+      ansible_connection }}

@@ -36,7 +36,6 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-
 DOCUMENTATION = """
 ---
 name: jsnapy
@@ -85,6 +84,7 @@ msg:
   returned: always
   type: str
 """
+
 
 import json
 import pprint

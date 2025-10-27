@@ -1,0 +1,687 @@
+ancestor: null
+releases:
+  1.0.0:
+    modules:
+      - description: ACL interfaces resource module
+        name: junos_acl_interfaces
+        namespace: ""
+      - description: ACLs resource module
+        name: junos_acls
+        namespace: ""
+      - description: Manage multiline banners on Juniper JUNOS devices
+        name: junos_banner
+        namespace: ""
+      - description: Run arbitrary commands on an Juniper JUNOS device
+        name: junos_command
+        namespace: ""
+      - description: Manage configuration on devices running Juniper JUNOS
+        name: junos_config
+        namespace: ""
+      - description: Collect facts from remote devices running Juniper Junos
+        name: junos_facts
+        namespace: ""
+      - description: Junos Interfaces resource module
+        name: junos_interfaces
+        namespace: ""
+      - description: L2 interfaces resource module
+        name: junos_l2_interfaces
+        namespace: ""
+      - description: L3 interfaces resource module
+        name: junos_l3_interfaces
+        namespace: ""
+      - description:
+          Global Link Aggregation Control Protocol (LACP) Junos resource
+          module
+        name: junos_lacp
+        namespace: ""
+      - description: LACP interfaces resource module
+        name: junos_lacp_interfaces
+        namespace: ""
+      - description: Link Aggregation Juniper JUNOS resource module
+        name: junos_lag_interfaces
+        namespace: ""
+      - description: LLDP resource module
+        name: junos_lldp_global
+        namespace: ""
+      - description: LLDP interfaces resource module
+        name: junos_lldp_interfaces
+        namespace: ""
+      - description: Manage logging on network devices
+        name: junos_logging
+        namespace: ""
+      - description: Configures the Junos Netconf system service
+        name: junos_netconf
+        namespace: ""
+      - description: OSPFv2 resource module
+        name: junos_ospfv2
+        namespace: ""
+      - description: Installs packages on remote devices running Junos
+        name: junos_package
+        namespace: ""
+      - description: Tests reachability using ping from devices running Juniper JUNOS
+        name: junos_ping
+        namespace: ""
+      - description: Runs an arbitrary RPC over NetConf on an Juniper JUNOS device
+        name: junos_rpc
+        namespace: ""
+      - description: Transfer files from or to remote devices running Junos
+        name: junos_scp
+        namespace: ""
+      - description: Static routes resource module
+        name: junos_static_routes
+        namespace: ""
+      - description: Manage the system attributes on Juniper JUNOS devices
+        name: junos_system
+        namespace: ""
+      - description: Manage local user accounts on Juniper JUNOS devices
+        name: junos_user
+        namespace: ""
+      - description: VLANs resource module
+        name: junos_vlans
+        namespace: ""
+      - description: Manage the VRF definitions on Juniper JUNOS devices
+        name: junos_vrf
+        namespace: ""
+    plugins:
+      cliconf:
+        - description: Use junos cliconf to run command on Juniper Junos OS platform
+          name: junos
+          namespace: null
+      netconf:
+        - description:
+            Use junos netconf plugin to run netconf commands on Juniper JUNOS
+            platform
+          name: junos
+          namespace: null
+    release_date: "2020-06-23"
+  1.0.1:
+    changes:
+      bugfixes:
+        - Make `src`, `backup` and `backup_options` in junos_config work when module
+          alias is used (https://github.com/ansible-collections/junipernetworks.junos/pull/83).
+        - Update docs after sanity fixes to modules.
+    fragments:
+      - fix_config_module_src_backup.yaml
+      - update_docs.yaml
+    release_date: "2020-08-07"
+  1.1.0:
+    changes:
+      bugfixes:
+        - set_config called only when state is not gathered so that gathered opeartion
+          works fine (https://github.com/ansible-collections/junipernetworks.junos/issues/89).
+        - set_config called only when state is not gathered so that gathered opeartion
+          works fine (https://github.com/ansible-collections/junipernetworks.junos/issues/93).
+        - set_config called only when state is not gathered so that gathered opeartion
+          works fine for l2_interfaces resource module (https://github.com/ansible-collections/junipernetworks.junos/issues/91).
+      minor_changes:
+        - Gathered state operation enabled, Parsed and rendered state operations implemented
+          for junos_lacp.
+        - Gathered state operation enabled, Parsed and rendered state operations implemented
+          for junos_lldp_global.
+        - Gathered state operation enabled, Parsed and rendered state operations implemented
+          for junos_lldp_interfaces.
+        - Gathered state operation enabled, Parsed and rendered state operations implemented
+          for ospfv2, acl_interfaces, vlans and static_routes RM.
+        - Gathered state operation enabled. Parsed and rendered state operations implemented.
+        - Gathered state operation enabledand Parsed and rendered state operations implemented.
+    fragments:
+      - 89_gathered_opr_fix_junos_interfaces.yaml
+      - 91_gathered_opr_fix_junos_l2interfaces.yaml
+      - 93_gathered_opr_fix_junos_l3_interfaces.yaml
+      - junos_rm_state_opr_updated.yaml
+      - lacp_global_state_opr_updated.yaml
+      - lacp_interfaces_state_opr_updated.yaml
+      - lag_interfaces_state_opr_updated.yaml
+      - lldp_global_state_opr_updated.yaml
+      - lldp_interfaces_state_opr_added.yaml
+    release_date: "2020-08-31"
+  1.1.1:
+    changes:
+      minor_changes:
+        - Use FQCN to M() references in modules documentation (https://github.com/ansible-collections/junipernetworks.junos/pull/79)
+    fragments:
+      - 79-Use-FQCN-to-M-references
+    release_date: "2020-10-01"
+  1.2.0:
+    changes:
+      minor_changes:
+        - Add ospfv3 resource module.
+    fragments:
+      - add_junos_ospfv3.yaml
+    modules:
+      - description: OSPFv3 resource module
+        name: junos_ospfv3
+        namespace: ""
+    release_date: "2020-10-30"
+  1.2.1:
+    changes:
+      bugfixes:
+        - Add version key to galaxy.yaml to work around ansible-galaxy bug
+        - Updating unit tests for resource modules (https://github.com/ansible-collections/junipernetworks.junos/pull/127)
+        - allowing partial config filter for junos commands (https://github.com/ansible-collections/junipernetworks.junos/issues/112)
+        - checking for units and family attributes in conf dictionary (https://github.com/ansible-collections/junipernetworks.junos/issues/121)
+    fragments:
+      - 112_partial_config_fix.yaml
+      - 121_error_with_junos_acl_interfaces_facts.yaml
+      - galaxy-version.yaml
+      - unit_tests_updates.yaml
+    release_date: "2020-11-26"
+  1.3.0:
+    changes:
+      bugfixes:
+        - changing prefix list type to list and correcting facts gathering (https://github.com/ansible-collections/junipernetworks.junos/issues/131)
+        - constructing the facts based on the addresses per unit (https://github.com/ansible-collections/junipernetworks.junos/issues/111)
+        - release version added updated to 1.3.0 for junos_ospf_interfaces and junos_bgp_global
+          module
+      minor_changes:
+        - Add junos bgp global resource module.
+        - Add ospf interfaces resource module.
+    fragments:
+      - junos_acl_prefix_list_fix.yaml
+      - junos_bgp_global_module.yaml
+      - junos_l3_interfaces_unit_fix.yaml
+      - junos_ospf_interfaces.yaml
+      - junos_version_added_updated.yaml
+    modules:
+      - description: Manages BGP Global configuration on devices running Juniper JUNOS.
+        name: junos_bgp_global
+        namespace: ""
+      - description: OSPF Interfaces Resource Module.
+        name: junos_ospf_interfaces
+        namespace: ""
+    release_date: "2021-01-28"
+  2.0.0:
+    changes:
+      major_changes:
+        - Please refer to ansible.netcommon `changelog <https://github.com/ansible-collections/ansible.netcommon/blob/main/changelogs/CHANGELOG.rst#ansible-netcommon-collection-release-notes>`_
+          for more details.
+        - Requires ansible.netcommon v2.0.0+ to support `ansible_network_single_user_mode`
+          and `ansible_network_import_modules`.
+      minor_changes:
+        - Add junos_bgp_address_family resource module.
+        - Add support for autonomous-system routing-options for bgp global and updating
+          tests and documentation.
+        - Add support for bgp group and neighbors in bgp_global resource module.
+        - Add support for configuration caching (single_user_mode).
+        - Re-use device_info dictionary in cliconf.
+    fragments:
+      - 156-remove_tests_sanity_requirements.yml
+      - add_bgp_address_family.yaml
+      - asn_handling_doc_updates.yaml
+      - fix_junos_sanity.yaml
+      - implementing_group_and_neighbor.yaml
+      - single_user_mode.yaml
+    modules:
+      - description: Manage BGP Address Family attributes of interfaces on Junos devices.
+        name: junos_bgp_address_family
+        namespace: ""
+    release_date: "2021-02-25"
+  2.0.1:
+    changes:
+      minor_changes:
+        - Add support df_bit and size option for junos_ping (https://github.com/ansible-collections/junipernetworks.junos/pull/136).
+    fragments:
+      - int-test-fix.yaml
+      - junos_ping_df_rapid.yaml
+      - remove-check_required.yaml
+    release_date: "2021-03-29"
+  2.1.0:
+    changes:
+      minor_changes:
+        - Add junos_routing_instances Resource Module.
+        - Add support for available_network_resources key, which allows to fetch the
+          available resources for a platform (https://github.com/ansible-collections/junipernetworks.junos/issues/160).
+        - Replace unsupported parameter `vlan-id` in junipernetworks.junos.junos_vlans
+          module with `vlan_id`
+      security_fixes:
+        - Mask values of sensitive keys in module result(https://github.com/ansible-collections/junipernetworks.junos/issues/165).
+    fragments:
+      - 117_junos_routing_instances_resource_module.yaml
+      - ansible_networl_resources_facts.yaml
+      - junos_vlans.yaml
+      - no_log_sanity_fixes.yaml
+    modules:
+      - description: Manage routing instances on Junos devices.
+        name: junos_routing_instances
+        namespace: ""
+    release_date: "2021-04-28"
+  2.10.0:
+    changes:
+      minor_changes:
+        - Added junos_security_policies module.
+        - Added junos_security_policies_global module.
+        - Added junos_security_zones module.
+    fragments:
+      - black_fix.yml
+      - fix_sanity_list.yml
+      - junos_security_policies_global_module.yaml
+      - junos_security_policies_resource_module.yaml
+      - junos_security_zones_module.yml
+    modules:
+      - description: Create and manage security policies on Juniper JUNOS devices
+        name: junos_security_policies
+        namespace: ""
+      - description: Manage global security policy settings on Juniper JUNOS devices
+        name: junos_security_policies_global
+        namespace: ""
+      - description: Manage security zones on Juniper JUNOS devices
+        name: junos_security_zones
+        namespace: ""
+    release_date: "2022-03-29"
+  2.2.0:
+    changes:
+      minor_changes:
+        - Change src element from str to path for junos_scp.
+        - Improve junos_bgp_address_family unit test coverage.
+    fragments:
+      - change_junos_scp_src_element.yaml
+      - changelog_doc_path_update.yaml
+      - improve_bgp_address_family_test_coverage.yaml
+      - update_author_bgp_global.yaml
+    release_date: "2021-05-18"
+  2.3.0:
+    changes:
+      minor_changes:
+        - Add junos_prefix_lists Resource Module.
+    fragments:
+      - 118_junos_prefix_lists_resource_module.yaml
+      - update_readme.yml
+    release_date: "2021-06-22"
+  2.4.0:
+    changes:
+      bugfixes:
+        - fix lacp force-up without port-priority in junos_lacp_interfaces
+        - fix netconf test-case for lacp revert
+        - junos_acls failed to parse acl when multiple addresses defined within a single
+          term (https://github.com/ansible-collections/junipernetworks.junos/issues/190)
+      deprecated_features:
+        - The junos_logging module has been deprecated in favor of the new junos_logging_global
+          resource module and will be removed in a release after '2023-08-01'.
+      minor_changes:
+        - Add junos_logging_global Resource Module.
+        - Add support for backup_format option in junos_config
+        - support l3_interface in junos vlans
+    fragments:
+      - 109_support_l3_interface_in_vlans.yaml
+      - deprecate_junos_logging.yaml
+      - fix_no_port_priority.yml
+      - junos_acl_multi_address_port_acls.yaml
+      - junos_config_backup_format.yaml
+      - junos_logging_global_module.yaml
+    modules:
+      - description: Manage logging configuration on Junos devices.
+        name: junos_logging_global
+        namespace: ""
+    release_date: "2021-07-28"
+  2.5.0:
+    changes:
+      deprecated_features:
+        - Deprecated router_id from ospfv3 resource module.
+      minor_changes:
+        - Improve junos ospfv2 integration and unit tests coverage and router id assignment
+          check implemented.
+        - Improve junos vlans integration and unit tests coverage and facts gathering
+          logic modification.
+    fragments:
+      - deprecate_ospfv3_router_id.yaml
+      - ospfv2_test_coverage_improvement.yaml
+      - vlans_tests_coverage_improvement.yaml
+    release_date: "2021-08-30"
+  2.6.0:
+    changes:
+      deprecated_features:
+        - Deprecated router_id from ospfv2 resource module.
+      minor_changes:
+        - Add junos_ntp_global resource module.
+    fragments:
+      - deprecate_ospfv2_router_id.yaml
+      - junos_ntp_global.yaml
+      - rename_key_to_key_id_junos_ntp_global.yaml
+      - set_allow_duplicates.yaml
+    modules:
+      - description: Manage NTP configuration on Junos devices.
+        name: junos_ntp_global
+        namespace: ""
+    release_date: "2021-09-24"
+  2.7.0:
+    changes:
+      doc_changes:
+        - Add note for router_id deprecation from ospf-interfaces resource module.
+        - make sure router_id facts and config operation works fine for ospfv2 and ospfv3
+          RM
+    fragments:
+      - 0-copy_ignore_txt.yml
+      - junos_ospf_router_if_fix.yaml
+    release_date: "2021-11-25"
+  2.7.1:
+    changes:
+      bugfixes:
+        - Fix ospf router_id overlap issue.
+    fragments:
+      - fix_ospf_facts_issue.yaml
+    release_date: "2021-12-07"
+  2.8.0:
+    changes:
+      deprecated_features:
+        - "'router_id' options is deprecated from junos_ospf_interfaces, junos_ospfv2
+          and junos_ospfv3 resuorce module."
+      minor_changes:
+        - Add junos_routing_options resource module.
+        - Add junos_snmp_server resource module.
+    fragments:
+      - junos_routing_options_resource_module.yaml
+      - junos_snmp_server_module.yaml
+    modules:
+      - description: Manage routing-options configuration on Junos devices.
+        name: junos_routing_options
+        namespace: ""
+    release_date: "2021-12-09"
+  2.9.0:
+    changes:
+      bugfixes:
+        - Fix junos_command output when empty config response is received for show commands
+          (https://github.com/ansible-collections/junipernetworks.junos/issues/249).
+      minor_changes:
+        - Add junos_hostname resource module.
+        - Allow interfaces resource module to configure and gather logical interface
+          description.
+    fragments:
+      - 249_fix_junos_command_output.yaml
+      - implement_intf_unit_description.yaml
+      - junos_hostname_module.yaml
+    modules:
+      - description: Manage Hostname server configuration on Junos devices.
+        name: junos_hostname
+        namespace: ""
+      - description: Manage SNMP server configuration on Junos devices.
+        name: junos_snmp_server
+        namespace: ""
+    release_date: "2022-02-01"
+  3.0.0:
+    changes:
+      bugfixes:
+        - Fix junos_acl fact gathering when only destination port defined (https://github.com/ansible-collections/junipernetworks.junos/issues/268).
+      major_changes:
+        - Minimum required ansible.netcommon version is 2.5.1.
+        - Updated base plugin references to ansible.netcommon.
+        - "`junos_facts` - change default gather_subset to `min` from `!config`."
+    fragments:
+      - 0-ignore.yml
+      - add_fqcn_ansible_connection.yaml
+      - fix_acl_facts_gathering_issue.yml
+      - junos_facts.yaml
+      - netcommon_ref_update.yaml
+      - runtime_fix.yml
+    release_date: "2022-04-27"
+  3.0.1:
+    changes:
+      bugfixes:
+        - Fix incorrect param pass to to_text.
+    fragments:
+      - 225_fix_to_string.yaml
+      - 308.yaml
+      - enable_unit_and_sanity_using_github_action.yaml
+    release_date: "2022-06-03"
+  3.1.0:
+    changes:
+      bugfixes:
+        - fixes the nighbors list overwrite issue.
+      minor_changes:
+        - Add mac-vrf instance type.
+    fragments:
+      - add_mac_vrf_type.yaml
+      - read_neighbors_list_fix.yaml
+    release_date: "2022-06-28"
+  4.0.0:
+    changes:
+      major_changes:
+        - "Use of connection: local and the provider option are no longer valid on any
+          modules in this collection."
+      removed_features:
+        - Remove following deprecated Junos Modules.
+        - junos_interface
+        - junos_l2_interface
+        - junos_l3_interface
+        - junos_linkagg
+        - junos_lldp
+        - junos_lldp_interface
+        - junos_static_route
+        - junos_vlan
+    fragments:
+      - ignores-2.15.yaml
+      - net_remove.yaml
+      - remove_deprecated_modules.yaml
+      - remove_provider.yaml
+      - sanity.yaml
+    release_date: "2022-10-12"
+  4.1.0:
+    changes:
+      minor_changes:
+        - Implement file_size as string.
+        - Used xmltodict to gather the sub-module chassis list and return it as a dictionary.
+    fragments:
+      - junos_facts_chassis_sub_module.yaml
+      - logging_global_size.yaml
+      - update_trivial_changes.yaml
+    release_date: "2022-11-30"
+  5.0.0:
+    changes:
+      bugfixes:
+        - enable provider support for junos_scp and junos_package.
+        - fix diff to result when prepared diff exists.
+        - fix junos_security_zones facts gathering when we have single interface configured.
+        - revert diff mode to default.
+      major_changes:
+        - change gathered key from junos_acls to acls
+    fragments:
+      - bug_fix_for_security_zones_facts.yaml
+      - fix_trivial_issues.yaml
+      - junos_acls_gathered_key_fix.yaml
+      - prepared_diff_fix.yaml
+      - provider_support_for_legacy_modules.yaml
+      - reboot_task_tag.yaml
+      - rollback_diffmode.yaml
+      - update_bgp_global_fqcn.yaml
+      - update_reboot_timer.yaml
+    release_date: "2023-02-28"
+  5.1.0:
+    changes:
+      bugfixes:
+        - Fix enabled attribute implementation.
+        - Fix lldp_global_assertion.
+        - Fix sanity issues.
+        - Fix the snmp view and traps configuration.
+        - fix the implementation of disabling interface.
+        - module should return with failure when rollback is 0 and device is not reachable.
+      doc_changes:
+        - Update bgp_address_family docs with examples.
+        - Update bgp_global docs with examples.
+        - junos_interfaces - Updated documentation with examples and task output.
+        - junos_static_routes - add task output to module documentation examples. (https://github.com/ansible-collections/junipernetworks.junos/pull/402).
+      minor_changes:
+        - Adding unlink option to junos package installation.
+    fragments:
+      - boolean_normalization.yaml
+      - ci_codecov.yaml
+      - codecov_fix.yml
+      - fix_docs_static_route.yaml
+      - fix_downstream.yaml
+      - fix_downstream_testing_issues.yaml
+      - fix_enabling.yaml
+      - fix_lldp_global_assertion.yaml
+      - fix_snmp_traps_and_view.yaml
+      - gha_workflow_fix.yml
+      - junos_cofig_rollback_fix.yaml
+      - lldp_global_test_update.yaml
+      - package_unlink.yaml
+      - update_bgp_address_family_docs.yaml
+      - update_bgp_global_docs.yaml
+      - update_inft_docs.yaml
+      - update_timeout.yaml
+    release_date: "2023-04-28"
+  5.2.0:
+    changes:
+      deprecated_features:
+        - "`junos_ospfv2` - add deprecate warning for area_range."
+        - add deprecate warning for junos_acl_interfaces key for junos facts results.
+      doc_changes:
+        - Update examples for junos_ospfv3
+      minor_changes:
+        - "`junos_ospfv2` - Fix the authentication config when password is configured"
+        - "`junos_ospfv2` - Rename key ospf to ospfv2 in facts."
+        - "`junos_ospfv2` - add area_ranges attribute which supports list of dict attributes."
+        - "`junos_ospfv2` - add attributes `allow_route_leaking`, `stub_network` and
+          `as-external` to overload dict."
+        - "`junos_ospfv2` - add attributes `no_ignore_out_externals` to spf_options
+          dict."
+        - "`junos_ospfv2` - fix to gather reference_bandwidth and rfc1583compatibility."
+        - add acl_interfaces key for junos_facts output.
+    fragments:
+      - add_gha_periodic.yaml
+      - deprecate_junos_acl_interafaces_facts_key.yaml
+      - gha_release.yml
+      - junos_ospfv2_fixes.yaml
+      - junos_ospfv3_health_check.yaml
+      - lint.yaml
+    release_date: "2023-07-05"
+  5.3.0:
+    changes:
+      bugfixes:
+        - fix `no_advertise_adjacency_segment` config implementation.
+        - fix `no_eligible_backup` config implementation.
+        - fix `no_eligible_remote_backup` config implementation.
+        - fix `no_interface_state_traps` config implementation.
+        - fix `no_neighbor_down_notification` config implementation.
+        - fix `node_link_protection` implementation.
+        - fix md5 authentication which allows list of keys to be configured.
+      minor_changes:
+        - add overridden state opperation support.
+    fragments:
+      - bgp_global_tests_fix.yaml
+      - codecov_pr.yml
+      - overridden_support.yaml
+    release_date: "2023-09-06"
+  5.3.1:
+    changes:
+      bugfixes:
+        - fix to gather l2_interfaces facts with default port-mode access.
+      doc_changes:
+        - Improve docs of prefix-lists RM.
+        - ios_l2_interfaces - Fixed module documentation and examples.
+        - ios_l3_interfaces - Fixed module documentation and examples.
+    fragments:
+      - default_mode_l2_interfaces.yaml
+      - fix_prefix_lists_docs.yaml
+      - lint_fixtures.yaml
+      - sanity_job_fix.yaml
+      - update_l2_3_docs.yaml
+    release_date: "2023-11-27"
+  6.0.0:
+    changes:
+      major_changes:
+        - Bumping `requires_ansible` to `>=2.14.0`, since previous ansible-core versions
+          are EoL now.
+      release_summary:
+        Starting from this release, the minimum `ansible-core` version
+        this collection requires is `2.14.0`. That last known version compatible with
+        ansible-core<2.14 is `v5.3.1`.
+    fragments:
+      - update_l2_interfaces_tests.yaml
+    release_date: "2023-11-30"
+  6.0.1:
+    changes:
+      bugfixes:
+        - Prevents module_defaults from were being incorrectly applied to the platform
+          action, instead of the concerned module.
+    fragments:
+      - module_defaults.yaml
+      - trivial_lint.yaml
+    release_date: "2024-01-31"
+  6.0.2:
+    changes:
+      bugfixes:
+        - acls
+        - initialize facts dictionary with empty containers for respective resources
+          mentioned below
+        - lldp_global
+        - lldp_interfaces
+        - logging_global
+        - ntp_global
+        - ospf_interfaces
+        - ospfv2
+        - ospfv3
+        - prefix_lists
+        - routing_instances
+        - routing_options
+        - security_policies
+        - security_policies_global
+        - security_zones
+        - snmp_server
+        - static_routes
+        - vlans
+      doc_changes:
+        - Remove the part of the description which incorrectly describes the behavior
+          and type of confirm attribute.
+        - Update example performing `confirm_commit`.
+        - Update with more examples using the `confirm` option to set a timer.
+    fragments:
+      - empty_facts.yaml
+      - update_junos_config_docs.yaml
+    release_date: "2024-03-06"
+  7.0.0:
+    changes:
+      bugfixes:
+        - Fix the empty facts list placement
+      major_changes:
+        - This release removes previously deprecated modules from this collection. Please
+          refer to the **Removed Features** section for details.
+      removed_features:
+        - Remove deprected junos_logging module which is replaced by junos_logging_global
+          resource module.
+    fragments:
+      - fix_upstream_tetst.yaml
+      - remove_deprecated.yaml
+      - trivial_tests_updates.yaml
+    release_date: "2024-03-27"
+  8.0.0:
+    changes:
+      major_changes:
+        - Update the netcommon base version 6.1.0 to support cli_restore plugin.
+      minor_changes:
+        - Add support for cli_restore functionality.
+        - Please refer the PR to know more about core changes (https://github.com/ansible-collections/ansible.netcommon/pull/618).
+        - cli_restore module is part of netcommon.
+    fragments:
+      - 218sanity.yml
+      - add_restore_implementation.yaml
+    release_date: "2024-04-13"
+  9.0.0:
+    changes:
+      major_changes:
+        - Bumping `requires_ansible` to `>=2.15.0`, since previous ansible-core versions
+          are EoL now.
+      release_summary:
+        Starting from this release, the minimum `ansible-core` version
+        this collection requires is `2.15.0`. The last known version compatible with
+        ansible-core<2.15 is v8.0.0.
+    fragments:
+      - bump_to_215.yaml
+    release_date: "2024-06-10"
+  9.1.0:
+    changes:
+      bugfixes:
+        - Fix the lag_interfaces facts for gigether supported model.
+      minor_changes:
+        - Add implementation to gather ether-channels for gig-ether-options.
+        - Added support for virtual-switch instances.
+        - Based on ether-option-type create supported commands for config module.
+        - Implemented bridge-domains configuration management for routing instances.
+        - Implemented support for setting the Maximum Transmission Unit (MTU) in Layer
+          3 (L3) Internet Protocol (IP) interfaces.
+        - Tested successfully on Junos MX204.
+    fragments:
+      - add_support_for_gig_ether_lag.yaml
+      - fix_lad_interfaces.yaml
+      - implement_bridge_domains.yaml
+      - support_l3_mtu.yaml
+    release_date: "2024-08-05"

@@ -1,0 +1,66 @@
+---
+- name: Debug task
+  ansible.builtin.debug:
+    msg="START netconf_xml/output.yaml on connection={{ ansible_connection
+    }}"
+
+- name: Get output for single command
+  register: result
+  junipernetworks.junos.junos_command:
+    commands:
+      - show version
+    format: xml
+
+- name: Assertion
+  ansible.builtin.assert:
+    that:
+      - result.changed == false
+      - result.stdout is defined
+      - result.stdout_lines is defined
+
+- name: Get output for multiple commands
+  register: result
+  junipernetworks.junos.junos_command:
+    commands:
+      - show version
+      - show route
+    format: xml
+
+- name: Assertion
+  ansible.builtin.assert:
+    that:
+      - result.changed == false
+      - result.stdout is defined
+      - result.stdout_lines is defined
+
+- name: Get output for single command with cli transport
+  register: result
+  connection: ansible.netcommon.network_cli
+  junipernetworks.junos.junos_command:
+    commands: show version | display xml
+
+- name: Assertion
+  ansible.builtin.assert:
+    that:
+      - result.changed == false
+      - result.stdout is defined
+      - result.stdout_lines is defined
+
+- name: Get output for multiple commands with cli transport
+  register: result
+  connection: ansible.netcommon.network_cli
+  junipernetworks.junos.junos_command:
+    commands:
+      - show version
+      - show route
+    display: xml
+
+- name: Assertion
+  ansible.builtin.assert:
+    that:
+      - result.changed == false
+      - result.stdout is defined
+      - result.stdout_lines is defined
+
+- name: Debug task
+  ansible.builtin.debug: msg="END netconf_xml/output.yaml on connection={{ ansible_connection }}"

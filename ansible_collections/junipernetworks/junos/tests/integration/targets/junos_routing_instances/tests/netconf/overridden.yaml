@@ -1,0 +1,111 @@
+---
+- ansible.builtin.debug:
+    msg: "START junos_routing_instances overridden integration tests on connection={{ ansible_connection }}"
+
+- block:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+    - ansible.builtin.include_tasks: _initial_config.yaml
+
+    - ansible.builtin.set_fact:
+        expected_overridden_output:
+          - description: "Configured by Ansible Content Team"
+            name: "forwardinst"
+            type: "forwarding"
+          - connector_id_advertise: true
+            interfaces:
+              - name: "gr-0/0/0.0"
+              - name: "sp-0/0/0.0"
+            name: "test"
+            route_distinguisher: "10.58.255.1:37"
+            type: "vrf"
+            vrf_exports:
+              - "test-policy"
+              - "test-policy-1"
+            vrf_imports:
+              - "test-policy"
+          - name: "vtest1"
+            type: "virtual-router"
+
+    - name: Merge the provided configuration with the exisiting running configuration
+      junipernetworks.junos.junos_routing_instances: &merged
+        config:
+          - name: "test"
+            type: "vrf"
+            route_distinguisher: "10.58.255.1:37"
+            vrf_imports:
+              - "test-policy"
+            vrf_exports:
+              - "test-policy"
+              - "test-policy-1"
+            interfaces:
+              - name: "sp-0/0/0.0"
+              - name: "gr-0/0/0.0"
+            connector_id_advertise: true
+          - name: "forwardinst"
+            type: "forwarding"
+            description: "Configured by Ansible Content Team"
+        state: merged
+
+    - name: Replace existing configuration with running configuration
+      junipernetworks.junos.junos_routing_instances: &replaced
+        config:
+          - name: "test"
+            type: "vrf"
+            route_distinguisher: "10.57.255.1:37"
+            vrf_imports:
+              - "test-policy"
+            vrf_exports:
+              - "test-policy"
+            interfaces:
+              - name: "sp-0/0/0.0"
+              - name: "gr-0/0/0.0"
+            connector_id_advertise: false
+            description: "Configured by Ansible Content Team"
+        state: replaced
+
+    - name: Override existing configuration with running configuration
+      junipernetworks.junos.junos_routing_instances: &overridden
+        config:
+          - name: "test"
+            type: "vrf"
+            route_distinguisher: "10.58.255.1:37"
+            vrf_imports:
+              - "test-policy"
+            vrf_exports:
+              - "test-policy"
+              - "test-policy-1"
+            interfaces:
+              - name: "sp-0/0/0.0"
+              - name: "gr-0/0/0.0"
+            connector_id_advertise: true
+          - name: "forwardinst"
+            type: "forwarding"
+            description: "Configured by Ansible Content Team"
+          - name: "vtest1"
+            type: "virtual-router"
+        state: overridden
+      register: result
+
+    - name: Assert configuration
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ expected_overridden_output | symmetric_difference(result['after']) |length\
+            \ == 0 }}"
+
+    - name: Override the existing running configuration with the provided configuration (IDEMPOTENT)
+      junipernetworks.junos.junos_routing_instances: *overridden
+      register: result
+
+    - name: Assert that the previous task was idempotent
+      ansible.builtin.assert:
+        that:
+          - result.changed == False
+
+  tags: overridden
+  always:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+- ansible.builtin.debug:
+    msg: "END junos_routing_instances overridden integration tests on connection={{ ansible_connection }}"

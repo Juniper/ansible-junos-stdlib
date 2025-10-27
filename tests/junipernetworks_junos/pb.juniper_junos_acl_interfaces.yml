@@ -1,0 +1,126 @@
+
+- name: Functional Test - junos_acl_interfaces module
+  hosts: all
+  gather_facts: false
+  connection: netconf
+  collections:
+    - junipernetworks.junos
+
+  vars:
+    interface_name: "ge-1/0/0"
+    inbound_acl_name: "inbound_acl"
+    outbound_acl_name: "outbound_acl"
+
+  tasks:
+
+    - name: Setup - Ensure initial ACL config is absent (clean slate)
+      junos_acl_interfaces:
+        config:
+          - name: "{{ interface_name }}"
+            access_groups:
+              - afi: ipv4
+                acls:
+                  - name: "{{ inbound_acl_name }}"
+                    direction: in
+                  - name: "{{ outbound_acl_name }}"
+                    direction: out
+        state: deleted
+      register: cleanup_result
+
+    - name: Assert cleanup before test
+      assert:
+        that:
+          - cleanup_result.changed in [true, false]
+
+    - name: Pre-config - Create inbound and outbound ACL filters
+      junipernetworks.junos.junos_config:
+        lines:
+          - set firewall family inet filter {{ inbound_acl_name }} term 1 from source-address 10.0.0.0/8
+          - set firewall family inet filter {{ inbound_acl_name }} term 1 then accept
+          - set firewall family inet filter {{ outbound_acl_name }} term 1 from destination-address 192.168.0.0/16
+          - set firewall family inet filter {{ outbound_acl_name }} term 1 then accept
+        comment: "Test ACL filters for junos_acl_interfaces FT"
+
+    
+    - name: Test - Merge ACL config into interface
+      junos_acl_interfaces:
+        config:
+          - name: "{{ interface_name }}"
+            access_groups:
+              - afi: ipv4
+                acls:
+                  - name: "{{ inbound_acl_name }}"
+                    direction: in
+                  - name: "{{ outbound_acl_name }}"
+                    direction: out
+        state: merged
+      register: merge_result
+
+    - name: Assert merge operation
+      assert:
+        that:
+          - merge_result.changed == true
+          - merge_result.after is defined
+          - merge_result.commands | length > 0
+
+    
+    - name: Test - Replace ACL config with only input filter
+      junos_acl_interfaces:
+        config:
+          - name: "{{ interface_name }}"
+            access_groups:
+              - afi: ipv4
+                acls:
+                  - name: "{{ inbound_acl_name }}"
+                    direction: in
+        state: overridden
+      register: replace_result
+
+    - name: Assert override operation
+      assert:
+        that:
+          - replace_result.changed == true
+          - outbound_acl_name not in (replace_result.after | to_json)
+
+   
+    - name: Test - Override ACL config with both directions
+      junos_acl_interfaces:
+        config:
+          - name: "{{ interface_name }}"
+            access_groups:
+              - afi: ipv4
+                acls:
+                  - name: "{{ inbound_acl_name }}"
+                    direction: in
+                  - name: "{{ outbound_acl_name }}"
+                    direction: out
+        state: overridden
+      register: override_result
+
+    - name: Assert override operation
+      assert:
+        that:
+          - override_result.changed == true
+
+   
+    - name: Test - Delete ACL config
+      junos_acl_interfaces:
+        config:
+          - name: "{{ interface_name }}"
+            access_groups:
+              - afi: ipv4
+                acls:
+                  - name: "{{ inbound_acl_name }}"
+                    direction: in
+                  - name: "{{ outbound_acl_name }}"
+                    direction: out
+        state: deleted
+      register: delete_result
+
+    - name: Assert delete operation
+      assert:
+        that:
+          - delete_result.changed == true
+          - delete_result.after is defined
+
+    

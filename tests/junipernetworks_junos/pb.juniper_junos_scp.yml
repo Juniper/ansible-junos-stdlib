@@ -1,0 +1,71 @@
+- name: Functional Test - junos_scp module
+  hosts: all
+  connection: local
+  gather_facts: false
+  collections:
+    - junipernetworks.junos
+
+  vars:
+    scp_src_file: "./files/test.tgz"
+    scp_dest_dir: "/tmp/"
+    scp_custom_ssh_config: "/home/user/customsshconfig"
+
+  tasks:
+
+    - name: "Pre-check - Ensure src file exists locally"
+      ansible.builtin.stat:
+        path: "{{ scp_src_file }}"
+      register: file_check
+
+    - name: "Abort if test source file is not found"
+      ansible.builtin.fail:
+        msg: "Source file for SCP test not found at {{ scp_src_file }}"
+      when: not file_check.stat.exists
+
+    - name: "TEST 1 - Upload local file to home directory on remote device"
+      junipernetworks.junos.junos_scp:
+        src: "{{ scp_src_file }}"
+      register: result_upload_home
+
+    - name: "ASSERT 1 - Upload to home succeeded"
+      ansible.builtin.assert:
+        that:
+          - result_upload_home is defined
+          - result_upload_home.changed is true
+
+    - name: "TEST 2 - Upload local file to /tmp directory on remote device"
+      junipernetworks.junos.junos_scp:
+        src: "{{ scp_src_file }}"
+        dest: "{{ scp_dest_dir }}"
+      register: result_upload_tmp
+
+    - name: "ASSERT 2 - Upload to /tmp succeeded"
+      ansible.builtin.assert:
+        that:
+          - result_upload_tmp is defined
+          - result_upload_tmp.changed is true
+
+    - name: "TEST 3 - Download file from remote device"
+      junipernetworks.junos.junos_scp:
+        src: "{{ scp_dest_dir }}test.tgz"
+        remote_src: true
+      register: result_download
+
+    - name: "ASSERT 3 - Download from device succeeded"
+      ansible.builtin.assert:
+        that:
+          - result_download is defined
+          - result_download.changed is true
+
+    - name: "TEST 4 - Download using custom SSH config"
+      junipernetworks.junos.junos_scp:
+        src: "{{ scp_dest_dir }}test.tgz"
+        remote_src: true
+        ssh_config: "{{ scp_custom_ssh_config }}"
+      register: result_ssh_config
+
+    - name: "ASSERT 4 - Download with custom SSH config succeeded"
+      ansible.builtin.assert:
+        that:
+          - result_ssh_config is defined
+          - result_ssh_config.changed is true

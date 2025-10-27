@@ -1,0 +1,41 @@
+---
+- name: Debug task
+  ansible.builtin.debug:
+    msg: START junos_bgp_global rendered integration tests on connection={{
+      ansible_connection }}
+
+- name: Set facts
+  ansible.builtin.set_fact:
+    expected_rendered_output: '<nc:protocols xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"><nc:bgp><nc:damping/><nc:egress-te-sid-stats/><nc:authentication-algorithm>md5</nc:authentication-algorithm><nc:description>This is configured with Junos_bgp resource module</nc:description><nc:hold-time>5</nc:hold-time><nc:bfd-liveness-detection><nc:transmit-interval><nc:minimum-interval>2</nc:minimum-interval></nc:transmit-interval><nc:minimum-receive-interval>4</nc:minimum-receive-interval><nc:multiplier>10</nc:multiplier><nc:no-adaptation/><nc:version>automatic</nc:version></nc:bfd-liveness-detection><nc:bgp-error-tolerance><nc:malformed-route-limit>20000000</nc:malformed-route-limit></nc:bgp-error-tolerance><nc:bmp><nc:monitor>enable</nc:monitor></nc:bmp></nc:bgp></nc:protocols>'
+
+- name: Render platform specific commands from task input using rendered state
+  register: result
+  junipernetworks.junos.junos_bgp_global:
+    config:
+      authentication_algorithm: "md5"
+      bfd_liveness_detection:
+        minimum_receive_interval: 4
+        multiplier: 10
+        no_adaptation: true
+        transmit_interval:
+          minimum_interval: 2
+        version: "automatic"
+      bgp_error_tolerance:
+        malformed_route_limit: 20000000
+      bmp:
+        monitor: true
+      damping: true
+      description: "This is configured with Junos_bgp resource module"
+      egress_te_sid_stats: true
+      hold_time: 5
+    state: rendered
+
+- name: Assert that correct set of commands were rendered
+  ansible.builtin.assert:
+    that:
+      - "{{ expected_rendered_output == result['rendered'] }}"
+
+- name: Debug task
+  ansible.builtin.debug:
+    msg: END junos_bgp_global rendered integration tests on connection={{
+      ansible_connection }}

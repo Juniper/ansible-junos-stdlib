@@ -1,0 +1,48 @@
+- name: Functional Test - junos_rpc module
+  hosts: all
+  gather_facts: false
+  connection: ansible.netcommon.netconf
+  collections:
+    - junipernetworks.junos
+
+  tasks:
+
+    - name: Collect interface information using RPC
+      junipernetworks.junos.junos_rpc:
+        rpc: get-interface-information
+        args:
+          interface-name: ge-0/0/0 
+          media: true
+      register: interface_info
+
+    - name: Assert interface information RPC returned XML
+      assert:
+        that:
+          - interface_info.xml is defined
+
+    - name: Get system information using RPC
+      junipernetworks.junos.junos_rpc:
+        rpc: get-system-information
+      register: system_info
+
+    - name: Assert system information RPC returned XML
+      assert:
+        that:
+          - system_info.xml is defined
+
+    - name: Load configuration using RPC (requires file on device)
+      junipernetworks.junos.junos_rpc:
+        rpc: load-configuration
+        attrs:
+          action: override
+          format: text
+          url: /tmp/config.conf
+      register: config_load
+      when: false  
+
+    - name: Assert load configuration RPC executed
+      assert:
+        that:
+          - config_load.xml is defined
+      when: false  
+
