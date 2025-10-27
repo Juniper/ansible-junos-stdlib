@@ -1,0 +1,38 @@
+---
+- ansible.builtin.debug:
+    msg: START junos_ospfv3 rendered integration tests on connection={{
+      ansible_connection }}
+
+- ansible.builtin.set_fact:
+    expected_rendered_output: '<nc:protocols xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"><nc:ospf3><nc:area><nc:name>0.0.0.100</nc:name><nc:interface><nc:name>so-0/0/0.0</nc:name><nc:priority>3</nc:priority><nc:flood-reduction/><nc:metric>5</nc:metric><nc:passive/></nc:interface><nc:stub><nc:default-metric>200</nc:default-metric></nc:stub></nc:area><nc:area><nc:name>0.0.0.200</nc:name><nc:interface><nc:name>ge-1/1/0.0</nc:name></nc:interface><nc:interface><nc:name>ge-2/2/0.0</nc:name></nc:interface></nc:area></nc:ospf3></nc:protocols>'
+
+- name: Render platform specific commands from task input using rendered state
+  register: result
+  junipernetworks.junos.junos_ospfv3:
+    config:
+      - router_id: 10.200.16.75
+        areas:
+          - area_id: 0.0.0.100
+            stub:
+              default_metric: 200
+              set: true
+            interfaces:
+              - name: so-0/0/0.0
+                priority: 3
+                metric: 5
+                flood_reduction: true
+                passive: true
+          - area_id: 0.0.0.200
+            interfaces:
+              - name: ge-1/1/0.0
+              - name: ge-2/2/0.0
+    state: rendered
+
+- name: Assert that correct set of commands were rendered
+  ansible.builtin.assert:
+    that:
+      - "{{ expected_rendered_output == result['rendered'] }}"
+
+- ansible.builtin.debug:
+    msg: END junos_ospfv3 rendered integration tests on connection={{
+      ansible_connection }}

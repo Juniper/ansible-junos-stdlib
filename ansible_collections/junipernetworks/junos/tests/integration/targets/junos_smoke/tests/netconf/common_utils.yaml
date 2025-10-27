@@ -1,0 +1,24 @@
+---
+# junos interface -> remove_default_spec() conditional()
+- ansible.builtin.debug: msg="START junos_interface netconf/common_utils.yaml on connection={{ ansible_connection }}"
+
+- name: get facts
+  junos_facts:
+  register: result
+
+- name: Define interface name for vSRX
+  ansible.builtin.set_fact:
+    intf_name: pp0
+  when: result['ansible_facts']['ansible_net_model']  is search("vSRX*")
+
+- name: Define interface name for vsrx
+  ansible.builtin.set_fact:
+    intf_name: pp0
+  when: result['ansible_facts']['ansible_net_model']  is search("vsrx")
+
+- name: Define interface name for vQFX
+  ansible.builtin.set_fact:
+    intf_name: gr-0/0/0
+  when: result['ansible_facts']['ansible_net_model']  is search("vqfx*")
+
+- ansible.builtin.debug: msg="END junos_interface netconf/common_utils.yaml on connection={{ ansible_connection }}"

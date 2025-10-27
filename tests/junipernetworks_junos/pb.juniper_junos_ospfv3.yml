@@ -1,0 +1,88 @@
+- name: Functional Test - junos_ospfv3 module
+  hosts: all
+  gather_facts: false
+  connection: ansible.netcommon.netconf
+
+  tasks:
+    - name: DELETE - Reset before test
+      junipernetworks.junos.junos_ospfv3:
+        config: []
+        state: deleted
+
+    - name: MERGED - Merge Junos OSPFv3 config
+      junipernetworks.junos.junos_ospfv3:
+        config:
+          - router_id: 10.200.16.75
+            areas:
+              - area_id: 0.0.0.100
+                interfaces:
+                  - metric: 5
+                    name: so-0/0/0.0
+                    priority: 3
+                  - metric: 6
+                    name: so-0/0/1.0
+                    priority: 2
+                stub:
+                  default_metric: 200
+                  set: true
+        state: merged
+
+    - name: REPLACED - Replace Junos OSPFv3 config
+      junipernetworks.junos.junos_ospfv3:
+        config:
+          - router_id: 10.200.16.75
+            areas:
+              - area_id: 0.0.0.100
+                interfaces:
+                  - name: so-0/0/0.0
+        state: replaced
+
+    - name: OVERRIDDEN - Override Junos OSPFv3 config
+      junipernetworks.junos.junos_ospfv3:
+        config:
+          - router_id: 10.200.16.75
+            areas:
+              - area_id: 0.0.0.100
+                stub:
+                  default_metric: 200
+                  set: true
+                interfaces:
+                  - name: so-0/0/0.0
+                    priority: 3
+                    metric: 5
+                    flood_reduction: true
+                    passive: true
+              - area_id: 0.0.0.200
+                interfaces:
+                  - name: ge-1/1/0.0
+                  - name: ge-2/2/0.0
+        state: overridden
+
+    - name: GATHERED - Get current OSPFv3 configuration
+      junipernetworks.junos.junos_ospfv3:
+        config: []
+        state: gathered
+      register: gathered_ospfv3
+
+    - name: PARSED - Parse structured config from XML file
+      junipernetworks.junos.junos_ospfv3:
+        running_config: "{{ lookup('file', './parsed_configs/parsed_ospfv3.cfg') }}"
+        state: parsed
+
+    - name: RENDERED - Render OSPFv3 config into XML
+      junipernetworks.junos.junos_ospfv3:
+        config:
+          - router_id: 10.200.16.75
+            areas:
+              - area_id: 0.0.0.100
+                interfaces:
+                  - metric: 5
+                    name: so-0/0/0.0
+                    priority: 3
+                  - metric: 6
+                    name: so-0/0/1.0
+                    priority: 2
+                stub:
+                  default_metric: 200
+                  set: true
+        state: rendered

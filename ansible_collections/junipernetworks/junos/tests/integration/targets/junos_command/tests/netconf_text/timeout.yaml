@@ -1,0 +1,26 @@
+---
+- name: Debug task
+  ansible.builtin.debug:
+    msg="START netconf_text/timeout.yaml on connection={{ ansible_connection
+    }}"
+
+- name: Test bad condition
+  register: result
+  ignore_errors: true
+  junipernetworks.junos.junos_command:
+    commands:
+      - show version
+    wait_for:
+      - result[0] contains bad_value_string
+    display: text
+
+- name: Assertion
+  ansible.builtin.assert:
+    that:
+      - result.failed == true
+      - result.msg is defined
+
+- name: Assertion
+  ansible.builtin.debug:
+    msg="END netconf_text/timeout.yaml on connection={{ ansible_connection
+    }}"

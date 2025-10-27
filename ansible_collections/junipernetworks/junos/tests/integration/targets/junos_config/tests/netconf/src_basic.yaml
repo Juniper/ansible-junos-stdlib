@@ -1,0 +1,96 @@
+---
+- ansible.builtin.debug: msg="START netconf/src_basic.yaml on connection={{ ansible_connection }}"
+
+- name: setup
+  junipernetworks.junos.junos_config:
+    lines:
+      - set system host-name {{ inventory_hostname_short }}
+      - delete interfaces lo0
+
+- name: configure device with text config
+  register: result
+  junipernetworks.junos.junos_config:
+    src: basic/config.j2
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == true
+
+- name: check device with config
+  register: result
+  junipernetworks.junos.junos_config:
+    src: basic/config.j2
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == false
+
+- name: teardown
+  register: result
+  junipernetworks.junos.junos_config:
+    lines:
+      - delete interfaces lo0
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == true
+
+- name: configure device with set config
+  register: result
+  junipernetworks.junos.junos_config:
+    src: basic/config.set
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == true
+      - "'address 192.0.2.1/32' in result.diff.prepared"
+
+- name: check device with config
+  register: result
+  junipernetworks.junos.junos_config:
+    src: basic/config.set
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == false
+
+- name: teardown
+  register: result
+  junipernetworks.junos.junos_config:
+    lines:
+      - delete interfaces lo0
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == true
+
+- name: configure device with xml config
+  register: result
+  junipernetworks.junos.junos_config:
+    src: basic/config.xml
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == true
+      - "'address 192.0.2.1/32' in result.diff.prepared"
+
+- name: check device with config
+  register: result
+  junipernetworks.junos.junos_config:
+    src: basic/config.xml
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == false
+
+- name: teardown
+  register: result
+  junipernetworks.junos.junos_config:
+    lines:
+      - delete interfaces lo0
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == true
+
+- ansible.builtin.debug: msg="END netconf/src_basic.yaml on connection={{ ansible_connection }}"

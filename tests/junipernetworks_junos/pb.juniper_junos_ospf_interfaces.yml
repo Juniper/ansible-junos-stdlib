@@ -1,0 +1,141 @@
+- name: Functional Test - junos_ospf_interfaces module
+  hosts: all
+  gather_facts: false
+  connection: netconf
+  collections:
+    - junipernetworks.junos
+
+  tasks:
+    - name: Pre-clean - Delete existing OSPF interface config
+      junipernetworks.junos.junos_ospf_interfaces:
+        config:
+          - name: "ge-0/0/2.0"
+        state: deleted
+      register: deleted_result
+
+    - name: Assert deleted result
+      assert:
+        that:
+          - deleted_result is succeeded
+
+    - name: Apply OSPF interface config using merged
+      junipernetworks.junos.junos_ospf_interfaces:
+        config:
+          - name: "ge-0/0/2.0"
+            address_family:
+              - afi: "ipv4"
+                processes:
+                  area:
+                    area_id: "0.0.0.2"
+                  metric: 5
+                  priority: 3
+        state: merged
+      register: merged_result
+
+    - name: Assert merged result
+      assert:
+        that:
+          - merged_result.changed == true
+
+    - name: Replace OSPF interface config
+      junipernetworks.junos.junos_ospf_interfaces:
+        config:
+          - name: "ge-0/0/2.0"
+            address_family:
+              - afi: "ipv4"
+                processes:
+                  area:
+                    area_id: "0.0.0.1"
+                  metric: 6
+                  priority: 6
+        state: replaced
+      register: replaced_result
+
+    - name: Assert replaced result
+      assert:
+        that:
+          - replaced_result.changed == true
+
+    - name: Override OSPF interface config
+      junipernetworks.junos.junos_ospf_interfaces:
+        config:
+          - name: so-0/0/0.0
+            router_id: 10.200.16.75
+            address_family:
+              - afi: ipv4
+                processes:
+                  area:
+                    area_id: 0.0.0.110
+                  bandwidth_based_metrics:
+                    - bandwidth: 1g
+                      metric: 5
+                    - bandwidth: 10g
+                      metric: 40
+                  metric: 5
+                  priority: 3
+                  passive: true
+          - name: ge-0/0/2.0
+            router_id: 10.200.16.75
+            address_family:
+              - afi: ipv4
+                processes:
+                  area:
+                    area_id: 0.0.0.3
+                  metric: 7
+                  priority: 4
+        state: overridden
+      register: overridden_result  
+
+
+    - name: Assert overridden result
+      assert:
+        that:
+          - overridden_result.changed == true
+
+    - name: Delete specific OSPF interface config
+      junipernetworks.junos.junos_ospf_interfaces:
+        config:
+          - name: "ge-0/0/1.0"
+        state: deleted
+      register: deleted_specific_result
+
+    - name: Gather OSPF interfaces config
+      junipernetworks.junos.junos_ospf_interfaces:
+        state: gathered
+      register: gathered_result
+
+    - name: Assert gathered result
+      assert:
+        that:
+          - gathered_result.gathered is defined
+
+    - name: Render OSPF interfaces config
+      junipernetworks.junos.junos_ospf_interfaces:
+        config:
+          - name: "ge-0/0/2.0"
+            address_family:
+              - afi: "ipv4"
+                processes:
+                  area:
+                    area_id: "0.0.0.2"
+                  metric: 5
+                  priority: 3
+        state: rendered
+      register: rendered_result
+
+    - name: Assert rendered output
+      assert:
+        that:
+          - rendered_result.rendered is defined
+
+    
+    - name: Parse OSPF interfaces running config
+      junipernetworks.junos.junos_ospf_interfaces:
+        running_config: "{{ lookup('file', 'parsed_configs/parsed_ospf_interfaces.cfg') }}"
+        state: parsed
+      register: parsed_result
+
+    - name: Assert parsed output
+      assert:
+        that:
+          - parsed_result.parsed is defined

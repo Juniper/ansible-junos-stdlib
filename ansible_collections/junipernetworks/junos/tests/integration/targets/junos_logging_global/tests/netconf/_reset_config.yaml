@@ -1,0 +1,12 @@
+---
+- ansible.builtin.debug:
+    msg: "START junos_logging_global reset config on connection={{ ansible_connection }}"
+
+- name: Reset the config releavent to logging global resource
+  junipernetworks.junos.junos_config:
+    lines:
+      - delete system syslog
+      - delete routing-instances
+
+- ansible.builtin.debug:
+    msg: "END junos_logging_global reset config on connection={{ ansible_connection }}"

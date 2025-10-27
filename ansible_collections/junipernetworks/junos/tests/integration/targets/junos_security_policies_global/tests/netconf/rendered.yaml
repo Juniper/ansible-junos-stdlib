@@ -1,0 +1,44 @@
+---
+- ansible.builtin.debug:
+    msg:
+      START junos_security_policies_global rendered integration tests on connection={{
+      ansible_connection }}
+
+- ansible.builtin.set_fact:
+    expected_rendered_output: '<nc:security xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"><nc:policies><nc:default-policy><nc:permit-all/></nc:default-policy><nc:policy-rematch> <nc:extensive/></nc:policy-rematch><nc:policy-stats> <nc:system-wide>enable</nc:system-wide></nc:policy-stats><nc:pre-id-default-policy><nc:then><nc:log><nc:session-close/></nc:log><nc:session-timeout><nc:icmp>10</nc:icmp><nc:others>10</nc:others></nc:session-timeout></nc:then></nc:pre-id-default-policy><nc:traceoptions><nc:file><nc:files>3</nc:files><nc:match>/[A-Z]*/gm</nc:match><nc:size>10k</nc:size><nc:no-world-readable/></nc:file><nc:no-remote-trace/></nc:traceoptions></nc:policies></nc:security>'
+
+- name: Render platform specific commands from task input using rendered state
+  register: result
+  junipernetworks.junos.junos_security_policies_global:
+    config:
+      default_policy: permit-all
+      policy_rematch:
+        enable: true
+        extensive: true
+      policy_stats:
+        enable: true
+        system_wide: true
+      pre_id_default_policy_action:
+        log:
+          session_close: true
+        session_timeout:
+          icmp: 10
+          others: 10
+      traceoptions:
+        file:
+          files: 3
+          match: "/[A-Z]*/gm"
+          no_world_readable: true
+          size: 10k
+        no_remote_trace: true
+    state: rendered
+
+- name: Assert that correct set of commands were rendered
+  ansible.builtin.assert:
+    that:
+      - "{{ expected_rendered_output == result['rendered'] }}"
+
+- ansible.builtin.debug:
+    msg:
+      END junos_security_policies_global rendered integration tests on connection={{
+      ansible_connection }}

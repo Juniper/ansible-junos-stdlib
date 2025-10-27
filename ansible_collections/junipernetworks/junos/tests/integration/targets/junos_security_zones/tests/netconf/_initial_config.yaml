@@ -1,0 +1,18 @@
+---
+- ansible.builtin.debug:
+    msg: "START junos_security_zones initial config on connection={{ ansible_connection }}"
+
+- name: Configure basic config relevant to security zones
+  junipernetworks.junos.junos_config:
+    lines:
+      - set security screen ids-option test_screen ip block-frag
+      - set interfaces ge-0/0/1 unit 0 family inet address 200.0.0.1/24
+      - set interfaces ge-0/0/2 unit 0 family inet address 201.0.0.1/24
+      - set interfaces ge-0/0/3 unit 0 family inet address 202.0.0.1/24
+      - set interfaces ge-0/0/4 unit 0 family inet address 204.0.0.1/24
+      - set security advance-policy-based-routing profile test_profile rule test_rule match category Enhanced_Bandwidth
+      - set routing-instances test_inst instance-type forwarding
+      - set security advance-policy-based-routing profile test_profile rule test_rule then routing-instance test_inst
+
+- ansible.builtin.debug:
+    msg: "END junos_security_zones initial config on connection={{ ansible_connection }}"

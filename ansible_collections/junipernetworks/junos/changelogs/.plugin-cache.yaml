@@ -1,0 +1,226 @@
+objects:
+  role: {}
+plugins:
+  become: {}
+  cache: {}
+  callback: {}
+  cliconf:
+    junos:
+      description: Use junos cliconf to run command on Juniper Junos OS platform
+      name: junos
+      version_added: 1.0.0
+  connection: {}
+  filter: {}
+  httpapi: {}
+  inventory: {}
+  lookup: {}
+  module:
+    junos_acl_interfaces:
+      description: ACL interfaces resource module
+      name: junos_acl_interfaces
+      namespace: ""
+      version_added: 1.0.0
+    junos_acls:
+      description: ACLs resource module
+      name: junos_acls
+      namespace: ""
+      version_added: 1.0.0
+    junos_banner:
+      description: Manage multiline banners on Juniper JUNOS devices
+      name: junos_banner
+      namespace: ""
+      version_added: 1.0.0
+    junos_bgp_address_family:
+      description: Manage BGP Address Family attributes of interfaces on Junos devices.
+      name: junos_bgp_address_family
+      namespace: ""
+      version_added: 1.3.0
+    junos_bgp_global:
+      description: Manages BGP Global configuration on devices running Juniper JUNOS.
+      name: junos_bgp_global
+      namespace: ""
+      version_added: 1.3.0
+    junos_command:
+      description: Run arbitrary commands on an Juniper JUNOS device
+      name: junos_command
+      namespace: ""
+      version_added: 1.0.0
+    junos_config:
+      description: Manage configuration on devices running Juniper JUNOS
+      name: junos_config
+      namespace: ""
+      version_added: 1.0.0
+    junos_facts:
+      description: Collect facts from remote devices running Juniper Junos
+      name: junos_facts
+      namespace: ""
+      version_added: 1.0.0
+    junos_hostname:
+      description: Manage Hostname server configuration on Junos devices.
+      name: junos_hostname
+      namespace: ""
+      version_added: 2.9.0
+    junos_interfaces:
+      description: Junos Interfaces resource module
+      name: junos_interfaces
+      namespace: ""
+      version_added: 1.0.0
+    junos_l2_interfaces:
+      description: L2 interfaces resource module
+      name: junos_l2_interfaces
+      namespace: ""
+      version_added: 1.0.0
+    junos_l3_interfaces:
+      description: L3 interfaces resource module
+      name: junos_l3_interfaces
+      namespace: ""
+      version_added: 1.0.0
+    junos_lacp:
+      description:
+        Global Link Aggregation Control Protocol (LACP) Junos resource
+        module
+      name: junos_lacp
+      namespace: ""
+      version_added: 1.0.0
+    junos_lacp_interfaces:
+      description: LACP interfaces resource module
+      name: junos_lacp_interfaces
+      namespace: ""
+      version_added: 1.0.0
+    junos_lag_interfaces:
+      description: Link Aggregation Juniper JUNOS resource module
+      name: junos_lag_interfaces
+      namespace: ""
+      version_added: 1.0.0
+    junos_lldp_global:
+      description: LLDP resource module
+      name: junos_lldp_global
+      namespace: ""
+      version_added: 1.0.0
+    junos_lldp_interfaces:
+      description: LLDP interfaces resource module
+      name: junos_lldp_interfaces
+      namespace: ""
+      version_added: 1.0.0
+    junos_logging_global:
+      description: Manage logging configuration on Junos devices.
+      name: junos_logging_global
+      namespace: ""
+      version_added: 2.4.0
+    junos_netconf:
+      description: Configures the Junos Netconf system service
+      name: junos_netconf
+      namespace: ""
+      version_added: 1.0.0
+    junos_ntp_global:
+      description: Manage NTP configuration on Junos devices.
+      name: junos_ntp_global
+      namespace: ""
+      version_added: 2.6.0
+    junos_ospf_interfaces:
+      description: OSPF Interfaces Resource Module.
+      name: junos_ospf_interfaces
+      namespace: ""
+      version_added: 1.3.0
+    junos_ospfv2:
+      description: OSPFv2 resource module
+      name: junos_ospfv2
+      namespace: ""
+      version_added: 1.0.0
+    junos_ospfv3:
+      description: OSPFv3 resource module
+      name: junos_ospfv3
+      namespace: ""
+      version_added: 1.2.0
+    junos_package:
+      description: Installs packages on remote devices running Junos
+      name: junos_package
+      namespace: ""
+      version_added: 1.0.0
+    junos_ping:
+      description: Tests reachability using ping from devices running Juniper JUNOS
+      name: junos_ping
+      namespace: ""
+      version_added: 1.0.0
+    junos_prefix_lists:
+      description: Manage prefix-lists attributes of interfaces on Junos devices.
+      name: junos_prefix_lists
+      namespace: ""
+      version_added: 2.1.0
+    junos_routing_instances:
+      description: Manage routing instances on Junos devices.
+      name: junos_routing_instances
+      namespace: ""
+      version_added: 2.1.0
+    junos_routing_options:
+      description: Manage routing-options configuration on Junos devices.
+      name: junos_routing_options
+      namespace: ""
+      version_added: 2.8.0
+    junos_rpc:
+      description: Runs an arbitrary RPC over NetConf on an Juniper JUNOS device
+      name: junos_rpc
+      namespace: ""
+      version_added: 1.0.0
+    junos_scp:
+      description: Transfer files from or to remote devices running Junos
+      name: junos_scp
+      namespace: ""
+      version_added: 1.0.0
+    junos_security_policies:
+      description: Create and manage security policies on Juniper JUNOS devices
+      name: junos_security_policies
+      namespace: ""
+      version_added: 2.9.0
+    junos_security_policies_global:
+      description: Manage global security policy settings on Juniper JUNOS devices
+      name: junos_security_policies_global
+      namespace: ""
+      version_added: 2.9.0
+    junos_security_zones:
+      description: Manage security zones on Juniper JUNOS devices
+      name: junos_security_zones
+      namespace: ""
+      version_added: 2.9.0
+    junos_snmp_server:
+      description: Manage SNMP server configuration on Junos devices.
+      name: junos_snmp_server
+      namespace: ""
+      version_added: 2.9.0
+    junos_static_routes:
+      description: Static routes resource module
+      name: junos_static_routes
+      namespace: ""
+      version_added: 1.0.0
+    junos_system:
+      description: Manage the system attributes on Juniper JUNOS devices
+      name: junos_system
+      namespace: ""
+      version_added: 1.0.0
+    junos_user:
+      description: Manage local user accounts on Juniper JUNOS devices
+      name: junos_user
+      namespace: ""
+      version_added: 1.0.0
+    junos_vlans:
+      description: VLANs resource module
+      name: junos_vlans
+      namespace: ""
+      version_added: 1.0.0
+    junos_vrf:
+      description: Manage the VRF definitions on Juniper JUNOS devices
+      name: junos_vrf
+      namespace: ""
+      version_added: 1.0.0
+  netconf:
+    junos:
+      description:
+        Use junos netconf plugin to run netconf commands on Juniper JUNOS
+        platform
+      name: junos
+      version_added: 1.0.0
+  shell: {}
+  strategy: {}
+  test: {}
+  vars: {}
+version: 9.1.0

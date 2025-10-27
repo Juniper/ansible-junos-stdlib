@@ -1,0 +1,78 @@
+---
+- ansible.builtin.debug:
+    msg: "START junos_prefix_lists deleted integration tests on connection={{ ansible_connection }}"
+
+- block:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+    - ansible.builtin.set_fact:
+        expected_deleted_output:
+          - dynamic_db: true
+            name: Test1
+
+    - name: Merge the provided configuration with the exisiting running configuration
+      junipernetworks.junos.junos_prefix_lists: &merged
+        config:
+          - name: Internal
+            address_prefixes:
+              - 172.16.1.16/28
+              - 172.16.1.32/28
+          - name: Test1
+            dynamic_db: true
+          - name: Test2
+            address_prefixes:
+              - 172.16.2.16/28
+              - 172.16.2.32/28
+              - 172.16.2.48/28
+        state: merged
+
+    - name: Delete existing prefix list configuration identified with name
+      junipernetworks.junos.junos_prefix_lists: &deleted
+        config:
+          - name: Test2
+          - name: Internal
+        state: deleted
+      register: result
+
+    - name: Assert configuration
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ expected_deleted_output | symmetric_difference(result['after']) |length\
+            \ == 0 }}"
+
+    - name: Delete the existing running configuration (IDEMPOTENT)
+      junipernetworks.junos.junos_prefix_lists: *deleted
+      register: result
+
+    - name: Assert that the previous task was idempotent
+      ansible.builtin.assert:
+        that:
+          - result.changed == False
+
+    - ansible.builtin.set_fact:
+        expected_deleted_output: []
+
+    - name: Merge the existing config with provided configuration
+      junipernetworks.junos.junos_prefix_lists: *merged
+      register: result
+
+    - name: Delete complete existing bgp address family configuration
+      junipernetworks.junos.junos_prefix_lists: &deleted_res
+        config:
+        state: deleted
+      register: result
+
+    - name: Assert configuration
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ expected_deleted_output | symmetric_difference(result['after']) |length\
+            \ == 0 }}"
+
+  tags: deleted
+  always:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+- ansible.builtin.debug:
+    msg: "END junos_prefix_lists deleted integration tests on connection={{ ansible_connection }}"

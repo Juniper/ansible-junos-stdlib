@@ -1,0 +1,12 @@
+---
+- ansible.builtin.debug:
+    msg: "START junos_logging_global initial config on connection={{ ansible_connection }}"
+
+- name: Configure basic config relevant to logging global
+  junipernetworks.junos.junos_config:
+    lines:
+      - set routing-instances inst11 instance-type virtual-router
+      - set routing-instances inst11 description "inst11"
+
+- ansible.builtin.debug:
+    msg: "END junos_logging_global initial config on connection={{ ansible_connection }}"

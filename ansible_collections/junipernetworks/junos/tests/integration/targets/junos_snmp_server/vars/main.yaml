@@ -1,0 +1,101 @@
+---
+merged:
+  before: {}
+  after:
+    arp:
+      host_name_resolution: true
+    client_lists:
+      - addresses:
+          - address: "192.16.1.0/24"
+          - address: "192.16.2.0/24"
+          - address: "11.11.11.11/32"
+            restrict: true
+        name: "cl1"
+      - addresses:
+          - address: "192.16.4.0/24"
+        name: "cl2"
+    routing_instance_access:
+      access_lists:
+        - "clv1"
+        - "clv2"
+
+  updated:
+    arp:
+      host_name_resolution: true
+    client_lists:
+      - addresses:
+          - address: "192.16.1.0/24"
+          - address: "192.16.2.0/24"
+          - address: "11.11.11.11/32"
+            restrict: true
+        name: "cl1"
+      - addresses:
+          - address: "192.16.4.0/24"
+        name: "cl2"
+    communities:
+      - clients:
+          - address: "24.0.0.0/32"
+            restrict: true
+          - address: "30.0.0.0/32"
+            restrict: true
+        name: "comm1"
+        routing_instances:
+          - clients:
+              - address: "13.13.13.13/24"
+                restrict: true
+              - address: "24.0.0.0/32"
+              - address: "30.0.0.0/32"
+            name: "clv1"
+          - clients:
+              - address: "15.15.15.15/24"
+            name: "clv2"
+    routing_instance_access:
+      access_lists:
+        - "clv1"
+        - "clv2"
+gathered:
+  facts:
+    arp:
+      host_name_resolution: true
+    client_lists:
+      - addresses:
+          - address: "192.16.1.0/24"
+          - address: "192.16.2.0/24"
+          - address: "11.11.11.11/32"
+            restrict: true
+        name: "cl1"
+      - addresses:
+          - address: "192.16.4.0/24"
+        name: "cl2"
+    communities:
+      - authorization: "read-write"
+        clients:
+          - address: "24.0.0.0/32"
+            restrict: true
+          - address: "30.0.0.0/32"
+            restrict: true
+        name: "comm1"
+      - name: "comm2"
+    routing_instance_access:
+      access_lists:
+        - "clv1"
+        - "clv2"
+
+replaced:
+  after:
+    contact: "ansiblesupport11@redhat.com"
+    customization:
+      ether_stats_ifd_only: true
+    description: "Local SNMP Server"
+    engine_id:
+      use_mac_address: true
+    filter_duplicates: true
+    filter_interfaces:
+      all_internal_interfaces: true
+      interfaces:
+        - "eth1"
+        - "eth2"
+    views:
+      - name: "all"
+        oids:
+          - oid: ".1"

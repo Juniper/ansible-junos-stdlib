@@ -1,0 +1,44 @@
+- name: Functional Test - junos_facts module
+  hosts: all
+  gather_facts: false
+  connection: netconf
+  collections:
+    - juniper.device
+
+  tasks:
+    - name: Collect default set of facts (min)
+      juniper.device.junos_facts:
+      register: default_facts
+
+    - name: Assert default facts gathered
+      assert:
+        that:
+          - default_facts.ansible_facts is defined
+          - default_facts.ansible_facts.ansible_net_model is defined
+          - default_facts.ansible_facts.ansible_net_hostname is defined
+
+    - name: Collect full facts including config and interfaces
+      juniper.device.junos_facts:
+        gather_subset:
+          - all
+      register: full_facts
+
+    - name: Assert full facts gathered
+      assert:
+        that:
+          - full_facts.ansible_facts.ansible_net_interfaces is defined
+          - full_facts.ansible_facts.ansible_net_config is defined
+
+    - name: Collect hardware and config with text format
+      juniper.device.junos_facts:
+        gather_subset:
+          - hardware
+          - config
+        config_format: text
+      register: hw_config_facts
+
+    - name: Assert hardware and config facts gathered
+      assert:
+        that:
+          - hw_config_facts.ansible_facts.ansible_net_config is defined
+          - "'system' in hw_config_facts.ansible_facts.ansible_net_config"

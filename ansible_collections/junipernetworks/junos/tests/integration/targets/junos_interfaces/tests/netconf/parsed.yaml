@@ -1,0 +1,42 @@
+---
+- ansible.builtin.debug:
+    msg:
+      START junos_interfaces parsed integration tests on connection={{ ansible_connection
+      }}
+
+- ansible.builtin.set_fact:
+    expected_parsed_output:
+      - description: Configured by Ansible
+        duplex: full-duplex
+        enabled: false
+        hold_time:
+          down: 2200
+          up: 2000
+        mtu: 1024
+        name: ge-0/0/1
+        speed: 100m
+
+      - description: Configured by Ansible
+        enabled: true
+        hold_time:
+          down: 3200
+          up: 3000
+        mtu: 2048
+        name: ge-0/0/2
+        speed: 10m
+
+- name: Parse externally provided interfaces config to agnostic model
+  register: result
+  junipernetworks.junos.junos_interfaces:
+    running_config: "{{ lookup('file', './fixtures/parsed.cfg') }}"
+    state: parsed
+
+- name: Assert that config was correctly parsed
+  ansible.builtin.assert:
+    that:
+      - "{{ expected_parsed_output | symmetric_difference(result['parsed']) |length ==\
+        \ 0 }}"
+- ansible.builtin.debug:
+    msg:
+      END junos_interfaces parsed integration tests on connection={{ ansible_connection
+      }}

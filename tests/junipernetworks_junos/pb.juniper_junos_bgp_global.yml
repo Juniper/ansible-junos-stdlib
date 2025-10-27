@@ -1,0 +1,124 @@
+- name: Functional Test - junos_bgp_global
+  hosts: all
+  connection: netconf
+  gather_facts: false
+
+  tasks:
+
+    - name: MERGED - Merge provided bgp config
+      junipernetworks.junos.junos_bgp_global:
+        config:
+          as_number: "65534"
+          loops: 3
+          asdot_notation: true
+          accept_remote_nexthop: true
+          add_path_display_ipv4_address: true
+          advertise_from_main_vpn_tables: true
+          advertise_inactive: true
+          bgp_error_tolerance:
+            malformed_route_limit: 20000000
+          bmp:
+            monitor: true
+          damping: true
+          description: "This is configured with Junos_bgp resource module"
+          egress_te_sid_stats: true
+          hold_time: 5
+          holddown_all_stale_labels: true
+          include_mp_next_hop: true
+          log_updown: true
+          no_advertise_peer_as: true
+          no_aggregator_id: true
+          no_client_reflect: true
+          out_delay: 10
+          precision_timers: true
+          preference: 2
+        state: merged
+
+    - name: REPLACED - Replace bgp config
+      junipernetworks.junos.junos_bgp_global:
+        config:
+          advertise_inactive: true
+          bfd_liveness_detection:
+            minimum_receive_interval: 8
+            multiplier: 30
+            no_adaptation: true
+            transmit_interval:
+              minimum_interval: 4
+            version: "automatic"
+          bgp_error_tolerance:
+            malformed_route_limit: 40000000
+          description: "Replace running bgp config"
+          egress_te_sid_stats: true
+          hold_time: 5
+          out_delay: 10
+          preference: "2"
+        state: replaced
+
+    - name: OVERRIDDEN - Override running config
+      junipernetworks.junos.junos_bgp_global:
+        config:
+          advertise_inactive: true
+          bfd_liveness_detection:
+            minimum_receive_interval: 8
+            multiplier: 30
+            no_adaptation: true
+            transmit_interval:
+              minimum_interval: 4
+            version: "automatic"
+          bgp_error_tolerance:
+            malformed_route_limit: 40000000
+          description: "Replace running bgp config"
+          egress_te_sid_stats: true
+          hold_time: 5
+          out_delay: 10
+          preference: "2"
+        state: overridden
+
+    - name: GATHERED - Gather bgp global facts
+      junipernetworks.junos.junos_bgp_global:
+        config:
+        state: gathered
+
+    - name: RENDERED - Render configuration into XML
+      junipernetworks.junos.junos_bgp_global:
+        config:
+          as_number: "65534"
+          loops: 3
+          asdot_notation: true
+          accept_remote_nexthop: true
+          add_path_display_ipv4_address: true
+          advertise_from_main_vpn_tables: true
+          advertise_inactive: true
+          bgp_error_tolerance:
+            malformed_route_limit: 20000000
+          bmp:
+            monitor: true
+          damping: true
+          description: "This is configured with Junos_bgp resource module"
+          egress_te_sid_stats: true
+          hold_time: 5
+          holddown_all_stale_labels: true
+          include_mp_next_hop: true
+          log_updown: true
+          no_advertise_peer_as: true
+          no_aggregator_id: true
+          no_client_reflect: true
+          out_delay: 10
+          precision_timers: true
+          preference: 2
+        state: rendered
+
+    - name: PARSED - Parse the device config into facts
+      junipernetworks.junos.junos_bgp_global:
+        running_config: "{{ lookup('file', './parsed_configs/parsed_bgp_global.cfg') }}"
+        state: parsed
+
+    - name: DELETED - Delete the bgp config
+      junipernetworks.junos.junos_bgp_global:
+        config:
+        state: deleted
+
+    - name: PURGED - Purge the bgp config
+      junipernetworks.junos.junos_bgp_global:
+        config:
+        state: purged
