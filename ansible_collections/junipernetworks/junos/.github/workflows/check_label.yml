@@ -1,0 +1,11 @@
+---
+name: "Check label"
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+on:  # yamllint disable-line rule:truthy
+  pull_request_target:
+    types: [opened, labeled, unlabeled, synchronize]
+jobs:
+  check_label:
+    uses: ansible/ansible-content-actions/.github/workflows/check_label.yaml@main

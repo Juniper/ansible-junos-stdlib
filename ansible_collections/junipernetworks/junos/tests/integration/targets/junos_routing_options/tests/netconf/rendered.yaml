@@ -1,0 +1,27 @@
+---
+- ansible.builtin.debug:
+    msg: START junos_routing_options rendered integration tests on connection={{
+      ansible_connection }}
+
+- ansible.builtin.set_fact:
+    expected_rendered_output: '<nc:routing-options xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"><nc:autonomous-system>2<nc:loops>4</nc:loops><nc:asdot-notation/></nc:autonomous-system><nc:router-id>12.12.12.12</nc:router-id></nc:routing-options>'
+
+- name: Render platform specific commands from task input using rendered state
+  register: result
+  junipernetworks.junos.junos_routing_options:
+    config:
+      autonomous_system:
+        as_number: 2
+        asdot_notation: true
+        loops: 4
+      router_id: 12.12.12.12
+    state: rendered
+
+- name: Assert that correct set of commands were rendered
+  ansible.builtin.assert:
+    that:
+      - "{{ expected_rendered_output == result['rendered'] }}"
+
+- ansible.builtin.debug:
+    msg: END junos_routing_options rendered integration tests on connection={{
+      ansible_connection }}

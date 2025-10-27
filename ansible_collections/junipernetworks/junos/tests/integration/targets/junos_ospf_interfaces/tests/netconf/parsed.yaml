@@ -1,0 +1,57 @@
+---
+- ansible.builtin.debug:
+    msg:
+      START junos_ospf_interfaces parsed integration tests on connection={{ ansible_connection
+      }}
+
+- ansible.builtin.set_fact:
+    expected_parsed_output:
+      - address_family:
+          - afi: "ipv4"
+            processes:
+              area:
+                area_id: "0.0.0.2"
+              metric: 5
+              priority: 3
+        name: "ge-0/0/2.0"
+
+- name: Parse externally provided interfaces config to agnostic model
+  register: result
+  junipernetworks.junos.junos_ospf_interfaces:
+    running_config: "{{ lookup('file', './fixtures/parsed.cfg') }}"
+    state: parsed
+
+- name: Assert that config was correctly parsed
+  ansible.builtin.assert:
+    that:
+      - "{{ expected_parsed_output | symmetric_difference(result['parsed']) |length ==\
+        \ 0 }}"
+
+- ansible.builtin.set_fact:
+    expected_parsed_output:
+      - address_family:
+          - afi: "ipv4"
+            processes:
+              area:
+                area_id: "0.0.0.2"
+              metric: 5
+              priority: 3
+        name: "ge-0/0/2.0"
+        router_id: "10.200.16.75"
+
+- name: Parse externally provided interfaces config to agnostic model
+  register: result
+  junipernetworks.junos.junos_ospf_interfaces:
+    running_config: "{{ lookup('file', './fixtures/parse_ospf_router_id.cfg') }}"
+    state: parsed
+
+- name: Assert that config was correctly parsed
+  ansible.builtin.assert:
+    that:
+      - "{{ expected_parsed_output | symmetric_difference(result['parsed']) |length ==\
+        \ 0 }}"
+
+- ansible.builtin.debug:
+    msg:
+      END junos_ospf_interfaces parsed integration tests on connection={{ ansible_connection
+      }}

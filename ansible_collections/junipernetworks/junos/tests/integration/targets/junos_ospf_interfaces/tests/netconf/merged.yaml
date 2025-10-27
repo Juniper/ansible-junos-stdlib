@@ -1,0 +1,175 @@
+---
+- ansible.builtin.debug:
+    msg: "START junos_ospf_interfaces merged integration tests on connection={{ ansible_connection }}"
+
+- block:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+    - ansible.builtin.set_fact:
+        expected_config:
+          - address_family:
+              - afi: "ipv4"
+                processes:
+                  area:
+                    area_id: "0.0.0.100"
+                  authentication:
+                    md5:
+                      - key_id: 56
+                        key_value: "VALUE_SPECIFIED_IN_NO_LOG_PARAMETER"
+                        start_time: "2023-7-1.02:00:00 +0000"
+                      - key_id: 50
+                        key_value: "VALUE_SPECIFIED_IN_NO_LOG_PARAMETER"
+                      - key_id: 40
+                        key_value: "VALUE_SPECIFIED_IN_NO_LOG_PARAMETER"
+                  bandwidth_based_metrics:
+                    - bandwidth: "1g"
+                      metric: 5
+                    - bandwidth: "10g"
+                      metric: 40
+                  dead_interval: 4
+                  demand_circuit: true
+                  hello_interval: 2
+                  metric: 5
+                  no_advertise_adjacency_segment: true
+                  no_eligible_backup: true
+                  no_eligible_remote_backup: true
+                  no_interface_state_traps: true
+                  no_neighbor_down_notification: true
+                  node_link_protection: true
+                  passive: true
+                  poll_interval: 2
+                  priority: 3
+                  retransmit_interval: 2
+            name: "so-0/0/0.0"
+            router_id: "10.200.16.75"
+          - address_family:
+              - afi: "ipv4"
+                processes:
+                  area:
+                    area_id: "0.0.0.200"
+                  authentication:
+                    simple_password: "VALUE_SPECIFIED_IN_NO_LOG_PARAMETER"
+                  priority: 3
+            name: "so-0/1/0.0"
+            router_id: "10.200.16.75"
+          - address_family:
+              - afi: "ipv4"
+                processes:
+                  area:
+                    area_id: "0.0.0.200"
+                  authentication:
+                    md5:
+                      - key_id: 10
+                        key_value: "VALUE_SPECIFIED_IN_NO_LOG_PARAMETER"
+                        start_time: "2023-7-12.03:00:00 +0000"
+                  priority: 2
+            name: "so-0/2/0.0"
+            router_id: "10.200.16.75"
+          - address_family:
+              - afi: "ipv4"
+                processes:
+                  area:
+                    area_id: "0.0.0.120"
+                  authentication:
+                    md5:
+                      - key_id: 10
+                        key_value: "VALUE_SPECIFIED_IN_NO_LOG_PARAMETER"
+                        start_time: "2023-7-12.03:00:00 +0000"
+                  priority: 2
+            name: so-0/2/0.1
+            router_id: "10.200.16.75"
+
+    - name: Merge the provided configuration with the exisiting running configuration
+      junipernetworks.junos.junos_ospf_interfaces: &merged
+        config:
+          - address_family:
+              - afi: ipv4
+                processes:
+                  area:
+                    area_id: 0.0.0.100
+                  authentication:
+                    md5:
+                      - key_id: "56"
+                        key_value: ansible56
+                        start_time: 2023-7-1.02:00:00 +0000
+                      - key_id: "50"
+                        key_value: ansible50
+                      - key_id: "40"
+                        key_value: ansible40
+                  bandwidth_based_metrics:
+                    - bandwidth: 1g
+                      metric: 5
+                    - bandwidth: 10g
+                      metric: 40
+                  dead_interval: 4
+                  hello_interval: 2
+                  metric: 5
+                  passive: true
+                  poll_interval: 2
+                  priority: 3
+                  retransmit_interval: 2
+                  no_advertise_adjacency_segment: true
+                  node_link_protection: true
+                  no_neighbor_down_notification: true
+                  no_interface_state_traps: true
+                  no_eligible_remote_backup: true
+                  no_eligible_backup: true
+                  demand_circuit: true
+            name: so-0/0/0.0
+            router_id: 10.200.16.75
+          - address_family:
+              - afi: ipv4
+                processes:
+                  area:
+                    area_id: 0.0.0.200
+                  authentication:
+                    simple_password: simple
+                  priority: 3
+            name: so-0/1/0.0
+            router_id: 10.200.16.75
+          - address_family:
+              - afi: ipv4
+                processes:
+                  area:
+                    area_id: 0.0.0.200
+                  authentication:
+                    md5:
+                      - key_id: "10"
+                        key_value: ansible10
+                        start_time: 2023-7-12.03:00:00 +0000
+                  priority: 2
+            name: so-0/2/0.0
+            router_id: 10.200.16.75
+          - address_family:
+              - afi: ipv4
+                processes:
+                  area:
+                    area_id: 0.0.0.120
+                  authentication:
+                    md5:
+                      - key_id: "10"
+                        key_value: ansible10
+                        start_time: 2023-7-12.03:00:00 +0000
+                  priority: 2
+            name: so-0/2/0.1
+            router_id: 10.200.16.75
+        state: merged
+      register: result
+
+    - name: Assert the configuration is reflected on host
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ expected_config | symmetric_difference(result['after']) |length\
+            \ == 0 }}"
+
+    - name: Merge the provided configuration with the existing running configuration (IDEMPOTENT)
+      junipernetworks.junos.junos_ospf_interfaces: *merged
+      register: result
+
+  tags: merged
+  always:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+- ansible.builtin.debug:
+    msg: "END junos_ospf_interfaces merged integration tests on connection={{ ansible_connection }}"

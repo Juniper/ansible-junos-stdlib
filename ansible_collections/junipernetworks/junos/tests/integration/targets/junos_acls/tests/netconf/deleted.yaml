@@ -1,0 +1,166 @@
+---
+- name: Debug task
+  ansible.builtin.debug:
+    msg: "START junos_acls deleted integration tests on connection={{ ansible_connection }}"
+
+- block:
+    - name: Reset config
+      ansible.builtin.include_tasks: _reset_config.yaml
+
+    - name: Set facts
+      ansible.builtin.set_fact:
+        config:
+          - acls:
+              - aces:
+                  - name: ten_dot
+                    source:
+                      address: 10.0.0.0/8
+                      port_protocol:
+                        eq: bgp
+                    protocol: tcp
+                name: initial_acl
+              - aces:
+                  - name: twelve_dot
+                    source:
+                      address: 12.0.0.0/8
+                      port_protocol:
+                        eq: bgp
+                    protocol: tcp
+                name: second_acl
+              - aces:
+                  - name: thirteen_dot
+                    source:
+                      address:
+                        - 13.0.0.0/16
+                        - 13.1.0.0/16
+                      port_protocol:
+                        eq: bgp
+                    protocol: tcp
+                name: third_acl
+            afi: ipv4
+          - acls:
+              - aces:
+                  - name: colon_eleven
+                    source:
+                      address: ::11/128
+                      port_protocol:
+                        eq: "631"
+                name: initial_acl6
+            afi: ipv6
+
+    - name: Delete a single ACE
+      junipernetworks.junos.junos_acls:
+        config:
+          - afi: ipv4
+            acls:
+              - name: initial_acl
+                aces:
+                  - name: eleven_dot
+        state: deleted
+      register: result
+
+    - name: Assert changed
+      ansible.builtin.assert: &changed
+        that:
+          - result.changed == True
+          - "{{ config|symmetric_difference(result.after) == [] }}"
+
+    - name: Set facts
+      ansible.builtin.set_fact:
+        config:
+          - acls:
+              - aces:
+                  - name: ten_dot
+                    source:
+                      address: 10.0.0.0/8
+                      port_protocol:
+                        eq: bgp
+                    protocol: tcp
+                name: initial_acl
+              - aces:
+                  - name: thirteen_dot
+                    source:
+                      address:
+                        - 13.0.0.0/16
+                        - 13.1.0.0/16
+                      port_protocol:
+                        eq: bgp
+                    protocol: tcp
+                name: third_acl
+            afi: ipv4
+          - acls:
+              - aces:
+                  - name: colon_eleven
+                    source:
+                      address: ::11/128
+                      port_protocol:
+                        eq: "631"
+                name: initial_acl6
+            afi: ipv6
+
+    - name: Delete a whole ACL
+      junipernetworks.junos.junos_acls:
+        config:
+          - afi: ipv4
+            acls:
+              - name: second_acl
+        state: deleted
+      register: result
+
+    - name: Assert changed
+      ansible.builtin.assert: *changed
+
+    - name: Set facts
+      ansible.builtin.set_fact:
+        config:
+          - acls:
+              - aces:
+                  - name: ten_dot
+                    source:
+                      address: 10.0.0.0/8
+                      port_protocol:
+                        eq: bgp
+                    protocol: tcp
+                name: initial_acl
+              - aces:
+                  - name: thirteen_dot
+                    source:
+                      address:
+                        - 13.0.0.0/16
+                        - 13.1.0.0/16
+                      port_protocol:
+                        eq: bgp
+                    protocol: tcp
+                name: third_acl
+            afi: ipv4
+
+    - name: Delete all ACLs under one AFI
+      junipernetworks.junos.junos_acls:
+        config:
+          - afi: ipv6
+        state: deleted
+      register: result
+
+    - name: Assert changed
+      ansible.builtin.assert: *changed
+
+    - name: Set facts
+      ansible.builtin.set_fact:
+        config: []
+
+    - name: Delete all ACLs from the device
+      junipernetworks.junos.junos_acls:
+        state: deleted
+      register: result
+
+    - name: Assert changed
+      ansible.builtin.assert: *changed
+
+  tags: deleted
+  always:
+    - name: Reset configuration
+      ansible.builtin.include_tasks: _reset_config.yaml
+
+- name: Debug task
+  ansible.builtin.debug:
+    msg: "END junos_acls deleted integration tests on connection={{ ansible_connection }}"

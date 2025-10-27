@@ -1,0 +1,31 @@
+---
+- ansible.builtin.debug:
+    msg: START junos_ospf_interfaces rendered integration tests on connection={{
+      ansible_connection }}
+
+- ansible.builtin.set_fact:
+    expected_rendered_output: '<nc:protocols xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"><nc:ospf><nc:area><nc:name>0.0.0.2</nc:name><nc:interface><nc:name>ge-0/0/2.0</nc:name><nc:priority>3</nc:priority><nc:metric>5</nc:metric></nc:interface></nc:area></nc:ospf></nc:protocols>'
+
+- name: Render platform specific commands from task input using rendered state
+  register: result
+  junipernetworks.junos.junos_ospf_interfaces:
+    config:
+      - router_id: "10.200.16.75"
+        name: "ge-0/0/2.0"
+        address_family:
+          - afi: "ipv4"
+            processes:
+              area:
+                area_id: "0.0.0.2"
+              priority: 3
+              metric: 5
+    state: rendered
+
+- name: Assert that correct set of commands were rendered
+  ansible.builtin.assert:
+    that:
+      - "{{ expected_rendered_output == result['rendered'] }}"
+
+- ansible.builtin.debug:
+    msg: END junos_ospf_interfaces rendered integration tests on connection={{
+      ansible_connection }}

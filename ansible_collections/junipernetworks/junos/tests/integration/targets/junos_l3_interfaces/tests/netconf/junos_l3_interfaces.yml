@@ -1,0 +1,133 @@
+---
+- name: bootstrap interfaces
+  register: result
+  junipernetworks.junos.junos_l3_interfaces:
+    config:
+      - name: ge-1/0/0
+        ipv4:
+          - address: 192.168.100.1/24
+
+          - address: 10.200.16.20/24
+
+      - name: ge-2/0/0
+        ipv4:
+          - address: 192.168.100.2/24
+
+          - address: 10.200.16.21/24
+
+      - name: ge-3/0/0
+        ipv4:
+          - address: 192.168.100.3/24
+
+          - address: 10.200.16.22/24
+    state: replaced
+
+- ansible.builtin.assert:
+    that:
+      - result is changed
+      - "'<nc:address><nc:name>192.168.100.1/24</nc:name></nc:address>' in result.commands[0]"
+      - "'<nc:address><nc:name>10.200.16.20/24</nc:name></nc:address>' in result.commands[0]"
+      - result.after[0].name == 'ge-1/0/0'
+      - result.after[0].ipv4[0]['address'] == '192.168.100.1/24'
+      - result.after[0].ipv4[1]['address'] == '10.200.16.20/24'
+
+- name: bootstrap interfaces (idempotent)
+  register: result
+  junipernetworks.junos.junos_l3_interfaces:
+    config:
+      - name: ge-1/0/0
+        ipv4:
+          - address: 192.168.100.1/24
+
+          - address: 10.200.16.20/24
+
+      - name: ge-2/0/0
+        ipv4:
+          - address: 192.168.100.2/24
+
+          - address: 10.200.16.21/24
+
+      - name: ge-3/0/0
+        ipv4:
+          - address: 192.168.100.3/24
+
+          - address: 10.200.16.22/24
+    state: replaced
+
+- ansible.builtin.assert:
+    that:
+      - result is not changed
+
+- name: Gather l3_interfaces facts using gathered state
+  register: result
+  junipernetworks.junos.junos_l3_interfaces:
+    state: gathered
+
+- name: Assert that facts were correctly generated
+  ansible.builtin.assert:
+    that:
+      - result.gathered[0].name == 'ge-1/0/0'
+      - result.gathered[0].ipv4[0]['address'] == '192.168.100.1/24'
+      - result.gathered[0].ipv4[1]['address'] == '10.200.16.20/24'
+      - result.gathered[1].name == 'ge-2/0/0'
+      - result.gathered[1].ipv4[0]['address'] == '192.168.100.2/24'
+      - result.gathered[1].ipv4[1]['address'] == '10.200.16.21/24'
+      - result.gathered[2].name == 'ge-3/0/0'
+      - result.gathered[2].ipv4[0]['address'] == '192.168.100.3/24'
+      - result.gathered[2].ipv4[1]['address'] == '10.200.16.22/24'
+
+- name: Add another interface ip
+  register: result
+  junipernetworks.junos.junos_l3_interfaces:
+    config:
+      - name: ge-1/0/0
+        mtu: 1500
+        ipv4:
+          - address: 100.64.0.1/10
+
+          - address: 100.64.0.2/10
+    state: merged
+
+- ansible.builtin.assert:
+    that:
+      - result is changed
+      - "'<nc:address><nc:name>100.64.0.1/10</nc:name></nc:address>' in result.commands[0]"
+      - "'<nc:address><nc:name>100.64.0.2/10</nc:name></nc:address>' in result.commands[0]"
+      - result.after[0].name == 'ge-1/0/0'
+      - result.after[0].ipv4[0]['address'] == '192.168.100.1/24'
+      - result.after[0].ipv4[1]['address'] == '10.200.16.20/24'
+      - result.after[0].ipv4[2]['address'] == '100.64.0.1/10'
+      - result.after[0].ipv4[3]['address'] == '100.64.0.2/10'
+      - result.after[0].mtu == '1500'
+
+- name: Delete ge-2/0/0 interface config
+  register: result
+  junipernetworks.junos.junos_l3_interfaces:
+    config:
+      - name: ge-2/0/0
+    state: deleted
+
+- ansible.builtin.assert:
+    that:
+      - result is changed
+      - "'<nc:name>ge-2/0/0</nc:name><nc:unit><nc:name>0</nc:name><nc:family><nc:inet><nc:address\
+        \ delete=\"delete\"/>' in result.commands[0]"
+
+- name: Override all config
+  register: result
+  junipernetworks.junos.junos_l3_interfaces:
+    config:
+      - name: ge-1/0/0
+        ipv4:
+          - address: dhcp
+
+      - name: fxp0
+        ipv4:
+          - address: dhcp
+    state: overridden
+
+- ansible.builtin.assert:
+    that:
+      - result is changed
+      - "'<nc:name>fxp0</nc:name><nc:unit><nc:name>0</nc:name><nc:family><nc:inet><nc:dhcp/></nc:inet>'\
+        \ in result.commands[0]"

@@ -1,0 +1,177 @@
+---
+- name: Debug task
+  ansible.builtin.debug:
+    msg: "START junos_bgp_address_family replaced integration tests on connection={{ ansible_connection }}"
+
+- block:
+    - name: Reset configuration
+      ansible.builtin.include_tasks: _reset_config.yaml
+
+    - name: Set facts
+      ansible.builtin.set_fact:
+        expected_replaced_output:
+          address_family:
+            - af_type:
+                - accepted_prefix_limit:
+                    idle_timeout_value: 2002
+                    limit_threshold: 99
+                    maximum: 21
+                  damping: true
+                  delay_route_advertisements:
+                    max_delay_route_age: 20
+                    max_delay_routing_uptime: 32000
+                    min_delay_inbound_convergence: 32000
+                    min_delay_routing_uptime: 23000
+                  type: "signaling"
+              afi: "evpn"
+
+            - af_type:
+                - accepted_prefix_limit:
+                    idle_timeout_value: 2000
+                    limit_threshold: 99
+                    maximum: 20
+                  damping: true
+                  defer_initial_multipath_build:
+                    maximum_delay: 2
+                  delay_route_advertisements:
+                    max_delay_route_age: 20
+                    max_delay_routing_uptime: 32000
+                    min_delay_inbound_convergence: 32000
+                    min_delay_routing_uptime: 23000
+                  graceful_restart_forwarding_state_bit: "from-fib"
+                  type: "any"
+
+                - legacy_redirect_ip_action:
+                    send: true
+                    receive: true
+                  loops: 4
+                  no_install: true
+                  output_queue_priority_expedited: true
+                  secondary_independent_resolution: true
+                  type: "flow"
+
+                - entropy_label:
+                    no_next_hop_validation: true
+                  explicit_null:
+                    connected_only: true
+                  per_group_label: true
+                  per_prefix_label: true
+                  prefix_limit:
+                    forever: true
+                    limit_threshold: 99
+                    maximum: 20
+                  resolve_vpn: true
+                  rib: "inet.3"
+                  route_refresh_priority_priority: 3
+                  type: "labeled-unicast"
+
+                - extended_nexthop: true
+                  extended_nexthop_color: true
+                  local_ipv4_address: "9.9.9.9"
+                  type: "unicast"
+              afi: "inet"
+
+    - name: Merge the provided configuration with the exisiting running configuration
+      junipernetworks.junos.junos_bgp_address_family: &merged
+        config:
+          address_family:
+            - afi: "evpn"
+              af_type:
+                - type: "signaling"
+                  accepted_prefix_limit:
+                    maximum: 20
+                    limit_threshold: 98
+                    idle_timeout_value: 2001
+                  damping: true
+                  defer_initial_multipath_build:
+                    maximum_delay: 2
+            - afi: "inet"
+              af_type:
+                - type: "flow"
+                  legacy_redirect_ip_action:
+                    send: true
+                    receive: true
+                  loops: 4
+                  no_install: true
+                  output_queue_priority_expedited: true
+                  secondary_independent_resolution: true
+
+                - type: "unicast"
+                  extended_nexthop: true
+                  extended_nexthop_color: true
+                  local_ipv4_address: "9.9.9.9"
+
+                - type: "labeled-unicast"
+                  entropy_label:
+                    no_next_hop_validation: true
+                  explicit_null:
+                    connected_only: true
+                  per_prefix_label: true
+                  per_group_label: true
+                  prefix_limit:
+                    maximum: 20
+                    limit_threshold: 99
+                    forever: true
+                  resolve_vpn: true
+                  rib: "inet.3"
+                  route_refresh_priority_priority: 3
+
+                - type: "any"
+                  accepted_prefix_limit:
+                    maximum: 20
+                    limit_threshold: 99
+                    idle_timeout_value: 2000
+                  damping: true
+                  defer_initial_multipath_build:
+                    maximum_delay: 2
+                  delay_route_advertisements:
+                    max_delay_route_age: 20
+                    max_delay_routing_uptime: 32000
+                    min_delay_inbound_convergence: 32000
+                    min_delay_routing_uptime: 23000
+                  graceful_restart_forwarding_state_bit: "from-fib"
+        state: merged
+
+    - name: Replace existing configuration with running configuration
+      junipernetworks.junos.junos_bgp_address_family: &replaced
+        config:
+          address_family:
+            - afi: "evpn"
+              af_type:
+                - type: "signaling"
+                  accepted_prefix_limit:
+                    maximum: 21
+                    limit_threshold: 99
+                    idle_timeout_value: 2002
+                  delay_route_advertisements:
+                    max_delay_route_age: 20
+                    max_delay_routing_uptime: 32000
+                    min_delay_inbound_convergence: 32000
+                    min_delay_routing_uptime: 23000
+                  damping: true
+        state: replaced
+      register: result
+
+    - name: Assert configuration
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ expected_replaced_output == result.after }}"
+
+    - name: Merge the provided configuration with the existing running configuration (IDEMPOTENT)
+      junipernetworks.junos.junos_bgp_address_family: *replaced
+      register: result
+
+    - name: Assert that the previous task was idempotent
+      ansible.builtin.assert:
+        that:
+          - result.changed == False
+
+  tags: replaced
+  always:
+    - name: Reset configuration
+      ansible.builtin.include_tasks: _reset_config.yaml
+
+- name: Debug task
+  ansible.builtin.debug:
+    msg: "END junos_bgp_address_family replaced integration tests on connection={{ ansible_connection }}"

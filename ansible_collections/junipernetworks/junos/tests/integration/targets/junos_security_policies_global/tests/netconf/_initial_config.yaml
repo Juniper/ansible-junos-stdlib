@@ -1,0 +1,11 @@
+---
+- ansible.builtin.debug:
+    msg: "START junos_security_policies_global initial config on connection={{ ansible_connection }}"
+
+- name: Configure basic config relevant to security policies global
+  junipernetworks.junos.junos_config:
+    lines:
+      - set system tracing destination-override syslog host 10.0.0.4
+
+- ansible.builtin.debug:
+    msg: "END junos_security_policies_global initial config on connection={{ ansible_connection }}"

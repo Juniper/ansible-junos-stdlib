@@ -1,0 +1,78 @@
+---
+- ansible.builtin.debug:
+    msg:
+      START junos_lldp_interfaces round trip integration tests on connection={{
+      ansible_connection }}
+
+- name: get supported protocols
+  register: result
+  ignore_errors: true
+  junipernetworks.junos.junos_command:
+    commands: show lldp
+
+- name: lldp supported
+  ansible.builtin.set_fact:
+    lldp_supported: true
+  when: not result.failed
+
+- name: lldp not supported
+  ansible.builtin.set_fact:
+    lldp_supported: false
+  when: result.failed
+
+- block:
+    - ansible.builtin.include_tasks: _remove_config.yaml
+
+    - ansible.builtin.set_fact:
+        expected_revert_output:
+          - name: ge-0/0/1
+
+          - name: ge-0/0/2
+            enabled: false
+
+    - name: Apply the provided configuration (base config)
+      register: base_config
+      junipernetworks.junos.junos_lldp_interfaces:
+        config:
+          - name: ge-0/0/1
+
+          - name: ge-0/0/2
+            enabled: false
+        state: merged
+
+    - name: Gather interfaces facts
+      junipernetworks.junos.junos_facts:
+        gather_subset:
+          - default
+        gather_network_resources:
+          - lldp_interfaces
+
+    - name: Apply the provided configuration (config to be reverted)
+      register: result
+      junipernetworks.junos.junos_lldp_interfaces:
+        config:
+          - name: ge-0/0/2
+        state: overridden
+
+    - name: Assert that changes were applied
+      ansible.builtin.assert:
+        that: result['changed'] == true
+
+    - name: Revert back to base config using facts round trip
+      register: revert
+      junipernetworks.junos.junos_lldp_interfaces:
+        config: "{{ ansible_facts['network_resources']['lldp_interfaces'] }}"
+        state: replaced
+
+    - name: Assert that config was reverted
+      ansible.builtin.assert:
+        that:
+          "{{ expected_revert_output | symmetric_difference(revert['after'])\
+          \ |length == 0 }}"
+  always:
+    - ansible.builtin.include_tasks: _remove_config.yaml
+  when: lldp_supported
+
+- ansible.builtin.debug:
+    msg: END junos_lldp_interfaces round trip integration tests on connection={{
+      ansible_connection }}

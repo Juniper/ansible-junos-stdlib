@@ -1,0 +1,84 @@
+---
+- ansible.builtin.debug:
+    msg: "START junos_routing_instances deleted integration tests on connection={{ ansible_connection }}"
+
+- block:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+    - ansible.builtin.include_tasks: _initial_config.yaml
+
+    - ansible.builtin.set_fact:
+        expected_deleted_output:
+          - name: "forwardinst"
+            type: "forwarding"
+            description: "Configured by Ansible Content Team"
+
+    - name: Merge the provided configuration with the exisiting running configuration
+      junipernetworks.junos.junos_routing_instances: &merged
+        config:
+          - name: "test"
+            type: "vrf"
+            route_distinguisher: "10.58.255.1:37"
+            vrf_imports:
+              - "test-policy"
+            vrf_exports:
+              - "test-policy"
+              - "test-policy-1"
+            interfaces:
+              - name: "sp-0/0/0.0"
+              - name: "gr-0/0/0.0"
+            connector_id_advertise: true
+          - name: "forwardinst"
+            type: "forwarding"
+            description: "Configured by Ansible Content Team"
+        state: merged
+
+    - name: Delete existing configuration with running configuration
+      junipernetworks.junos.junos_routing_instances: &deleted
+        config:
+          - name: "test"
+        state: deleted
+      register: result
+
+    - name: Assert configuration
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ expected_deleted_output | symmetric_difference(result['after']) |length\
+            \ == 0 }}"
+
+    - name: Delete the existing running configuration (IDEMPOTENT)
+      junipernetworks.junos.junos_routing_instances: *deleted
+      register: result
+
+    - name: Assert that the previous task was idempotent
+      ansible.builtin.assert:
+        that:
+          - result.changed == False
+
+    - ansible.builtin.set_fact:
+        expected_deleted_rints_output: []
+
+    - name: Merge the existing config with provided configuration
+      junipernetworks.junos.junos_routing_instances: *merged
+      register: result
+
+    - name: Delete complete existing bgp address family configuration
+      junipernetworks.junos.junos_routing_instances: &deleted_res
+        config:
+        state: deleted
+      register: result
+
+    - name: Assert configuration
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ expected_deleted_rints_output | symmetric_difference(result['after']) |length\
+            \ == 0 }}"
+
+  tags: deleted
+  always:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+- ansible.builtin.debug:
+    msg: "END junos_routing_instances deleted integration tests on connection={{ ansible_connection }}"

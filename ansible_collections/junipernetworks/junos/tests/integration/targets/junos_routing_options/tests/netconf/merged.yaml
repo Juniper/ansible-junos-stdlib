@@ -1,0 +1,59 @@
+---
+- ansible.builtin.debug:
+    msg: "START junos_routing_options merged integration tests on connection={{ ansible_connection }}"
+
+- block:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+    - name: Merge the provided configuration with the exisiting running configuration
+      junipernetworks.junos.junos_routing_options: &merged
+        config:
+          autonomous_system:
+            as_number: 2
+            asdot_notation: true
+      register: result
+
+    - name: Assert that before dicts were correctly generated
+      ansible.builtin.assert:
+        that: "{{ merged['before'] == result['before'] }}"
+
+    - name: Assert the configuration is reflected on host
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ merged['after'] == result['after'] }}"
+
+    - name: Merge the provided configuration with the existing running configuration (IDEMPOTENT)
+      junipernetworks.junos.junos_routing_options: *merged
+      register: result
+
+    - name: Assert that the previous task was idempotent
+      ansible.builtin.assert:
+        that:
+          - result.changed == False
+
+    - name: Update the running configuration with providede configuration
+      junipernetworks.junos.junos_routing_options:
+        config:
+          autonomous_system:
+            as_number: 2
+            loops: 4
+          router_id: "12.12.12.12"
+      register: result
+
+    - name: Assert that before dicts were correctly generated
+      ansible.builtin.assert:
+        that: "{{ merged['after'] == result['before'] }}"
+
+    - name: Assert the configuration is reflected on host
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ merged['updated'] == result['after'] }}"
+
+  tags: merged
+  always:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+- ansible.builtin.debug:
+    msg: "END junos_routing_options merged integration tests on connection={{ ansible_connection }}"

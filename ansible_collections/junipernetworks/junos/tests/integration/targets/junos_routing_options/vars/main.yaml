@@ -1,0 +1,21 @@
+---
+merged:
+  before: {}
+
+  after:
+    autonomous_system:
+      as_number: "2"
+      asdot_notation: true
+
+  updated:
+    autonomous_system:
+      as_number: "2"
+      asdot_notation: true
+      loops: 4
+    router_id: "12.12.12.12"
+replaced:
+  after:
+    autonomous_system:
+      as_number: "1"
+      asdot_notation: true
+    router_id: "10.10.10.10"
