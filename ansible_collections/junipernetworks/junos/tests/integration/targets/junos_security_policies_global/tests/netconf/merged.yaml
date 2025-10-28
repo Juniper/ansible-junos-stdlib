@@ -1,0 +1,95 @@
+---
+- ansible.builtin.debug:
+    msg: "START junos_security_policies_global merged integration tests on connection={{ ansible_connection }}"
+
+- block:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+    - ansible.builtin.include_tasks: _initial_config.yaml
+
+    - name: Merge the provided configuration with the exisiting running configuration
+      junipernetworks.junos.junos_security_policies_global: &merged
+        config:
+          default_policy: permit-all
+          policy_rematch:
+            enable: true
+            extensive: true
+          policy_stats:
+            enable: true
+            system_wide: true
+          pre_id_default_policy_action:
+            log:
+              session_init: true
+            session_timeout:
+              icmp: 10
+              others: 10
+          traceoptions:
+            file:
+              files: 3
+              match: /[A-Z]*/gm
+              size: 10k
+              no_world_readable: true
+            flag: all
+            no_remote_trace: true
+        state: merged
+      register: result
+
+    - name: Assert that before dicts were correctly generated
+      ansible.builtin.assert:
+        that: "{{ merged['before'] == result['before'] }}"
+
+    - name: Assert the configuration is reflected on host
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ merged['after'] == result['after'] }}"
+
+    - name: Merge the provided configuration with the existing running configuration (IDEMPOTENT)
+      junipernetworks.junos.junos_security_policies_global: *merged
+      register: result
+
+    - name: Assert that the previous task was idempotent
+      ansible.builtin.assert:
+        that:
+          - result.changed == False
+
+    - name: Update the running configuration with provided configuration
+      junipernetworks.junos.junos_security_policies_global:
+        config:
+          default_policy: deny-all
+          policy_rematch:
+            enable: true
+          policy_stats:
+            enable: true
+          pre_id_default_policy_action:
+            log:
+              session_init: true
+            session_timeout:
+              icmp: 10
+              others: 10
+          traceoptions:
+            file:
+              files: 4
+              match: /[A-Z]*/gm
+              size: 10k
+              no_world_readable: true
+            flag: all
+            no_remote_trace: true
+        state: merged
+      register: result
+
+    - name: Assert that before dicts were correctly generated
+      ansible.builtin.assert:
+        that: "{{ merged['after'] == result['before'] }}"
+
+    - name: Assert the configuration is reflected on host
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ merged['updated'] == result['after'] }}"
+
+  tags: merged
+  always:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+- ansible.builtin.debug:
+    msg: "END junos_security_policies_global merged integration tests on connection={{ ansible_connection }}"

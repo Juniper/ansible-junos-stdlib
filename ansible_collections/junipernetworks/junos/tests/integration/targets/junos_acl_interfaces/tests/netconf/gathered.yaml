@@ -1,0 +1,50 @@
+---
+- ansible.builtin.debug:
+    msg: START junos_acl_interfaces gathered integration tests on connection={{ ansible_connection }}
+
+- block:
+    - name: Reset configuration
+      ansible.builtin.include_tasks: _reset_config.yaml
+
+    - name: Set facts
+      ansible.builtin.set_fact:
+        expected_gathered_config:
+          - name: ge-1/0/0
+            access_groups:
+              - afi: ipv4
+                acls:
+                  - name: second_acl
+                    direction: in
+                  - name: initial_acl
+                    direction: out
+
+    - name: Merge the provided configuration with the exisiting running configuration
+      junipernetworks.junos.junos_acl_interfaces:
+        config:
+          - name: ge-1/0/0
+            access_groups:
+              - afi: ipv4
+                acls:
+                  - name: second_acl
+                    direction: in
+                  - name: initial_acl
+                    direction: out
+        state: merged
+      register: result
+
+    - name: Gather security policies facts using gathered state
+      register: result
+      junipernetworks.junos.junos_acl_interfaces:
+        state: gathered
+
+    - name: Assert that facts were correctly generated
+      ansible.builtin.assert:
+        that: "{{ result['gathered'] == expected_gathered_config }}"
+
+  always:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+- ansible.builtin.debug:
+    msg:
+      END junos_acl_interfaces gathered integration tests on connection={{ ansible_connection
+      }}

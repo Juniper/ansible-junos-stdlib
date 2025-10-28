@@ -1,0 +1,30 @@
+---
+- ansible.builtin.debug:
+    msg: START junos_snmp_server rendered integration tests on connection={{
+      ansible_connection }}
+
+- ansible.builtin.set_fact:
+    expected_rendered_output: '<nc:snmp xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"><nc:arp><nc:host-name-resolution/></nc:arp><nc:routing-instance-access><nc:access-list><nc:name>clv1</nc:name></nc:access-list><nc:access-list><nc:name>clv2</nc:name></nc:access-list></nc:routing-instance-access></nc:snmp>'
+
+- name: Render platform specific commands from task input using rendered state
+  register: result
+  junipernetworks.junos.junos_snmp_server:
+    config:
+      arp:
+        set: true
+        host_name_resolution: true
+      routing_instance_access:
+        set: true
+        access_lists:
+          - "clv1"
+          - "clv2"
+    state: rendered
+
+- name: Assert that correct set of commands were rendered
+  ansible.builtin.assert:
+    that:
+      - "{{ expected_rendered_output == result['rendered'] }}"
+
+- ansible.builtin.debug:
+    msg: END junos_snmp_server rendered integration tests on connection={{
+      ansible_connection }}

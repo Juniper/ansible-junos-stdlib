@@ -1,0 +1,26 @@
+---
+- name: Debug task
+  ansible.builtin.debug:
+    msg="START netconf_text/no_config.yaml on connection={{ ansible_connection
+    }}"
+
+- name: Test handling of show command's empty response received from network device
+  register: result
+  ignore_errors: true
+  junipernetworks.junos.junos_command:
+    commands:
+      - show configuration system ntp
+    display: text
+
+- name: Assertion
+  ansible.builtin.assert:
+    that:
+      - result.failed == false
+      - result.changed == false
+      - result.stdout|symmetric_difference([""]) == []
+      - result.stdout_lines|symmetric_difference([[""]]) == []
+
+- name: Debug task
+  ansible.builtin.debug:
+    msg="END netconf_text/no_config.yaml on connection={{ ansible_connection
+    }}"

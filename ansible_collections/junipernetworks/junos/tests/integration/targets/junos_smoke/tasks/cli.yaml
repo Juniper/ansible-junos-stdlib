@@ -1,0 +1,28 @@
+---
+- name: Collect cli test cases
+  ansible.builtin.find:
+    paths: "{{ role_path }}/tests/cli"
+    patterns: "{{ testcase }}.yaml"
+  connection: local
+  register: test_cases
+
+- name: Set test_items
+  ansible.builtin.set_fact:
+    test_items: "{{ test_cases.files | map(attribute='path') | list }}"
+
+- name: Run test case (connection=ansible.netcommon.network_cli)
+  ansible.builtin.include_tasks: "{{ test_case_to_run }}"
+  with_items: "{{ test_items }}"
+  loop_control:
+    loop_var: test_case_to_run
+  vars:
+    ansible_connection: ansible.netcommon.network_cli
+
+- name: Run test cases with single_user_mode (connection=ansible.netcommon.network_cli)
+  ansible.builtin.include_tasks: "{{ role_path }}/tests/cli/caching.yaml"
+  vars:
+    ansible_connection: ansible.netcommon.network_cli
+    ansible_network_single_user_mode: "True"
+    test_connection: "{{ cli }}"
+  tags:
+    - network_cli

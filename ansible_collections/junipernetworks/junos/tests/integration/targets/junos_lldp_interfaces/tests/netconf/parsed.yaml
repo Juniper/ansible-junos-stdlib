@@ -1,0 +1,28 @@
+---
+- ansible.builtin.debug:
+    msg:
+      START junos_lldp_interfaces parsed integration tests on connection={{ ansible_connection
+      }}
+
+- ansible.builtin.set_fact:
+    expected_parsed_output:
+      - name: ge-0/0/1
+
+      - name: ge-0/0/2
+        enabled: false
+
+- name: Parse externally provided lldp interfaces config to agnostic model
+  register: result
+  junipernetworks.junos.junos_lldp_interfaces:
+    running_config: "{{ lookup('file', './fixtures/parsed.cfg') }}"
+    state: parsed
+
+- name: Assert that config was correctly parsed
+  ansible.builtin.assert:
+    that:
+      - "{{ expected_parsed_output | symmetric_difference(result['parsed']) |length ==\
+        \ 0 }}"
+- ansible.builtin.debug:
+    msg:
+      END junos_lldp_interfaces parsed integration tests on connection={{ ansible_connection
+      }}

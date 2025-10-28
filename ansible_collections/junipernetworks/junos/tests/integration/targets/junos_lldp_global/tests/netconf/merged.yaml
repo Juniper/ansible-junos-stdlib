@@ -1,0 +1,66 @@
+---
+- ansible.builtin.debug:
+    msg:
+      START junos_lldp_global merged integration tests on connection={{ ansible_connection
+      }}
+
+- name: get supported protocols
+  register: result
+  ignore_errors: true
+  junipernetworks.junos.junos_command:
+    commands: show lldp
+
+- name: lldp supported
+  ansible.builtin.set_fact:
+    lldp_supported: true
+  when: not result.failed
+
+- name: lldp not supported
+  ansible.builtin.set_fact:
+    lldp_supported: false
+  when: result.failed
+
+- block:
+    - ansible.builtin.include_tasks: _remove_config.yaml
+
+    - ansible.builtin.set_fact:
+        expected_merged_output:
+          - interval: 10000
+            address: 10.1.1.1
+            transmit_delay: 400
+            hold_multiplier: 10
+
+    - name: Merge the provided configuration with the exisiting running configuration
+      register: result
+      junipernetworks.junos.junos_lldp_global: &id001
+        config:
+          interval: 10000
+          address: 10.1.1.1
+          transmit_delay: 400
+          hold_multiplier: 10
+        state: merged
+
+    - name: Assert the configuration is reflected on host
+      ansible.builtin.assert:
+        that:
+          - "{{ expected_merged_output | symmetric_difference([result['after']])\
+            \ |length == 0 }}"
+
+    - name:
+        Merge the provided configuration with the existing running configuration
+        (IDEMPOTENT)
+      register: result
+      junipernetworks.junos.junos_lldp_global: *id001
+
+    - name: Assert that the previous task was idempotent
+      ansible.builtin.assert:
+        that:
+          - result['changed'] == false
+  always:
+    - ansible.builtin.include_tasks: _remove_config.yaml
+  when: lldp_supported
+
+- ansible.builtin.debug:
+    msg:
+      END junos_lldp_global merged integration tests on connection={{ ansible_connection
+      }}

@@ -1,0 +1,86 @@
+---
+- ansible.builtin.debug:
+    msg: START junos_snmp_server round trip integration tests on connection={{
+      ansible_connection }}
+
+- block:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+    - ansible.builtin.include_tasks: _initial_config.yaml
+
+    - name: Apply the provided configuration (base config)
+      register: base_config
+      junipernetworks.junos.junos_snmp_server:
+        config:
+          arp:
+            set: true
+            host_name_resolution: true
+          client_lists:
+            - name: cl1
+              addresses:
+                - address: "192.16.1.0/24"
+                - address: "192.16.2.0/24"
+                - address: "11.11.11.11"
+                  restrict: true
+            - name: cl2
+              addresses:
+                - address: "192.16.4.0/24"
+          routing_instance_access:
+            set: true
+            access_lists:
+              - "clv1"
+              - "clv2"
+
+    - name: Gather interfaces facts
+      junipernetworks.junos.junos_facts:
+        gather_subset:
+          - default
+        gather_network_resources:
+          - snmp_server
+
+    - name: Apply the provided configuration (config to be reverted)
+      register: result
+      junipernetworks.junos.junos_snmp_server:
+        config:
+          contact: "ansiblesupport11@redhat.com"
+          customization:
+            ether_stats_ifd_only: true
+          description: "Local SNMP Server"
+          engine_id:
+            use_mac_address: true
+          filter_duplicates: true
+          filter_interfaces:
+            set: true
+            all_internal_interfaces: true
+            interfaces:
+              - "eth1"
+              - "eth2"
+        state: replaced
+
+    - name: Assert that changes were applied
+      ansible.builtin.assert:
+        that: result['changed'] == true
+
+    - name: Revert back to base config using facts round trip
+      register: revert
+      junipernetworks.junos.junos_snmp_server:
+        config: "{{ ansible_facts['network_resources']['snmp_server'] }}"
+        state: replaced
+
+    - name: Assert that before dicts are correct
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ result['after'] == revert['before'] }}"
+
+    - name: Assert that config was reverted
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ base_config['after'] == revert['after'] }}"
+  always:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+- ansible.builtin.debug:
+    msg:
+      END junos_snmp_server round trip integration tests on connection={{ ansible_connection
+      }}

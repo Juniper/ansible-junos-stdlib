@@ -1,0 +1,105 @@
+---
+- name: Debug task
+  ansible.builtin.debug:
+    msg: "START junos_acls replaced integration tests on connection={{ ansible_connection }}"
+
+- block:
+    - name: Reset configuration
+      ansible.builtin.include_tasks: _reset_config.yaml
+
+    - name: Set facts
+      ansible.builtin.set_fact:
+        config:
+          - acls:
+              - aces:
+                  - name: ten_dot
+                    source:
+                      address: 10.0.0.0/8
+                      port_protocol:
+                        eq: bgp
+                    protocol: tcp
+                  - name: eleven_dot
+                    source:
+                      address: 11.0.0.0/8
+                      port_protocol:
+                        eq: bgp
+                    protocol: tcp
+                name: initial_acl
+              - aces:
+                  - name: twelve_dot
+                    source:
+                      address: 12.0.0.0/8
+                      port_protocol:
+                        eq: bgp
+                    protocol: tcp
+                  - name: ace_20
+                    grant: permit
+                    protocol: igmp
+                    source:
+                      address: 192.168.1.100/32
+                  - name: ace_21
+                    grant: permit
+                    protocol: tcp
+                name: second_acl
+              - aces:
+                  - name: thirteen_dot
+                    source:
+                      address:
+                        - 13.0.0.0/16
+                        - 13.1.0.0/16
+                      port_protocol:
+                        eq: bgp
+                    protocol: tcp
+                name: third_acl
+            afi: ipv4
+          - acls:
+              - aces:
+                  - name: colon_eleven
+                    source:
+                      address: ::11/128
+                      port_protocol:
+                        eq: "631"
+                name: initial_acl6
+            afi: ipv6
+
+    - name: Replace the specified ACL with given config
+      junipernetworks.junos.junos_acls: &replaced
+        config:
+          - afi: ipv4
+            acls:
+              - name: second_acl
+                aces:
+                  - name: ace_20
+                    grant: permit
+                    protocol: igmp
+                    source:
+                      address: 192.168.1.100
+                  - name: ace_21
+                    grant: permit
+                    protocol: tcp
+        state: replaced
+      register: result
+
+    - name: Assert the configuration is reflected on host
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ config|symmetric_difference(result.after) == [] }}"
+
+    - name: Replace the specified ACL with given config (IDEMPOTENT)
+      junipernetworks.junos.junos_acls: *replaced
+      register: result
+
+    - name: Assert that the previous task was idempotent
+      ansible.builtin.assert:
+        that:
+          - result.changed == False
+
+  tags: replaced
+  always:
+    - name: Reset configuration
+      ansible.builtin.include_tasks: _reset_config.yaml
+
+- name: Debug task
+  ansible.builtin.debug:
+    msg: "END junos_acls replaced integration tests on connection={{ ansible_connection }}"

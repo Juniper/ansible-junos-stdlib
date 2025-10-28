@@ -1,0 +1,80 @@
+---
+requires_ansible: ">=2.15.0"
+plugin_routing:
+  modules:
+    junos_acl_interfaces:
+      redirect: juniper.device.junos_acl_interfaces
+    junos_banner:
+      redirect: juniper.device.junos_banner
+    junos_command:
+      redirect: juniper.device.junos_command
+    junos_config:
+      redirect: juniper.device.junos_config
+    junos_facts:
+      redirect: juniper.device.junos_facts
+    junos_interfaces:
+      redirect: juniper.device.junos_interfaces
+    junos_acls:
+      redirect: juniper.device.junos_acls
+    junos_hostname:
+      redirect: juniper.device.junos_hostname
+    junos_l2_interfaces:
+      redirect: juniper.device.junos_l2_interfaces
+    junos_l3_interfaces:
+      redirect: juniper.device.junos_l3_interfaces
+    junos_lacp:
+      redirect: juniper.device.junos_lacp
+    junos_lacp_interfaces:
+      redirect: juniper.device.junos_lacp_interfaces
+    junos_lag_interfaces:
+      redirect: juniper.device.junos_lag_interfaces
+    junos_lldp_global:
+      redirect: juniper.device.junos_lldp_global
+    junos_bgp_global:
+      redirect: juniper.device.junos_bgp_global
+    junos_bgp_address_family:
+      redirect: juniper.device.junos_bgp_address_family
+    junos_routing_instances:
+      redirect: juniper.device.junos_routing_instances
+    junos_prefix_lists:
+      redirect: juniper.device.junos_prefix_lists
+    junos_logging_global:
+      redirect: juniper.device.junos_logging_global
+    junos_ntp_global:
+      redirect: juniper.device.junos_ntp_global
+    junos_security_policies:
+      redirect: juniper.device.junos_security_policies
+    junos_security_policies_global:
+      redirect: juniper.device.junos_security_policies_global
+    junos_security_zones:
+      redirect: juniper.device.junos_security_zones
+    junos_snmp_server:
+      redirect: juniper.device.junos_snmp_server
+    junos_routing_options:
+      redirect: juniper.device.junos_routing_options
+    junos_lldp_interfaces:
+      redirect: juniper.device.junos_lldp_interfaces
+    junos_netconf:
+      redirect: juniper.device.junos_netconf
+    junos_ospfv2:
+      redirect: juniper.device.junos_ospfv2
+    junos_ospfv3:
+      redirect: juniper.device.junos_ospfv3
+    junos_ospf_interfaces:
+      redirect: juniper.device.junos_ospf_interfaces
+    junos_package:
+      redirect: juniper.device.junos_package
+    junos_rpc:
+      redirect: juniper.device.junos_rpc
+    junos_ping:
+      redirect: juniper.device.junos_ping
+    junos_static_routes:
+      redirect: juniper.device.junos_static_routes
+    junos_system:
+      redirect: juniper.device.junos_system
+    junos_user:
+      redirect: juniper.device.junos_user
+    junos_vlans:
+      redirect: juniper.device.junos_vlans
+    junos_vrf:
+      redirect: juniper.device.junos_vrf

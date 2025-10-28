@@ -1,0 +1,370 @@
+---
+- ansible.builtin.debug:
+    msg="START junos_system netconf/basic.yaml on connection={{ ansible_connection
+    }}"
+
+- name: setup - remove hostname
+  junipernetworks.junos.junos_system:
+    hostname: vsrx01
+    state: absent
+
+- name: Set hostname
+  register: result
+  junipernetworks.junos.junos_system:
+    hostname: vsrx01
+    state: present
+
+- name: Get running configuration
+  register: config
+  junipernetworks.junos.junos_rpc:
+    rpc: get-configuration
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == true
+      - "'<host-name>vsrx01</host-name>' in config.xml"
+
+- name: Set hostname (idempotent)
+  register: result
+  junipernetworks.junos.junos_system:
+    hostname: vsrx01
+    state: present
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == false
+
+- name: Deactivate hostname configuration
+  register: result
+  junipernetworks.junos.junos_system:
+    hostname: vsrx01
+    state: present
+    active: false
+
+- name: Get running configuration
+  register: config
+  junipernetworks.junos.junos_rpc:
+    rpc: get-configuration
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == true
+      - '''<host-name inactive="inactive">'' in config.xml'
+
+- name: Activate hostname configuration
+  register: result
+  junipernetworks.junos.junos_system:
+    hostname: vsrx01
+    state: present
+    active: true
+
+- name: Get running configuration
+  register: config
+  junipernetworks.junos.junos_rpc:
+    rpc: get-configuration
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == true
+      - "'<host-name>vsrx01</host-name>' in config.xml"
+
+- name: Delete hostname configuration
+  register: result
+  junipernetworks.junos.junos_system:
+    hostname: vsrx01
+    state: absent
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == true
+      - "'<host-name>vsrx01</host-name>' in config.xml"
+
+- name: Teardown - set hostname
+  junipernetworks.junos.junos_system:
+    hostname: vsrx01
+    state: present
+
+- name: setup - remove domain name
+  junipernetworks.junos.junos_system:
+    domain_name: ansible.com
+    state: absent
+
+- name: Set domain name
+  register: result
+  junipernetworks.junos.junos_system:
+    domain_name: ansible.com
+    state: present
+
+- name: Get running configuration
+  register: config
+  junipernetworks.junos.junos_rpc:
+    rpc: get-configuration
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == true
+      - "'<domain-name>ansible.com</domain-name>' in config.xml"
+
+- name: Set domain name (idempotent)
+  register: result
+  junipernetworks.junos.junos_system:
+    domain_name: ansible.com
+    state: present
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == false
+
+- name: Deactivate domain name
+  register: result
+  junipernetworks.junos.junos_system:
+    domain_name: ansible.com
+    state: present
+    active: false
+
+- name: Get running configuration
+  register: config
+  junipernetworks.junos.junos_rpc:
+    rpc: get-configuration
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == true
+      - '''<domain-name inactive="inactive">'' in config.xml'
+
+- name: Activate domain name
+  register: result
+  junipernetworks.junos.junos_system:
+    domain_name: ansible.com
+    state: present
+    active: true
+
+- name: Get running configuration
+  register: config
+  junipernetworks.junos.junos_rpc:
+    rpc: get-configuration
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == true
+      - "'<domain-name>ansible.com</domain-name>' in config.xml"
+
+- name: Delete domain name
+  register: result
+  junipernetworks.junos.junos_system:
+    domain_name: ansible.com
+    state: absent
+
+- name: Get running configuration
+  register: config
+  junipernetworks.junos.junos_rpc:
+    rpc: get-configuration
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == true
+      - "'<domain-name>ansible.com</domain-name>' not in config.xml"
+
+- name: Teardown - set domain name
+  junipernetworks.junos.junos_system:
+    domain_name: ansible.com
+    state: present
+
+- name: Setup - delete domain search
+  register: result
+  junipernetworks.junos.junos_system:
+    domain_search:
+      - test.com
+      - sample.com
+    state: absent
+
+- name: Set domain search
+  register: result
+  junipernetworks.junos.junos_system:
+    domain_search:
+      - test.com
+      - sample.com
+    state: present
+
+- name: Get running configuration
+  register: config
+  junipernetworks.junos.junos_rpc:
+    rpc: get-configuration
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == true
+      - "'<domain-search>test.com</domain-search>' in config.xml"
+      - "'<domain-search>sample.com</domain-search>' in config.xml"
+
+- name: Set domain search (idempotency)
+  register: result
+  junipernetworks.junos.junos_system:
+    domain_search:
+      - test.com
+      - sample.com
+    state: present
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == false
+
+- name: Deactivate domain search
+  register: result
+  junipernetworks.junos.junos_system:
+    domain_search:
+      - test.com
+      - sample.com
+    state: present
+    active: false
+
+- name: Get running configuration
+  register: config
+  junipernetworks.junos.junos_rpc:
+    rpc: get-configuration
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == true
+      - '''<domain-search inactive="inactive">test.com</domain-search>'' in config.xml'
+      - '''<domain-search inactive="inactive">sample.com</domain-search>'' in config.xml'
+
+- name: Activate domain search
+  register: result
+  junipernetworks.junos.junos_system:
+    domain_search:
+      - test.com
+      - sample.com
+    state: present
+    active: true
+
+- name: Get running configuration
+  register: config
+  junipernetworks.junos.junos_rpc:
+    rpc: get-configuration
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == true
+      - "'<domain-search>test.com</domain-search>' in config.xml"
+      - "'<domain-search>sample.com</domain-search>' in config.xml"
+
+- name: Delete domain search
+  register: result
+  junipernetworks.junos.junos_system:
+    domain_search:
+      - test.com
+      - sample.com
+    state: absent
+
+- name: Get running configuration
+  register: config
+  junipernetworks.junos.junos_rpc:
+    rpc: get-configuration
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == true
+      - "'<domain-search>test.com</domain-search>' not in config.xml"
+      - "'<domain-search>sample.com</domain-search>' not in config.xml"
+
+- name: Setup - delete name servers
+  register: result
+  junipernetworks.junos.junos_system:
+    name_servers:
+      - 8.8.8.8
+      - 8.8.4.4
+    state: absent
+
+- name: Set name servers
+  register: result
+  junipernetworks.junos.junos_system:
+    name_servers:
+      - 8.8.8.8
+      - 8.8.4.4
+    state: present
+
+- name: Get running configuration
+  register: config
+  junipernetworks.junos.junos_rpc:
+    rpc: get-configuration
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == true
+      - "'<name>8.8.8.8</name>' in config.xml"
+      - "'<name>8.8.4.4</name>' in config.xml"
+
+- name: Set name servers (idempotent)
+  register: result
+  junipernetworks.junos.junos_system:
+    name_servers:
+      - 8.8.8.8
+      - 8.8.4.4
+    state: present
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == false
+
+- name: Deactivate name servers
+  register: result
+  junipernetworks.junos.junos_system:
+    name_servers:
+      - 8.8.8.8
+      - 8.8.4.4
+    state: present
+    active: false
+
+- name: Get running configuration
+  register: config
+  junipernetworks.junos.junos_rpc:
+    rpc: get-configuration
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == true
+      - '''<name-server inactive="inactive">'' in config.xml'
+
+- name: Activate name servers
+  register: result
+  junipernetworks.junos.junos_system:
+    name_servers:
+      - 8.8.8.8
+      - 8.8.4.4
+    state: present
+    active: true
+
+- name: Get running configuration
+  register: config
+  junipernetworks.junos.junos_rpc:
+    rpc: get-configuration
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == true
+      - "'<name>8.8.8.8</name>' in config.xml"
+      - "'<name>8.8.4.4</name>' in config.xml"
+
+- name: Delete name servers
+  register: result
+  junipernetworks.junos.junos_system:
+    name_servers:
+      - 8.8.8.8
+      - 8.8.4.4
+    state: absent
+
+- name: Get running configuration
+  register: config
+  junipernetworks.junos.junos_rpc:
+    rpc: get-configuration
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == true
+      - "'<name>8.8.8.8</name>' not in config.xml"
+      - "'<name>8.8.4.4</name>' not in config.xml"
+
+- ansible.builtin.debug:
+    msg="END junos_system netconf/basic.yaml on connection={{ ansible_connection
+    }}"

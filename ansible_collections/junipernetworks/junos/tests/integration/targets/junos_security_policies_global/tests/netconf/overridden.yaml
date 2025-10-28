@@ -1,0 +1,65 @@
+---
+- ansible.builtin.debug:
+    msg: "START junos_security_policies_global overridden integration tests on connection={{ ansible_connection }}"
+
+- block:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+    - ansible.builtin.include_tasks: _initial_config.yaml
+    - ansible.builtin.include_tasks: _populate_config.yaml
+
+    - name: Override configuration
+      junipernetworks.junos.junos_security_policies_global:
+        config:
+        state: gathered
+
+    - name: Override configuration
+      junipernetworks.junos.junos_security_policies_global: &overridden
+        config:
+          default_policy: deny-all
+          policy_rematch:
+            enable: true
+          policy_stats:
+            enable: true
+          pre_id_default_policy_action:
+            log:
+              session_init: true
+          traceoptions:
+            file:
+              files: 4
+              match: /[A-Z]*/gm
+              size: 10k
+            flag: all
+        state: overridden
+      register: result
+
+    - ansible.builtin.debug:
+        msg: "{{ merged['after'] }}"
+
+    - ansible.builtin.debug:
+        msg: "{{ result['before'] }}"
+
+    - name: Assert that before dicts were correctly generated
+      ansible.builtin.assert:
+        that: "{{ merged['after'] == result['before'] }}"
+
+    - name: Assert configuration
+      ansible.builtin.assert:
+        that:
+          - result.changed == True
+          - "{{ replaced['after'] == result.after }}"
+
+    - name: Replaced the provided configuration with the existing running configuration (IDEMPOTENT)
+      junipernetworks.junos.junos_security_policies_global: *overridden
+      register: result
+
+    - name: Assert that the previous task was idempotent
+      ansible.builtin.assert:
+        that:
+          - result.changed == False
+
+  tags: overridden
+  always:
+    - ansible.builtin.include_tasks: _reset_config.yaml
+
+- ansible.builtin.debug:
+    msg: "END junos_security_policies_global overridden integration tests on connection={{ ansible_connection }}"

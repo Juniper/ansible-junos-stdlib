@@ -1,0 +1,69 @@
+---
+- ansible.builtin.debug: msg="START netconf/rpc.yaml on connection={{ ansible_connection }}"
+
+- name: Execute RPC on device
+  register: result
+  junipernetworks.junos.junos_rpc:
+    rpc: get-interface-information
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == false
+      - "'<interface-information' in result['xml']"
+      - result.output is defined
+
+- name: Execute RPC with args on device
+  register: result
+  junipernetworks.junos.junos_rpc:
+    rpc: get-interface-information
+    args:
+      interface-name: lo0
+      media: true
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == false
+      - "'<name>\nlo0\n</name>' in result['xml']"
+      - "'<name>\nem0\n</name>' not in result['xml']"
+      - "'<name>\fxp0\n</name>' not in result['xml']"
+
+- name: Execute RPC on device and get output in text format
+  register: result
+  junipernetworks.junos.junos_rpc:
+    rpc: get-interface-information
+    output: text
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == false
+      - result.output is defined
+      - result.output_lines is defined
+      - "'Physical interface' in result['output']"
+
+- name: Execute RPC on device and get output in json format
+  register: result
+  junipernetworks.junos.junos_rpc:
+    rpc: get-interface-information
+    output: json
+    args:
+      interface-name: lo0
+      media: true
+
+- ansible.builtin.assert:
+    that:
+      - result.changed == false
+      - result.output is defined
+      - result['output']['interface-information'][0]['physical-interface'][0]['name'][0]['data']
+        == "lo0"
+
+- name: Execute invalid RPC
+  register: result
+  ignore_errors: true
+  junipernetworks.junos.junos_rpc:
+    rpc: show-interface-information
+
+- ansible.builtin.assert:
+    that:
+      - result.failed == true
+
+- ansible.builtin.debug: msg="END netconf/rpc.yaml on connection={{ ansible_connection }}"

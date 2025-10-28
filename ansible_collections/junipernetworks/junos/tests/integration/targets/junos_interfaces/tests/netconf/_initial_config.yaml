@@ -1,0 +1,15 @@
+---
+- name: Debug task
+  ansible.builtin.debug:
+    msg: "START junos_interfaces initial config on connection={{ ansible_connection }}"
+
+- name: Configure basic config relevant to interfaces
+  junipernetworks.junos.junos_config:
+    lines:
+      - set interfaces fe-0/0/2 vlan-tagging
+      - set interfaces fe-0/0/2.10 vlan-id 10
+      - set interfaces fe-0/0/2.11 vlan-id 11
+
+- name: Debug task
+  ansible.builtin.debug:
+    msg: "END junos_interfaces initial config on connection={{ ansible_connection }}"
