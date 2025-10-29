@@ -8,7 +8,7 @@ Juniper Networks supports Ansible for managing devices running the Junos operati
 This collection is hosted on the Ansible Galaxy website under the collection
 [juniper.device](https://galaxy.ansible.com/ui/repo/published/juniper/device/).
 
-The `juniper.device` collection includes a set of Ansible modules that perform specific operational and configuration tasks on devices running Junos OS.
+The Junos Ansible Collection for Junos uses the juniper.device namespace. The `juniper.device` collection includes a set of Ansible modules that perform specific operational and configuration tasks on devices running Junos OS.
 These tasks include: installing and upgrading Junos OS, provisioning new Junos devices in the network, loading configuration changes,
 retrieving information, and resetting, rebooting, or shutting down managed devices.  Please refer to the
 [INSTALLATION](https://github.com/Juniper/ansible-junos-stdlib/blob/master/README.md#installation) section for instructions on installing this collection.
@@ -67,12 +67,13 @@ should be added to the Ansible configuration file in order to allow the jsnapy c
 
 This modules requires the following to be installed on the Ansible control machine:
 
-- Python >= 3.8
-- [Ansible](https://pypi.org/project/ansible/) 2.9 or later
-- Junos [py-junos-eznc](https://github.com/Juniper/py-junos-eznc) 2.6.0 or later
+- Python >= 3.12
+- [Ansible](https://pypi.org/project/ansible/) 2.17 or later
+- Junos [py-junos-eznc](https://github.com/Juniper/py-junos-eznc) 2.7.3 or later
 - [jxmlease](https://github.com/Juniper/jxmlease) 1.0.1 or later
 - [xmltodict](https://pypi.org/project/xmltodict/) 0.13.0 or later
 - [jsnapy](https://github.com/Juniper/jsnapy) 1.3.7 or later
+- [packaging](https://github.com/pypa/packaging) 25.0 or later
 
 ## Installation
 
