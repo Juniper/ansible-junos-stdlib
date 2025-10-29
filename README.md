@@ -178,11 +178,11 @@ Juniper Networks is actively contributing to and maintaining this repo. Please c
 [jnpr-community-netdev@juniper.net](jnpr-community-netdev@juniper.net) for any queries.
 
 *Contributors:*
-[Stephen Steiner](https://github.com/ntwrkguru), [Dinesh Babu](https://github.com/dineshbaburam91), [Chidanand Pujar](https://github.com/chidanandpujar)
+[Dinesh Babu](https://github.com/dineshbaburam91), [Chidanand Pujar](https://github.com/chidanandpujar)
 
 *Former Contributors:*
 
-[Stacy W Smith](https://github.com/stacywsmith), [Jeremy Schulman](https://github.com/jeremyschulman), [Rick Sherman](https://github.com/shermdog), [Damien Garros](https://github.com/dgarros), [David Gethings](https://github.com/dgjnpr), [Nitin Kumar](https://github.com/vnitinv), [Rahul Kumar](https://github.com/rahkumar651991)
+[Stacy W Smith](https://github.com/stacywsmith), [Jeremy Schulman](https://github.com/jeremyschulman), [Rick Sherman](https://github.com/shermdog), [Damien Garros](https://github.com/dgarros), [David Gethings](https://github.com/dgjnpr), [Nitin Kumar](https://github.com/vnitinv), [Rahul Kumar](https://github.com/rahkumar651991), [Stephen Steiner](https://github.com/ntwrkguru)
 
 
 ## Support
