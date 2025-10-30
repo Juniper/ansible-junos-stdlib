@@ -1,5 +1,5 @@
-junos-eznc >= 2.6.0
-jsnapy>=1.3.6
+junos-eznc >= 2.7.3
+jsnapy>=1.3.7
 jxmlease
 xmltodict
 packaging
