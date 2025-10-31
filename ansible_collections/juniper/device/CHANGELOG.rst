@@ -66,7 +66,7 @@ List of supported modules from Ansible's collection:
 - junos_static_routes
 - junos_user
 - junos_vlans
--junos_vrf
+- junos_vrf
 
 
 Support for playbooks with junipernetworks.junos namespace from the earlier Ansible's collection is provided using redirection in meta/runtime.yml
