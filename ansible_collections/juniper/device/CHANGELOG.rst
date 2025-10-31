@@ -6,6 +6,65 @@ Juniper Device Collection Release Notes
 Changelog for Juniper Device Ansible Collection
 ===========================
 
+Version 2.0.0 (2025-10-30)
+---------------------------
+Enhancements
+------------
+- Juniper Networks and RedHat Ansible have combined their Ansible collections for managing Juniper devices. This release merges Ansible’s collection into the Juniper collection, providing customers with a single curated set of modules.
+
+- The Combined collection is available under single namespace juniper.device
+
+List of supported modules from Juniper's collection:
+
+command
+config
+facts
+file_copy
+Jsnapy
+ping
+pmtud
+rpc
+software
+srx_cluster
+system
+table
+List of supported modules from Ansible's collection:
+
+junos_acl_interfaces
+junos_acls
+junos_banner
+junos_bgp_address_family
+junos_bgp_global
+junos_hostname
+junos_interfaces
+junos_l2_interfaces
+junos_l3_interfaces
+junos_lacp_interfaces
+junos_lacp
+junos_lag_interfaces
+junos_lldp_global
+junos_lldp_interfaces
+junos_logging_global
+junos_netconf
+junos_ntp_global
+junos_ospf_interfaces
+junos_ospfv2
+junos_ospfv3
+junos_package
+junos_prefix_lists
+junos_routing_instances
+junos_routing_options
+junos_security_policies_global
+junos_security_policies
+junos_security_zones
+junos_snmp_server
+junos_static_routes
+junos_user
+junos_vlans
+junos_vrf
+
+- Support for playbooks with junipernetworks.junos namespace from the earlier Ansible's collection is provided using redirection in meta/runtime.yml
+
 Version 1.0.9 (2025-09-23)
 ---------------------------
 Enhancements
