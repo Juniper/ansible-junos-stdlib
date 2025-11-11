@@ -163,10 +163,6 @@ This example outlines how to use Ansible to install or upgrade the software imag
 
 [Please refer Funcational Tests](https://github.com/Juniper/ansible-junos-stdlib/tree/master/tests#readme)
 
-## SUPPORT
-
-As Red Hat Ansible Certified Content, this collection is entitled to support through the Ansible Automation Platform (AAP) using the **Create issue** button on the top right corner. If a support case cannot be opened with Red Hat and the collection has been obtained either from Galaxy or GitHub, there may community help available on the [Ansible Forum](https://forum.ansible.com/).
-
 ## Release Notes and Roadmap
 
 [Release Notes](https://github.com/Juniper/ansible-junos-stdlib/blob/master/ansible_collections/juniper/device/CHANGELOG.rst)

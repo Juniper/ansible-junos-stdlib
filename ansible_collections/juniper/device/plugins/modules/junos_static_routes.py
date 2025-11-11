@@ -265,9 +265,22 @@ EXAMPLES = """
 # commands:
 #   - >-
 #     <nc:routing-options
-#     xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"><nc:static><nc:route
-#     delete="delete"><nc:name>192.168.47.0/24</nc:name></nc:route><nc:route
-#     delete="delete"><nc:name>192.168.16.0/24</nc:name></nc:route></nc:static><nc:static><nc:route><nc:name>192.168.16.0/24</nc:name><nc:next-hop>172.16.0.1</nc:next-hop></nc:route></nc:static></nc:routing-options>
+#       xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
+#       <nc:static>
+#         <nc:route delete="delete">
+#           <nc:name>192.168.47.0/24</nc:name>
+#         </nc:route>
+#         <nc:route delete="delete">
+#           <nc:name>192.168.16.0/24</nc:name>
+#         </nc:route>
+#       </nc:static>
+#       <nc:static>
+#         <nc:route>
+#           <nc:name>192.168.16.0/24</nc:name>
+#           <nc:next-hop>172.16.0.1</nc:next-hop>
+#         </nc:route>
+#       </nc:static>
+#     </nc:routing-options>
 #   - '<nc:routing-instances xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"/>'
 # after:
 #   - address_families:
@@ -323,8 +336,19 @@ EXAMPLES = """
 # commands:
 #   - >-
 #     <nc:routing-options
-#     xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"><nc:static><nc:route
-#     delete="delete"><nc:name>192.168.47.0/24</nc:name></nc:route></nc:static><nc:static><nc:route><nc:name>192.168.47.0/24</nc:name><nc:next-hop>10.200.16.2</nc:next-hop></nc:route></nc:static></nc:routing-options>
+#       xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
+#       <nc:static>
+#         <nc:route delete="delete">
+#           <nc:name>192.168.47.0/24</nc:name>
+#         </nc:route>
+#       </nc:static>
+#       <nc:static>
+#         <nc:route>
+#           <nc:name>192.168.47.0/24</nc:name>
+#           <nc:next-hop>10.200.16.2</nc:next-hop>
+#         </nc:route>
+#       </nc:static>
+#     </nc:routing-options>
 #   - '<nc:routing-instances xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"/>'
 # after:
 #   - address_families:
