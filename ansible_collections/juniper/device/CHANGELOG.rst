@@ -6,6 +6,12 @@ Juniper Device Collection Release Notes
 Changelog for Juniper Device Ansible Collection
 ===========================
 
+Version 2.0.1 (2025-11-14)
+---------------------------
+Enhancements
+------------
+Fixed cosmetic issues
+
 Version 2.0.0 (2025-10-30)
 ---------------------------
 Enhancements
