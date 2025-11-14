@@ -10,13 +10,13 @@ Version 2.0.0 (2025-10-30)
 ---------------------------
 Enhancements
 ------------
-Juniper Networks and RedHat Ansible have combined their Ansible collections for managing Juniper devices. This release merges Ansible’s collection into the Juniper collection, providing customers with a single curated set of modules.
+Juniper Networks and RedHat Ansible have combined their Ansible collections for managing Juniper devices. This release merges Ansible collection into the Juniper collection, providing customers with a single curated set of modules.
 
 
 The Combined collection is available under single namespace juniper.device
 
 
-List of supported modules from Juniper's collection:
+List of supported modules from Juniper collection:
 
 - command
 - config
@@ -32,7 +32,7 @@ List of supported modules from Juniper's collection:
 - table
 
 
-List of supported modules from Ansible's collection:
+List of supported modules from Ansible collection:
 
 
 - junos_acl_interfaces
