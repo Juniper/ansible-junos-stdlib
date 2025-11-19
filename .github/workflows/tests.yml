@@ -134,11 +134,59 @@ jobs:
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
   unit-source:
-    uses: ansible-network/github_actions/.github/workflows/unit_source.yml@main
-    with:
-      collection_pre_install: >-
-        git+https://github.com/ansible-collections/ansible.utils.git
-        git+https://github.com/ansible-collections/ansible.netcommon.git
+    name: Unit Tests (Source)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        ansible_version:
+          - "stable-2.16"
+          - "stable-2.17"
+          - "stable-2.18"
+          - "stable-2.19"
+          - "stable-2.20"
+          - "milestone"
+          - "devel"
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.11"
+      - name: Install ansible-compat, for tests
+        run: python -m pip install ansible-compat
+      - name: Install ansible-core (${{ matrix.ansible_version }})
+        run: |
+          if [ "${{ matrix.ansible_version }}" = "devel" ] || [ "${{ matrix.ansible_version }}" = "milestone" ]; then
+            python -m pip install git+https://github.com/ansible/ansible.git@${{ matrix.ansible_version }}
+          else
+            python -m pip install git+https://github.com/ansible/ansible.git@${{ matrix.ansible_version }}
+          fi
+      - name: Pre install collections dependencies first so the collection install does not
+        run: |
+          ansible-galaxy collection install git+https://github.com/ansible-collections/ansible.utils.git
+          ansible-galaxy collection install git+https://github.com/ansible-collections/ansible.netcommon.git
+      - name: Read collection metadata from galaxy.yml
+        working-directory: ansible_collections/juniper/device
+        run: |
+          python -c "import yaml; print(yaml.safe_load(open('galaxy.yml'))['version'])"
+      - name: Build and install the collection
+        working-directory: ansible_collections/juniper/device
+        run: |
+          ansible-galaxy collection build --force
+          ansible-galaxy collection install juniper-device-*.tar.gz --force
+      - name: Print the ansible version
+        run: ansible --version
+      - name: Print the python dependencies
+        run: python -m pip list
+      - name: Run unit tests
+        working-directory: ansible_collections/juniper/device
+        run: |
+          if [ -d "tests/unit" ]; then
+            ansible-test units --python 3.11 --local
+          else
+            echo "No unit tests directory found, skipping"
+          fi
   all_green:
     if: ${{ always() && (github.event_name != 'schedule') }}
     needs:
