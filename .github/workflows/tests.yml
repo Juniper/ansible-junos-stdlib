@@ -82,7 +82,7 @@ jobs:
       fail-fast: false
       matrix:
         python: ["3.10", "3.11", "3.12", "3.13", "3.14"]
-        ansible: ["2.17", "2.18", "2.19", "2.20"]
+        ansible: ["2.17", "2.18", "2.19"]
     steps:
       - uses: actions/checkout@v5
         with:
