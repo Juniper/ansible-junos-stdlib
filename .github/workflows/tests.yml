@@ -52,10 +52,6 @@ jobs:
         include:
           - python: "3.10"
             ansible: "2.17"
-          - python: "3.10"
-            ansible: "2.18"
-          - python: "3.10"
-            ansible: "2.19"
           - python: "3.11"
             ansible: "2.17"
           - python: "3.11"
@@ -68,8 +64,6 @@ jobs:
             ansible: "2.18"
           - python: "3.12"
             ansible: "2.19"
-          - python: "3.12"
-            ansible: "2.20"
     steps:
       - uses: actions/checkout@v5
         with:
@@ -100,8 +94,21 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        python: ["3.10", "3.11", "3.12"]
-        ansible: ["2.17", "2.18", "2.19"]
+        include:
+          - python: "3.10"
+            ansible: "2.17"
+          - python: "3.11"
+            ansible: "2.17"
+          - python: "3.11"
+            ansible: "2.18"
+          - python: "3.11"
+            ansible: "2.19"
+          - python: "3.12"
+            ansible: "2.17"
+          - python: "3.12"
+            ansible: "2.18"
+          - python: "3.12"
+            ansible: "2.19"
     steps:
       - uses: actions/checkout@v5
         with:
