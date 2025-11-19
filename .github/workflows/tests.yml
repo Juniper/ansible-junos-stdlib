@@ -17,7 +17,28 @@ jobs:
     uses: ansible/ansible-content-actions/.github/workflows/changelog.yaml@main
     if: github.event_name == 'pull_request'
   build-import:
-    uses: ansible/ansible-content-actions/.github/workflows/build_import.yaml@main
+    name: build-import-collection
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Ensure ansible-core and galaxy-importer is installed
+        shell: bash
+        run: |
+          python -m pip install ansible-core galaxy-importer
+
+      - name: Update galaxy-importer cfg
+        shell: bash
+        run: |
+          echo "[galaxy-importer]\nCHECK_REQUIRED_TAGS=True" > /tmp/galaxy-importer.cfg
+          export GALAXY_IMPORTER_CONFIG=/tmp/galaxy-importer.cfg
+
+      - name: Build the collection tarball and run galaxy importer on it
+        shell: bash
+        working-directory: ansible_collections/juniper/device
+        run: |
+          python -m galaxy_importer.main --git-clone-path . --output-path /tmp
   ansible-lint:
     uses: ansible/ansible-content-actions/.github/workflows/ansible_lint.yaml@main
     with:
