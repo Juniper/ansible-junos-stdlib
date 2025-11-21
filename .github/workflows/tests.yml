@@ -1,5 +1,5 @@
 ---
-name: "Collection Tests 🧪"
+name: "Collection Tests"
 
 concurrency:
   group: ${{ github.head_ref || github.run_id }}
