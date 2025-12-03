@@ -1,5 +1,5 @@
 ---
-name: "CI"
+name: "Collection Tests"
 
 concurrency:
   group: ${{ github.head_ref || github.run_id }}
@@ -7,24 +7,214 @@ concurrency:
 
 on:  # yamllint disable-line rule:truthy
   pull_request:
-    branches: [main]
-  push:
-    branches: [main]
+    branches: [master]
   workflow_dispatch:
   schedule:
     - cron: '0 0 * * *'
 
 jobs:
+  changelog:
+    uses: ansible/ansible-content-actions/.github/workflows/changelog.yaml@main
+    if: github.event_name == 'pull_request'
+  build-import:
+    name: build-import-collection
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      - name: Ensure ansible-core and galaxy-importer is installed
+        shell: bash
+        run: |
+          python -m pip install ansible-core galaxy-importer
+
+      - name: Update galaxy-importer cfg
+        shell: bash
+        run: |
+          echo "[galaxy-importer]\nCHECK_REQUIRED_TAGS=True" > /tmp/galaxy-importer.cfg
+          export GALAXY_IMPORTER_CONFIG=/tmp/galaxy-importer.cfg
+
+      - name: Build the collection tarball and run galaxy importer on it
+        shell: bash
+        working-directory: ansible_collections/juniper/device
+        run: |
+          python -m galaxy_importer.main --git-clone-path . --output-path /tmp
   ansible-lint:
-    uses: ./.github/workflows/ansible_lint.yml
+    uses: ansible/ansible-content-actions/.github/workflows/ansible_lint.yaml@main
+    with:
+      working_directory: ansible_collections/juniper/device
+  sanity:
+    name: Sanity Tests
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - python: "3.10"
+            ansible: "2.17"
+          - python: "3.11"
+            ansible: "2.17"
+          - python: "3.11"
+            ansible: "2.18"
+          - python: "3.11"
+            ansible: "2.19"
+          - python: "3.12"
+            ansible: "2.17"
+          - python: "3.12"
+            ansible: "2.18"
+          - python: "3.12"
+            ansible: "2.19"
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: "${{ github.event.pull_request.head.sha }}"
+          fetch-depth: 0
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "${{ matrix.python }}"
+      - name: "Install tox-ansible, includes tox"
+        run: python -m pip install tox-ansible
+      - name: "Check for tox-ansible.ini file, else add default"
+        uses: ansible/ansible-content-actions/.github/actions/add_tox_ansible@main
+      - name: Copy tox-ansible.ini to collection directory
+        run: |
+          if [ -f tox-ansible.ini ]; then
+            cp tox-ansible.ini ansible_collections/juniper/device/
+          fi
+      - name: Run tox sanity tests
+        working-directory: ansible_collections/juniper/device
+        run: >-
+          python -m tox --ansible -e sanity-py${{ matrix.python }}-${{ matrix.ansible }}
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+  unit-galaxy:
+    name: Unit Tests (Galaxy)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - python: "3.10"
+            ansible: "2.17"
+          - python: "3.11"
+            ansible: "2.17"
+          - python: "3.11"
+            ansible: "2.18"
+          - python: "3.11"
+            ansible: "2.19"
+          - python: "3.12"
+            ansible: "2.17"
+          - python: "3.12"
+            ansible: "2.18"
+          - python: "3.12"
+            ansible: "2.19"
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          ref: "${{ github.event.pull_request.head.ref }}"
+          repository: "${{ github.event.pull_request.head.repo.full_name }}"
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "${{ matrix.python }}"
+      - name: "Install tox-ansible, includes tox"
+        run: python -m pip install tox-ansible
+      - name: "Check for tox-ansible.ini file, else add default"
+        uses: ansible/ansible-content-actions/.github/actions/add_tox_ansible@main
+      - name: Copy tox-ansible.ini to collection directory
+        run: |
+          if [ -f tox-ansible.ini ]; then
+            cp tox-ansible.ini ansible_collections/juniper/device/
+          fi
+      - name: Run tox unit tests
+        working-directory: ansible_collections/juniper/device
+        run: >-
+          python -m tox --ansible -e unit-py${{ matrix.python }}-${{ matrix.ansible }}
+        env:
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+  unit-source:
+    name: Unit Tests (Source)
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - ansible_version: "stable-2.16"
+            python_version: "3.11"
+          - ansible_version: "stable-2.17"
+            python_version: "3.11"
+          - ansible_version: "stable-2.18"
+            python_version: "3.11"
+          - ansible_version: "stable-2.19"
+            python_version: "3.11"
+          - ansible_version: "stable-2.20"
+            python_version: "3.12"
+          - ansible_version: "milestone"
+            python_version: "3.12"
+          - ansible_version: "devel"
+            python_version: "3.12"
+    steps:
+      - uses: actions/checkout@v5
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "${{ matrix.python_version }}"
+      - name: Install ansible-compat, for tests
+        run: python -m pip install ansible-compat
+      - name: Install test dependencies
+        run: |
+          python -m pip install pytest pytest-xdist pytest-cov lxml
+      - name: Install ansible-core (${{ matrix.ansible_version }})
+        run: |
+          if [ "${{ matrix.ansible_version }}" = "devel" ] || [ "${{ matrix.ansible_version }}" = "milestone" ]; then
+            python -m pip install git+https://github.com/ansible/ansible.git@${{ matrix.ansible_version }}
+          else
+            python -m pip install git+https://github.com/ansible/ansible.git@${{ matrix.ansible_version }}
+          fi
+      - name: Pre install collections dependencies first so the collection install does not
+        run: |
+          ansible-galaxy collection install git+https://github.com/ansible-collections/ansible.utils.git
+          ansible-galaxy collection install git+https://github.com/ansible-collections/ansible.netcommon.git
+      - name: Read collection metadata from galaxy.yml
+        working-directory: ansible_collections/juniper/device
+        run: |
+          python -c "import yaml; print(yaml.safe_load(open('galaxy.yml'))['version'])"
+      - name: Build and install the collection
+        working-directory: ansible_collections/juniper/device
+        run: |
+          ansible-galaxy collection build --force
+          ansible-galaxy collection install juniper-device-*.tar.gz --force
+      - name: Print the ansible version
+        run: ansible --version
+      - name: Print the python dependencies
+        run: python -m pip list
+      - name: Run unit tests
+        working-directory: ansible_collections/juniper/device
+        run: |
+          if [ -d "tests/unit" ]; then
+            ansible-test units --python ${{ matrix.python_version }} --local --requirements
+          else
+            echo "No unit tests directory found, skipping"
+          fi
   all_green:
     if: ${{ always() && (github.event_name != 'schedule') }}
     needs:
+      - changelog
+      - build-import
+      - sanity
+      - unit-galaxy
       - ansible-lint
+      - unit-source
     runs-on: ubuntu-latest
     steps:
       - run: >-
           python -c "assert 'failure' not in
           set([
-          '${{ needs.ansible-lint.result }}'
+          '${{ needs.changelog.result }}',
+          '${{ needs.build-import.result }}',
+          '${{ needs.sanity.result }}',
+          '${{ needs.unit-galaxy.result }}',
+          '${{ needs.ansible-lint.result }}',
+          '${{ needs.unit-source.result }}'
           ])"

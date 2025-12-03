@@ -145,7 +145,6 @@ class ActionModule(ActionNetworkModule):
                 if not (
                     module_name == "junos_facts"
                     or module_name == "junos_package"
-                    or module_name == "junos_scp"
                 ):
                     display.warning(
                         "provider is unnecessary when using %s and will be ignored"
