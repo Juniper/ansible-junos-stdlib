@@ -6,7 +6,7 @@
 - name: Ensure netconf is enabled
   connection: ansible.netcommon.network_cli
   tags: netconf
-  junipernetworks.junos.junos_netconf:
+  juniper.device.junos_netconf:
     state: present
 
 - name: Wait for netconf server to come up
