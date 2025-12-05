@@ -53,7 +53,7 @@ class TestJunosCommandModule(TestJunosModule):
         self.conn = self.mock_conn.start()
 
         self.mock_netconf = patch(
-            "ansible_collections.junipernetworks.junos.plugins.module_utils.network.junos.junos.NetconfConnection",
+            "ansible_collections.juniper.device.plugins.module_utils.network.junos.junos.NetconfConnection",
         )
         self.netconf_conn = self.mock_netconf.start()
 
@@ -63,7 +63,7 @@ class TestJunosCommandModule(TestJunosModule):
         self.netconf_rpc = self.mock_netconf_rpc.start()
 
         self.mock_exec_rpc = patch(
-            "ansible_collections.junipernetworks.junos.plugins.modules.junos_rpc.exec_rpc",
+            "ansible_collections.juniper.device.plugins.modules.junos_rpc.exec_rpc",
         )
         self.exec_rpc = self.mock_exec_rpc.start()
 

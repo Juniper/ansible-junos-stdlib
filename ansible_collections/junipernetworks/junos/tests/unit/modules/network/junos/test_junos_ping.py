@@ -36,7 +36,7 @@ class TestJunosPingModule(TestJunosModule):
         super(TestJunosPingModule, self).setUp()
 
         self.mock_get_connection = patch(
-            "ansible_collections.junipernetworks.junos.plugins.modules.junos_ping.get_connection",
+            "ansible_collections.juniper.device.plugins.modules.junos_ping.get_connection",
         )
         self.get_connection = self.mock_get_connection.start()
 

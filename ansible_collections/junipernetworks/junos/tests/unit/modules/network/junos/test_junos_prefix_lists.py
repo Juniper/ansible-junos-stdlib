@@ -40,25 +40,25 @@ class TestJunosPrefix_listsModule(TestJunosModule):
     def setUp(self):
         super(TestJunosPrefix_listsModule, self).setUp()
         self.mock_lock_configuration = patch(
-            "ansible_collections.junipernetworks.junos.plugins.module_utils.network.junos.junos.lock_configuration",
+            "ansible_collections.juniper.device.plugins.module_utils.network.junos.junos.lock_configuration",
         )
         self.lock_configuration = self.mock_lock_configuration.start()
         self.mock_unlock_configuration = patch(
-            "ansible_collections.junipernetworks.junos.plugins.module_utils.network.junos.junos.unlock_configuration",
+            "ansible_collections.juniper.device.plugins.module_utils.network.junos.junos.unlock_configuration",
         )
         self.unlock_configuration = self.mock_unlock_configuration.start()
         self.mock_load_config = patch(
-            "ansible_collections.junipernetworks.junos.plugins.module_utils.network.junos.config.prefix_lists.prefix_lists.load_config",
+            "ansible_collections.juniper.device.plugins.module_utils.network.junos.config.prefix_lists.prefix_lists.load_config",
         )
         self.load_config = self.mock_load_config.start()
 
         self.mock_commit_configuration = patch(
-            "ansible_collections.junipernetworks.junos.plugins.module_utils.network.junos.config.prefix_lists.prefix_lists.commit_configuration",
+            "ansible_collections.juniper.device.plugins.module_utils.network.junos.config.prefix_lists.prefix_lists.commit_configuration",
         )
         self.mock_commit_configuration = self.mock_commit_configuration.start()
 
         self.mock_execute_show_command = patch(
-            "ansible_collections.junipernetworks.junos.plugins.module_utils.network.junos.facts.prefix_lists.prefix_lists."
+            "ansible_collections.juniper.device.plugins.module_utils.network.junos.facts.prefix_lists.prefix_lists."
             "Prefix_listsFacts.get_device_data",
         )
         self.execute_show_command = self.mock_execute_show_command.start()
