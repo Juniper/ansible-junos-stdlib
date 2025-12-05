@@ -102,7 +102,7 @@ jobs:
           python -m tox --ansible -e sanity-py${{ matrix.python }}-${{ matrix.ansible }}
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-
+      
   unit-galaxy:
     name: Unit Tests (Galaxy)
     runs-on: ubuntu-latest
@@ -146,7 +146,7 @@ jobs:
       - name: Run tox unit tests
         working-directory: ansible_collections/${{ matrix.collection }}
         run: >-
-          python -m tox --ansible -e unit-py${{ matrix.python }}-${{ matrix.ansible }}
+          python -m tox --ansible -c tox-ansible.ini -e unit-py${{ matrix.python }}-${{ matrix.ansible }}
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
