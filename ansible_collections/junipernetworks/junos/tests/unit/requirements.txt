@@ -1,6 +1,6 @@
 boto3
 placebo
-pycrypto
+pycryptodome
 passlib
 pypsrp
 python-memcached
