@@ -99,10 +99,10 @@ jobs:
       - name: Run tox sanity tests
         working-directory: ansible_collections/${{ matrix.collection }}
         run: >-
-          python -m tox --ansible -e sanity-py${{ matrix.python }}-${{ matrix.ansible }}
+          python -m tox --ansible -c tox-ansible.ini -e sanity-py${{ matrix.python }}-${{ matrix.ansible }}
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-      
+
   unit-galaxy:
     name: Unit Tests (Galaxy)
     runs-on: ubuntu-latest
@@ -136,6 +136,15 @@ jobs:
           python-version: "${{ matrix.python }}"
       - name: "Install tox-ansible, includes tox"
         run: python -m pip install tox-ansible
+      - name: Build local juniper.device dependency
+        if: matrix.collection == 'junipernetworks/junos'
+        run: |
+          cd ansible_collections/juniper/device
+          ansible-galaxy collection build --force
+          mv *-*.tar.gz /tmp/juniper-device-local.tar.gz
+          cd -
+          # Point galaxy.yml dependency to the local tarball
+          sed -i 's|juniper.device:.*|juniper.device: /tmp/juniper-device-local.tar.gz|' ansible_collections/junipernetworks/junos/galaxy.yml
       - name: "Check for tox-ansible.ini file, else add default"
         uses: ansible/ansible-content-actions/.github/actions/add_tox_ansible@main
       - name: Copy tox-ansible.ini to collection directory
@@ -145,6 +154,7 @@ jobs:
           fi
       - name: Run tox unit tests
         working-directory: ansible_collections/${{ matrix.collection }}
+        # Added -c tox-ansible.ini to fix configuration loading
         run: >-
           python -m tox --ansible -c tox-ansible.ini -e unit-py${{ matrix.python }}-${{ matrix.ansible }}
         env:
