@@ -28,7 +28,7 @@ __metaclass__ = type
 
 from unittest.mock import MagicMock, patch
 
-from ansible_collections.junipernetworks.junos.plugins.modules import junos_ospf_interfaces
+from ansible_collections.juniper.device.plugins.modules import junos_ospf_interfaces
 from ansible_collections.junipernetworks.junos.tests.unit.modules.utils import set_module_args
 
 from .junos_module import TestJunosModule, load_fixture

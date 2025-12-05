@@ -26,7 +26,7 @@ from unittest.mock import patch
 
 from ansible.module_utils._text import to_text
 
-from ansible_collections.junipernetworks.junos.plugins.modules import junos_config
+from ansible_collections.juniper.device.plugins.modules import junos_config
 from ansible_collections.junipernetworks.junos.tests.unit.modules.utils import set_module_args
 
 from .junos_module import TestJunosModule, load_fixture
