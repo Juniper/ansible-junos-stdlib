@@ -28,7 +28,7 @@ except ImportError:
 
 from unittest.mock import patch
 
-from ansible_collections.junipernetworks.junos.plugins.modules import junos_command
+from ansible_collections.juniper.device.plugins.modules import junos_command
 from ansible_collections.junipernetworks.junos.tests.unit.modules.utils import set_module_args
 
 from .junos_module import TestJunosModule, load_fixture
@@ -44,17 +44,17 @@ class TestJunosCommandModule(TestJunosModule):
         super(TestJunosCommandModule, self).setUp()
 
         self.mock_conn = patch(
-            "ansible_collections.junipernetworks.junos.plugins.module_utils.network.junos.junos.Connection",
+            "ansible_collections.juniper.device.plugins.module_utils.network.junos.junos.Connection",
         )
         self.conn = self.mock_conn.start()
 
         self.mock_netconf = patch(
-            "ansible_collections.junipernetworks.junos.plugins.module_utils.network.junos.junos.NetconfConnection",
+            "ansible_collections.juniper.device.plugins.module_utils.network.junos.junos.NetconfConnection",
         )
         self.netconf_conn = self.mock_netconf.start()
 
         self.mock_exec_rpc = patch(
-            "ansible_collections.junipernetworks.junos.plugins.modules.junos_command.exec_rpc",
+            "ansible_collections.juniper.device.plugins.modules.junos_command.exec_rpc",
         )
         self.exec_rpc = self.mock_exec_rpc.start()
 
@@ -64,12 +64,12 @@ class TestJunosCommandModule(TestJunosModule):
         self.netconf_rpc = self.mock_netconf_rpc.start()
 
         self.mock_get_connection = patch(
-            "ansible_collections.junipernetworks.junos.plugins.modules.junos_command.get_connection",
+            "ansible_collections.juniper.device.plugins.modules.junos_command.get_connection",
         )
         self.get_connection = self.mock_get_connection.start()
 
         self.mock_get_capabilities = patch(
-            "ansible_collections.junipernetworks.junos.plugins.modules.junos_command.get_capabilities",
+            "ansible_collections.juniper.device.plugins.modules.junos_command.get_capabilities",
         )
         self.get_capabilities = self.mock_get_capabilities.start()
         self.get_capabilities.return_value = {"network_api": "netconf"}

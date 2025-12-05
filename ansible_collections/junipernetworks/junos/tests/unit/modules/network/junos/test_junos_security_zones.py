@@ -28,7 +28,7 @@ __metaclass__ = type
 
 from unittest.mock import patch
 
-from ansible_collections.junipernetworks.junos.plugins.modules import junos_security_zones
+from ansible_collections.juniper.device.plugins.modules import junos_security_zones
 from ansible_collections.junipernetworks.junos.tests.unit.modules.utils import set_module_args
 
 from .junos_module import TestJunosModule, load_fixture
@@ -41,27 +41,27 @@ class TestJunosSecurity_zonesModule(TestJunosModule):
         super(TestJunosSecurity_zonesModule, self).setUp()
 
         self.mock_lock_configuration = patch(
-            "ansible_collections.junipernetworks.junos.plugins.module_utils.network.junos.junos.lock_configuration",
+            "ansible_collections.juniper.device.plugins.module_utils.network.junos.junos.lock_configuration",
         )
         self.lock_configuration = self.mock_lock_configuration.start()
 
         self.mock_unlock_configuration = patch(
-            "ansible_collections.junipernetworks.junos.plugins.module_utils.network.junos.junos.unlock_configuration",
+            "ansible_collections.juniper.device.plugins.module_utils.network.junos.junos.unlock_configuration",
         )
         self.unlock_configuration = self.mock_unlock_configuration.start()
 
         self.mock_load_config = patch(
-            "ansible_collections.junipernetworks.junos.plugins.module_utils.network.junos.config.security_zones.security_zones.load_config",
+            "ansible_collections.juniper.device.plugins.module_utils.network.junos.config.security_zones.security_zones.load_config",
         )
         self.load_config = self.mock_load_config.start()
 
         self.mock_commit_configuration = patch(
-            "ansible_collections.junipernetworks.junos.plugins.module_utils.network.junos.config.security_zones.security_zones.commit_configuration",
+            "ansible_collections.juniper.device.plugins.module_utils.network.junos.config.security_zones.security_zones.commit_configuration",
         )
         self.mock_commit_configuration = self.mock_commit_configuration.start()
 
         self.mock_execute_show_command = patch(
-            "ansible_collections.junipernetworks.junos.plugins.module_utils.network.junos.facts.security_zones.security_zones."
+            "ansible_collections.juniper.device.plugins.module_utils.network.junos.facts.security_zones.security_zones."
             "Security_zonesFacts._get_device_data",
         )
         self.execute_show_command = self.mock_execute_show_command.start()

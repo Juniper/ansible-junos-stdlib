@@ -7,7 +7,9 @@ concurrency:
 
 on:  # yamllint disable-line rule:truthy
   pull_request:
-    branches: [master]
+    branches: [main, devel, master]
+  push:
+    branches: [main, devel, master]
   workflow_dispatch:
   schedule:
     - cron: '0 0 * * *'
@@ -16,9 +18,14 @@ jobs:
   changelog:
     uses: ansible/ansible-content-actions/.github/workflows/changelog.yaml@main
     if: github.event_name == 'pull_request'
+
   build-import:
     name: build-import-collection
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        collection: [juniper/device, junipernetworks/junos]
     steps:
       - name: Checkout
         uses: actions/checkout@v5
@@ -36,19 +43,26 @@ jobs:
 
       - name: Build the collection tarball and run galaxy importer on it
         shell: bash
-        working-directory: ansible_collections/juniper/device
+        working-directory: ansible_collections/${{ matrix.collection }}
         run: |
           python -m galaxy_importer.main --git-clone-path . --output-path /tmp
+
   ansible-lint:
     uses: ansible/ansible-content-actions/.github/workflows/ansible_lint.yaml@main
+    strategy:
+      fail-fast: false
+      matrix:
+        collection: [juniper/device, junipernetworks/junos]
     with:
-      working_directory: ansible_collections/juniper/device
+      working_directory: ansible_collections/${{ matrix.collection }}
+
   sanity:
     name: Sanity Tests
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
+        collection: [juniper/device, junipernetworks/junos]
         include:
           - python: "3.10"
             ansible: "2.17"
@@ -80,20 +94,22 @@ jobs:
       - name: Copy tox-ansible.ini to collection directory
         run: |
           if [ -f tox-ansible.ini ]; then
-            cp tox-ansible.ini ansible_collections/juniper/device/
+            cp tox-ansible.ini ansible_collections/${{ matrix.collection }}/
           fi
       - name: Run tox sanity tests
-        working-directory: ansible_collections/juniper/device
+        working-directory: ansible_collections/${{ matrix.collection }}
         run: >-
-          python -m tox --ansible -e sanity-py${{ matrix.python }}-${{ matrix.ansible }}
+          python -m tox --ansible -c tox-ansible.ini -e sanity-py${{ matrix.python }}-${{ matrix.ansible }}
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
   unit-galaxy:
     name: Unit Tests (Galaxy)
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
+        collection: [juniper/device, junipernetworks/junos]
         include:
           - python: "3.10"
             ansible: "2.17"
@@ -118,6 +134,20 @@ jobs:
         uses: actions/setup-python@v6
         with:
           python-version: "${{ matrix.python }}"
+      - name: Prepare local dependencies
+        if: matrix.collection == 'junipernetworks/junos'
+        run: |
+          echo "Building local juniper.device..."
+          cd ansible_collections/juniper/device
+          ansible-galaxy collection build --force
+          mv *-*.tar.gz /tmp/juniper-device-local.tar.gz
+          cd -
+          echo "Injecting local build into galaxy.yml..."
+          sed -i 's|juniper.device:.*|juniper.device: /tmp/juniper-device-local.tar.gz|' ansible_collections/junipernetworks/junos/galaxy.yml
+          if ! grep -q "ansible.netcommon" ansible_collections/junipernetworks/junos/galaxy.yml; then
+             echo "Injecting ansible.netcommon dependency..."
+             sed -i '/dependencies:/a \ \ ansible.netcommon: "*"' ansible_collections/junipernetworks/junos/galaxy.yml
+          fi
       - name: "Install tox-ansible, includes tox"
         run: python -m pip install tox-ansible
       - name: "Check for tox-ansible.ini file, else add default"
@@ -125,20 +155,22 @@ jobs:
       - name: Copy tox-ansible.ini to collection directory
         run: |
           if [ -f tox-ansible.ini ]; then
-            cp tox-ansible.ini ansible_collections/juniper/device/
+            cp tox-ansible.ini ansible_collections/${{ matrix.collection }}/
           fi
       - name: Run tox unit tests
-        working-directory: ansible_collections/juniper/device
+        working-directory: ansible_collections/${{ matrix.collection }}
         run: >-
-          python -m tox --ansible -e unit-py${{ matrix.python }}-${{ matrix.ansible }}
+          python -m tox --ansible -c tox-ansible.ini -e unit-py${{ matrix.python }}-${{ matrix.ansible }}
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+
   unit-source:
     name: Unit Tests (Source)
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
+        collection: [juniper/device, junipernetworks/junos]
         include:
           - ansible_version: "stable-2.16"
             python_version: "3.11"
@@ -177,26 +209,29 @@ jobs:
           ansible-galaxy collection install git+https://github.com/ansible-collections/ansible.utils.git
           ansible-galaxy collection install git+https://github.com/ansible-collections/ansible.netcommon.git
       - name: Read collection metadata from galaxy.yml
-        working-directory: ansible_collections/juniper/device
+        working-directory: ansible_collections/${{ matrix.collection }}
         run: |
           python -c "import yaml; print(yaml.safe_load(open('galaxy.yml'))['version'])"
       - name: Build and install the collection
-        working-directory: ansible_collections/juniper/device
+        working-directory: ansible_collections/${{ matrix.collection }}
         run: |
           ansible-galaxy collection build --force
-          ansible-galaxy collection install juniper-device-*.tar.gz --force
+          ansible-galaxy collection install *-*.tar.gz --force
       - name: Print the ansible version
         run: ansible --version
       - name: Print the python dependencies
         run: python -m pip list
       - name: Run unit tests
-        working-directory: ansible_collections/juniper/device
+        working-directory: ansible_collections/${{ matrix.collection }}
         run: |
           if [ -d "tests/unit" ]; then
+            # Fix pycrypto here as well for unit-source
+            if [ -f "requirements.txt" ]; then sed -i 's/pycrypto/pycryptodome/g' requirements.txt; fi
             ansible-test units --python ${{ matrix.python_version }} --local --requirements
           else
             echo "No unit tests directory found, skipping"
           fi
+
   all_green:
     if: ${{ always() && (github.event_name != 'schedule') }}
     needs:

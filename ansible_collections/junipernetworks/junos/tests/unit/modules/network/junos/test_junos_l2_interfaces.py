@@ -28,7 +28,7 @@ __metaclass__ = type
 
 from unittest.mock import patch
 
-from ansible_collections.junipernetworks.junos.plugins.modules import junos_l2_interfaces
+from ansible_collections.juniper.device.plugins.modules import junos_l2_interfaces
 from ansible_collections.junipernetworks.junos.tests.unit.modules.utils import set_module_args
 
 from .junos_module import TestJunosModule, load_fixture
@@ -40,27 +40,27 @@ class TestJunosL2InterfacesModule(TestJunosModule):
     def setUp(self):
         super(TestJunosL2InterfacesModule, self).setUp()
         self.mock_lock_configuration = patch(
-            "ansible_collections.junipernetworks.junos.plugins.module_utils.network.junos.junos.lock_configuration",
+            "ansible_collections.juniper.device.plugins.module_utils.network.junos.junos.lock_configuration",
         )
         self.lock_configuration = self.mock_lock_configuration.start()
         self.mock_unlock_configuration = patch(
-            "ansible_collections.junipernetworks.junos.plugins.module_utils.network.junos.junos.unlock_configuration",
+            "ansible_collections.juniper.device.plugins.module_utils.network.junos.junos.unlock_configuration",
         )
         self.unlock_configuration = self.mock_unlock_configuration.start()
         self.mock_load_config = patch(
-            "ansible_collections.junipernetworks.junos.plugins.module_utils.network.junos.config.l2_interfaces.l2_interfaces.load_config",
+            "ansible_collections.juniper.device.plugins.module_utils.network.junos.config.l2_interfaces.l2_interfaces.load_config",
         )
         self.load_config = self.mock_load_config.start()
         self.mock_commit_configuration = patch(
-            "ansible_collections.junipernetworks.junos.plugins.module_utils.network.junos.config.l2_interfaces.l2_interfaces.commit_configuration",
+            "ansible_collections.juniper.device.plugins.module_utils.network.junos.config.l2_interfaces.l2_interfaces.commit_configuration",
         )
         self.mock_commit_configuration = self.mock_commit_configuration.start()
         self.mock_execute_show_command = patch(
-            "ansible_collections.junipernetworks.junos.plugins.module_utils.network.junos.facts.l2_interfaces.l2_interfaces."
+            "ansible_collections.juniper.device.plugins.module_utils.network.junos.facts.l2_interfaces.l2_interfaces."
             "L2_interfacesFacts.get_device_data",
         )
         self.mock_get_res_config = patch(
-            "ansible_collections.junipernetworks.junos.plugins.module_utils.network.junos.config.l2_interfaces.l2_interfaces."
+            "ansible_collections.juniper.device.plugins.module_utils.network.junos.config.l2_interfaces.l2_interfaces."
             "L2_interfaces.get_res_config",
         )
         self.get_res_config = self.mock_get_res_config.start()

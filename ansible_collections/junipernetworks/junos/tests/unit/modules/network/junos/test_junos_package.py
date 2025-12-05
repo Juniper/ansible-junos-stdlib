@@ -38,7 +38,7 @@ modules = {
 module_patcher = patch.dict("sys.modules", modules)
 module_patcher.start()
 
-from ansible_collections.junipernetworks.junos.plugins.modules import junos_package
+from ansible_collections.juniper.device.plugins.modules import junos_package
 
 
 class TestJunosPackageModule(TestJunosModule):
@@ -47,7 +47,7 @@ class TestJunosPackageModule(TestJunosModule):
     def setUp(self):
         super(TestJunosPackageModule, self).setUp()
         self.mock_get_device = patch(
-            "ansible_collections.junipernetworks.junos.plugins.modules.junos_package.get_device",
+            "ansible_collections.juniper.device.plugins.modules.junos_package.get_device",
         )
         self.get_device = self.mock_get_device.start()
 

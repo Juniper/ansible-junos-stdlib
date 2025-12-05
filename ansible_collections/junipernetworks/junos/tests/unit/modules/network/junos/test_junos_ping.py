@@ -23,7 +23,7 @@ __metaclass__ = type
 
 from unittest.mock import MagicMock, patch
 
-from ansible_collections.junipernetworks.junos.plugins.modules import junos_ping
+from ansible_collections.juniper.device.plugins.modules import junos_ping
 from ansible_collections.junipernetworks.junos.tests.unit.modules.utils import set_module_args
 
 from .junos_module import TestJunosModule, load_fixture
@@ -36,7 +36,7 @@ class TestJunosPingModule(TestJunosModule):
         super(TestJunosPingModule, self).setUp()
 
         self.mock_get_connection = patch(
-            "ansible_collections.junipernetworks.junos.plugins.modules.junos_ping.get_connection",
+            "ansible_collections.juniper.device.plugins.modules.junos_ping.get_connection",
         )
         self.get_connection = self.mock_get_connection.start()
 

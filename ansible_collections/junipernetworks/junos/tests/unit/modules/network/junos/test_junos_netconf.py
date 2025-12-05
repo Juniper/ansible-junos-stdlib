@@ -23,7 +23,7 @@ __metaclass__ = type
 
 from unittest.mock import patch
 
-from ansible_collections.junipernetworks.junos.plugins.modules import junos_netconf
+from ansible_collections.juniper.device.plugins.modules import junos_netconf
 from ansible_collections.junipernetworks.junos.tests.unit.modules.utils import set_module_args
 
 from .junos_module import TestJunosModule
@@ -36,12 +36,12 @@ class TestJunosCommandModule(TestJunosModule):
         super(TestJunosCommandModule, self).setUp()
 
         self.mock_lock_configuration = patch(
-            "ansible_collections.junipernetworks.junos.plugins.module_utils.network.junos.junos.lock_configuration",
+            "ansible_collections.juniper.device.plugins.module_utils.network.junos.junos.lock_configuration",
         )
         self.lock_configuration = self.mock_lock_configuration.start()
 
         self.mock_unlock_configuration = patch(
-            "ansible_collections.junipernetworks.junos.plugins.module_utils.network.junos.junos.unlock_configuration",
+            "ansible_collections.juniper.device.plugins.module_utils.network.junos.junos.unlock_configuration",
         )
         self.unlock_configuration = self.mock_unlock_configuration.start()
 
@@ -49,7 +49,7 @@ class TestJunosCommandModule(TestJunosModule):
         self.conn = self.mock_conn.start()
 
         self.mock_netconf = patch(
-            "ansible_collections.junipernetworks.junos.plugins.module_utils.network.junos.junos.NetconfConnection",
+            "ansible_collections.juniper.device.plugins.module_utils.network.junos.junos.NetconfConnection",
         )
         self.netconf_conn = self.mock_netconf.start()
 
@@ -59,7 +59,7 @@ class TestJunosCommandModule(TestJunosModule):
         self.netconf_rpc = self.mock_netconf_rpc.start()
 
         self.mock_get_capabilities = patch(
-            "ansible_collections.junipernetworks.junos.plugins.module_utils.network.junos.junos.get_capabilities",
+            "ansible_collections.juniper.device.plugins.module_utils.network.junos.junos.get_capabilities",
         )
         self.get_capabilities = self.mock_get_capabilities.start()
         self.get_capabilities.return_value = {"network_api": "netconf"}
