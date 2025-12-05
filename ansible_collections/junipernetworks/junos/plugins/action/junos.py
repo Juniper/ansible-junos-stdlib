@@ -32,7 +32,7 @@ from ansible_collections.ansible.netcommon.plugins.module_utils.network.common.u
     load_provider,
 )
 
-from ansible_collections.junipernetworks.junos.plugins.module_utils.network.junos.junos import (
+from ansible_collections.juniper.device.plugins.module_utils.network.junos.junos import (
     junos_provider_spec,
 )
 
