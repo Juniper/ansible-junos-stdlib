@@ -4,18 +4,27 @@ Junipernetworks Junos Collection Release Notes
 
 .. contents:: Topics
 
-v11.0.0
+v11.1.0
 =======
 
-Release Summary
----------------
-
-With this release, the minimum required version of `ansible.netcommon` for this collection is `>=8.1.0`. The last version known to be compatible with `ansible-core<=2.18.x` is ansible.netcommon `v8.0.1` and junipernetworks.junos `v10.0.0`.
-
-Major Changes
+Minor Changes
 -------------
 
-- Bumping `dependencies` of ansible.netcommon to `>=8.1.0`, since previous versions of the dependency had compatibility issues with `ansible-core>=2.19`.
+- Extended the deprecation period for junipernetworks.junos to juniper.device redirects. Redirects will now be removed after 2028-04-01 (April 2028), giving users approximately 2 years to migrate playbooks to juniper.device FQCNs.
+
+Deprecated Features
+-------------------
+
+- All plugin and module redirects from junipernetworks.junos to juniper.device now emit a deprecation warning. The collection will continue to redirect for approximately 2 years; after removal_date (2027-03-01) redirects may be removed. Migrate playbooks to use juniper.device FQCNs (e.g. juniper.device.junos_config instead of junipernetworks.junos.junos_config).
+- All plugin and module redirects from junipernetworks.junos to juniper.device now emit a deprecation warning. The collection will continue to redirect for approximately 2 years; after removal_date (2028-04-01) redirects may be removed. Migrate playbooks to use juniper.device FQCNs (e.g. juniper.device.junos_config instead of junipernetworks.junos.junos_config).
+
+Documentation Changes
+---------------------
+
+- Includes a new support related section in the README.
+
+v11.0.0
+=======
 
 Bugfixes
 --------
@@ -385,7 +394,7 @@ Deprecated Features
 New Modules
 -----------
 
-- junos_routing_options - Manage routing-options configuration on Junos devices.
+- junos_routing_options - Manage routing\-options configuration on Junos devices.
 
 v2.7.1
 ======
@@ -647,13 +656,11 @@ New Modules
 - junos_lag_interfaces - Link Aggregation Juniper JUNOS resource module
 - junos_lldp_global - LLDP resource module
 - junos_lldp_interfaces - LLDP interfaces resource module
-- junos_logging - Manage logging on network devices
 - junos_netconf - Configures the Junos Netconf system service
 - junos_ospfv2 - OSPFv2 resource module
 - junos_package - Installs packages on remote devices running Junos
 - junos_ping - Tests reachability using ping from devices running Juniper JUNOS
 - junos_rpc - Runs an arbitrary RPC over NetConf on an Juniper JUNOS device
-- junos_scp - Transfer files from or to remote devices running Junos
 - junos_static_routes - Static routes resource module
 - junos_system - Manage the system attributes on Juniper JUNOS devices
 - junos_user - Manage local user accounts on Juniper JUNOS devices
