@@ -7,6 +7,13 @@ Junipernetworks Junos Collection Release Notes
 v11.1.0
 =======
 
+
+Minor Changes
+-------------
+
+- Extended the deprecation period for junipernetworks.junos to juniper.device redirects. Redirects will now be removed after 2028-04-01 (April 2028), giving users approximately 2 years to migrate playbooks to juniper.device FQCNs.
+
+
 Deprecated Features
 -------------------
 
@@ -18,8 +25,20 @@ Documentation Changes
 
 - Includes a new support related section in the README.
 
+
 v11.0.0
 =======
+
+Release Summary
+---------------
+
+With this release, the minimum required version of `ansible.netcommon` for this collection is `>=8.1.0`. The last version known to be compatible with `ansible-core<=2.18.x` is ansible.netcommon `v8.0.1` and junipernetworks.junos `v10.0.0`.
+
+Major Changes
+-------------
+
+- Bumping `dependencies` of ansible.netcommon to `>=8.1.0`, since previous versions of the dependency had compatibility issues with `ansible-core>=2.19`.
+
 
 Bugfixes
 --------
