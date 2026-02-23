@@ -7,12 +7,10 @@ Junipernetworks Junos Collection Release Notes
 v11.1.0
 =======
 
-
 Minor Changes
 -------------
 
 - Extended the deprecation period for junipernetworks.junos to juniper.device redirects. Redirects will now be removed after 2028-04-01 (April 2028), giving users approximately 2 years to migrate playbooks to juniper.device FQCNs.
-
 
 Deprecated Features
 -------------------
@@ -24,7 +22,6 @@ Documentation Changes
 ---------------------
 
 - Includes a new support related section in the README.
-
 
 v11.0.0
 =======
@@ -38,7 +35,6 @@ Major Changes
 -------------
 
 - Bumping `dependencies` of ansible.netcommon to `>=8.1.0`, since previous versions of the dependency had compatibility issues with `ansible-core>=2.19`.
-
 
 Bugfixes
 --------
@@ -364,6 +360,13 @@ Minor Changes
 - Added junos_security_policies_global module.
 - Added junos_security_zones module.
 
+New Modules
+-----------
+
+- junos_security_policies - Create and manage security policies on Juniper JUNOS devices
+- junos_security_policies_global - Manage global security policy settings on Juniper JUNOS devices
+- junos_security_zones - Manage security zones on Juniper JUNOS devices
+
 v2.9.0
 ======
 
@@ -378,6 +381,12 @@ Bugfixes
 
 - Fix junos_command output when empty config response is received for show commands (https://github.com/ansible-collections/junipernetworks.junos/issues/249).
 
+New Modules
+-----------
+
+- junos_hostname - Manage Hostname server configuration on Junos devices.
+- junos_snmp_server - Manage SNMP server configuration on Junos devices.
+
 v2.8.0
 ======
 
@@ -391,6 +400,11 @@ Deprecated Features
 -------------------
 
 - 'router_id' options is deprecated from junos_ospf_interfaces, junos_ospfv2 and junos_ospfv3 resuorce module.
+
+New Modules
+-----------
+
+- junos_routing_options - Manage routing-options configuration on Junos devices.
 
 v2.7.1
 ======
@@ -421,6 +435,11 @@ Deprecated Features
 -------------------
 
 - Deprecated router_id from ospfv2 resource module.
+
+New Modules
+-----------
+
+- junos_ntp_global - Manage NTP configuration on Junos devices.
 
 v2.5.0
 ======
@@ -458,6 +477,11 @@ Bugfixes
 - fix netconf test-case for lacp revert
 - junos_acls failed to parse acl when multiple addresses defined within a single term (https://github.com/ansible-collections/junipernetworks.junos/issues/190)
 
+New Modules
+-----------
+
+- junos_logging_global - Manage logging configuration on Junos devices.
+
 v2.3.0
 ======
 
@@ -490,6 +514,11 @@ Security Fixes
 
 - Mask values of sensitive keys in module result(https://github.com/ansible-collections/junipernetworks.junos/issues/165).
 
+New Modules
+-----------
+
+- junos_routing_instances - Manage routing instances on Junos devices.
+
 v2.0.1
 ======
 
@@ -516,6 +545,11 @@ Minor Changes
 - Add support for configuration caching (single_user_mode).
 - Re-use device_info dictionary in cliconf.
 
+New Modules
+-----------
+
+- junos_bgp_address_family - Manage BGP Address Family attributes of interfaces on Junos devices.
+
 v1.3.0
 ======
 
@@ -531,6 +565,12 @@ Bugfixes
 - changing prefix list type to list and correcting facts gathering (https://github.com/ansible-collections/junipernetworks.junos/issues/131)
 - constructing the facts based on the addresses per unit (https://github.com/ansible-collections/junipernetworks.junos/issues/111)
 - release version added updated to 1.3.0 for junos_ospf_interfaces and junos_bgp_global module
+
+New Modules
+-----------
+
+- junos_bgp_global - Manages BGP Global configuration on devices running Juniper JUNOS.
+- junos_ospf_interfaces - OSPF Interfaces Resource Module.
 
 v1.2.1
 ======
@@ -550,6 +590,11 @@ Minor Changes
 -------------
 
 - Add ospfv3 resource module.
+
+New Modules
+-----------
+
+- junos_ospfv3 - OSPFv3 resource module
 
 v1.1.1
 ======
@@ -591,3 +636,45 @@ Bugfixes
 v1.0.0
 ======
 
+New Plugins
+-----------
+
+Cliconf
+~~~~~~~
+
+- junos - Use junos cliconf to run command on Juniper Junos OS platform
+
+Netconf
+~~~~~~~
+
+- junos - Use junos netconf plugin to run netconf commands on Juniper JUNOS platform
+
+New Modules
+-----------
+
+- junos_acl_interfaces - ACL interfaces resource module
+- junos_acls - ACLs resource module
+- junos_banner - Manage multiline banners on Juniper JUNOS devices
+- junos_command - Run arbitrary commands on an Juniper JUNOS device
+- junos_config - Manage configuration on devices running Juniper JUNOS
+- junos_facts - Collect facts from remote devices running Juniper Junos
+- junos_interfaces - Junos Interfaces resource module
+- junos_l2_interfaces - L2 interfaces resource module
+- junos_l3_interfaces - L3 interfaces resource module
+- junos_lacp - Global Link Aggregation Control Protocol (LACP) Junos resource module
+- junos_lacp_interfaces - LACP interfaces resource module
+- junos_lag_interfaces - Link Aggregation Juniper JUNOS resource module
+- junos_lldp_global - LLDP resource module
+- junos_lldp_interfaces - LLDP interfaces resource module
+- junos_logging - Manage logging on network devices
+- junos_netconf - Configures the Junos Netconf system service
+- junos_ospfv2 - OSPFv2 resource module
+- junos_package - Installs packages on remote devices running Junos
+- junos_ping - Tests reachability using ping from devices running Juniper JUNOS
+- junos_rpc - Runs an arbitrary RPC over NetConf on an Juniper JUNOS device
+- junos_scp - Transfer files from or to remote devices running Junos
+- junos_static_routes - Static routes resource module
+- junos_system - Manage the system attributes on Juniper JUNOS devices
+- junos_user - Manage local user accounts on Juniper JUNOS devices
+- junos_vlans - VLANs resource module
+- junos_vrf - Manage the VRF definitions on Juniper JUNOS devices
