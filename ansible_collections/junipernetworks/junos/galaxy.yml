@@ -12,4 +12,4 @@ readme: README.md
 repository: https://github.com/Juniper/ansible-junos-stdlib
 issues: https://github.com/Juniper/ansible-junos-stdlib/issues
 tags: [juniper, junipernetworks, junos, networking, security, netconf]
-version: 11.0.0
+version: 11.1.0

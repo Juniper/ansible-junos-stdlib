@@ -4,6 +4,25 @@ Junipernetworks Junos Collection Release Notes
 
 .. contents:: Topics
 
+v11.1.0
+=======
+
+Minor Changes
+-------------
+
+- Extended the deprecation period for junipernetworks.junos to juniper.device redirects. Redirects will now be removed after 2028-04-01 (April 2028), giving users approximately 2 years to migrate playbooks to juniper.device FQCNs.
+
+Deprecated Features
+-------------------
+
+- All plugin and module redirects from junipernetworks.junos to juniper.device now emit a deprecation warning. The collection will continue to redirect for approximately 2 years; after removal_date (2027-03-01) redirects may be removed. Migrate playbooks to use juniper.device FQCNs (e.g. juniper.device.junos_config instead of junipernetworks.junos.junos_config).
+- All plugin and module redirects from junipernetworks.junos to juniper.device now emit a deprecation warning. The collection will continue to redirect for approximately 2 years; after removal_date (2028-04-01) redirects may be removed. Migrate playbooks to use juniper.device FQCNs (e.g. juniper.device.junos_config instead of junipernetworks.junos.junos_config).
+
+Documentation Changes
+---------------------
+
+- Includes a new support related section in the README.
+
 v11.0.0
 =======
 
