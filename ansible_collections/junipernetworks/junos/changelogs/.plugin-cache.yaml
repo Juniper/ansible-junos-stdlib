@@ -4,7 +4,11 @@ plugins:
   become: {}
   cache: {}
   callback: {}
-  cliconf: {}
+  cliconf:
+    junos:
+      description: Use junos cliconf to run command on Juniper Junos OS platform
+      name: junos
+      version_added: 1.0.0
   connection: {}
   filter: {}
   httpapi: {}
@@ -16,4 +20,4 @@ plugins:
   strategy: {}
   test: {}
   vars: {}
-version: 11.1.0
+version: 11.1.1

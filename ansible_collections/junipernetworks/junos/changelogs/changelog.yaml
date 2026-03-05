@@ -1,10 +1,6 @@
 ancestor: null
 releases:
   1.0.0:
-    modules: []
-    plugins:
-      cliconf: []
-      netconf: []
     release_date: '2020-06-23'
   1.0.1:
     changes:
@@ -60,7 +56,6 @@ releases:
       - Add ospfv3 resource module.
     fragments:
     - add_junos_ospfv3.yaml
-    modules: []
     release_date: '2020-10-30'
   1.2.1:
     changes:
@@ -91,7 +86,6 @@ releases:
     - junos_l3_interfaces_unit_fix.yaml
     - junos_ospf_interfaces.yaml
     - junos_version_added_updated.yaml
-    modules: []
     release_date: '2021-01-28'
   10.0.0:
     changes:
@@ -146,6 +140,15 @@ releases:
     - ignore_219.yaml
     - libssh.yaml
     release_date: '2026-02-19'
+  11.1.1:
+    changes:
+      minor_changes:
+      - README badges, documentation links, and release notes link now point to the
+        new repository (https://github.com/Juniper/ansible-junos-stdlib). Plugin and
+        module doc links in README, have been updated for Automation Hub compatibility.
+    fragments:
+    - update_readme_docs_links_new_repo.yaml
+    release_date: '2026-03-04'
   2.0.0:
     changes:
       major_changes:
@@ -167,7 +170,6 @@ releases:
     - fix_junos_sanity.yaml
     - implementing_group_and_neighbor.yaml
     - single_user_mode.yaml
-    modules: []
     release_date: '2021-02-25'
   2.0.1:
     changes:
@@ -193,7 +195,6 @@ releases:
     - ansible_networl_resources_facts.yaml
     - junos_vlans.yaml
     - no_log_sanity_fixes.yaml
-    modules: []
     release_date: '2021-04-28'
   2.10.0:
     changes:
@@ -207,7 +208,6 @@ releases:
     - junos_security_policies_global_module.yaml
     - junos_security_policies_resource_module.yaml
     - junos_security_zones_module.yml
-    modules: []
     release_date: '2022-03-29'
   2.2.0:
     changes:
@@ -249,7 +249,6 @@ releases:
     - junos_acl_multi_address_port_acls.yaml
     - junos_config_backup_format.yaml
     - junos_logging_global_module.yaml
-    modules: []
     release_date: '2021-07-28'
   2.5.0:
     changes:
@@ -276,7 +275,6 @@ releases:
     - junos_ntp_global.yaml
     - rename_key_to_key_id_junos_ntp_global.yaml
     - set_allow_duplicates.yaml
-    modules: []
     release_date: '2021-09-24'
   2.7.0:
     changes:
@@ -306,7 +304,6 @@ releases:
     fragments:
     - junos_routing_options_resource_module.yaml
     - junos_snmp_server_module.yaml
-    modules: []
     release_date: '2021-12-09'
   2.9.0:
     changes:
@@ -321,7 +318,6 @@ releases:
     - 249_fix_junos_command_output.yaml
     - implement_intf_unit_description.yaml
     - junos_hostname_module.yaml
-    modules: []
     release_date: '2022-02-01'
   3.0.0:
     changes:
