@@ -146,6 +146,15 @@ releases:
     - ignore_219.yaml
     - libssh.yaml
     release_date: '2026-02-19'
+  11.1.1:
+    changes:
+      minor_changes:
+      - README badges, documentation links, and release notes link now point to the
+        new repository (https://github.com/Juniper/ansible-junos-stdlib). Plugin and
+        module doc links in README, have been updated for Automation Hub compatibility.
+    fragments:
+    - update_readme_docs_links_new_repo.yaml
+    release_date: '2026-03-04'
   2.0.0:
     changes:
       major_changes:

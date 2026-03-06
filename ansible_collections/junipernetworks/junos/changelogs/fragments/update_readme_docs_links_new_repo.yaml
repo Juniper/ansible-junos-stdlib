@@ -1,6 +1,0 @@
----
-minor_changes:
-- README badges, documentation links, and release notes link now point to the new
-  repository (https://github.com/Juniper/ansible-junos-stdlib). Plugin and module
-  doc links in README, have been updated
-  for Automation Hub compatibility.

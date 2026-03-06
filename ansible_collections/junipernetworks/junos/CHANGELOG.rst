@@ -4,6 +4,14 @@ Junipernetworks Junos Collection Release Notes
 
 .. contents:: Topics
 
+v11.1.1
+=======
+
+Minor Changes
+-------------
+
+- README badges, documentation links, and release notes link now point to the new repository (https://github.com/Juniper/ansible-junos-stdlib). Plugin and module doc links in README, have been updated for Automation Hub compatibility.
+
 v11.1.0
 =======
 
