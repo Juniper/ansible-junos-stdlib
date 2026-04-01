@@ -92,7 +92,7 @@ jobs:
           # Using '-p .' installs the collections into ./ansible_collections/
           # This structure allows ansible-test to find the dependencies (netcommon/utils)
           # without needing them installed in the system/user path.
-          ansible-galaxy collection install ansible.netcommon ansible.utils -p .
+          ansible-galaxy collection install ansible.netcommon ansible.utils -p . --force
 
       - name: "Install tox-ansible, includes tox"
         run: python -m pip install tox-ansible
