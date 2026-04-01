@@ -96,12 +96,12 @@ jobs:
           if [ -f tox-ansible.ini ]; then
             cp tox-ansible.ini ansible_collections/${{ matrix.collection }}/
           fi
-      - name: Install Dependencies
-        working-directory: ansible_collections/
-        if: matrix.collection == 'juniper/device'
+      - name: Install collection dependencies
         run: |
-          ansible-galaxy collection install ansible.netcommon -p . --force
-          ansible-galaxy collection install ansible.utils -p . --force
+          # Using '-p .' installs the collections into ./ansible_collections/
+          # This structure allows ansible-test to find the dependencies (netcommon/utils)
+          # without needing them installed in the system/user path.
+          ansible-galaxy collection install ansible.netcommon ansible.utils -p .
 
       - name: Run tox sanity tests
         working-directory: ansible_collections/${{ matrix.collection }}
