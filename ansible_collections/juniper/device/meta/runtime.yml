@@ -1,9 +1,6 @@
 ---
 requires_ansible: ">=2.16.0"
 plugin_routing:
-  action:
-    acl_interfaces:
-      redirect: juniper.device.junos_acl_interfaces
   modules:
     hostname:
       redirect: juniper.device.junos_hostname
