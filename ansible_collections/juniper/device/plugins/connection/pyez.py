@@ -517,7 +517,6 @@ class Connection(NetworkConnectionBase):
         facts = self.dev.facts
         return json.loads(json.dumps(dict(facts), default=str))
 
-
     def ping_device(self, normalize, **params):
         """Ping the device.
 

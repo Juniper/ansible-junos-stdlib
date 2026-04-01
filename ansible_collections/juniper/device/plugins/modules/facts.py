@@ -207,6 +207,7 @@ def to_dict(obj):
         return vars(obj)
     return str(obj)                        # last resort
 
+
 def get_facts_dict(junos_module):
     """Retreive PyEZ facts and convert to a standard dict w/o custom types.
 

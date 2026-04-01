@@ -166,7 +166,7 @@ def _check_library(
                 % (library_nickname, library_name, installation_url, library_name)
             )
     elif installed_version is not None and minimum is not None:
-        if not Version(installed_version) >= Version(minimum):
+        if Version(installed_version) < Version(minimum):
             return (
                 "%s >= %s is required for this module. Version %s of "
                 "%s is currently installed. See %s for details on "
