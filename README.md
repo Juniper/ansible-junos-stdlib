@@ -97,7 +97,7 @@ collections:
 To upgrade the collection to the latest available version, run the following command:
 
 ```bash
-ansible-galaxy collection install juniper.devie --upgrade
+ansible-galaxy collection install juniper.device --upgrade
 ```
 
 You can also install a specific version of the collection. Use the following syntax to install version 1.0.0:
