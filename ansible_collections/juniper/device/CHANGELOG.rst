@@ -6,6 +6,21 @@ Juniper Device Collection Release Notes
 Changelog for Juniper Device Ansible Collection
 ===========================
 
+Version 2.0.2 (2025-04-06)
+---------------------------
+Enhancements
+------------
+- None
+
+Bugs Fixed
+----------
+- Update juniper.device.software module documentation for version: false #794
+- Updates to README.md  #802
+- Fix for ansible-test sanity failures #803
+- Add multi-collection CI support for juniper.device #804
+- Fix CI issues and update workflows for jobs : lint, sanity , unit runs #789
+- Fix to handle JSON response from get_facts #816
+
 Version 2.0.1 (2025-11-14)
 ---------------------------
 Enhancements
