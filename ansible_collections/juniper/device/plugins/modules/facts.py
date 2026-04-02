@@ -198,6 +198,15 @@ from ansible_collections.juniper.device.plugins.module_utils import juniper_juno
 
 # Ansiballz packages module_utils into ansible.module_utils
 
+def to_dict(obj):
+    if isinstance(obj, dict):
+        return obj
+    if hasattr(obj, "_fields"):           # namedtuple
+        return dict(zip(obj._fields, obj))
+    if hasattr(obj, "__dict__"):          # regular object
+        return vars(obj)
+    return str(obj)                        # last resort
+
 
 def get_facts_dict(junos_module):
     """Retreive PyEZ facts and convert to a standard dict w/o custom types.
@@ -224,6 +233,7 @@ def get_facts_dict(junos_module):
         facts["master_state"] = dev.master
     else:
         facts = junos_module.get_facts()
+
     # Ansible doesn't allow keys starting with numbers.
     # Replace the '2RE' key with the 'has_2RE' key.
     if "2RE" in facts:
@@ -232,12 +242,12 @@ def get_facts_dict(junos_module):
     # The value of the 'version_info' key is a custom junos.version_info
     # object. Convert this value to a dict.
     if "version_info" in facts and facts["version_info"] is not None:
-        facts["version_info"] = dict(facts["version_info"])
+        facts["version_info"] = to_dict(facts["version_info"])
     # The values of the ['junos_info'][re_name]['object'] keys are
     # custom junos.version_info objects. Convert all of these to dicts.
     if "junos_info" in facts and facts["junos_info"] is not None:
         for key in facts["junos_info"]:
-            facts["junos_info"][key]["object"] = dict(
+            facts["junos_info"][key]["object"] = to_dict(
                 facts["junos_info"][key]["object"],
             )
     return facts
