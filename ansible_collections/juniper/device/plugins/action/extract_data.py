@@ -61,6 +61,7 @@ connection_spec_fallbacks = {
     "console": ["console"],
     "mode": ["mode"],
     "timeout": ["timeout", "ansible_timeout"],
+    "proxy_command": ["proxy_command", "ansible_pyez_proxy_command"],
 }
 
 

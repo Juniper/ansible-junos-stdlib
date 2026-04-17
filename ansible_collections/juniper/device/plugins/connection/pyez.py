@@ -209,10 +209,23 @@ options:
     vars:
     - name: ansible_pyez_ssh_config
     - name: ssh_config
-
+  pyez_proxy_command:
+    description:
+    - The SSH ProxyCommand used to connect to the Junos device through
+      a bastion/jump host.
+    - Format must match SSH option style used,
+      e.g. C(-o ProxyCommand="ssh -W %h:%p -q bastion01").
+    - The C(-o ProxyCommand=) prefix is stripped automatically before
+      passing the plain command string to PyEZ Device().
+    vars:
+    - name: proxy_command
+    - name: ansible_pyez_proxy_command
+    env:
+    - name: PROXY_COMMAND
 """
 import json
 import logging
+import re
 
 from ansible.errors import AnsibleError
 from ansible.module_utils._text import to_bytes
@@ -362,6 +375,23 @@ class Connection(NetworkConnectionBase):
         """
         # Move all of the connection arguments into connect_args
         connect_args = {}
+        # Read proxy_command from connection option
+        # Supports format:
+        #   '-o ProxyCommand="ssh -W %h:%p -q bastion01"'
+        proxy_raw = self.get_option("pyez_proxy_command")
+        if proxy_raw:
+            proxy_raw = proxy_raw.strip()
+            match = re.match(
+                r'-o\s+ProxyCommand=(?:"([^"]+)"|\'([^\']+)\'|(\S+.*))',
+                proxy_raw,
+                re.IGNORECASE,
+            )
+            if match:
+                connect_args["proxy_command"] = (
+                    match.group(1) or match.group(2) or match.group(3)
+                )
+            else:
+                connect_args["proxy_command"] = proxy_raw
 
         # check for mode
         if self.get_option("port") is None:
