@@ -593,24 +593,24 @@ def main():
         text_output = None
         parsed_output = None
         if resp is None:
-          # Some operational RPCs (for example file-delete) can return an
-          # empty <rpc-reply/>. Treat that as a successful no-content reply.
-          if rpc_string == "file-delete":
-            text_output = ""
-            resp = True
-            result["msg"] = "The RPC executed successfully with an empty reply."
-            junos_module.logger.debug(
-              "RPC '%s' returned an empty reply; treating as success.",
-              rpc_string,
-            )
-          else:
-            result["msg"] = "RPC execution returned no response object."
-            results.append(result)
-            junos_module.logger.debug(
-              "RPC '%s' returned no response object.",
-              rpc_string,
-            )
-            continue
+            # Some operational RPCs (for example file-delete) can return an
+            # empty <rpc-reply/>. Treat that as a successful no-content reply.
+            if rpc_string == "file-delete":
+                text_output = ""
+                resp = True
+                result["msg"] = "The RPC executed successfully with an empty reply."
+                junos_module.logger.debug(
+                    "RPC '%s' returned an empty reply; treating as success.",
+                    rpc_string,
+                )
+            else:
+                result["msg"] = "RPC execution returned no response object."
+                results.append(result)
+                junos_module.logger.debug(
+                    "RPC '%s' returned no response object.",
+                    rpc_string,
+                )
+                continue
         if resp is True:
             text_output = ""
         elif (isinstance(resp, junos_module.etree._Element)) or (
