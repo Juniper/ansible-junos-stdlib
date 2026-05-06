@@ -566,9 +566,9 @@ def main():
                         )
                     except Exception as ex:
                         if "RpcError" in (str(ex)):
-                            raise junos_module.pyez_exception.RpcError(str(ex)
+                            raise junos_module.pyez_exception.RpcError(str(ex))
                         if "ConnectError" in (str(ex)):
-                            raise junos_module.pyez_exception.ConnectError(str(ex)
+                            raise junos_module.pyez_exception.ConnectError(str(ex))
                 result["msg"] = "The RPC executed successfully."
                 junos_module.logger.debug(
                     'RPC "%s" executed successfully.',
