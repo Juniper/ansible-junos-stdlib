@@ -312,11 +312,18 @@ class Acls(ConfigBase):
                                             ports,
                                         )
                         if ace.get("protocol"):
-                            build_child_xml_node(
-                                from_node,
-                                "protocol",
-                                ace["protocol"],
-                            )
+                            if family == "inet":
+                                build_child_xml_node(
+                                    from_node,
+                                    "protocol",
+                                    ace["protocol"],
+                                )
+                            elif family == "inet6":
+                                build_child_xml_node(
+                                    from_node,
+                                    "next-header",
+                                    ace["protocol"],
+                                )
                         if ace.get("protocol_options"):
                             if ace["protocol_options"].get("icmp"):
                                 icmp_code = build_child_xml_node(
