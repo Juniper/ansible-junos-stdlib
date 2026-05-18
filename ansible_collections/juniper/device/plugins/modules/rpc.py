@@ -564,10 +564,17 @@ def main():
                             format=format,
                         )
                     except Exception as ex:
-                        if "RpcError" in (str(ex)):
-                            raise junos_module.pyez_exception.RpcError
-                        if "ConnectError" in (str(ex)):
-                            raise junos_module.pyez_exception.ConnectError
+                        junos_module.logger.debug(
+                            'Unable to execute RPC "%s". Error: %s',
+                            junos_module.etree.tostring(rpc, pretty_print=True),
+                            str(ex),
+                        )
+                        result["msg"] = "Unable to execute the RPC: %s. Error: %s" % (
+                            junos_module.etree.tostring(rpc, pretty_print=True),
+                            str(ex),
+                        )
+                        results.append(result)
+                        continue
                 result["msg"] = "The RPC executed successfully."
                 junos_module.logger.debug(
                     'RPC "%s" executed successfully.',
@@ -576,6 +583,7 @@ def main():
         except (
             junos_module.pyez_exception.ConnectError,
             junos_module.pyez_exception.RpcError,
+            junos_module.pyez_exception.RpcTimeoutError,
         ) as ex:
             junos_module.logger.debug(
                 'Unable to execute RPC "%s". Error: %s',

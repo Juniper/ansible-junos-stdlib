@@ -503,11 +503,16 @@ class Connection(NetworkConnectionBase):
         rpc_val = rpc_val.encode("utf-8")
         parser = etree.XMLParser(ns_clean=True, recover=True, encoding="utf-8")
         rpc_etree = etree.fromstring(rpc_val, parser=parser)
-        resp = self.dev.rpc(
-            rpc_etree,
-            normalize=bool(format == "xml"),
-            ignore_warning=ignore_warning,
-        )
+        try:
+            resp = self.dev.rpc(
+                rpc_etree,
+                normalize=bool(format == "xml"),
+                ignore_warning=ignore_warning,
+            )
+        except pyez_exception.RpcTimeoutError as ex:
+            raise AnsibleError("RpcTimeoutError: %s" % str(ex))
+        except (pyez_exception.RpcError, pyez_exception.ConnectError) as ex:
+            raise AnsibleError("RpcError: %s" % str(ex))
         if format == "json":
             return resp
         return etree.tostring(resp)
