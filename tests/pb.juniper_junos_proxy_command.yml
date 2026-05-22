@@ -1,0 +1,47 @@
+---
+# Play 1: Positive — connect via bastion using proxy_command
+- name: Test proxy_command via juniper.device — positive
+  hosts: all
+  gather_facts: false
+
+  vars:
+    proxy_command: '-o ProxyCommand="ssh -W %h:%p -q regress@bastion01"'
+
+  tasks:
+    - name: Get facts via bastion using proxy_command
+      juniper.device.facts:
+      register: result
+
+    - name: Print hostname fact
+      ansible.builtin.debug:
+        msg: "Connected to: {{ result.facts.hostname }}"
+
+    - name: Assert connection succeeded
+      ansible.builtin.assert:
+        that:
+          - result.failed == false
+          - result.facts.hostname is defined
+        success_msg: "PASS: Connected via bastion proxy_command"
+        fail_msg: "FAIL: Could not connect via bastion"
+
+# Play 2: Negative — direct access must be blocked when proxy_command is unset
+- name: Test proxy_command via juniper.device — negative
+  hosts: all
+  gather_facts: false
+
+  vars:
+    proxy_command: ""    # override inventory value — disables proxy
+
+  tasks:
+    - name: Attempt facts without proxy (expect failure)
+      juniper.device.facts:
+      register: result
+      ignore_errors: true
+
+    - name: Assert connection was refused (direct access blocked)
+      ansible.builtin.assert:
+        that:
+          - result.failed == true
+          - "'ConnectRefusedError' in result.msg or 'ConnectError' in result.msg or 'Unable to make' in result.msg"
+        success_msg: "PASS: Direct access correctly blocked — proxy_command required"
+        fail_msg: "FAIL: Direct access succeeded but should have been blocked"

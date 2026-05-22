@@ -40,6 +40,7 @@ import hashlib
 import json
 import logging
 import os
+import re
 
 # Standard library imports
 from argparse import ArgumentParser
@@ -298,6 +299,20 @@ class ModuleDocFragment(object):
         required: false
         type: bool
         default: false
+      proxy_command:
+        description:
+          - The SSH ProxyCommand used to connect to the Junos device through
+            a bastion/jump host.
+          - Accepts the format.
+            C(-o ProxyCommand="ssh -W %h:%p -q bastion01").
+          - The C(-o ProxyCommand=) prefix is automatically stripped before
+            passing the plain command string to PyEZ Device().
+          - The tokens C(%h) and C(%p) are expanded to the target device
+            hostname and port by PyEZ before executing the proxy.
+          - Cannot be combined with I(console) or a non-default I(mode).
+        required: false
+        default: none
+        type: str
 """
 
     LOGGING_DOCUMENTATION = """
@@ -488,6 +503,7 @@ connection_spec = {
     ),
     "timeout": dict(type="int", required=False, default=30),
     "huge_tree": dict(type="bool", required=False, default=False),
+    "proxy_command": dict(type="str", required=False, default=None),
 }
 
 # Connection arguments which are mutually exclusive.
@@ -498,6 +514,8 @@ connection_spec_mutually_exclusive = [
     ["attempts", "console"],
     ["cs_user", "console"],
     ["cs_passwd", "console"],
+    ["proxy_command", "console"],
+    ["proxy_command", "mode"],
 ]
 
 # Specify the logging spec.
@@ -1173,6 +1191,27 @@ class JuniperJunosModule(AnsibleModule):
         for key in connection_spec:
             if self.params.get(key) is not None:
                 connect_args[key] = self.params.get(key)
+
+        # Parse proxy_command from compatible format:
+        #   '-o ProxyCommand="ssh -W %h:%p -q bastion01"'
+        # Strip the '-o ProxyCommand=' wrapper and extract the plain command
+        # string before passing to PyEZ Device().
+        # Also accepts plain format: 'ssh -W %h:%p -q bastion01'
+        if connect_args.get("proxy_command"):
+            proxy_raw = connect_args["proxy_command"].strip()
+            match = re.match(
+                r'-o\s+ProxyCommand=(?:"([^"]+)"|\'([^\']+)\'|(\S+.*))',
+                proxy_raw,
+                re.IGNORECASE,
+            )
+            if match:
+                # Extract from double-quoted, single-quoted, or unquoted form
+                connect_args["proxy_command"] = (
+                    match.group(1) or match.group(2) or match.group(3)
+                )
+            # else: already plain format e.g. "ssh -W %h:%p -q bastion01"
+            else:
+                connect_args["proxy_command"] = proxy_raw
 
         try:
             # self.close()
