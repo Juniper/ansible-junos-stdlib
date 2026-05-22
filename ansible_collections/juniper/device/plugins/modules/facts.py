@@ -233,6 +233,8 @@ def get_facts_dict(junos_module):
         facts["master_state"] = dev.master
     else:
         facts = junos_module.get_facts()
+        if facts is None:
+            facts = {}
 
     # Ansible doesn't allow keys starting with numbers.
     # Replace the '2RE' key with the 'has_2RE' key.
