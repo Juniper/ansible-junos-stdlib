@@ -1,0 +1,45 @@
+- name: Functional Test - junos_lag_interfaces
+  hosts: junos_device
+  connection: ansible.netcommon.netconf
+  gather_facts: false
+  collections:
+    - junipernetworks.junos
+
+  tasks:
+
+    - name: GATHERED - Retrieve existing LAG configuration
+      junipernetworks.junos.junos_lag_interfaces:
+        state: gathered
+      register: result_gathered
+
+    - name: Assert gathered LAG config is returned
+      assert:
+        that:
+          - result_gathered.gathered is defined
+          - result_gathered.gathered | type_debug == 'list'
+
+    - name: RENDERED - Generate platform-specific XML config
+      junipernetworks.junos.junos_lag_interfaces:
+        state: rendered
+        config:
+          - name: ae1
+            members:
+              - member: ge-0/0/1
+              - member: ge-0/0/2
+            mode: active
+
+          - name: ae2
+            link_protection: true
+            members:
+              - member: ge-0/0/3
+                link_type: primary
+              - member: ge-0/0/4
+                link_type: backup
+            mode: passive
+      register: result_rendered
+
+    - name: Assert rendered LAG config is valid
+      assert:
+        that:
+          - result_rendered.rendered is defined
+          - result_rendered.rendered | length > 0

@@ -1,0 +1,105 @@
+- name: Functional Test - junos_routing_options module
+  hosts: junos_device
+  gather_facts: false
+  connection: netconf
+  collections:
+    - junipernetworks.junos
+
+  tasks:
+
+    - name: Pre-clean - Delete existing routing options
+      junipernetworks.junos.junos_routing_options:
+        config: {}
+        state: deleted
+
+    - name: Apply routing options using merged
+      junipernetworks.junos.junos_routing_options:
+        config:
+          autonomous_system:
+            as_number: 2
+            asdot_notation: true
+        state: merged
+      register: merged_result
+
+    - name: Assert merged result
+      assert:
+        that:
+          - merged_result.changed == true
+
+    - name: Gather routing options
+      junipernetworks.junos.junos_routing_options:
+        state: gathered
+      register: gathered_result
+
+    - name: Assert gathered result
+      assert:
+        that:
+          - gathered_result.gathered is defined
+
+    - name: Replace routing options configuration
+      junipernetworks.junos.junos_routing_options:
+        config:
+          autonomous_system:
+            as_number: 2
+            asdot_notation: true
+          router_id: "1.1.1.1"
+        state: replaced
+      register: replaced_result
+
+    - name: Assert replaced result
+      assert:
+        that:
+          - replaced_result.changed == true
+
+    - name: Override routing options configuration
+      junipernetworks.junos.junos_routing_options:
+        config:
+          autonomous_system:
+            as_number: 2
+            asdot_notation: true
+          router_id: "2.2.2.2"
+        state: overridden
+      register: overridden_result 
+
+    - name: Assert overridden result
+      assert:
+        that:
+          - overridden_result.changed == true
+
+    - name: Render routing options configuration
+      junipernetworks.junos.junos_routing_options:
+        config:
+          autonomous_system:
+            as_number: 2
+            asdot_notation: true
+            loops: 4
+          router_id: "12.12.12.12"
+        state: rendered
+      register: rendered_result
+
+    - name: Assert rendered configuration
+      assert:
+        that:
+          - rendered_result.rendered is defined
+
+    - name: Parse routing options running configuration
+      junipernetworks.junos.junos_routing_options:
+        running_config: "{{ lookup('file', 'parsed_configs/parsed_routing_options.cfg') }}"
+        state: parsed
+      register: parsed_result
+
+    - name: Assert parsed result
+      assert:
+        that:
+          - parsed_result.parsed is defined
+  
+    - name: Final clean - Delete all routing options
+      junipernetworks.junos.junos_routing_options:
+        config: {}
+        state: deleted
+      register: delete_result
+
+    - name: Assert routing options deleted
+      assert:
+        that:
+          - delete_result.changed == true
