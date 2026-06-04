@@ -1,0 +1,11 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Ansible Automation Platform (AAP) — Certified Content Support
+    url: https://access.redhat.com/support/cases/#/case/new
+    about: As Red Hat Ansible Certified Content, this collection is entitled to support through the Ansible Automation Platform (AAP). Use the "Create issue" button on the top right corner of the AAP support portal.
+  - name: Ansible Forum — Community Help
+    url: https://forum.ansible.com/
+    about: If a support case cannot be opened with Red Hat and the collection was obtained from Galaxy or GitHub, community help may be available on the Ansible Forum.
+  - name: Report a Security Vulnerability
+    url: https://github.com/Juniper/ansible-junos-stdlib/security/advisories/new
+    about: Do NOT open a public issue for security problems. Use GitHub's "Report a vulnerability" feature in the Security tab instead.
