@@ -210,20 +210,24 @@ EXAMPLES = """
 """
 
 RETURN = """
-diff.prepared:
+diff:
   description: Configuration difference before and after applying change.
   returned: when configuration is changed and diff option is enabled.
-  type: str
-  sample: >
-        [edit routing-instances]
-        +   test-1 {
-        +       description test-vrf-1;
-        +       instance-type vrf;
-        +       interface ge-0/0/2.0;
-        +       interface ge-0/0/3.0;
-        +       route-distinguisher 192.0.2.1:10;
-        +       vrf-target target:65514:113;
-        +   }
+  type: dict
+  contains:
+    prepared:
+      description: Prepared configuration diff.
+      type: str
+      sample: >
+              [edit routing-instances]
+              +   test-1 {
+              +       description test-vrf-1;
+              +       instance-type vrf;
+              +       interface ge-0/0/2.0;
+              +       interface ge-0/0/3.0;
+              +       route-distinguisher 192.0.2.1:10;
+              +       vrf-target target:65514:113;
+              +   }
 """
 import collections
 
