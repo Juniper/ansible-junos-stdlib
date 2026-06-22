@@ -20,6 +20,10 @@ plugin_routing:
       redirect: juniper.device.junos_lacp
     lacp_interfaces:
       redirect: juniper.device.junos_lacp_interfaces
+    l2_interfaces:
+      redirect: juniper.device.junos_l2_interfaces
+    lag_interfaces:
+      redirect: juniper.device.junos_lag_interfaces
     l3_intefaces:
       redirect: juniper.device.junos_l3_interfaces
     lacp_intefaces:
@@ -81,6 +85,10 @@ plugin_routing:
       redirect: juniper.device.junos_lacp
     lacp_interfaces:
       redirect: juniper.device.junos_lacp_interfaces
+    l2_interfaces:
+      redirect: juniper.device.junos_l2_interfaces
+    lag_interfaces:
+      redirect: juniper.device.junos_lag_interfaces
     lldp_global:
       redirect: juniper.device.junos_lldp_global
     lldp_interfaces:

@@ -2,6 +2,10 @@
 bugfixes:
   - Renamed ``juniper.device`` action plugins to carry the ``junos_`` prefix matching
     their corresponding module names, fixing the ``action-plugin-docs`` sanity test
-    failures. Added ``plugin_routing.action`` redirects in ``juniper.device`` and
-    ``junipernetworks.junos`` ``meta/runtime.yml`` so playbooks using short aliases
-    or deprecated ``junipernetworks.junos.*`` FQCNs continue to resolve correctly.
+    failures. Added ``plugin_routing.action`` and ``plugin_routing.modules`` redirects
+    in ``juniper.device`` and ``junipernetworks.junos`` ``meta/runtime.yml`` so
+    playbooks using short aliases or deprecated ``junipernetworks.junos.*`` FQCNs
+    continue to resolve correctly, including ``l2_interfaces`` and ``lag_interfaces``.
+  - Fixed ``RETURN`` documentation in ``junos_banner``, ``junos_system``, ``junos_user``,
+    and ``junos_vrf`` to use nested ``diff`` keys instead of invalid dotted
+    ``diff.prepared`` keys.

@@ -197,9 +197,9 @@ jobs:
           - ansible_version: "stable-2.20"
             python_version: "3.12"
           - ansible_version: "milestone"
-            python_version: "3.12"
+            python_version: "3.13"
           - ansible_version: "devel"
-            python_version: "3.12"
+            python_version: "3.13"
     steps:
       - uses: actions/checkout@v4
       - name: Set up Python
