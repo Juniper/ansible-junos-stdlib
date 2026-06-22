@@ -6,6 +6,279 @@ plugin_routing:
   action:
     junos:
       redirect: juniper.device.junos
+    junos_acl_interfaces:
+      redirect: juniper.device.junos_acl_interfaces
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_acl_interfaces instead.
+          Redirects will be removed after 2028-04-01.
+    junos_banner:
+      redirect: juniper.device.junos_banner
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_banner instead.
+          Redirects will be removed after 2028-04-01.
+    junos_command:
+      redirect: juniper.device.junos_command
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_command instead.
+          Redirects will be removed after 2028-04-01.
+    junos_config:
+      redirect: juniper.device.junos_config
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_config instead.
+          Redirects will be removed after 2028-04-01.
+    config:
+      redirect: juniper.device.junos_config
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_config instead.
+          Redirects will be removed after 2028-04-01.
+    junos_facts:
+      redirect: juniper.device.junos_facts
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_facts instead.
+          Redirects will be removed after 2028-04-01.
+    junos_interfaces:
+      redirect: juniper.device.junos_interfaces
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_interfaces instead.
+          Redirects will be removed after 2028-04-01.
+    junos_acls:
+      redirect: juniper.device.junos_acls
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_acls instead.
+          Redirects will be removed after 2028-04-01.
+    junos_hostname:
+      redirect: juniper.device.junos_hostname
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_hostname instead.
+          Redirects will be removed after 2028-04-01.
+    junos_l2_interfaces:
+      redirect: juniper.device.junos_l2_interfaces
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_l2_interfaces instead.
+          Redirects will be removed after 2028-04-01.
+    junos_l3_interfaces:
+      redirect: juniper.device.junos_l3_interfaces
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_l3_interfaces instead.
+          Redirects will be removed after 2028-04-01.
+    junos_lacp:
+      redirect: juniper.device.junos_lacp
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_lacp instead.
+          Redirects will be removed after 2028-04-01.
+    junos_lacp_interfaces:
+      redirect: juniper.device.junos_lacp_interfaces
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_lacp_interfaces instead.
+          Redirects will be removed after 2028-04-01.
+    junos_lag_interfaces:
+      redirect: juniper.device.junos_lag_interfaces
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_lag_interfaces instead.
+          Redirects will be removed after 2028-04-01.
+    junos_lldp_global:
+      redirect: juniper.device.junos_lldp_global
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_lldp_global instead.
+          Redirects will be removed after 2028-04-01.
+    junos_bgp_global:
+      redirect: juniper.device.junos_bgp_global
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_bgp_global instead.
+          Redirects will be removed after 2028-04-01.
+    junos_bgp_address_family:
+      redirect: juniper.device.junos_bgp_address_family
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_bgp_address_family instead.
+          Redirects will be removed after 2028-04-01.
+    junos_routing_instances:
+      redirect: juniper.device.junos_routing_instances
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_routing_instances instead.
+          Redirects will be removed after 2028-04-01.
+    junos_prefix_lists:
+      redirect: juniper.device.junos_prefix_lists
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_prefix_lists instead.
+          Redirects will be removed after 2028-04-01.
+    junos_logging_global:
+      redirect: juniper.device.junos_logging_global
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_logging_global instead.
+          Redirects will be removed after 2028-04-01.
+    junos_ntp_global:
+      redirect: juniper.device.junos_ntp_global
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_ntp_global instead.
+          Redirects will be removed after 2028-04-01.
+    junos_security_policies:
+      redirect: juniper.device.junos_security_policies
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_security_policies instead.
+          Redirects will be removed after 2028-04-01.
+    junos_security_policies_global:
+      redirect: juniper.device.junos_security_policies_global
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_security_policies_global instead.
+          Redirects will be removed after 2028-04-01.
+    junos_security_zones:
+      redirect: juniper.device.junos_security_zones
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_security_zones instead.
+          Redirects will be removed after 2028-04-01.
+    junos_snmp_server:
+      redirect: juniper.device.junos_snmp_server
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_snmp_server instead.
+          Redirects will be removed after 2028-04-01.
+    junos_routing_options:
+      redirect: juniper.device.junos_routing_options
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_routing_options instead.
+          Redirects will be removed after 2028-04-01.
+    junos_lldp_interfaces:
+      redirect: juniper.device.junos_lldp_interfaces
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_lldp_interfaces instead.
+          Redirects will be removed after 2028-04-01.
+    junos_netconf:
+      redirect: juniper.device.junos_netconf
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_netconf instead.
+          Redirects will be removed after 2028-04-01.
+    junos_ospfv2:
+      redirect: juniper.device.junos_ospfv2
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_ospfv2 instead.
+          Redirects will be removed after 2028-04-01.
+    junos_ospfv3:
+      redirect: juniper.device.junos_ospfv3
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_ospfv3 instead.
+          Redirects will be removed after 2028-04-01.
+    junos_ospf_interfaces:
+      redirect: juniper.device.junos_ospf_interfaces
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_ospf_interfaces instead.
+          Redirects will be removed after 2028-04-01.
+    junos_package:
+      redirect: juniper.device.junos_package
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_package instead.
+          Redirects will be removed after 2028-04-01.
+    junos_rpc:
+      redirect: juniper.device.junos_rpc
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_rpc instead.
+          Redirects will be removed after 2028-04-01.
+    junos_ping:
+      redirect: juniper.device.junos_ping
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_ping instead.
+          Redirects will be removed after 2028-04-01.
+    junos_static_routes:
+      redirect: juniper.device.junos_static_routes
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_static_routes instead.
+          Redirects will be removed after 2028-04-01.
+    junos_system:
+      redirect: juniper.device.junos_system
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_system instead.
+          Redirects will be removed after 2028-04-01.
+    junos_user:
+      redirect: juniper.device.junos_user
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_user instead.
+          Redirects will be removed after 2028-04-01.
+    junos_vlans:
+      redirect: juniper.device.junos_vlans
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_vlans instead.
+          Redirects will be removed after 2028-04-01.
+    junos_vrf:
+      redirect: juniper.device.junos_vrf
+      deprecation:
+        removal_date: "2028-04-01"
+        warning_text: |
+          The junipernetworks.junos collection is deprecated. Use juniper.device.junos_vrf instead.
+          Redirects will be removed after 2028-04-01.
   netconf:
     junos:
       redirect: juniper.device.junos

@@ -190,16 +190,20 @@ EXAMPLES = """
       - {name: test_user2, full_name: test_user2, role: read-only, state: absent}
 """
 RETURN = """
-diff.prepared:
+diff:
   description: Configuration difference before and after applying change.
   returned: when configuration is changed and diff option is enabled.
-  type: str
-  sample: >
-          [edit system login]
-          +    user test-user {
-          +        uid 2005;
-          +        class read-only;
-          +    }
+  type: dict
+  contains:
+    prepared:
+      description: Prepared configuration diff.
+      type: str
+      sample: >
+              [edit system login]
+              +    user test-user {
+              +        uid 2005;
+              +        class read-only;
+              +    }
 """
 from copy import deepcopy
 from functools import partial
