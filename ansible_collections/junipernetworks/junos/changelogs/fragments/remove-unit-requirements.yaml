@@ -1,0 +1,3 @@
+---
+trivial:
+  - "Removed ``tests/unit/requirements.txt`` which contained dependencies for other collections (boto3, f5-sdk, linode-python, etc.) and was not used by any junipernetworks.junos unit test."
