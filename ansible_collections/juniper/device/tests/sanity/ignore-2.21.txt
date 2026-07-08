@@ -15,3 +15,7 @@ plugins/connection/pyez.py validate-modules!skip # waiting for issue 729 fix
 plugins/action/extract_data.py action-plugin-docs
 plugins/action/juniper_junos_common_action.py action-plugin-docs
 plugins/callback/jsnapy.py ansible-doc!skip
+plugins/modules/junos_banner.py validate-modules:bad-return-value-key
+plugins/modules/junos_system.py validate-modules:bad-return-value-key
+plugins/modules/junos_user.py validate-modules:bad-return-value-key
+plugins/modules/junos_vrf.py validate-modules:bad-return-value-key
