@@ -253,3 +253,30 @@ class TestJunosInterfacesModule(TestJunosModule):
             "</nc:interface></nc:interfaces>",
         ]
         self.execute_module(changed=False, commands=commands)
+
+    def test_junos_interfaces_merged_comment_01(self):
+        original_set_module_args = set_module_args
+
+        def _set_module_args_with_comment(args):
+            args = dict(args)
+            args["comment"] = "configured via unit test"
+            return original_set_module_args(args)
+
+        with patch.dict(
+            "ansible_collections.juniper.device.plugins.modules.junos_interfaces.InterfacesArgs.argument_spec",
+            {
+                "comment": {
+                    "type": "str",
+                    "default": "configured by junos_interfaces",
+                },
+            },
+            clear=False,
+        ):
+            with patch(__name__ + ".set_module_args", side_effect=_set_module_args_with_comment):
+                self.test_junos_interfaces_merged()
+
+        args, kwargs = self.mock_commit_configuration.call_args
+        self.assertEqual(
+            args[0].params.get("comment"),
+            "configured via unit test",
+        )

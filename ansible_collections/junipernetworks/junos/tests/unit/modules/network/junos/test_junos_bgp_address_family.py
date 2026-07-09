@@ -3088,3 +3088,54 @@ class TestJunosBgp_address_familyModule(TestJunosModule):
 
         self.execute_module(changed=False, commands=[])
     """
+
+    def test_junos_bgp_address_family_merged_comment_01(self):
+        original_set_module_args = set_module_args
+
+        def _set_module_args_with_comment(args):
+            args = dict(args)
+            args["comment"] = "configured via unit test"
+            return original_set_module_args(args)
+
+        with patch.dict(
+            "ansible_collections.juniper.device.plugins.modules.junos_bgp_address_family.Bgp_address_familyArgs.argument_spec",
+            {
+                "comment": {
+                    "type": "str",
+                    "default": "configured by junos_bgp_address_family",
+                },
+            },
+            clear=False,
+        ):
+            with patch(__name__ + ".set_module_args", side_effect=_set_module_args_with_comment):
+                set_module_args(
+                    dict(
+                        config=dict(
+                            groups=[
+                                dict(
+                                    name="external",
+                                    address_family=[
+                                        dict(
+                                            afi="evpn",
+                                            af_type=[dict(type="flow", damping=True)],
+                                        )
+                                    ],
+                                )
+                            ],
+                            address_family=[
+                                dict(
+                                    afi="evpn",
+                                    af_type=[dict(type="flow", damping=True)],
+                                )
+                            ],
+                        ),
+                        state="merged",
+                    )
+                )
+                self.execute_module(changed=True)
+
+        args, kwargs = self.mock_commit_configuration.call_args
+        self.assertEqual(
+            args[0].params.get("comment"),
+            "configured via unit test",
+        )

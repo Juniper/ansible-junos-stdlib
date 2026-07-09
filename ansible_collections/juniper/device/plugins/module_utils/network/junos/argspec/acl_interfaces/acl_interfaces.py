@@ -64,6 +64,11 @@ class Acl_interfacesArgs(object):  # pylint: disable=R0903
             "type": "list",
         },
         "running_config": {"type": "str"},
+        "comment": {
+            "description": "Commit comment for the configuration change",
+            "type": "str",
+            "default": "configured by junos_acl_interfaces",
+        },
         "state": {
             "choices": [
                 "merged",

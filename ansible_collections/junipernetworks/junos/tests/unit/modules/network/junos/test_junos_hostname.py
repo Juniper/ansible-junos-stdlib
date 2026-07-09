@@ -26,6 +26,9 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
+from importlib.util import module_from_spec, spec_from_file_location
+from pathlib import Path
+from subprocess import check_output
 from unittest.mock import patch
 
 from ansible_collections.juniper.device.plugins.modules import junos_hostname
@@ -66,6 +69,18 @@ class TestJunosHostnameModule(TestJunosModule):
         )
         self.execute_show_command = self.mock_execute_show_command.start()
 
+        self.mock_comment_argument_spec = patch.dict(
+            "ansible_collections.juniper.device.plugins.modules.junos_hostname.HostnameArgs.argument_spec",
+            {
+                "comment": {
+                    "type": "str",
+                    "default": "configured by junos_hostname",
+                },
+            },
+            clear=False,
+        )
+        self.mock_comment_argument_spec.start()
+
     def tearDown(self):
         super(TestJunosHostnameModule, self).tearDown()
         self.mock_load_config.stop()
@@ -73,6 +88,7 @@ class TestJunosHostnameModule(TestJunosModule):
         self.mock_unlock_configuration.stop()
         self.mock_commit_configuration.stop()
         self.mock_execute_show_command.stop()
+        self.mock_comment_argument_spec.stop()
 
     def load_fixtures(
         self,
@@ -93,6 +109,21 @@ class TestJunosHostnameModule(TestJunosModule):
         self.assertIn(
             "<nc:host-name>vsrx</nc:host-name>",
             str(result["commands"]),
+        )
+
+    def test_junos_hostname_merged_comment_01(self):
+        set_module_args(
+            dict(
+                config=dict(hostname="vsrx"),
+                comment="configured via unit test",
+                state="merged",
+            ),
+        )
+        self.execute_module(changed=True)
+        args, kwargs = self.mock_commit_configuration.call_args
+        self.assertEqual(
+            args[0].params.get("comment"),
+            "configured via unit test",
         )
 
     def test_junos_hostname_parsed_01(self):

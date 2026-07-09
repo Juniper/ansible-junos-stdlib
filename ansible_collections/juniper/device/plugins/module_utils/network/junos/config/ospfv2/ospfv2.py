@@ -118,7 +118,10 @@ class Ospfv2(ConfigBase):
                 commit = not self._module.check_mode
                 if config_xmls and diff:
                     if commit:
-                        commit_configuration(self._module)
+                        kwargs = {
+                            "comment": self._module.params.get("comment"),
+                        }
+                        commit_configuration(self._module, **kwargs)
                     else:
                         discard_changes(self._module)
                     result["changed"] = True
