@@ -257,7 +257,7 @@ class TestJunosVlansModule(TestJunosModule):
         self.sort_vlans(parsed_list)
         self.assertEqual(result["parsed"], parsed_list)
 
-    def test_junos_vlans_merged_comment_01(self):
+    def test_junos_vlans_merged_comment_02(self):
         original_set_module_args = set_module_args
 
         def _set_module_args_with_comment(args):
