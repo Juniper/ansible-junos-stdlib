@@ -26,9 +26,6 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-from importlib.util import module_from_spec, spec_from_file_location
-from pathlib import Path
-from subprocess import check_output
 from unittest.mock import patch
 
 from ansible_collections.juniper.device.plugins.modules import junos_hostname
