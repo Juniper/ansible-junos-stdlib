@@ -50,7 +50,6 @@ class VlansArgs(object):  # pylint: disable=R0903
         },
         "running_config": {"type": "str"},
         "comment": {
-            "description": "Commit comment for the configuration change",
             "type": "str",
             "default": "configured by junos_vlans",
         },

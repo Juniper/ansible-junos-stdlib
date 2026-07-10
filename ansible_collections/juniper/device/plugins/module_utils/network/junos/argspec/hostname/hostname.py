@@ -41,7 +41,6 @@ class HostnameArgs(object):  # pylint: disable=R0903
         "config": {"options": {"hostname": {"type": "str"}}, "type": "dict"},
         "running_config": {"type": "str"},
         "comment": {
-            "description": "Commit comment for the configuration change",
             "type": "str",
             "default": "configured by junos_hostname",
         },

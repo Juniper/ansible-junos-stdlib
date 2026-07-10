@@ -48,7 +48,6 @@ class Lldp_interfacesArgs(object):
         },
         "running_config": {"type": "str"},
         "comment": {
-            "description": "Commit comment for the configuration change",
             "type": "str",
             "default": "configured by junos_lldp_interfaces",
         },
