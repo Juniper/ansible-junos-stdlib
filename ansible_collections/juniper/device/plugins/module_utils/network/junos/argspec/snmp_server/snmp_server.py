@@ -684,6 +684,11 @@ class Snmp_serverArgs(object):  # pylint: disable=R0903
             "type": "dict",
         },
         "running_config": {"type": "str"},
+        "comment": {
+            "description": "Commit comment for the configuration change",
+            "type": "str",
+            "default": "configured by junos_snmp_server",
+        },
         "state": {
             "choices": [
                 "merged",

@@ -143,6 +143,11 @@ class Ospfv2Args(object):  # pylint: disable=R0903
             "type": "list",
         },
         "running_config": {"type": "str"},
+        "comment": {
+            "description": "Commit comment for the configuration change",
+            "type": "str",
+            "default": "configured by junos_ospfv2",
+        },
         "state": {
             "choices": [
                 "merged",

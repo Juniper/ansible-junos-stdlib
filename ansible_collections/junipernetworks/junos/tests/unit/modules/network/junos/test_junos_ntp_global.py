@@ -716,3 +716,30 @@ class TestJunosNtp_globalModule(TestJunosModule):
             "<nc:name>192.16.255.255</nc:name><nc:key>50</nc:key>",
             str(result["commands"]),
         )
+
+    def test_junos_ntp_global_merged_comment_01(self):
+        original_set_module_args = set_module_args
+
+        def _set_module_args_with_comment(args):
+            args = dict(args)
+            args["comment"] = "configured via unit test"
+            return original_set_module_args(args)
+
+        with patch.dict(
+            "ansible_collections.juniper.device.plugins.modules.junos_ntp_global.Ntp_globalArgs.argument_spec",
+            {
+                "comment": {
+                    "type": "str",
+                    "default": "configured by junos_ntp_global",
+                },
+            },
+            clear=False,
+        ):
+            with patch(__name__ + ".set_module_args", side_effect=_set_module_args_with_comment):
+                self.test_junos_ntp_global_merged_01()
+
+        args, kwargs = self.mock_commit_configuration.call_args
+        self.assertEqual(
+            args[0].params.get("comment"),
+            "configured via unit test",
+        )
