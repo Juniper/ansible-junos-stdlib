@@ -10,20 +10,19 @@ Version 2.0.2 (2026-07-13)
 ---------------------------
 Enhancements
 ------------
-- Supported commit parameter for each juniperjunos.network
+- Added support for commit parameter for each juniperjunos.network
 - Added support for proxy_command parameter
 
 Bugs Fixed
 -----------
 
-- Update juniper.device.software module documentation for version: false #794
-- Updates to README.md #802
-- Fix for ansible-test sanity failures #803
-- Add multi-collection CI support for juniper.device #804
-- Fix CI issues and update workflows for jobs : lint, sanity , unit runs #789
-- Fix to handle JSON response from get_facts #816
-- Fix for UnboundLocalError: cannot access local variable 'resp' #822 #823
-- Fix for file_copy documentation to add the parameters as per #735
+- Update the documentation for the juniper.device.software module for version: false (#794). 
+- Make updates to the README.md file (#802). - Implement a fix for the ansible-test sanity failures (#803). 
+- Add multi-collection CI support for juniper.device (#804). 
+- Resolve CI issues and update workflows for jobs: lint, sanity, and unit tests (#789). 
+- Fix to properly handle the JSON response from the get_facts method (#816). 
+- Address the UnboundLocalError: cannot access local variable 'resp' (#822, #823). 
+- Update the file_copy documentation to include parameters as per issue #735.
 
 Version 2.0.1 (2025-11-14)
 ---------------------------
