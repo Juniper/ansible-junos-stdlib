@@ -6,6 +6,23 @@ Juniper Device Collection Release Notes
 Changelog for Juniper Device Ansible Collection
 ===========================
 
+Version 2.0.2 (2026-05-19)
+---------------------------
+Enhancements
+------------
+- Added support for proxy_command parameter
+
+Bugs Fixed
+----------
+- Update juniper.device.software module documentation for version: false #794
+- Updates to README.md  #802
+- Fix for ansible-test sanity failures #803
+- Add multi-collection CI support for juniper.device #804
+- Fix CI issues and update workflows for jobs : lint, sanity , unit runs #789
+- Fix to handle JSON response from get_facts #816
+- Fix for UnboundLocalError: cannot access local variable 'resp' #822 #823
+- Fix for file_copy documentation to add the parameters as per #735
+
 Version 2.0.1 (2025-11-14)
 ---------------------------
 Enhancements
