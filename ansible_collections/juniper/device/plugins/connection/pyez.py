@@ -317,6 +317,18 @@ logging.getLogger("ncclient").setLevel(logging.INFO)
 CONFIG_MODE_CHOICES = ["exclusive", "private", "dynamic", "batch", "ephemeral"]
 
 
+def _serialize_fact(obj):
+    """Convert non-JSON-serializable PyEZ fact values to JSON-safe types.
+
+    Namedtuples (e.g. junos.version_info) are converted to plain dicts so that
+    downstream consumers receive structured data rather than opaque strings.
+    All other non-serializable objects fall back to their string representation.
+    """
+    if hasattr(obj, "_fields"):  # namedtuple
+        return dict(zip(obj._fields, obj))
+    return str(obj)
+
+
 class Connection(NetworkConnectionBase):
     """NetConf connections"""
 
@@ -517,10 +529,13 @@ class Connection(NetworkConnectionBase):
             return resp
         return etree.tostring(resp)
 
+    @ensure_connect
     def get_facts(self):
         """Get device facts."""
         facts = self.dev.facts
-        return json.loads(json.dumps(dict(facts), default=str))
+        if facts is None:
+            return {}
+        return json.loads(json.dumps(dict(facts), default=_serialize_fact))
 
     def ping_device(self, normalize, **params):
         """Ping the device.
