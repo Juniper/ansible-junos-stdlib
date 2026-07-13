@@ -49,6 +49,10 @@ class LacpArgs(object):
             },
         },
         "running_config": {"type": "str"},
+        "comment": {
+            "type": "str",
+            "default": "configured by junos_lacp",
+        },
         "state": {
             "choices": [
                 "merged",

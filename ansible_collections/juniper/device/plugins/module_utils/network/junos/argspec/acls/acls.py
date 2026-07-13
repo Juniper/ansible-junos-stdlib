@@ -192,6 +192,10 @@ class AclsArgs(object):  # pylint: disable=R0903
             },
         },
         "running_config": {"type": "str"},
+        "comment": {
+            "type": "str",
+            "default": "configured by junos_acls",
+        },
         "state": {
             "choices": [
                 "merged",

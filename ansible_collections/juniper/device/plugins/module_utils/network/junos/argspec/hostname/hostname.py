@@ -40,6 +40,10 @@ class HostnameArgs(object):  # pylint: disable=R0903
     argument_spec = {
         "config": {"options": {"hostname": {"type": "str"}}, "type": "dict"},
         "running_config": {"type": "str"},
+        "comment": {
+            "type": "str",
+            "default": "configured by junos_hostname",
+        },
         "state": {
             "choices": [
                 "merged",

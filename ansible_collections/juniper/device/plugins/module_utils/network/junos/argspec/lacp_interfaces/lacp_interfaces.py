@@ -63,6 +63,10 @@ class Lacp_interfacesArgs(object):
             "type": "list",
         },
         "running_config": {"type": "str"},
+        "comment": {
+            "type": "str",
+            "default": "configured by junos_lacp_interfaces",
+        },
         "state": {
             "choices": [
                 "merged",

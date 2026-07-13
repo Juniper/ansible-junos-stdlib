@@ -49,6 +49,10 @@ class Lldp_globalArgs(object):
             "type": "dict",
         },
         "running_config": {"type": "str"},
+        "comment": {
+            "type": "str",
+            "default": "configured by junos_lldp_global",
+        },
         "state": {
             "choices": [
                 "merged",

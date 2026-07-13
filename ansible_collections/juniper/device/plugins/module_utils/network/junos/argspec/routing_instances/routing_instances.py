@@ -108,6 +108,10 @@ class Routing_instancesArgs(object):  # pylint: disable=R0903
             "type": "list",
         },
         "running_config": {"type": "str"},
+        "comment": {
+            "type": "str",
+            "default": "configured by junos_routing_instances",
+        },
         "state": {
             "choices": [
                 "merged",

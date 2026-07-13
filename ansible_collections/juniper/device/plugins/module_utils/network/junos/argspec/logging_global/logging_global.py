@@ -1364,6 +1364,10 @@ class Logging_globalArgs(object):  # pylint: disable=R0903
             "type": "dict",
         },
         "running_config": {"type": "str"},
+        "comment": {
+            "type": "str",
+            "default": "configured by junos_logging_global",
+        },
         "state": {
             "choices": [
                 "merged",

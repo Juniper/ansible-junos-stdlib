@@ -55,6 +55,12 @@ options:
       transforms it into Ansible structured data as per the resource module's argspec
       and the value is then returned in the I(parsed) key within the result.
     type: str
+  comment:
+    description:
+    - Commit comment to be associated with the configuration changes.
+    - This allows tracking the reason for configuration changes (e.g., change management ticket).
+    type: str
+    default: configured by junos_ntp_global
   config:
     description: A dictionary of NTP configuration.
     type: dict

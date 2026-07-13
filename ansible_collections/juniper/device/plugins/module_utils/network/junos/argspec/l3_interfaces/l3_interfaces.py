@@ -39,6 +39,10 @@ class L3_interfacesArgs(object):  # pylint: disable=R0903
             "type": "list",
         },
         "running_config": {"type": "str"},
+        "comment": {
+            "type": "str",
+            "default": "configured by junos_l3_interfaces",
+        },
         "state": {
             "choices": [
                 "merged",
