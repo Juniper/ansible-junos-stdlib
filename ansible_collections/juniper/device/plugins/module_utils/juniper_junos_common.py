@@ -515,7 +515,6 @@ connection_spec_mutually_exclusive = [
     ["cs_user", "console"],
     ["cs_passwd", "console"],
     ["proxy_command", "console"],
-    ["proxy_command", "mode"],
 ]
 
 # Specify the logging spec.
