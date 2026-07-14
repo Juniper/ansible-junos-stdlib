@@ -161,7 +161,7 @@ This example outlines how to use Ansible to install or upgrade the software imag
 
 ## Testing
 
-[Please refer Funcational Tests](https://github.com/Juniper/ansible-junos-stdlib/tree/master/tests#readme)
+[Please refer Functional Tests](https://github.com/Juniper/ansible-junos-stdlib/tree/master/tests#readme)
 
 ## Release Notes and Roadmap
 
