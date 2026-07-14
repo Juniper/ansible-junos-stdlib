@@ -40,6 +40,7 @@ import hashlib
 import json
 import logging
 import os
+import ast
 
 # Standard library imports
 from argparse import ArgumentParser
@@ -1010,7 +1011,7 @@ class JuniperJunosModule(AnsibleModule):
             return None
 
         # Evaluate the string
-        kwargs = self.safe_eval(string_val)
+        kwargs = ast.literal_eval(string_val)
 
         if isinstance(kwargs, str):
             # This might be a keyword1=value1 keyword2=value2 type string.
