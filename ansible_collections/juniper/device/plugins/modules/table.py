@@ -1,5 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 # Copyright 2016 Jason Edelman <jason@networktocode.com>
 # Network to Code, LLC
@@ -65,8 +67,8 @@ options:
       - Name of the YAML file, relative to the I(path) option, that contains
         the table/view definition. The file name must end with the C(.yml) or
         C(.yaml) extension.
-    required: true
-    default: none
+    required: false
+    default: null
     type: path
   kwargs:
     description:
@@ -76,7 +78,7 @@ options:
         The exact keywords and values which are supported are specific to the
         table's definition and the underlying RPC which the table invokes.
     required: false
-    default: none
+    default: null
     type: dict
     aliases:
       - kwarg
@@ -89,7 +91,7 @@ options:
         directory in C(jnpr.junos.op). This is the directory containing the
         table/view definitions which are included in the PyEZ distribution.
     required: false
-    default: C(op) directory in C(jnpr.junos.op)
+    default: null
     type: path
     aliases:
       - directory
@@ -117,8 +119,24 @@ options:
         message. In this case, you must manually specify the name of the table
         by setting this option.
     required: false
-    default: The name of the table defined in the I(file) option.
+    default: null
     type: str
+  _connection:
+    description:
+      - Internal use only.
+    type: str
+  _inventory_hostname:
+    description:
+      - Internal use only.
+    type: str
+  _module_name:
+    description:
+      - Internal use only.
+    type: str
+  _module_utils_path:
+    description:
+      - Internal use only.
+    type: path
 notes:
   - This module only works with operational tables/views; it does not work with
     configuration tables/views.
@@ -184,8 +202,7 @@ resource:
   description:
     - The items retrieved by the table/view.
   returned: success
-  type: list of dicts if I(response_type) is C(list_of_dicts) or list of
-        lists if I(respsonse_type) is C(juniper_items).
+  type: list
   sample: |
     # when response_type == 'list_of_dicts'
     [
@@ -340,7 +357,7 @@ def main():
     # Create the module instance.
     junos_module = juniper_junos_common.JuniperJunosModule(
         argument_spec=dict(
-            file=dict(type="path", required=True, default=None),
+            file=dict(type="path", required=False, default=None),
             table=dict(type="str", required=False, default=None),
             path=dict(
                 type="path",
