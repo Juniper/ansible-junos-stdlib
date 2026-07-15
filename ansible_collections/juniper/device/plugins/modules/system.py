@@ -1,5 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 # Copyright (c) 2017-2020, Juniper Networks Inc. All rights reserved.
 #
@@ -73,8 +75,8 @@ options:
       - B(zeroize) - Restore the system (configuration, log files, etc.) to a
         factory default state. This is the equivalent of the
         C(request system zeroize) CLI command.
-    required: true
-    default: none
+    required: false
+    default: null
     type: str
     choices:
       - shutdown
@@ -99,7 +101,7 @@ options:
         value of C(zeroize). The I(at) option is mutually exclusive with the
         I(in_min) option.
     required: false
-    default: none
+    default: null
     type: str
   in_min:
     description:
@@ -110,6 +112,17 @@ options:
     required: false
     default: 0
     type: int
+    aliases:
+      - in
+  member_id:
+    description:
+      - A list of member IDs to target for the action on a Junos Virtual Chassis
+        or Junos chassis cluster. When specified, the action is performed only
+        on the listed member IDs.
+    required: false
+    default: null
+    type: list
+    elements: str
   all_re:
     description:
       - If the system has multiple Routing Engines and this option is C(true),
@@ -145,6 +158,22 @@ options:
     required: false
     default: false
     type: bool
+  _connection:
+    description:
+      - Internal use only.
+    type: str
+  _inventory_hostname:
+    description:
+      - Internal use only.
+    type: str
+  _module_name:
+    description:
+      - Internal use only.
+    type: str
+  _module_utils_path:
+    description:
+      - Internal use only.
+    type: path
 notes:
   - This module only B(INITIATES) the action. It does B(NOT) wait for the
     action to complete.
@@ -264,7 +293,7 @@ def main():
         argument_spec=dict(
             action=dict(
                 type="str",
-                required=True,
+                required=False,
                 choices=[
                     "shutdown",
                     "off",
@@ -279,7 +308,7 @@ def main():
             at=dict(type="str", required=False, default=None),
             in_min=dict(type="int", required=False, aliases=["in"], default=0),
             all_re=dict(type="bool", required=False, default=True),
-            member_id=dict(type="list", required=False, default=None),
+            member_id=dict(type="list", elements="str", required=False, default=None),
             other_re=dict(type="bool", required=False, default=False),
             vmhost=dict(required=False, type="bool", default=False),
             media=dict(type="bool", required=False, default=False),

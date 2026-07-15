@@ -1,5 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 # Copyright (c) 2017-2020, Juniper Networks Inc. All rights reserved.
 #
@@ -49,7 +51,7 @@ extends_documentation_fragment:
   - juniper.device.juniper_junos_doc.logging_documentation
 module: software
 author:
-  - Jeremy Schulman
+  - "Jeremy Schulman (@juniper)"
   - "Juniper Networks - Stacy Smith (@stacywsmith)"
 short_description: Install software on a Junos device
 description:
@@ -95,10 +97,11 @@ options:
     type: bool
   member_id:
     description:
-      -  install software on the specified members ids of VC.
+      - Install software on the specified member IDs of a Virtual Chassis.
     required: false
-    default: none
+    default: null
     type: list
+    elements: str
   checksum:
     description:
       - The pre-calculated checksum, using the I(checksum_algorithm) of the
@@ -106,7 +109,7 @@ options:
         is simply an optimization to avoid repeatedly computing the checksum of
         the I(local_package) file once for each target Junos host.
     required: false
-    default: none
+    default: null
     type: str
   checksum_algorithm:
     description:
@@ -115,27 +118,32 @@ options:
     required: false
     default: md5
     type: str
+    choices:
+      - md5
+      - sha1
+      - sha256
   checksum_timeout:
     description:
       - The number of seconds to wait for the calculation of the checksum to
         complete on the target Junos device.
     required: false
-    default: 300 (5 minutes)
+    default: 300
     type: int
   cleanfs:
     description:
       - Whether or not to perform a C(request system storage cleanup) prior to
-        copying or installing the software.
+        copying or installing the software. Defaults to C(false) when
+        I(no_copy) is C(true).
     required: false
-    default: true (unless I(no_copy) is C(true), then C(false))
+    default: true
     type: bool
   cleanfs_timeout:
     description:
-      -  The number of seconds to wait for the
-         C(request system storage cleanup) to complete on the target Junos
-         device.
+      - The number of seconds to wait for the
+        C(request system storage cleanup) to complete on the target Junos
+        device.
     required: false
-    default: 300 (5 minutes)
+    default: 300
     type: int
   force_host:
     description:
@@ -148,7 +156,7 @@ options:
       - The number of seconds to wait for the software installation to
         complete on the target Junos device.
     required: false
-    default: 1800 (30 minutes)
+    default: 1800
     type: int
   issu:
     description:
@@ -170,7 +178,7 @@ options:
         C(<request-package-add>) RPC used to install the software package. The
         value of this option is a dictionary of keywords and values.
     required: false
-    default: none
+    default: null
     type: dict
     aliases:
       - kwarg
@@ -189,7 +197,7 @@ options:
         software package already exists on the target Junos device. In this
         case, the I(remote_package) option must be specified.
     required: false
-    default: none
+    default: null
     type: path
     aliases:
       - package
@@ -253,30 +261,20 @@ options:
       - If the I(no_copy) option is C(true) or the I(local_package) option
         is not specified, then the file specified by this option must already
         exist on the target Junos device.
-      - If this option is not specified, it is assumed that the software
-        package will be copied into the C(/var/tmp) directory on the target
-        Junos device using the filename portion of the I(local_package) option.
-        In this case, the I(local_package) option must be specified.
-      - Specifying the I(remote_package) option and not specifying the
-        I(local_package) option is equivalent to specifying the
-        I(local_package) option and the I(no_copy) option. In this case,
-        you no longer have to explicitly specify the I(no_copy) option.
-      - If the I(remote_package) value is a directory (ends with /), then
-        the filename portion of I(local_package) will be appended to the
-        I(remote_package) value.
-      - If the I(remote_package) value is a file (does not end with /),
-        then the filename portion of I(remote_package) must be the same as
-        the filename portion of I(local_package).
+      - If this option is not specified, the software package will be copied
+        into the C(/var/tmp) directory on the target Junos device using the
+        filename portion of the I(local_package) option.
     required: false
-    default: C(/var/tmp/) + filename portion of I(local_package)
+    default: null
     type: path
   pkg_set:
     description:
-      -  install software on the members in a mixed Virtual Chassis. Currently
-         we are not doing target package check this option is provided.
+      - Install software on the members in a mixed Virtual Chassis. Currently
+        target package check is not performed for this option.
     required: false
-    default: false
+    default: null
     type: list
+    elements: str
   validate:
     description:
       - Whether or not to have the target Junos device should validate the
@@ -298,9 +296,7 @@ options:
         the software installation to proceed regardless of the
         currently installed version
     required: false
-    default: Attempt to extract the version from the file name specified by
-             the I(local_package) or I(remote_package) option values IF the
-             package appears to be a Junos software package. Otherwise, C(none).
+    default: null
     type: str
     aliases:
       - target_version
@@ -312,6 +308,22 @@ options:
     required: false
     default: false
     type: bool
+  _connection:
+    description:
+      - Internal use only.
+    type: str
+  _inventory_hostname:
+    description:
+      - Internal use only.
+    type: str
+  _module_name:
+    description:
+      - Internal use only.
+    type: str
+  _module_utils_path:
+    description:
+      - Internal use only.
+    type: path
 notes:
   - This module does support connecting to the console of a Junos device, but
     does not support copying the software package from the local Ansible
@@ -480,7 +492,7 @@ def main():
             # local_package option, if set.
             default=None,
         ),
-        pkg_set=dict(required=False, type="list", default=None),
+        pkg_set=dict(required=False, type="list", elements="str", default=None),
         version=dict(
             required=False,
             aliases=["target_version", "new_version", "desired_version"],
@@ -498,7 +510,7 @@ def main():
         validate=dict(required=False, type="bool", default=False),
         cleanfs=dict(required=False, type="bool", default=True),
         all_re=dict(required=False, type="bool", default=True),
-        member_id=dict(required=False, type="list", default=None),
+        member_id=dict(required=False, type="list", elements="str", default=None),
         vmhost=dict(required=False, type="bool", default=False),
         checksum=dict(required=False, type="str", default=None),
         checksum_algorithm=dict(

@@ -1,5 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 # Copyright (c) 2017-2020, Juniper Networks Inc. All rights reserved.
 #
@@ -64,8 +66,8 @@ options:
       - Enable or disable cluster mode. When C(true) cluster mode is enabled
         and I(cluster_id) and I(node_id) must also be specified. When C(false)
         cluster mode is disabled and the device returns to stand-alone mode.
-    required: true
-    default: none
+    required: false
+    default: null
     type: bool
     aliases:
       - cluster_enable
@@ -74,7 +76,7 @@ options:
       - The cluster ID to configure.
       - Required when I(enable) is C(true).
     required: false
-    default: none
+    default: null
     type: int
     aliases:
       - cluster
@@ -83,10 +85,26 @@ options:
       - The node ID to configure. (C(0) or C(1))
       - Required when I(enable) is C(true).
     required: false
-    default: none
+    default: null
     type: int
     aliases:
       - node
+  _connection:
+    description:
+      - Internal use only.
+    type: str
+  _inventory_hostname:
+    description:
+      - Internal use only.
+    type: str
+  _module_name:
+    description:
+      - Internal use only.
+    type: str
+  _module_utils_path:
+    description:
+      - Internal use only.
+    type: path
 """
 
 EXAMPLES = """
@@ -157,7 +175,7 @@ def main():
         argument_spec=dict(
             enable=dict(
                 type="bool",
-                required=True,
+                required=False,
                 aliases=["cluster_enable"],
                 default=None,
             ),
