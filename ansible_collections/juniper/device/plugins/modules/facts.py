@@ -1,5 +1,7 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
+# GNU General Public License v3.0+ (see COPYING or https://www.gnu.org/licenses/gpl-3.0.txt)
+# SPDX-License-Identifier: GPL-3.0-or-later
 
 # Copyright (c) 2017-2020, Juniper Networks Inc. All rights reserved.
 #
@@ -60,10 +62,11 @@ options:
     description:
       - The format of the configuration returned. The specified format must be
         supported by the target Junos device.
+      - When not specified (the default), no configuration is returned.
     required: false
-    default: none
+    default: null
+    type: str
     choices:
-      - none
       - xml
       - set
       - text
@@ -78,10 +81,25 @@ options:
       - The I(hostname)C(-facts.json) filename begins with the value of the
         C(hostname) fact returned from the Junos device, which might be
         different than the value of the I(host) option passed to the module.
-      - If the value of the I(savedir) option is C(none), the default, then
-        facts are NOT saved to a file.
+      - If this option is not specified, facts are NOT saved to a file.
     required: false
-    default: none
+    default: null
+    type: path
+  _connection:
+    description:
+      - Internal use only.
+    type: str
+  _inventory_hostname:
+    description:
+      - Internal use only.
+    type: str
+  _module_name:
+    description:
+      - Internal use only.
+    type: str
+  _module_utils_path:
+    description:
+      - Internal use only.
     type: path
 """
 
@@ -326,14 +344,12 @@ def save_inventory(junos_module, inventory):
 
 
 def main():
-    config_format_choices = [None]
-    config_format_choices += juniper_junos_common.CONFIG_FORMAT_CHOICES
-
     # Create the module instance.
     junos_module = juniper_junos_common.JuniperJunosModule(
         argument_spec=dict(
             config_format=dict(
-                choices=config_format_choices,
+                type="str",
+                choices=juniper_junos_common.CONFIG_FORMAT_CHOICES,
                 required=False,
                 default=None,
             ),

@@ -1,7 +1,6 @@
 plugins/callback/jsnapy.py validate-modules!skip # waiting for issue 729 fix
 plugins/modules/command.py validate-modules!skip # waiting for issue 729 fix
 plugins/modules/config.py validate-modules!skip # waiting for issue 729 fix
-plugins/modules/facts.py validate-modules!skip # waiting for issue 729 fix
 plugins/modules/file_copy.py validate-modules!skip # waiting for issue 729 fix
 plugins/modules/jsnapy.py validate-modules!skip # waiting for issue 729 fix
 plugins/modules/ping.py validate-modules!skip # waiting for issue 729 fix

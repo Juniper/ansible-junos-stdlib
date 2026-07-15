@@ -60,17 +60,18 @@ class ModuleDocFragment(object):
           - The number of times to try connecting and logging in to the Junos
             device. This option is only applicable when using C(mode = 'telnet')
             or C(mode = 'serial'). Mutually exclusive with the I(console)
-            option.
+            option. Defaults to C(10) when not specified.
         required: false
-        default: 10
+        default: null
         type: int
       baud:
         description:
           - The serial baud rate, in bits per second, used to connect to the
             Junos device. This option is only applicable when using
             C(mode = 'serial'). Mutually exclusive with the I(console) option.
+            Defaults to C(9600) when not specified.
         required: false
-        default: 9600
+        default: null
         type: int
       console:
         description:
@@ -85,7 +86,7 @@ class ModuleDocFragment(object):
             C(<console_port_number>). Mutually exclusive with the I(mode),
             I(port), I(baud), and I(attempts) options.
         required: false
-        default: none
+        default: null
         type: str
       host:
         description:
@@ -96,8 +97,8 @@ class ModuleDocFragment(object):
             option to the value C(telnet). This option is required, but does not
             have to be specified explicitly by the user because it defaults to
             C({{ inventory_hostname }}).
-        required: true
-        default: C({{ inventory_hostname }})
+        required: false
+        default: null
         type: str
         aliases:
           - hostname
@@ -105,19 +106,18 @@ class ModuleDocFragment(object):
       mode:
         description:
           - The PyEZ mode used to establish a NETCONF connection to the Junos
-            device. A value of C(none) uses the default NETCONF over SSH mode.
-            Depending on the values of the I(host) and I(port) options, a value
-            of C(telnet) results in either a direct NETCONF over Telnet
+            device. When not specified, the default NETCONF over SSH mode is
+            used. Depending on the values of the I(host) and I(port) options, a
+            value of C(telnet) results in either a direct NETCONF over Telnet
             connection to the Junos device, or a NETCONF over serial console
             connection to the Junos device using Telnet to a console server.
             A value of C(serial) results in a NETCONF over serial console
             connection to the Junos device. Mutually exclusive with the
             I(console) option.
         required: false
-        default: none
+        default: null
         type: str
         choices:
-          - none
           - telnet
           - serial
       passwd:
@@ -125,14 +125,12 @@ class ModuleDocFragment(object):
           - The password, or ssh key's passphrase, used to authenticate with the
             Junos device. If this option is not specified, authentication is
             attempted using an empty password, or ssh key passphrase.
+          - The default value is determined in order by 1) The
+            C(ANSIBLE_NET_PASSWORD) environment variable, 2) The value specified
+            using the C(-k) or C(--ask-pass) command line arguments, 3) none
+            (an empty password/passphrase).
         required: false
-        default: The first defined value from the following list
-                 1) The C(ANSIBLE_NET_PASSWORD) environment variable.
-                    (used by Ansible Tower)
-                 2) The value specified using the C(-k) or C(--ask-pass)
-                    command line arguments to the C(ansible) or
-                    C(ansible-playbook) command.
-                 3) none (An empty password/passphrase)
+        default: null
         type: str
         aliases:
           - password
@@ -140,33 +138,30 @@ class ModuleDocFragment(object):
         description:
           - The TCP port number or serial device port used to establish the
             connection. Mutually exclusive with the I(console) option.
+          - Defaults to C(830) if C(mode) is not set, C(23) if
+            C(mode=telnet), or C(/dev/ttyUSB0) if C(mode=serial).
         required: false
-        default: C(830) if C(mode = none), C(23) if C(mode = 'telnet'),
-                 C('/dev/ttyUSB0') if (mode = 'serial')
-        type: int or str
+        default: null
+        type: str
       ssh_private_key_file:
         description:
           - The path to the SSH private key file used to authenticate with the
-            Junos device. If this option is not specified, and no default value
-            is found using the algorithm below, then the SSH private key file
-            specified in the user's SSH configuration, or the
+            Junos device. If this option is not specified, the SSH private key
+            file specified in the user's SSH configuration, or the
             operating-system-specific default is used.
           - This must be in the RSA PEM format, and not the newer OPENSSH
             format. To check if the private key is in the correct format, issue
-            the command `head -n1 ~/.ssh/some_private_key` and ensure that
+            the command C(head -n1 ~/.ssh/some_private_key) and ensure that
             it's RSA and not OPENSSH. To create a key in the RSA PEM format,
-            issue the command `ssh-keygen -m PEM -t rsa -b 4096`. To convert
-            an OPENSSH key to an RSA key, issue the command `ssh-keygen -p -m
-            PEM -f ~/.ssh/some_private_key`
+            issue the command C(ssh-keygen -m PEM -t rsa -b 4096). To convert
+            an OPENSSH key to an RSA key, issue the command C(ssh-keygen -p -m
+            PEM -f ~/.ssh/some_private_key).
+          - The default value is determined in order by 1) The
+            C(ANSIBLE_NET_SSH_KEYFILE) environment variable, 2) The value
+            specified using C(--private-key) or C(--key-file) command line
+            arguments, 3) none (uses the SSH configuration default).
         required: false
-        default: The first defined value from the following list
-                 1) The C(ANSIBLE_NET_SSH_KEYFILE) environment variable.
-                    (used by Ansible Tower)
-                 2) The value specified using the C(--private-key) or
-                    C(--key-file) command line arguments to the C(ansible) or
-                    C(ansible-playbook) command.
-                 3) none (the file specified in the user's SSH configuration,
-                          or the operating-system-specific default)
+        default: null
         type: path
         aliases:
           - ssh_keyfile
@@ -190,19 +185,14 @@ class ModuleDocFragment(object):
           - The username used to authenticate with the Junos device. This option
             is required, but does not have to be specified explicitly by the
             user due to the algorithm for determining the default value.
-        required: true
-        default: The first defined value from the following list
-                 1) The C(ANSIBLE_NET_USERNAME) environment variable.
-                    (used by Ansible Tower)
-                 2) The C(remote_user) as defined by Ansible. Ansible sets this
-                    value via several methods including
-                    a) C(-u) or C(--user) command line arguments to the
-                       C(ansible) or C(ansible-playbook) command.
-                    b) C(ANSIBLE_REMOTE_USER) environment variable.
-                    c) C(remote_user) configuration setting.
-                    See the Ansible documentation for the precedence used to set
-                    the C(remote_user) value.
-                3) The C(USER) environment variable.
+          - The default value is determined in order by 1) The
+            C(ANSIBLE_NET_USERNAME) environment variable, 2) The
+            C(remote_user) as defined by Ansible (set via C(-u)/C(--user)
+            arguments, C(ANSIBLE_REMOTE_USER) environment variable, or
+            C(remote_user) configuration setting), 3) The C(USER) environment
+            variable.
+        required: false
+        default: null
         type: str
         aliases:
           - username
@@ -258,7 +248,7 @@ class ModuleDocFragment(object):
           - The I(logfile) and I(logdir) options are mutually exclusive. The
             I(logdir) option is recommended for all new playbooks.
         required: false
-        default: none
+        default: null
         type: path
         aliases:
           - log_dir
@@ -293,7 +283,7 @@ class ModuleDocFragment(object):
             backwards compatibility. Use the I(logdir) option in new playbooks.
             The I(logfile) and I(logdir) options are mutually exclusive.
         required: false
-        default: none
+        default: null
         type: path
         aliases:
           - log_file
@@ -311,7 +301,7 @@ class ModuleDocFragment(object):
           - 4) If C(level) is mentioned then messages at level C(level) or more are
                logged.
         required: false
-        default: WARNING
+        default: null
         type: str
         choices:
           - INFO
