@@ -155,7 +155,17 @@ class AclsFacts(object):
                                     )
                         if term["from"].get("source-prefix-list"):
                             ace["source"] = ace.get("source", {})
-                            ace["source"]["prefix_list"] = term["from"]["source-prefix-list"]
+                            source_prefix_list = term["from"]["source-prefix-list"]
+                            if not isinstance(source_prefix_list, list):
+                                source_prefix_list = [source_prefix_list]
+                            ace["source"]["prefix_list"] = []
+                            for prefix in source_prefix_list:
+                                if isinstance(prefix, dict):
+                                    ace["source"]["prefix_list"].append(prefix)
+                                else:
+                                    ace["source"]["prefix_list"].append(
+                                        {"name": prefix},
+                                    )
                         if term["from"].get("source-port"):
                             ace["source"] = ace.get("source", {})
                             ace["source"]["port_protocol"] = dict(
@@ -176,9 +186,19 @@ class AclsFacts(object):
                                     )
                         if term["from"].get("destination-prefix-list"):
                             ace["destination"] = ace.get("destination", {})
-                            ace["destination"]["prefix_list"] = term["from"][
+                            destination_prefix_list = term["from"][
                                 "destination-prefix-list"
                             ]
+                            if not isinstance(destination_prefix_list, list):
+                                destination_prefix_list = [destination_prefix_list]
+                            ace["destination"]["prefix_list"] = []
+                            for prefix in destination_prefix_list:
+                                if isinstance(prefix, dict):
+                                    ace["destination"]["prefix_list"].append(prefix)
+                                else:
+                                    ace["destination"]["prefix_list"].append(
+                                        {"name": prefix},
+                                    )
                         if term["from"].get("destination-port"):
                             ace["destination"] = ace.get("destination", {})
                             ace["destination"]["port_protocol"] = dict(

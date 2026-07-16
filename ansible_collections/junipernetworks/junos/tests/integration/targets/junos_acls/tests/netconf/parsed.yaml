@@ -22,6 +22,22 @@
                   port_protocol:
                     eq: "radius"
                 name: "2"
+              - destination:
+                  prefix_list:
+                    - name: "DEST-TRUSTED"
+                name: "3"
+                source:
+                  prefix_list:
+                    - name: "TRUSTED-SOURCES"
+              - destination:
+                  prefix_list:
+                    - name: "DEST-TRUSTED-1"
+                    - name: "DEST-TRUSTED-2"
+                name: "4"
+                source:
+                  prefix_list:
+                    - name: "TRUSTED-SOURCES-1"
+                    - name: "TRUSTED-SOURCES-2"
             name: "from-cisco"
         afi: ipv4
 
