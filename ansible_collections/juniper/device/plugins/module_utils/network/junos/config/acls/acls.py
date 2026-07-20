@@ -364,7 +364,7 @@ class Acls(ConfigBase):
                                 if "host_tos_redirect" in icmp:
                                     build_child_xml_node(
                                         icmp_code,
-                                        "redirect-for-host-and-tos",
+                                        "redirect-for-tos-and-host",
                                     )
                                 if "host_unknown" in icmp:
                                     build_child_xml_node(
