@@ -298,16 +298,15 @@ class Acls(ConfigBase):
                                             prefix["name"],
                                         )
                                 if ace[direction].get("port_protocol"):
-                                    if "eq" in ace[direction]["port_protocol"]:
-                                        eq_value = ace[direction]["port_protocol"]["eq"]
-                                        if eq_value:
-                                            build_child_xml_node(
-                                                from_node,
-                                                "{0}-port".format(direction),
-                                                str(eq_value),
-                                            )
-                                    elif "range" in ace[direction]["port_protocol"]:
-                                        range_dict = ace[direction]["port_protocol"].get("range", {})
+                                    eq_value = ace[direction]["port_protocol"].get("eq")
+                                    if eq_value:
+                                        build_child_xml_node(
+                                            from_node,
+                                            "{0}-port".format(direction),
+                                            str(eq_value),
+                                        )
+                                    elif ace[direction]["port_protocol"].get("range"):
+                                        range_dict = ace[direction]["port_protocol"]["range"]
                                         start = range_dict.get("start")
                                         end = range_dict.get("end")
                                         if start is not None and end is not None:
