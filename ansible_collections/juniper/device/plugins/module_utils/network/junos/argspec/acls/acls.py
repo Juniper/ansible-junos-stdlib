@@ -186,6 +186,7 @@ class AclsArgs(object):  # pylint: disable=R0903
                                     "choices": ["permit", "deny"],
                                 },
                                 "log": {"type": "bool"},
+                                "is_fragment": {"type": "bool"},
                             },
                         },
                     },

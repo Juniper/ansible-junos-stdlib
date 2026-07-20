@@ -436,6 +436,12 @@ class Acls(ConfigBase):
                                         icmp_code,
                                         "ttl-eq-zero-during-transit",
                                     )
+                    if ace.get("is_fragment"):
+                        if ace.get("source") or ace.get("destination") or ace.get("protocol"):
+                            build_child_xml_node(from_node, "is-fragment")
+                        else:
+                            from_node = build_child_xml_node(term_node, "from")
+                            build_child_xml_node(from_node, "is-fragment")
                     if ace.get("grant"):
                         then_node = build_child_xml_node(term_node, "then")
                         if ace["grant"] == "permit":

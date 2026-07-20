@@ -275,6 +275,9 @@ class AclsFacts(object):
                             ace["grant"] = "deny"
                         if "log" in term["then"]:
                             ace["log"] = True
+                    if term.get("from"):
+                        if term["from"].get("is-fragment"):
+                            ace["is_fragment"] = True
                     acl_dict["aces"].append(ace)
             config["acls"].append(acl_dict)
         return utils.remove_empties(config)
