@@ -298,22 +298,24 @@ class Acls(ConfigBase):
                                             prefix["name"],
                                         )
                                 if ace[direction].get("port_protocol"):
-                                    if "eq" in ace[direction]["port_protocol"]:
+                                    eq_value = ace[direction]["port_protocol"].get("eq")
+                                    if eq_value:
                                         build_child_xml_node(
                                             from_node,
                                             "{0}-port".format(direction),
-                                            ace[direction]["port_protocol"]["eq"],
+                                            str(eq_value),
                                         )
-                                    elif "range" in ace[direction]["port_protocol"]:
-                                        ports = "{0}-{1}".format(
-                                            ace[direction]["port_protocol"]["start"],
-                                            ace[direction]["port_protocol"]["end"],
-                                        )
-                                        build_child_xml_node(
-                                            from_node,
-                                            "{0}-port".format(direction),
-                                            ports,
-                                        )
+                                    elif ace[direction]["port_protocol"].get("range"):
+                                        range_dict = ace[direction]["port_protocol"]["range"]
+                                        start = range_dict.get("start")
+                                        end = range_dict.get("end")
+                                        if start is not None and end is not None:
+                                            ports = "{0}-{1}".format(str(start), str(end))
+                                            build_child_xml_node(
+                                                from_node,
+                                                "{0}-port".format(direction),
+                                                ports,
+                                            )
                         if ace.get("protocol"):
                             build_child_xml_node(
                                 from_node,
@@ -322,123 +324,230 @@ class Acls(ConfigBase):
                             )
                         if ace.get("protocol_options"):
                             if ace["protocol_options"].get("icmp"):
-                                icmp_code = build_child_xml_node(
-                                    from_node,
-                                    "icmp-code",
-                                )
-                                icmp_type = build_child_xml_node(
-                                    from_node,
-                                    "icmp-type",
-                                )
                                 icmp = ace["protocol_options"]["icmp"]
-                                if "dod_host_prohibited" in icmp:
+                                icmp_code = None
+                                icmp_type = None
+                                if icmp.get("dod_host_prohibited") is True:
+                                    if not icmp_code:
+                                        icmp_code = build_child_xml_node(
+                                            from_node,
+                                            "icmp-code",
+                                        )
                                     build_child_xml_node(
                                         icmp_code,
                                         "destination-host-prohibited",
                                     )
-                                if "dod_net_prohibited" in icmp:
+                                if icmp.get("dod_net_prohibited") is True:
+                                    if not icmp_code:
+                                        icmp_code = build_child_xml_node(
+                                            from_node,
+                                            "icmp-code",
+                                        )
                                     build_child_xml_node(
                                         icmp_code,
                                         "destination-network-prohibited",
                                     )
-                                if "echo" in icmp:
+                                if icmp.get("echo") is True:
+                                    if not icmp_type:
+                                        icmp_type = build_child_xml_node(
+                                            from_node,
+                                            "icmp-type",
+                                        )
                                     build_child_xml_node(
                                         icmp_type,
                                         "echo-request",
                                     )
-                                if "echo_reply" in icmp:
+                                if icmp.get("echo_reply") is True:
+                                    if not icmp_type:
+                                        icmp_type = build_child_xml_node(
+                                            from_node,
+                                            "icmp-type",
+                                        )
                                     build_child_xml_node(
                                         icmp_type,
                                         "echo-reply",
                                     )
-                                if "host_tos_unreachable" in icmp:
+                                if icmp.get("host_tos_unreachable") is True:
+                                    if not icmp_code:
+                                        icmp_code = build_child_xml_node(
+                                            from_node,
+                                            "icmp-code",
+                                        )
                                     build_child_xml_node(
                                         icmp_code,
                                         "host-unreachable-for-tos",
                                     )
-                                if "host_redirect" in icmp:
+                                if icmp.get("host_redirect") is True:
+                                    if not icmp_code:
+                                        icmp_code = build_child_xml_node(
+                                            from_node,
+                                            "icmp-code",
+                                        )
                                     build_child_xml_node(
                                         icmp_code,
                                         "redirect-for-host",
                                     )
-                                if "host_tos_redirect" in icmp:
+                                if icmp.get("host_tos_redirect") is True:
+                                    if not icmp_code:
+                                        icmp_code = build_child_xml_node(
+                                            from_node,
+                                            "icmp-code",
+                                        )
                                     build_child_xml_node(
                                         icmp_code,
-                                        "redirect-for-host-and-tos",
+                                        "redirect-for-tos-and-host",
                                     )
-                                if "host_unknown" in icmp:
+                                if icmp.get("host_unknown") is True:
+                                    if not icmp_code:
+                                        icmp_code = build_child_xml_node(
+                                            from_node,
+                                            "icmp-code",
+                                        )
                                     build_child_xml_node(
                                         icmp_code,
                                         "destination-host-unknown",
                                     )
-                                if "host_unreachable" in icmp:
+                                if icmp.get("host_unreachable") is True:
+                                    if not icmp_code:
+                                        icmp_code = build_child_xml_node(
+                                            from_node,
+                                            "icmp-code",
+                                        )
                                     build_child_xml_node(
                                         icmp_code,
                                         "host-unreachable",
                                     )
-                                if "net_redirect" in icmp:
+                                if icmp.get("net_redirect") is True:
+                                    if not icmp_code:
+                                        icmp_code = build_child_xml_node(
+                                            from_node,
+                                            "icmp-code",
+                                        )
                                     build_child_xml_node(
                                         icmp_code,
                                         "redirect-for-network",
                                     )
-                                if "net_tos_redirect" in icmp:
+                                if icmp.get("net_tos_redirect") is True:
+                                    if not icmp_code:
+                                        icmp_code = build_child_xml_node(
+                                            from_node,
+                                            "icmp-code",
+                                        )
                                     build_child_xml_node(
                                         icmp_code,
                                         "redirect-for-tos-and-net",
                                     )
-                                if "network_unknown" in icmp:
+                                if icmp.get("network_unknown") is True:
+                                    if not icmp_code:
+                                        icmp_code = build_child_xml_node(
+                                            from_node,
+                                            "icmp-code",
+                                        )
                                     build_child_xml_node(
                                         icmp_code,
                                         "destination-network-unknown",
                                     )
-                                if "port_unreachable" in icmp:
+                                if icmp.get("port_unreachable") is True:
+                                    if not icmp_code:
+                                        icmp_code = build_child_xml_node(
+                                            from_node,
+                                            "icmp-code",
+                                        )
                                     build_child_xml_node(
                                         icmp_code,
                                         "port-unreachable",
                                     )
-                                if "protocol_unreachable" in icmp:
+                                if icmp.get("protocol_unreachable") is True:
+                                    if not icmp_code:
+                                        icmp_code = build_child_xml_node(
+                                            from_node,
+                                            "icmp-code",
+                                        )
                                     build_child_xml_node(
                                         icmp_code,
                                         "protocol-unreachable",
                                     )
-                                if "reassembly_timeout" in icmp:
+                                if icmp.get("reassembly_timeout") is True:
+                                    if not icmp_code:
+                                        icmp_code = build_child_xml_node(
+                                            from_node,
+                                            "icmp-code",
+                                        )
                                     build_child_xml_node(
                                         icmp_code,
                                         "ttl-eq-zero-during-reassembly",
                                     )
-                                if "redirect" in icmp:
+                                if icmp.get("redirect") is True:
+                                    if not icmp_type:
+                                        icmp_type = build_child_xml_node(
+                                            from_node,
+                                            "icmp-type",
+                                        )
                                     build_child_xml_node(icmp_type, "redirect")
-                                if "router_advertisement" in icmp:
+                                if icmp.get("router_advertisement") is True:
+                                    if not icmp_type:
+                                        icmp_type = build_child_xml_node(
+                                            from_node,
+                                            "icmp-type",
+                                        )
                                     build_child_xml_node(
                                         icmp_type,
                                         "router-advertisement",
                                     )
-                                if "router_solicitation" in icmp:
+                                if icmp.get("router_solicitation") is True:
+                                    if not icmp_type:
+                                        icmp_type = build_child_xml_node(
+                                            from_node,
+                                            "icmp-type",
+                                        )
                                     build_child_xml_node(
                                         icmp_type,
                                         "router-solicit",
                                     )
-                                if "source_route_failed" in icmp:
+                                if icmp.get("source_route_failed") is True:
+                                    if not icmp_code:
+                                        icmp_code = build_child_xml_node(
+                                            from_node,
+                                            "icmp-code",
+                                        )
                                     build_child_xml_node(
                                         icmp_code,
                                         "source-route-failed",
                                     )
-                                if "time_exceeded" in icmp:
+                                if icmp.get("time_exceeded") is True:
+                                    if not icmp_type:
+                                        icmp_type = build_child_xml_node(
+                                            from_node,
+                                            "icmp-type",
+                                        )
                                     build_child_xml_node(
                                         icmp_type,
                                         "time-exceeded",
                                     )
-                                if "ttl_exceeded" in icmp:
+                                if icmp.get("ttl_exceeded") is True:
+                                    if not icmp_code:
+                                        icmp_code = build_child_xml_node(
+                                            from_node,
+                                            "icmp-code",
+                                        )
                                     build_child_xml_node(
                                         icmp_code,
                                         "ttl-eq-zero-during-transit",
                                     )
+                    if ace.get("is_fragment"):
+                        if ace.get("source") or ace.get("destination") or ace.get("protocol"):
+                            build_child_xml_node(from_node, "is-fragment")
+                        else:
+                            from_node = build_child_xml_node(term_node, "from")
+                            build_child_xml_node(from_node, "is-fragment")
                     if ace.get("grant"):
                         then_node = build_child_xml_node(term_node, "then")
                         if ace["grant"] == "permit":
                             build_child_xml_node(then_node, "accept")
                         if ace["grant"] == "deny":
                             build_child_xml_node(then_node, "discard")
+                        if ace.get("log"):
+                            build_child_xml_node(then_node, "log")
 
         acls_xml.append(family_node)
         return acls_xml

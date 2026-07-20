@@ -88,6 +88,14 @@ options:
                 - Action to take after matching condition (allow, discard/reject)
                 type: str
                 choices: [permit, deny]
+              log:
+                description:
+                - Log the packet
+                type: bool
+              is_fragment:
+                description:
+                - Match if packet is a fragment
+                type: bool
               source:
                 type: dict
                 description:
