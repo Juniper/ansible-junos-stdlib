@@ -221,53 +221,67 @@ class AclsFacts(object):
                         if term["from"].get("protocol"):
                             ace["protocol"] = term["from"]["protocol"]
                         if term["from"].get("icmp-type"):
-                            ace["protocol_options"] = dict(icmp={})
+                            ace.setdefault("protocol_options", {}).setdefault(
+                                "icmp",
+                                {},
+                            )
                             icmp_type = term["from"]["icmp-type"]
-                            if icmp_type == "echo-reply":
-                                ace["protocol_options"]["icmp"]["echo_reply"] = True
-                            if icmp_type == "echo-request":
-                                ace["protocol_options"]["icmp"]["echo"] = True
-                            if icmp_type == "redirect":
-                                ace["protocol_options"]["icmp"]["redirect"] = True
-                            if icmp_type == "router-advertisement":
-                                ace["protocol_options"]["icmp"]["router_advertisement"] = True
-                            if icmp_type == "router-solicit":
-                                ace["protocol_options"]["icmp"]["router_solicitation"] = True
-                            if icmp_type == "time-exceeded":
-                                ace["protocol_options"]["icmp"]["time_exceeded"] = True
+                            # Handle both single value and list of values
+                            if not isinstance(icmp_type, list):
+                                icmp_type = [icmp_type]
+                            for itype in icmp_type:
+                                if itype == "echo-reply":
+                                    ace["protocol_options"]["icmp"]["echo_reply"] = True
+                                elif itype == "echo-request":
+                                    ace["protocol_options"]["icmp"]["echo"] = True
+                                elif itype == "redirect":
+                                    ace["protocol_options"]["icmp"]["redirect"] = True
+                                elif itype == "router-advertisement":
+                                    ace["protocol_options"]["icmp"]["router_advertisement"] = True
+                                elif itype == "router-solicit":
+                                    ace["protocol_options"]["icmp"]["router_solicitation"] = True
+                                elif itype == "time-exceeded":
+                                    ace["protocol_options"]["icmp"]["time_exceeded"] = True
                         if term["from"].get("icmp-code"):
-                            ace["protocol_options"] = dict(icmp={})
+                            ace.setdefault("protocol_options", {}).setdefault(
+                                "icmp",
+                                {},
+                            )
                             icmp_code = term["from"]["icmp-code"]
-                            if icmp_code == "destination-host-prohibited":
-                                ace["protocol_options"]["icmp"]["dod_host_prohibited"] = True
-                            if icmp_code == "destination-host-unknown":
-                                ace["protocol_options"]["icmp"]["host_unknown"] = True
-                            if icmp_code == "destination-network-prohibited":
-                                ace["protocol_options"]["icmp"]["dod_net_prohibited"] = True
-                            if icmp_code == "destination-network-unknown":
-                                ace["protocol_options"]["icmp"]["network_unknown"] = True
-                            if icmp_code == "host-unreachable":
-                                ace["protocol_options"]["icmp"]["host_unreachable"] = True
-                            if icmp_code == "host-unreachable-for-tos":
-                                ace["protocol_options"]["icmp"]["host_tos_unreachable"] = True
-                            if icmp_code == "port-unreachable":
-                                ace["protocol_options"]["icmp"]["port_unreachable"] = True
-                            if icmp_code == "protocol-unreachable":
-                                ace["protocol_options"]["icmp"]["protocol_unreachable"] = True
-                            if icmp_code == "redirect-for-host":
-                                ace["protocol_options"]["icmp"]["host_redirect"] = True
-                            if icmp_code == "redirect-for-network":
-                                ace["protocol_options"]["icmp"]["net_redirect"] = True
-                            if icmp_code == "redirect-for-tos-and-host":
-                                ace["protocol_options"]["icmp"]["host_tos_redirect"] = True
-                            if icmp_code == "redirect-for-tos-and-net":
-                                ace["protocol_options"]["icmp"]["net_tos_redirect"] = True
-                            if icmp_code == "source-route-failed":
-                                ace["protocol_options"]["icmp"]["source_route_failed"] = True
-                            if icmp_code == "ttl-eq-zero-during-reassembly":
-                                ace["protocol_options"]["icmp"]["reassembly-timeout"] = True
-                            if icmp_code == "ttl-eq-zero-during-transit":
-                                ace["protocol_options"]["icmp"]["ttl_exceeded"] = True
+                            # Handle both single value and list of values
+                            if not isinstance(icmp_code, list):
+                                icmp_code = [icmp_code]
+                            for icode in icmp_code:
+                                if icode == "destination-host-prohibited":
+                                    ace["protocol_options"]["icmp"]["dod_host_prohibited"] = True
+                                elif icode == "destination-host-unknown":
+                                    ace["protocol_options"]["icmp"]["host_unknown"] = True
+                                elif icode == "destination-network-prohibited":
+                                    ace["protocol_options"]["icmp"]["dod_net_prohibited"] = True
+                                elif icode == "destination-network-unknown":
+                                    ace["protocol_options"]["icmp"]["network_unknown"] = True
+                                elif icode == "host-unreachable":
+                                    ace["protocol_options"]["icmp"]["host_unreachable"] = True
+                                elif icode == "host-unreachable-for-tos":
+                                    ace["protocol_options"]["icmp"]["host_tos_unreachable"] = True
+                                elif icode == "port-unreachable":
+                                    ace["protocol_options"]["icmp"]["port_unreachable"] = True
+                                elif icode == "protocol-unreachable":
+                                    ace["protocol_options"]["icmp"]["protocol_unreachable"] = True
+                                elif icode == "redirect-for-host":
+                                    ace["protocol_options"]["icmp"]["host_redirect"] = True
+                                elif icode == "redirect-for-network":
+                                    ace["protocol_options"]["icmp"]["net_redirect"] = True
+                                elif icode == "redirect-for-tos-and-host":
+                                    ace["protocol_options"]["icmp"]["host_tos_redirect"] = True
+                                elif icode == "redirect-for-tos-and-net":
+                                    ace["protocol_options"]["icmp"]["net_tos_redirect"] = True
+                                elif icode == "source-route-failed":
+                                    ace["protocol_options"]["icmp"]["source_route_failed"] = True
+                                elif icode == "ttl-eq-zero-during-reassembly":
+                                    ace["protocol_options"]["icmp"]["reassembly_timeout"] = True
+                                elif icode == "ttl-eq-zero-during-transit":
+                                    ace["protocol_options"]["icmp"]["ttl_exceeded"] = True
                     if term.get("then"):
                         if "accept" in term["then"]:
                             ace["grant"] = "permit"
