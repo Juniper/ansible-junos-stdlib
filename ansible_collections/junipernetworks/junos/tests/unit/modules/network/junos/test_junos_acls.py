@@ -122,8 +122,8 @@ class TestJunosAclsModule(TestJunosModule):
         result = self.execute_module(changed=False)
 
         ace = result["parsed"][0]["acls"][0]["aces"][0]
-        self.assertEqual(ace["source"]["prefix_list"], [{"name": "TRUSTED-SOURCES"}])
-        self.assertEqual(ace["destination"]["prefix_list"], [{"name": "DEST-TRUSTED"}])
+        self.assertEqual(ace["source"]["prefix_list"], ["TRUSTED-SOURCES"])
+        self.assertEqual(ace["destination"]["prefix_list"], ["DEST-TRUSTED"])
 
     def test_junos_acls_parsed_multiple_prefix_lists_preserved(self):
         parsed_str = """
@@ -164,9 +164,9 @@ class TestJunosAclsModule(TestJunosModule):
         ace = result["parsed"][0]["acls"][0]["aces"][0]
         self.assertEqual(
             ace["source"]["prefix_list"],
-            [{"name": "TRUSTED-SOURCES-1"}, {"name": "TRUSTED-SOURCES-2"}],
+            ["TRUSTED-SOURCES-1", "TRUSTED-SOURCES-2"],
         )
         self.assertEqual(
             ace["destination"]["prefix_list"],
-            [{"name": "DEST-TRUSTED-1"}, {"name": "DEST-TRUSTED-2"}],
+            ["DEST-TRUSTED-1", "DEST-TRUSTED-2"],
         )
