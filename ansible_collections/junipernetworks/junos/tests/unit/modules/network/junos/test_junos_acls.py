@@ -89,18 +89,18 @@ class TestJunosAclsModule(TestJunosModule):
 
     def _normalize_prefix_list(self, prefix_list):
         """Normalize prefix_list to handle Python 3.12/3.13 differences.
-        
+
         Python 3.12 returns plain strings or strings in a list.
         Python 3.13 returns dicts with 'name' key.
         This method normalizes both to a list of dicts for consistent comparison.
         """
         if not prefix_list:
             return prefix_list
-        
+
         # Handle single string (Python 3.12 single element case)
         if isinstance(prefix_list, str):
             return [{"name": prefix_list}]
-        
+
         # Handle list
         if isinstance(prefix_list, list):
             normalized = []
@@ -110,7 +110,7 @@ class TestJunosAclsModule(TestJunosModule):
                 elif isinstance(item, dict):
                     normalized.append(item)
             return normalized
-        
+
         return prefix_list
 
     def test_junos_acls_parsed_single_prefix_list_normalized(self):
@@ -189,16 +189,16 @@ class TestJunosAclsModule(TestJunosModule):
                 </configuration>
             </rpc-reply>
         """
-self._normalize_prefix_list(ace["source"]["prefix_list"]),
+
+        set_module_args(dict(running_config=parsed_str, state="parsed"))
+        result = self.execute_module(changed=False)
+
+        ace = result["parsed"][0]["acls"][0]["aces"][0]
+        self.assertEqual(
+            self._normalize_prefix_list(ace["source"]["prefix_list"]),
             [{"name": "TRUSTED-SOURCES-1"}, {"name": "TRUSTED-SOURCES-2"}],
         )
         self.assertEqual(
-            self._normalize_prefix_list(ace["destination"]["prefix_list"])"aces"][0]
-        self.assertEqual(
-            ace["source"]["prefix_list"],
-            [{"name": "TRUSTED-SOURCES-1"}, {"name": "TRUSTED-SOURCES-2"}],
-        )
-        self.assertEqual(
-            ace["destination"]["prefix_list"],
+            self._normalize_prefix_list(ace["destination"]["prefix_list"]),
             [{"name": "DEST-TRUSTED-1"}, {"name": "DEST-TRUSTED-2"}],
         )
