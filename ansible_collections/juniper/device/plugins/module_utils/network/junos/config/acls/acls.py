@@ -439,6 +439,8 @@ class Acls(ConfigBase):
                             build_child_xml_node(then_node, "accept")
                         if ace["grant"] == "deny":
                             build_child_xml_node(then_node, "discard")
+                        if ace.get("log"):
+                            build_child_xml_node(then_node, "log")
 
         acls_xml.append(family_node)
         return acls_xml

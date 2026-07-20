@@ -259,6 +259,8 @@ class AclsFacts(object):
                             ace["grant"] = "permit"
                         if "discard" in term["then"]:
                             ace["grant"] = "deny"
+                        if "log" in term["then"]:
+                            ace["log"] = True
                     acl_dict["aces"].append(ace)
             config["acls"].append(acl_dict)
         return utils.remove_empties(config)

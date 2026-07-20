@@ -185,6 +185,7 @@ class AclsArgs(object):  # pylint: disable=R0903
                                     "type": "str",
                                     "choices": ["permit", "deny"],
                                 },
+                                "log": {"type": "bool"},
                             },
                         },
                     },
