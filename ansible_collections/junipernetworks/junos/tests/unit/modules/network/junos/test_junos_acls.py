@@ -31,7 +31,7 @@ from unittest.mock import patch
 from ansible_collections.juniper.device.plugins.modules import junos_acls
 from ansible_collections.junipernetworks.junos.tests.unit.modules.utils import set_module_args
 
-from .junos_module import TestJunosModule, load_fixture
+from .junos_module import TestJunosModule
 
 
 class TestJunosAclsModule(TestJunosModule):
@@ -122,8 +122,8 @@ class TestJunosAclsModule(TestJunosModule):
         result = self.execute_module(changed=False)
 
         ace = result["parsed"][0]["acls"][0]["aces"][0]
-        self.assertEqual(ace["source"]["prefix_list"], ["TRUSTED-SOURCES"])
-        self.assertEqual(ace["destination"]["prefix_list"], ["DEST-TRUSTED"])
+        self.assertEqual(ace["source"]["prefix_list"], "TRUSTED-SOURCES")
+        self.assertEqual(ace["destination"]["prefix_list"], "DEST-TRUSTED")
 
     def test_junos_acls_parsed_multiple_prefix_lists_preserved(self):
         parsed_str = """
