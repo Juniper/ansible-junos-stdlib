@@ -168,9 +168,16 @@ class AclsFacts(object):
                                     )
                         if term["from"].get("source-port"):
                             ace["source"] = ace.get("source", {})
-                            ace["source"]["port_protocol"] = dict(
-                                eq=term["from"]["source-port"],
-                            )
+                            port_value = term["from"]["source-port"]
+                            if isinstance(port_value, str) and "-" in port_value:
+                                start, end = port_value.split("-")
+                                ace["source"]["port_protocol"] = dict(
+                                    range={"start": int(start), "end": int(end)},
+                                )
+                            else:
+                                ace["source"]["port_protocol"] = dict(
+                                    eq=port_value,
+                                )
                         if term["from"].get("destination-address"):
                             ace["destination"] = ace.get("destination", {})
                             destination_address = term["from"].get(
@@ -201,9 +208,16 @@ class AclsFacts(object):
                                     )
                         if term["from"].get("destination-port"):
                             ace["destination"] = ace.get("destination", {})
-                            ace["destination"]["port_protocol"] = dict(
-                                eq=term["from"]["destination-port"],
-                            )
+                            port_value = term["from"]["destination-port"]
+                            if isinstance(port_value, str) and "-" in port_value:
+                                start, end = port_value.split("-")
+                                ace["destination"]["port_protocol"] = dict(
+                                    range={"start": int(start), "end": int(end)},
+                                )
+                            else:
+                                ace["destination"]["port_protocol"] = dict(
+                                    eq=port_value,
+                                )
                         if term["from"].get("protocol"):
                             ace["protocol"] = term["from"]["protocol"]
                         if term["from"].get("icmp-type"):
