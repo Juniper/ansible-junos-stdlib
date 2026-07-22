@@ -66,8 +66,8 @@ options:
         I(kwargs) list and the RPCs in the I(rpcs) list. In other words, the
         two lists must always contain the same number of elements.
     required: false
-    default: none
-    type: dict or list of dict
+    default: null
+    type: str
     aliases:
       - attr
   dest:
@@ -88,7 +88,7 @@ options:
         backwards compatibility. Use the I(dest_dir) option in new playbooks.
         The I(dest) and I(dest_dir) options are mutually exclusive.
     required: false
-    default: None
+    default: null
     type: path
     aliases:
       - destination
@@ -105,7 +105,7 @@ options:
       - The I(dest_dir) and I(dest) options are mutually exclusive. The
         I(dest_dir) option is recommended for all new playbooks.
     required: false
-    default: None
+    default: null
     type: path
     aliases:
       - destination_dir
@@ -119,7 +119,7 @@ options:
         U(get_config method|http://junos-pyez.readthedocs.io/en/stable/jnpr.junos.html#jnpr.junos.rpcmeta._RpcMetaExec.get_config)
         for details on the value of this option.
     required: false
-    default: none
+    default: null
     type: str
     aliases:
       - filter_xml
@@ -135,12 +135,9 @@ options:
         list of formats are specified, there must be one value in the list for
         each RPC specified by the I(rpcs) option.
     required: false
-    default: xml
-    type: str or list of str
-    choices:
-      - text
-      - xml
-      - json
+    default: null
+    type: list
+    elements: str
     aliases:
       - format
       - display
@@ -155,8 +152,9 @@ options:
         strings in the list. The value of the I(ignore_warning) option is
         applied to the load and commit operations performed by this module.
     required: false
-    default: none
-    type: bool, str, or list of str
+    default: null
+    type: list
+    elements: str
   kwargs:
     description:
       - The keyword arguments and values to the RPCs specified by the
@@ -171,8 +169,8 @@ options:
       - By default "0" and "1" will be converted to boolean values. In case
         it doesn't need to be transformed to boolean pass first kwargs as
     required: false
-    default: none
-    type: dict or list of dict
+    default: null
+    type: str
     aliases:
       - kwarg
       - args
@@ -190,11 +188,28 @@ options:
   rpcs:
     description:
       - A list of one or more NETCONF RPCs to execute on the Junos device.
-    required: true
-    default: none
+    required: false
+    default: null
     type: list
+    elements: str
     aliases:
       - rpc
+  _connection:
+    description:
+      - Internal use only.
+    type: str
+  _inventory_hostname:
+    description:
+      - Internal use only.
+    type: str
+  _module_name:
+    description:
+      - Internal use only.
+    type: str
+  _module_utils_path:
+    description:
+      - Internal use only.
+    type: path
 """
 
 EXAMPLES = """
@@ -334,7 +349,7 @@ results:
       of the I(failed) key for each element in the I(results) list for the
       results of individual RPCs.
   returned: when the I(rpcs) option is a list value.
-  type: list of dict
+  type: list
 rpc:
   description:
     - The RPC which was executed from the list of RPCs in the I(rpcs) option.
@@ -349,7 +364,7 @@ stdout_lines:
   description:
     - The RPC reply from the Junos device as a list of single-line strings.
   returned: when RPC executed successfully and I(return_output) is C(true).
-  type: list of str
+  type: list
 """
 
 
@@ -367,10 +382,11 @@ def main():
     # Create the module instance.
     junos_module = juniper_junos_common.JuniperJunosModule(
         argument_spec=dict(
-            rpcs=dict(required=True, type="list", aliases=["rpc"], default=None),
+            rpcs=dict(required=False, type="list", elements="str", aliases=["rpc"], default=None),
             formats=dict(
                 required=False,
                 type="list",
+                elements="str",
                 aliases=["format", "display", "output"],
                 default=None,
             ),
@@ -399,7 +415,7 @@ def main():
                 aliases=["destination_dir", "destdir"],
                 default=None,
             ),
-            ignore_warning=dict(required=False, type="list", default=None),
+            ignore_warning=dict(required=False, type="list", elements="str", default=None),
             return_output=dict(required=False, type="bool", default=True),
         ),
         # Since this module doesn't change the device's configuration, there is

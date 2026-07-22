@@ -39,7 +39,7 @@ __metaclass__ = type
 DOCUMENTATION = """
 ---
 name: jsnapy
-type: callback
+type: notification
 author: Juniper Networks, Roslan Zaki, Damien Garros, Stacy Smith (@stacywsmith)
 short_description: Formats and prints JSNAPy test results for Junos devices
 description: |

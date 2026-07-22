@@ -66,8 +66,8 @@ options:
     description:
       - The IPv4 address, or hostname if DNS is configured on the Junos device,
         used as the destination of the PMTUD.
-    required: true
-    default: none
+    required: false
+    default: null
     type: str
     aliases:
       - dest_ip
@@ -81,7 +81,7 @@ options:
         specified, the default Junos algorithm for determining the source
         interface is used.
     required: false
-    default: none
+    default: null
     type: str
   max_range:
     description:
@@ -93,6 +93,24 @@ options:
     required: false
     default: 512
     type: int
+    choices:
+      - 0
+      - 2
+      - 4
+      - 8
+      - 16
+      - 32
+      - 64
+      - 128
+      - 256
+      - 512
+      - 1024
+      - 2048
+      - 4096
+      - 8192
+      - 16384
+      - 32768
+      - 65536
   max_size:
     description:
       - The maximum IPv4 MTU, in bytes, to attempt when performing path MTU
@@ -109,7 +127,7 @@ options:
         originated.
       - If not specified, the default routing instance is used.
     required: false
-    default: none
+    default: null
     type: str
   source:
     description:
@@ -117,7 +135,7 @@ options:
         used as the source address of the PMTUD. If not specified, the Junos
         default algorithm for determining the source address is used.
     required: false
-    default: none
+    default: null
     type: str
     aliases:
       - source_ip
@@ -125,6 +143,22 @@ options:
       - src
       - src_ip
       - src_host
+  _connection:
+    description:
+      - Internal use only.
+    type: str
+  _inventory_hostname:
+    description:
+      - Internal use only.
+    type: str
+  _module_name:
+    description:
+      - Internal use only.
+    type: str
+  _module_utils_path:
+    description:
+      - Internal use only.
+    type: path
 """
 
 EXAMPLES = """
@@ -274,7 +308,7 @@ def main():
         argument_spec=dict(
             dest=dict(
                 type="str",
-                required=True,
+                required=False,
                 aliases=[
                     "dest_ip",
                     "dest_host",

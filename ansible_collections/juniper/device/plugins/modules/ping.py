@@ -73,8 +73,8 @@ options:
     description:
       - The IP address, or hostname if DNS is configured on the Junos device,
         used as the destination of the ping.
-    required: true
-    default: none
+    required: false
+    default: null
     type: str
     aliases:
       - dest_ip
@@ -94,7 +94,7 @@ options:
         specified, the default Junos algorithm for determining the source
         interface is used.
     required: false
-    default: none
+    default: null
     type: str
   rapid:
     description:
@@ -107,7 +107,7 @@ options:
       - Name of the source routing instance from which the ping is
         originated. If not specified, the default routing instance is used.
     required: false
-    default: none
+    default: null
     type: str
   size:
     description:
@@ -116,7 +116,7 @@ options:
         the 8 byte ICMP header. Therefore, I(size) of C(1472) generates an IP
         packet of size 1500.
     required: false
-    default: none (default size for device)
+    default: null
     type: int
   source:
     description:
@@ -124,7 +124,7 @@ options:
         used as the source address of the ping. If not specified, the Junos
         default algorithm for determining the source address is used.
     required: false
-    default: none
+    default: null
     type: str
     aliases:
       - source_ip
@@ -137,8 +137,24 @@ options:
       - Maximum number of IP routers (hops) allowed between source and
         destination.
     required: false
-    default: none (default ttl for device)
+    default: null
     type: int
+  _connection:
+    description:
+      - Internal use only.
+    type: str
+  _inventory_hostname:
+    description:
+      - Internal use only.
+    type: str
+  _module_name:
+    description:
+      - Internal use only.
+    type: str
+  _module_utils_path:
+    description:
+      - Internal use only.
+    type: path
 """
 
 EXAMPLES = """
@@ -393,7 +409,7 @@ def main():
     argument_spec = dict(
         dest=dict(
             type="str",
-            required=True,
+            required=False,
             aliases=[
                 "dest_ip",
                 "dest_host",

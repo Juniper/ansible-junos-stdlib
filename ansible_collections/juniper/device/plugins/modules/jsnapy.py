@@ -49,10 +49,10 @@ extends_documentation_fragment:
   - juniper.device.juniper_junos_doc.logging_documentation
 module: jsnapy
 author:
-  - Juniper Networks
-  - Roslan Zaki
-  - Damien Garros
-  - Stacy Smith (@stacywsmith)"
+  - "Juniper Networks (@juniper)"
+  - "Roslan Zaki (@roszaki)"
+  - "Damien Garros (@dgarros)"
+  - "Stacy Smith (@stacywsmith)"
 short_description: Execute JSNAPy tests on a Junos device
 description:
   - Execute Junos SNAPshot Adminsitrator (JSNAPy) tests against a Junos device.
@@ -71,8 +71,8 @@ options:
   action:
     description:
       - The JSNAPy action to perform.
-    required: true
-    default: none
+    required: false
+    default: null
     type: str
     choices:
       - check
@@ -87,7 +87,7 @@ options:
         option is required.
     required: false
     type: path
-    default: none
+    default: null
   dir:
     description:
       - The path to the directory containing the JSNAPy test file(s) specified
@@ -105,8 +105,34 @@ options:
         I(config_file) option are mutually exclusive. Either the I(test_files)
         option or the I(config_file) option is required.
     required: false
-    type: list of path
-    default: none
+    type: list
+    elements: path
+    default: null
+  dest_dir:
+    description:
+      - The path to a directory where JSNAPy output files are stored.
+    required: false
+    type: path
+    default: null
+    aliases:
+      - destination_dir
+      - destdir
+  _connection:
+    description:
+      - Internal use only.
+    type: str
+  _inventory_hostname:
+    description:
+      - Internal use only.
+    type: str
+  _module_name:
+    description:
+      - Internal use only.
+    type: str
+  _module_utils_path:
+    description:
+      - Internal use only.
+    type: path
 """
 
 
@@ -219,12 +245,12 @@ def main():
     junos_module = juniper_junos_common.JuniperJunosModule(
         argument_spec=dict(
             action=dict(
-                required=True,
+                required=False,
                 choices=JSNAPY_ACTION_CHOICES,
                 type="str",
                 default=None,
             ),
-            test_files=dict(required=False, type="list", default=None),
+            test_files=dict(required=False, type="list", elements="path", default=None),
             config_file=dict(required=False, type="path", default=None),
             dest_dir=dict(
                 required=False,

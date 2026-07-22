@@ -63,9 +63,10 @@ options:
   commands:
     description:
       - A list of one or more CLI commands to execute on the Junos device.
-    required: true
-    default: none
+    required: false
+    default: null
     type: list
+    elements: str
     aliases:
       - cli
       - command
@@ -90,7 +91,7 @@ options:
         backwards compatibility. Use the I(dest_dir) option in new playbooks.
         The I(dest) and I(dest_dir) options are mutually exclusive.
     required: false
-    default: None
+    default: null
     type: path
     aliases:
       - destination
@@ -107,7 +108,7 @@ options:
       - The I(dest_dir) and I(dest) options are mutually exclusive. The
         I(dest_dir) option is recommended for all new playbooks.
     required: false
-    default: None
+    default: null
     type: path
     aliases:
       - destination_dir
@@ -126,16 +127,22 @@ options:
         for the I(formats) option is similar to appending C(| display json) to
         a CLI command.
     required: false
-    default: text
-    type: str or list of str
-    choices:
-      - text
-      - xml
-      - json
+    default: null
+    type: list
+    elements: str
     aliases:
       - format
       - display
       - output
+  ignore_warning:
+    description:
+      - A list of warning strings to ignore when executing CLI commands.
+        If a warning message matches any entry in this list, the warning
+        is suppressed and does not cause the module to fail.
+    required: false
+    default: null
+    type: list
+    elements: str
   return_output:
     description:
       - Indicates if the output of the command should be returned in the
@@ -146,6 +153,22 @@ options:
     required: false
     default: true
     type: bool
+  _connection:
+    description:
+      - Internal use only.
+    type: str
+  _inventory_hostname:
+    description:
+      - Internal use only.
+    type: str
+  _module_name:
+    description:
+      - Internal use only.
+    type: str
+  _module_utils_path:
+    description:
+      - Internal use only.
+    type: path
 """
 
 EXAMPLES = """
@@ -271,7 +294,7 @@ results:
       of the I(failed) key for each element in the I(results) list for the
       results of individual commands.
   returned: when the I(commands) option is a list value.
-  type: list of dict
+  type: list
 stdout:
   description:
     - The command reply from the Junos device as a single multi-line string.
@@ -281,7 +304,7 @@ stdout_lines:
   description:
     - The command reply from the Junos device as a list of single-line strings.
   returned: when command executed successfully and I(return_output) is C(true).
-  type: list of str
+  type: list
 """
 
 import sys
@@ -302,14 +325,16 @@ def main():
     junos_module = juniper_junos_common.JuniperJunosModule(
         argument_spec=dict(
             commands=dict(
-                required=True,
+                required=False,
                 type="list",
+                elements="str",
                 aliases=["cli", "command", "cmd", "cmds"],
                 default=None,
             ),
             formats=dict(
                 required=False,
                 type="list",
+                elements="str",
                 aliases=["format", "display", "output"],
                 default=None,
             ),
@@ -325,7 +350,7 @@ def main():
                 aliases=["destination_dir", "destdir"],
                 default=None,
             ),
-            ignore_warning=dict(required=False, type="list", default=None),
+            ignore_warning=dict(required=False, type="list", elements="str", default=None),
             return_output=dict(required=False, type="bool", default=True),
         ),
         # Since this module doesn't change the device's configuration, there is
