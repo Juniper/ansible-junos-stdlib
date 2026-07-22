@@ -66,18 +66,21 @@ options:
     description:
       - path of the local directory where the file is located
         or needs to be copied to
-    required: true
+    required: false
+    default: null
     type: str
   remote_dir:
     description:
       - path of the directory on the remote device where the file is located
         or needs to be copied to
-    required: true
+    required: false
+    default: null
     type: str
   file:
     description:
       - Name of the file to copy to/from the remote device
-    required: true
+    required: false
+    default: null
     type: str
   transfer_filename:
     description:
@@ -88,12 +91,33 @@ options:
     description:
       - Validate the file using MD5 algorithm check
     required: false
+    default: true
     type: bool
   action:
     description:
       - Type of operation to execute, currently only support get and put
-    required: true
+    required: false
+    default: null
     type: str
+    choices:
+      - put
+      - get
+  _connection:
+    description:
+      - Internal use only.
+    type: str
+  _inventory_hostname:
+    description:
+      - Internal use only.
+    type: str
+  _module_name:
+    description:
+      - Internal use only.
+    type: str
+  _module_utils_path:
+    description:
+      - Internal use only.
+    type: path
 """
 
 EXAMPLES = """
@@ -150,15 +174,15 @@ def main():
                 required=False,
                 default="scp",
             ),
-            local_dir=dict(type="str", required=True, default=None),
-            remote_dir=dict(type="str", required=True, default=None),
-            file=dict(type="str", required=True, default=None),
+            local_dir=dict(type="str", required=False, default=None),
+            remote_dir=dict(type="str", required=False, default=None),
+            file=dict(type="str", required=False, default=None),
             transfer_filename=dict(type="str", required=False, default=None),
             checksum=dict(type="bool", required=False, default=True),
             action=dict(
                 type="str",
                 choices=["put", "get"],
-                required=True,
+                required=False,
                 default=None,
             ),
         ),

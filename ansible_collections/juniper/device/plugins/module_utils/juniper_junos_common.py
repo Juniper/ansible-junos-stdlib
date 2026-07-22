@@ -464,7 +464,7 @@ connection_spec = {
         default=None,
     ),
     "ssh_config": dict(type="path", required=False, default=None),
-    "mode": dict(choices=[None, "telnet", "serial"], default=None),
+    "mode": dict(choices=["telnet", "serial"], default=None),
     "console": dict(type="str", required=False, default=None),
     "port": dict(
         type="str",
@@ -503,13 +503,13 @@ connection_spec_mutually_exclusive = [
 
 # Specify the logging spec.
 logging_spec = {
-    "logfile": dict(type="path", required=False, default=None),
-    "logdir": dict(type="path", required=False, default=None),
-    "level": dict(choices=[None, "INFO", "DEBUG"], required=False, default=None),
+    "logfile": dict(type="path", required=False, default=None, aliases=["log_file"]),
+    "logdir": dict(type="path", required=False, default=None, aliases=["log_dir"]),
+    "level": dict(choices=["INFO", "DEBUG"], required=False, default=None),
 }
 
 # The logdir and logfile options are mutually exclusive.
-logging_spec_mutually_exclusive = ["logfile", "logdir"]
+logging_spec_mutually_exclusive = [["logfile", "logdir"]]
 
 # Other logging names which should be logged to the logfile
 additional_logger_names = ["ncclient", "paramiko"]

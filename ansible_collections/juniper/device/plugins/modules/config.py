@@ -160,9 +160,10 @@ description:
 options:
   check:
     description:
-      - Perform a commit check operation.
+      - Perform a commit check operation. Defaults to C(true) unless
+        I(retrieve) is set and neither I(load) nor I(rollback) are set.
     required: false
-    default: true (false if retrieve is set and load and rollback are not set)
+    default: null
     type: bool
     aliases:
       - check_commit
@@ -175,20 +176,21 @@ options:
       - This option should not normally be needed. It works around an issue in
         some versions of Junos.
     required: false
-    default: none
+    default: null
     type: int
   comment:
     description:
       - Provide a comment to be used with the commit operation.
       - This option is only valid if the I(commit) option is true.
     required: false
-    default: none
+    default: null
     type: str
   commit:
     description:
-      - Perform a commit operation.
+      - Perform a commit operation. Defaults to C(true) unless I(retrieve) is
+        set and neither I(load) nor I(rollback) are set.
     required: false
-    default: true (false if retrieve is set and load and rollback are not set)
+    default: null
     type: bool
   commit_empty_changes:
     description:
@@ -234,12 +236,6 @@ options:
       - config_access
       - edit_mode
       - edit_access
-  ephemeral_instance:
-    description:
-      - To open a user-defined instance of the ephemeral database
-    required: false
-    default: None
-    type: str
   confirmed:
     description:
       - Provide a confirmed timeout, in minutes, to be used with the commit
@@ -254,7 +250,7 @@ options:
         commit operation, invoke this module with the I(check) or I(commit)
         option set to C(true).
     required: false
-    default: none
+    default: null
     type: int
     aliases:
       - confirm
@@ -277,7 +273,7 @@ options:
         backwards compatibility. Use the I(dest_dir) option in new playbooks.
         The I(dest) and I(dest_dir) options are mutually exclusive.
     required: false
-    default: none
+    default: null
     type: path
     aliases:
       - destination
@@ -305,7 +301,7 @@ options:
       - The I(dest_dir) and I(diff_file) options are mutually exclusive. The
         I(dest_dir) option is recommended for all new playbooks.
     required: false
-    default: none
+    default: null
     type: path
     aliases:
       - destination_dir
@@ -314,9 +310,11 @@ options:
       - save_dir
   diff:
     description:
-      - Perform a configuration compare (aka diff) operation.
+      - Perform a configuration compare (aka diff) operation. Defaults to
+        C(true) unless I(retrieve) is set and neither I(load) nor I(rollback)
+        are set.
     required: false
-    default: true (false if retrieve is set and load and rollback are not set)
+    default: null
     type: bool
     aliases:
       - compare
@@ -341,7 +339,7 @@ options:
         backwards compatibility. Use the I(dest_dir) option in new playbooks.
       - The I(diffs_file) and I(dest_dir) options are mutually exclusive.
     required: false
-    default: None
+    default: null
     type: path
   format:
     description:
@@ -351,7 +349,7 @@ options:
         not C(none).
       - The specified format must be supported by the target Junos device.
     required: false
-    default: none (auto-detect on load, text on retrieve)
+    default: null
     type: str
     choices:
       - xml
@@ -366,8 +364,8 @@ options:
         U(PyEZ's get_config method documentation|http://junos-pyez.readthedocs.io/en/stable/jnpr.junos.html#jnpr.junos.rpcmeta._RpcMetaExec.get_config)
         for details on the value of this option.
     required: false
-    default: none
-    type: 'str'
+    default: null
+    type: str
     aliases:
       - filter_xml
   ignore_warning:
@@ -380,27 +378,31 @@ options:
         strings in the list. The value of the I(ignore_warning) option is
         applied to the load and commit operations performed by this module.
     required: false
-    default: none
-    type: bool, str, or list of str
+    default: null
+    type: list
+    elements: str
   model:
     description:
       - Specifies yang model openconfig/custom/ietf to fetch.
-      - When model is True and filter_xml is None, xml is enclosed under
-        <data> so that we get junos as well as other model configurations.
-      - In case of custom, user will have to provide the namespace to be fetched
-        using I(namespace) option.
+      - When model is C(True) and I(filter) is not set, xml is enclosed under
+        C(<data>) so that junos as well as other model configurations are
+        returned.
+      - In case of C(custom), use the I(namespace) option to specify the
+        namespace to be fetched.
     required: false
-    default: none
+    default: null
+    type: str
     choices:
       - openconfig
       - ietf
       - custom
+      - 'True'
   namespace:
     description:
       - Used with I(model) option. Specifies the custom namespace to be fetched
         from the database.
     required: false
-    default: none
+    default: null
     type: str
   lines:
     description:
@@ -413,8 +415,9 @@ options:
       - If the I(format) option is specified, the I(format) value overrides the
         format auto-detection.
     required: false
-    default: none
+    default: null
     type: list
+    elements: str
   load:
     description:
       - Specifies the type of load operation to be performed.
@@ -459,15 +462,15 @@ options:
         commands, such as set, delete, edit, or deactivate. This value must be
         specified if the new configuration is in set format.
     required: false
-    default: none
+    default: null
     choices:
-      - none
       - set
       - merge
       - update
       - replace
       - override
       - overwrite
+      - patch
     type: str
   options:
     description:
@@ -477,15 +480,14 @@ options:
         https://www.juniper.net/documentation/en_US/junos/topics/reference/tag-summary/junos-xml-protocol-get-configuration.html)
         for information on available options.
     required: false
-    default: None
+    default: {}
     type: dict
   retrieve:
     description:
       - The configuration database to be retrieved.
     required: false
-    default: none
+    default: null
     choices:
-      - none
       - candidate
       - committed
     type: str
@@ -512,11 +514,8 @@ options:
         module attempts to perform the rollback.
       - The I(rollback) and I(load) options are mutually exclusive.
     required: false
-    default: none
-    choices:
-      - 0-49
-      - rescue
-    type: int or str
+    default: null
+    type: str
   src:
     description:
       - Used with the I(load) option. Specifies the path to a file, on the
@@ -533,8 +532,8 @@ options:
       - If the I(format) option is specified, the I(format) value overrides the
         file-extension based format detection.
     required: false
-    default: none
-    type: 'path'
+    default: null
+    type: path
     aliases:
       - source
       - file
@@ -548,7 +547,7 @@ options:
       - The I(template) and I(vars) options are required together. If one is
         specified, the other must be specified.
     required: false
-    default: none
+    default: null
     type: path
     aliases:
       - template_path
@@ -565,7 +564,7 @@ options:
       - The I(src), I(lines), I(template), and I(url) options are mutually
         exclusive.
     required: false
-    default: none
+    default: null
     type: str
   vars:
     description:
@@ -574,10 +573,38 @@ options:
       - The I(template) and I(vars) options are required together. If one is
         specified, the other must be specified.
     required: false
-    default: none
+    default: null
     type: dict
     aliases:
       - template_vars
+  ephemeral_instance:
+    description:
+      - To open a user-defined instance of the ephemeral database.
+    required: false
+    default: null
+    type: str
+  remove_ns:
+    description:
+      - Remove namespaces from the retrieved configuration.
+    required: false
+    default: null
+    type: bool
+  _connection:
+    description:
+      - Internal use only.
+    type: str
+  _inventory_hostname:
+    description:
+      - Internal use only.
+    type: str
+  _module_name:
+    description:
+      - Internal use only.
+    type: str
+  _module_utils_path:
+    description:
+      - Internal use only.
+    type: path
 """
 
 EXAMPLES = """
@@ -845,7 +872,7 @@ def main():
     # Create the module instance.
     junos_module = juniper_junos_common.JuniperJunosModule(
         argument_spec=dict(
-            ignore_warning=dict(required=False, type="list", default=None),
+            ignore_warning=dict(required=False, type="list", elements="str", default=None),
             config_mode=dict(
                 choices=config_mode_choices,
                 type="str",
@@ -856,7 +883,7 @@ def main():
             ephemeral_instance=dict(type="str", required=False, default=None),
             rollback=dict(type="str", required=False, default=None),
             load=dict(
-                choices=config_action_choices,
+                choices=juniper_junos_common.CONFIG_ACTION_CHOICES,
                 type="str",
                 required=False,
                 default=None,
@@ -867,7 +894,7 @@ def main():
                 aliases=["source", "file"],
                 default=None,
             ),
-            lines=dict(type="list", required=False, default=None),
+            lines=dict(type="list", elements="str", required=False, default=None),
             template=dict(
                 type="path",
                 required=False,
@@ -916,7 +943,7 @@ def main():
             ),
             return_output=dict(required=False, type="bool", default=True),
             retrieve=dict(
-                choices=config_database_choices,
+                choices=juniper_junos_common.CONFIG_DATABASE_CHOICES,
                 type="str",
                 required=False,
                 default=None,
