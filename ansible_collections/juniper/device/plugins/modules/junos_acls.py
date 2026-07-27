@@ -96,6 +96,10 @@ options:
                 description:
                 - Match if packet is a fragment
                 type: bool
+              next_term:
+                description:
+                - Continue evaluating the packet against the next term in the filter
+                type: bool
               source:
                 type: dict
                 description:

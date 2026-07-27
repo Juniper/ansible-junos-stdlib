@@ -187,6 +187,7 @@ class AclsArgs(object):  # pylint: disable=R0903
                                 },
                                 "log": {"type": "bool"},
                                 "is_fragment": {"type": "bool"},
+                                "next_term": {"type": "bool"},
                             },
                         },
                     },

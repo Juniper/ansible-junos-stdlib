@@ -540,14 +540,16 @@ class Acls(ConfigBase):
                         else:
                             from_node = build_child_xml_node(term_node, "from")
                             build_child_xml_node(from_node, "is-fragment")
-                    if ace.get("grant"):
+                    if ace.get("grant") or ace.get("next_term"):
                         then_node = build_child_xml_node(term_node, "then")
-                        if ace["grant"] == "permit":
+                        if ace.get("grant") == "permit":
                             build_child_xml_node(then_node, "accept")
-                        if ace["grant"] == "deny":
+                        if ace.get("grant") == "deny":
                             build_child_xml_node(then_node, "discard")
                         if ace.get("log"):
                             build_child_xml_node(then_node, "log")
+                        if ace.get("next_term"):
+                            build_child_xml_node(then_node, "next", "term")
 
         acls_xml.append(family_node)
         return acls_xml

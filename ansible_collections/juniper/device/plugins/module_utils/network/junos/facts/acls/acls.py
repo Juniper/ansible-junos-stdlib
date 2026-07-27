@@ -289,6 +289,8 @@ class AclsFacts(object):
                             ace["grant"] = "deny"
                         if "log" in term["then"]:
                             ace["log"] = True
+                        if term["then"].get("next") == "term":
+                            ace["next_term"] = True
                     if term.get("from"):
                         if term["from"].get("is-fragment"):
                             ace["is_fragment"] = True
