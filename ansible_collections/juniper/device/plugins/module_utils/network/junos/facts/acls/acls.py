@@ -220,6 +220,8 @@ class AclsFacts(object):
                                 )
                         if term["from"].get("protocol"):
                             ace["protocol"] = term["from"]["protocol"]
+                        if term["from"].get("payload-protocol"):
+                            ace["protocol"] = term["from"]["payload-protocol"]
                         if term["from"].get("icmp-type"):
                             ace.setdefault("protocol_options", {}).setdefault(
                                 "icmp",

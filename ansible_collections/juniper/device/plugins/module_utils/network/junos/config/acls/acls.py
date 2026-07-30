@@ -317,9 +317,12 @@ class Acls(ConfigBase):
                                                 ports,
                                             )
                         if ace.get("protocol"):
+                            protocol_tag = (
+                                "payload-protocol" if family == "inet6" else "protocol"
+                            )
                             build_child_xml_node(
                                 from_node,
-                                "protocol",
+                                protocol_tag,
                                 ace["protocol"],
                             )
                         if ace.get("protocol_options"):
