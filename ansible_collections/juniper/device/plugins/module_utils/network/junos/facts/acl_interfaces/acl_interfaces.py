@@ -141,15 +141,25 @@ class Acl_interfacesFacts(object):
                 ]["family"][family].get(
                     "filter",
                 ):
-                    for direction in ["input-list", "output-list"]:
-                        rendered_direction = "in" if direction == "input-list" else "out"
-                        if conf["interface"]["unit"]["family"][family]["filter"].get(direction):
-                            acl_name = conf["interface"]["unit"]["family"][family]["filter"][
-                                direction
-                            ]
+                    # "input"/"output" are the standard single-filter
+                    # attachments; "input-list"/"output-list" carry multiple
+                    # filters. Junos returns "input"/"output" as a dict with a
+                    # "filter-name" key.
+                    directions = {
+                        "input": "in",
+                        "input-list": "in",
+                        "output": "out",
+                        "output-list": "out",
+                    }
+                    filter_conf = conf["interface"]["unit"]["family"][family]["filter"]
+                    for direction, rendered_direction in directions.items():
+                        if filter_conf.get(direction):
+                            acl_name = filter_conf[direction]
                             if not isinstance(acl_name, list):
                                 acl_name = [acl_name]
                             for filter_name in acl_name:
+                                if isinstance(filter_name, dict):
+                                    filter_name = filter_name.get("filter-name")
                                 access_groups["acls"].append(
                                     {
                                         "name": filter_name,
