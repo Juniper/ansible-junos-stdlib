@@ -244,6 +244,8 @@ class AclsFacts(object):
                                     ace["protocol_options"]["icmp"]["router_solicitation"] = True
                                 elif itype == "time-exceeded":
                                     ace["protocol_options"]["icmp"]["time_exceeded"] = True
+                                elif itype == "unreachable":
+                                    ace["protocol_options"]["icmp"]["unreachable"] = True
                         if term["from"].get("icmp-code"):
                             ace.setdefault("protocol_options", {}).setdefault(
                                 "icmp",

@@ -177,6 +177,9 @@ class AclsArgs(object):  # pylint: disable=R0903
                                                 "ttl_exceeded": {
                                                     "type": "bool",
                                                 },
+                                                "unreachable": {
+                                                    "type": "bool",
+                                                },
                                             },
                                         },
                                     },

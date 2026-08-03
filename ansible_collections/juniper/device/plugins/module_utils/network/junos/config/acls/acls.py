@@ -527,6 +527,16 @@ class Acls(ConfigBase):
                                         icmp_type,
                                         "time-exceeded",
                                     )
+                                if icmp.get("unreachable") is True:
+                                    if not icmp_type:
+                                        icmp_type = build_child_xml_node(
+                                            from_node,
+                                            "icmp-type",
+                                        )
+                                    build_child_xml_node(
+                                        icmp_type,
+                                        "unreachable",
+                                    )
                                 if icmp.get("ttl_exceeded") is True:
                                     if not icmp_code:
                                         icmp_code = build_child_xml_node(
@@ -537,6 +547,44 @@ class Acls(ConfigBase):
                                         icmp_code,
                                         "ttl-eq-zero-during-transit",
                                     )
+                                icmp_code_parent_type = {
+                                    "dod_host_prohibited": "unreachable",
+                                    "dod_net_prohibited": "unreachable",
+                                    "host_tos_unreachable": "unreachable",
+                                    "host_unknown": "unreachable",
+                                    "host_unreachable": "unreachable",
+                                    "network_unknown": "unreachable",
+                                    "port_unreachable": "unreachable",
+                                    "protocol_unreachable": "unreachable",
+                                    "source_route_failed": "unreachable",
+                                    "host_redirect": "redirect",
+                                    "host_tos_redirect": "redirect",
+                                    "net_redirect": "redirect",
+                                    "net_tos_redirect": "redirect",
+                                    "reassembly_timeout": "time-exceeded",
+                                    "ttl_exceeded": "time-exceeded",
+                                }
+                                emitted_types = set()
+                                for opt, tname in (
+                                    ("echo", "echo-request"),
+                                    ("echo_reply", "echo-reply"),
+                                    ("redirect", "redirect"),
+                                    ("router_advertisement", "router-advertisement"),
+                                    ("router_solicitation", "router-solicit"),
+                                    ("time_exceeded", "time-exceeded"),
+                                    ("unreachable", "unreachable"),
+                                ):
+                                    if icmp.get(opt) is True:
+                                        emitted_types.add(tname)
+                                for opt, tname in icmp_code_parent_type.items():
+                                    if icmp.get(opt) is True and tname not in emitted_types:
+                                        if icmp_type is None:
+                                            icmp_type = build_child_xml_node(
+                                                from_node,
+                                                "icmp-type",
+                                            )
+                                        build_child_xml_node(icmp_type, tname)
+                                        emitted_types.add(tname)
                     if ace.get("is_fragment"):
                         if ace.get("source") or ace.get("destination") or ace.get("protocol"):
                             build_child_xml_node(from_node, "is-fragment")
