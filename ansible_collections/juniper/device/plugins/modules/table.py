@@ -355,7 +355,7 @@ def main():
     # Create the module instance.
     junos_module = juniper_junos_common.JuniperJunosModule(
         argument_spec=dict(
-            file=dict(type="path", required=True, default=None),
+            file=dict(type="path", required=True),
             table=dict(type="str", required=False, default=None),
             path=dict(
                 type="path",

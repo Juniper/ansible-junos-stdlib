@@ -316,7 +316,6 @@ def main():
                     "destination_ip",
                     "destination_host",
                 ],
-                default=None,
             ),
             max_size=dict(type="int", required=False, default=1500),
             max_range=dict(

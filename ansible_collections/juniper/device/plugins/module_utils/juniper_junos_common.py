@@ -423,7 +423,6 @@ connection_spec = {
         type="str",
         required=True,
         aliases=["username"],
-        default=None,
     ),
     "passwd": dict(
         type="str",

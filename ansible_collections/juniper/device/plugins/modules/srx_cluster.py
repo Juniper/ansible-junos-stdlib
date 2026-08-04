@@ -175,7 +175,6 @@ def main():
                 type="bool",
                 required=True,
                 aliases=["cluster_enable"],
-                default=None,
             ),
             cluster_id=dict(
                 type="int",

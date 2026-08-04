@@ -417,7 +417,6 @@ def main():
                 "destination_ip",
                 "destination_host",
             ],
-            default=None,
         ),
         acceptable_percent_loss=dict(
             type="int",

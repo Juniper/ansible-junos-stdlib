@@ -382,7 +382,7 @@ def main():
     # Create the module instance.
     junos_module = juniper_junos_common.JuniperJunosModule(
         argument_spec=dict(
-            rpcs=dict(required=True, type="list", elements="str", aliases=["rpc"], default=None),
+            rpcs=dict(required=True, type="list", elements="str", aliases=["rpc"]),
             formats=dict(
                 required=False,
                 type="list",

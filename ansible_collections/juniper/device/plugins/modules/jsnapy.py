@@ -248,7 +248,6 @@ def main():
                 required=True,
                 choices=JSNAPY_ACTION_CHOICES,
                 type="str",
-                default=None,
             ),
             test_files=dict(required=False, type="list", elements="path", default=None),
             config_file=dict(required=False, type="path", default=None),
