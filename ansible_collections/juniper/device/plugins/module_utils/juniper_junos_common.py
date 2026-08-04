@@ -416,11 +416,8 @@ class ModuleDocFragment(object):
 connection_spec = {
     "host": dict(
         type="str",
-        # Required at top-level.
-        required=False,
+        required=True,
         aliases=["hostname", "ip"],
-        # See documentation for real default behavior.
-        # Default behavior coded in JuniperJunosActionModule.run()
         default=None,
     ),
     "user": dict(
