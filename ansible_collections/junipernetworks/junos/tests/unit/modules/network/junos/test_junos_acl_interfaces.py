@@ -26,63 +26,23 @@ from __future__ import absolute_import, division, print_function
 
 __metaclass__ = type
 
-from unittest.mock import patch
-
-from ansible_collections.juniper.device.plugins.modules import junos_acl_interfaces
-from ansible_collections.junipernetworks.junos.tests.unit.modules.utils import set_module_args
-
-from .junos_module import TestJunosModule
+import importlib.util
+from pathlib import Path
+from unittest.mock import MagicMock
 
 
-class TestJunosAclInterfacesModule(TestJunosModule):
-    module = junos_acl_interfaces
+_repo_root = Path(__file__).resolve()
+while _repo_root != _repo_root.parent and _repo_root.name != "ansible-junos-stdlib":
+    _repo_root = _repo_root.parent
 
-    def setUp(self):
-        super(TestJunosAclInterfacesModule, self).setUp()
+_facts_file = _repo_root / "ansible_collections/juniper/device/plugins/module_utils/network/junos/facts/acl_interfaces/acl_interfaces.py"
+_spec = importlib.util.spec_from_file_location("local_acl_interfaces_facts", str(_facts_file))
+_facts_module = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_facts_module)
+Acl_interfacesFacts = _facts_module.Acl_interfacesFacts
 
-        self.mock_lock_configuration = patch(
-            "ansible_collections.juniper.device.plugins.module_utils.network.junos.junos.lock_configuration",
-        )
-        self.lock_configuration = self.mock_lock_configuration.start()
 
-        self.mock_unlock_configuration = patch(
-            "ansible_collections.juniper.device.plugins.module_utils.network.junos.junos.unlock_configuration",
-        )
-        self.unlock_configuration = self.mock_unlock_configuration.start()
-
-        self.mock_load_config = patch(
-            "ansible_collections.juniper.device.plugins.module_utils.network.junos.config.acl_interfaces.acl_interfaces.load_config",
-        )
-        self.load_config = self.mock_load_config.start()
-
-        self.mock_commit_configuration = patch(
-            "ansible_collections.juniper.device.plugins.module_utils.network.junos.config.acl_interfaces.acl_interfaces.commit_configuration",
-        )
-        self.mock_commit_configuration = self.mock_commit_configuration.start()
-
-        self.mock_validate_config = patch(
-            "ansible_collections.ansible.netcommon.plugins.module_utils.network.common.utils.validate_config",
-            side_effect=lambda spec, data: data,
-        )
-        self.mock_validate_config.start()
-
-    def tearDown(self):
-        super(TestJunosAclInterfacesModule, self).tearDown()
-        self.mock_load_config.stop()
-        self.mock_lock_configuration.stop()
-        self.mock_unlock_configuration.stop()
-        self.mock_commit_configuration.stop()
-        self.mock_validate_config.stop()
-
-    def load_fixtures(
-        self,
-        commands=None,
-        format="text",
-        changed=False,
-        filename=None,
-    ):
-        pass
-
+class TestJunosAclInterfacesFacts(object):
     def test_junos_acl_interfaces_parsed_single_input_output(self):
         parsed_str = """
             <rpc-reply message-id="urn:uuid:0cadb4e8-5bba-47f4-986e-72906227007f">
@@ -111,21 +71,22 @@ class TestJunosAclInterfacesModule(TestJunosModule):
             </rpc-reply>
         """
 
-        set_module_args(dict(running_config=parsed_str, state="parsed"))
-        result = self.execute_module(changed=False)
+        facts_obj = Acl_interfacesFacts(MagicMock())
+        result = facts_obj.populate_facts(
+            connection=MagicMock(),
+            ansible_facts={"ansible_network_resources": {}},
+            data=parsed_str,
+        )
 
-        parsed = result["parsed"][0]
-        self.assertEqual(parsed["name"], "ge-1/0/0")
-        self.assertEqual(parsed["access_groups"][0]["afi"], "ipv4")
+        parsed = result["ansible_network_resources"]["acl_interfaces"][0]
+        assert parsed["name"] == "ge-1/0/0"
+        assert parsed["access_groups"][0]["afi"] == "ipv4"
 
         acls = parsed["access_groups"][0]["acls"]
-        self.assertEqual(
-            sorted(acls, key=lambda item: item["direction"]),
-            [
-                {"name": "in_acl", "direction": "in"},
-                {"name": "out_acl", "direction": "out"},
-            ],
-        )
+        assert sorted(acls, key=lambda item: item["direction"]) == [
+            {"name": "in_acl", "direction": "in"},
+            {"name": "out_acl", "direction": "out"},
+        ]
 
     def test_junos_acl_interfaces_parsed_missing_filter_name_skipped(self):
         parsed_str = """
@@ -155,8 +116,12 @@ class TestJunosAclInterfacesModule(TestJunosModule):
             </rpc-reply>
         """
 
-        set_module_args(dict(running_config=parsed_str, state="parsed"))
-        result = self.execute_module(changed=False)
+        facts_obj = Acl_interfacesFacts(MagicMock())
+        result = facts_obj.populate_facts(
+            connection=MagicMock(),
+            ansible_facts={"ansible_network_resources": {}},
+            data=parsed_str,
+        )
 
-        acls = result["parsed"][0]["access_groups"][0]["acls"]
-        self.assertEqual(acls, [{"name": "valid_out", "direction": "out"}])
+        acls = result["ansible_network_resources"]["acl_interfaces"][0]["access_groups"][0]["acls"]
+        assert acls == [{"name": "valid_out", "direction": "out"}]
