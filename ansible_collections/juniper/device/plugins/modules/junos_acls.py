@@ -256,6 +256,9 @@ options:
                       ttl_exceeded:
                         description: TTL exceeded
                         type: bool
+                      unreachable:
+                        description: All destination unreachable messages (icmp-type unreachable).
+                        type: bool
   running_config:
     description:
       - This option is used only with state I(parsed).
