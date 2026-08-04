@@ -188,7 +188,7 @@ options:
   rpcs:
     description:
       - A list of one or more NETCONF RPCs to execute on the Junos device.
-    required: True 
+    required: True
     default: null
     type: list
     elements: str

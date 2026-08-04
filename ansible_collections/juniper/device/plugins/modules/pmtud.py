@@ -66,7 +66,7 @@ options:
     description:
       - The IPv4 address, or hostname if DNS is configured on the Junos device,
         used as the destination of the PMTUD.
-    required: True 
+    required: True
     default: null
     type: str
     aliases:

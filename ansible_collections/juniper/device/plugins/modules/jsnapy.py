@@ -71,7 +71,7 @@ options:
   action:
     description:
       - The JSNAPy action to perform.
-    required: True 
+    required: True
     default: null
     type: str
     choices:

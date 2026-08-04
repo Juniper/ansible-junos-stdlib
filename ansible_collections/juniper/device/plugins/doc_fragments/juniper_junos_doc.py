@@ -97,7 +97,7 @@ class ModuleDocFragment(object):
             option to the value C(telnet). This option is required, but does not
             have to be specified explicitly by the user because it defaults to
             C({{ inventory_hostname }}).
-        required: True 
+        required: True
         default: null
         type: str
         aliases:
@@ -191,7 +191,7 @@ class ModuleDocFragment(object):
             arguments, C(ANSIBLE_REMOTE_USER) environment variable, or
             C(remote_user) configuration setting), 3) The C(USER) environment
             variable.
-        required: True 
+        required: True
         default: null
         type: str
         aliases:
@@ -201,7 +201,7 @@ class ModuleDocFragment(object):
           - The username used to authenticate with the console server over SSH.
             This option is only required if you want to connect to a device over console
              using SSH as transport. Mutually exclusive with the I(console) option.
-        required: false 
+        required: false
         type: str
         aliases:
           - console_username

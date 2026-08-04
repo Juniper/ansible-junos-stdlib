@@ -73,7 +73,7 @@ options:
     description:
       - The IP address, or hostname if DNS is configured on the Junos device,
         used as the destination of the ping.
-    required: True 
+    required: True
     default: null
     type: str
     aliases:

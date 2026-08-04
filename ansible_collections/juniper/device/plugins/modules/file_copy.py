@@ -66,20 +66,20 @@ options:
     description:
       - path of the local directory where the file is located
         or needs to be copied to
-    required: True 
+    required: True
     default: null
     type: str
   remote_dir:
     description:
       - path of the directory on the remote device where the file is located
         or needs to be copied to
-    required: True 
+    required: True
     default: null
     type: str
   file:
     description:
       - Name of the file to copy to/from the remote device
-    required: True 
+    required: True
     default: null
     type: str
   transfer_filename:
@@ -96,7 +96,7 @@ options:
   action:
     description:
       - Type of operation to execute, currently only support get and put
-    required: True 
+    required: True
     default: null
     type: str
     choices:
