@@ -160,6 +160,8 @@ class Acl_interfacesFacts(object):
                             for filter_name in acl_name:
                                 if isinstance(filter_name, dict):
                                     filter_name = filter_name.get("filter-name")
+                                if not filter_name:
+                                    continue
                                 access_groups["acls"].append(
                                     {
                                         "name": filter_name,
