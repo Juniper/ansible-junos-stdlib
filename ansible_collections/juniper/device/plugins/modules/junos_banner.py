@@ -95,10 +95,15 @@ EXAMPLES = """
 """
 
 RETURN = """
-diff.prepared:
+diff:
   description: Configuration difference before and after applying change.
   returned: when configuration is changed and diff option is enabled.
-  type: str
+  type: dict
+  contains:
+    prepared:
+      description: Configuration difference before and after applying change.
+      returned: when configuration is changed and diff option is enabled.
+      type: str
   sample: >
           [edit system login]
           +   message \"this is my login banner\";
