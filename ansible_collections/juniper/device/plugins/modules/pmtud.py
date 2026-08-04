@@ -66,7 +66,7 @@ options:
     description:
       - The IPv4 address, or hostname if DNS is configured on the Junos device,
         used as the destination of the PMTUD.
-    required: false
+    required: True 
     default: null
     type: str
     aliases:
@@ -308,7 +308,7 @@ def main():
         argument_spec=dict(
             dest=dict(
                 type="str",
-                required=False,
+                required=True,
                 aliases=[
                     "dest_ip",
                     "dest_host",

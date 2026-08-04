@@ -65,7 +65,7 @@ options:
       - Name of the YAML file, relative to the I(path) option, that contains
         the table/view definition. The file name must end with the C(.yml) or
         C(.yaml) extension.
-    required: false
+    required: True
     default: null
     type: path
   kwargs:
@@ -355,7 +355,7 @@ def main():
     # Create the module instance.
     junos_module = juniper_junos_common.JuniperJunosModule(
         argument_spec=dict(
-            file=dict(type="path", required=False, default=None),
+            file=dict(type="path", required=True, default=None),
             table=dict(type="str", required=False, default=None),
             path=dict(
                 type="path",

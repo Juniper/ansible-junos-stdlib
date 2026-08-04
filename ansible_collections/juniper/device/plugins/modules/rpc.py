@@ -188,7 +188,7 @@ options:
   rpcs:
     description:
       - A list of one or more NETCONF RPCs to execute on the Junos device.
-    required: false
+    required: True 
     default: null
     type: list
     elements: str
@@ -382,7 +382,7 @@ def main():
     # Create the module instance.
     junos_module = juniper_junos_common.JuniperJunosModule(
         argument_spec=dict(
-            rpcs=dict(required=False, type="list", elements="str", aliases=["rpc"], default=None),
+            rpcs=dict(required=True, type="list", elements="str", aliases=["rpc"], default=None),
             formats=dict(
                 required=False,
                 type="list",

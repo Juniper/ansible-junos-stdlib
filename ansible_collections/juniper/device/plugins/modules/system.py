@@ -73,7 +73,7 @@ options:
       - B(zeroize) - Restore the system (configuration, log files, etc.) to a
         factory default state. This is the equivalent of the
         C(request system zeroize) CLI command.
-    required: false
+    required: True
     default: null
     type: str
     choices:
@@ -117,7 +117,7 @@ options:
       - A list of member IDs to target for the action on a Junos Virtual Chassis
         or Junos chassis cluster. When specified, the action is performed only
         on the listed member IDs.
-    required: false
+    required: True 
     default: null
     type: list
     elements: str
@@ -291,7 +291,7 @@ def main():
         argument_spec=dict(
             action=dict(
                 type="str",
-                required=False,
+                required=True,
                 choices=[
                     "shutdown",
                     "off",

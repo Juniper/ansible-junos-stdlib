@@ -71,7 +71,7 @@ options:
   action:
     description:
       - The JSNAPy action to perform.
-    required: false
+    required: True 
     default: null
     type: str
     choices:
@@ -245,7 +245,7 @@ def main():
     junos_module = juniper_junos_common.JuniperJunosModule(
         argument_spec=dict(
             action=dict(
-                required=False,
+                required=True,
                 choices=JSNAPY_ACTION_CHOICES,
                 type="str",
                 default=None,

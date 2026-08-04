@@ -66,20 +66,20 @@ options:
     description:
       - path of the local directory where the file is located
         or needs to be copied to
-    required: false
+    required: True 
     default: null
     type: str
   remote_dir:
     description:
       - path of the directory on the remote device where the file is located
         or needs to be copied to
-    required: false
+    required: True 
     default: null
     type: str
   file:
     description:
       - Name of the file to copy to/from the remote device
-    required: false
+    required: True 
     default: null
     type: str
   transfer_filename:
@@ -96,7 +96,7 @@ options:
   action:
     description:
       - Type of operation to execute, currently only support get and put
-    required: false
+    required: True 
     default: null
     type: str
     choices:
@@ -174,15 +174,15 @@ def main():
                 required=False,
                 default="scp",
             ),
-            local_dir=dict(type="str", required=False, default=None),
-            remote_dir=dict(type="str", required=False, default=None),
-            file=dict(type="str", required=False, default=None),
+            local_dir=dict(type="str", required=True, default=None),
+            remote_dir=dict(type="str", required=True, default=None),
+            file=dict(type="str", required=True, default=None),
             transfer_filename=dict(type="str", required=False, default=None),
             checksum=dict(type="bool", required=False, default=True),
             action=dict(
                 type="str",
                 choices=["put", "get"],
-                required=False,
+                required=True,
                 default=None,
             ),
         ),

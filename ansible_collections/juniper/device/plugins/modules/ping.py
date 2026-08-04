@@ -73,7 +73,7 @@ options:
     description:
       - The IP address, or hostname if DNS is configured on the Junos device,
         used as the destination of the ping.
-    required: false
+    required: True 
     default: null
     type: str
     aliases:
@@ -409,7 +409,7 @@ def main():
     argument_spec = dict(
         dest=dict(
             type="str",
-            required=False,
+            required=True,
             aliases=[
                 "dest_ip",
                 "dest_host",
