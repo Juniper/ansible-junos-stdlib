@@ -418,15 +418,11 @@ connection_spec = {
         type="str",
         required=True,
         aliases=["hostname", "ip"],
-        default=None,
     ),
     "user": dict(
         type="str",
-        # Required at top-level.
-        required=False,
+        required=True,
         aliases=["username"],
-        # See documentation for real default behavior.
-        # Default behavior coded in JuniperJunosActionModule.run()
         default=None,
     ),
     "passwd": dict(

@@ -329,7 +329,6 @@ def main():
                 type="list",
                 elements="str",
                 aliases=["cli", "command", "cmd", "cmds"],
-                default=None,
             ),
             formats=dict(
                 required=False,
