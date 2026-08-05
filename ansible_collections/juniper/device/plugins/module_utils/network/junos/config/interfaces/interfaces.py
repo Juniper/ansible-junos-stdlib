@@ -274,14 +274,20 @@ class Interfaces(ConfigBase):
                 intf = build_root_xml_node("interface")
                 build_child_xml_node(intf, "name", config["name"])
 
-                intf_fields = ["description"]
+                have_cfg = self.in_have(config["name"], have) or {}
+
+                intf_fields = []
+                if have_cfg.get("description") is not None:
+                    intf_fields.append("description")
+
                 if not any(
                     [
                         config["name"].startswith("gr"),
                         config["name"].startswith("lo"),
                     ],
                 ):
-                    intf_fields.append("speed")
+                    if have_cfg.get("speed") is not None:
+                        intf_fields.append("speed")
 
                 if not any(
                     [
@@ -290,7 +296,8 @@ class Interfaces(ConfigBase):
                         config["name"].startswith("lo"),
                     ],
                 ):
-                    intf_fields.append("mtu")
+                    if have_cfg.get("mtu") is not None:
+                        intf_fields.append("mtu")
 
                 for field in intf_fields:
                     build_child_xml_node(
@@ -306,26 +313,24 @@ class Interfaces(ConfigBase):
                         config["name"].startswith("lo"),
                     ],
                 ):
+                    if have_cfg.get("duplex") is not None:
+                        build_child_xml_node(
+                            intf,
+                            "link-mode",
+                            None,
+                            {"delete": "delete"},
+                        )
+
+                # Only delete <disable/> if the interface is currently disabled
+                if have_cfg.get("enabled") is False:
                     build_child_xml_node(
                         intf,
-                        "link-mode",
+                        "disable",
                         None,
                         {"delete": "delete"},
                     )
 
-                build_child_xml_node(
-                    intf,
-                    "disable",
-                    None,
-                    {"delete": "delete"},
-                )
-
-                holdtime_ele = build_child_xml_node(intf, "hold-time")
-                have_cfg = self.in_have(config["name"], have)
-                if have_cfg:
-                    logical_cfg = have_cfg
-                else:
-                    logical_cfg = config
+                logical_cfg = have_cfg if have_cfg else config
                 if logical_cfg.get("units"):
                     units = logical_cfg.get("units")
                     for unit in units:
@@ -342,13 +347,16 @@ class Interfaces(ConfigBase):
                             {"delete": "delete"},
                         )
 
-                for holdtime_field in ["up", "down"]:
-                    build_child_xml_node(
-                        holdtime_ele,
-                        holdtime_field,
-                        None,
-                        {"delete": "delete"},
-                    )
+                if have_cfg.get("hold_time"):
+                    holdtime_ele = build_child_xml_node(intf, "hold-time")
+                    for holdtime_field in ["up", "down"]:
+                        build_child_xml_node(
+                            holdtime_ele,
+                            holdtime_field,
+                            None,
+                            {"delete": "delete"},
+                        )
+
                 intf_xml.append(intf)
 
         return intf_xml

@@ -177,6 +177,9 @@ class AclsArgs(object):  # pylint: disable=R0903
                                                 "ttl_exceeded": {
                                                     "type": "bool",
                                                 },
+                                                "unreachable": {
+                                                    "type": "bool",
+                                                },
                                             },
                                         },
                                     },
@@ -185,6 +188,9 @@ class AclsArgs(object):  # pylint: disable=R0903
                                     "type": "str",
                                     "choices": ["permit", "deny"],
                                 },
+                                "log": {"type": "bool"},
+                                "is_fragment": {"type": "bool"},
+                                "next_term": {"type": "bool"},
                             },
                         },
                     },

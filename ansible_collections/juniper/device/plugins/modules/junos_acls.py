@@ -88,6 +88,18 @@ options:
                 - Action to take after matching condition (allow, discard/reject)
                 type: str
                 choices: [permit, deny]
+              log:
+                description:
+                - Log the packet
+                type: bool
+              is_fragment:
+                description:
+                - Match if packet is a fragment
+                type: bool
+              next_term:
+                description:
+                - Continue evaluating the packet against the next term in the filter
+                type: bool
               source:
                 type: dict
                 description:
@@ -243,6 +255,9 @@ options:
                         type: bool
                       ttl_exceeded:
                         description: TTL exceeded
+                        type: bool
+                      unreachable:
+                        description: All destination unreachable messages (icmp-type unreachable).
                         type: bool
   running_config:
     description:
