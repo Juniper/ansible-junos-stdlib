@@ -60,10 +60,11 @@ options:
     description:
       - The format of the configuration returned. The specified format must be
         supported by the target Junos device.
+      - When not specified (the default), no configuration is returned.
     required: false
-    default: none
+    default: null
+    type: str
     choices:
-      - none
       - xml
       - set
       - text
@@ -78,10 +79,25 @@ options:
       - The I(hostname)C(-facts.json) filename begins with the value of the
         C(hostname) fact returned from the Junos device, which might be
         different than the value of the I(host) option passed to the module.
-      - If the value of the I(savedir) option is C(none), the default, then
-        facts are NOT saved to a file.
+      - If this option is not specified, facts are NOT saved to a file.
     required: false
-    default: none
+    default: null
+    type: path
+  _connection:
+    description:
+      - Internal use only.
+    type: str
+  _inventory_hostname:
+    description:
+      - Internal use only.
+    type: str
+  _module_name:
+    description:
+      - Internal use only.
+    type: str
+  _module_utils_path:
+    description:
+      - Internal use only.
     type: path
 """
 
@@ -124,41 +140,47 @@ EXAMPLES = """
 """
 
 RETURN = """
-ansible_facts.junos:
+ansible_facts:
   description:
-    - Facts collected from the Junos device. This dictionary contains the
-      keys listed in the I(contains) section of this documentation PLUS all
-      of the keys returned from PyEZ's fact gathering system. See
-      U(PyEZ facts|http://junos-pyez.readthedocs.io/en/stable/jnpr.junos.facts.html)
-      for a complete list of these keys and their meaning.
+    - Facts collected from the Junos device, returned as host variables.
   returned: success
-  type: complex
+  type: dict
   contains:
-    config:
+    junos:
       description:
-        - The device's committed configuration, in the format specified by
-          I(config_format), as a single multi-line string.
-      returned: when I(config_format) is not C(none).
-      type: str
-    has_2RE:
-      description:
-        - Indicates if the device has more than one Routing Engine installed.
-          Because Ansible does not allow keys to begin with a number, this fact
-          is returned in place of PyEZ's C(2RE) fact.
+        - Facts collected from the Junos device. This dictionary contains the
+          keys listed in the I(contains) section of this documentation PLUS all
+          of the keys returned from PyEZ's fact gathering system. See
+          U(PyEZ facts|http://junos-pyez.readthedocs.io/en/stable/jnpr.junos.facts.html)
+          for a complete list of these keys and their meaning.
       returned: success
-      type: bool
-    re_name:
-      description:
-        - The name of the current Routing Engine to which Ansible is connected.
-      returned: success
-      type: str
-    master_state:
-      description:
-        - The mastership state of the Routing Engine to which Ansible is
-          connected. C(true) if the RE is the master Routing Engine. C(false)
-          if the RE is not the master Routing Engine.
-      returned: success
-      type: bool
+      type: dict
+      contains:
+        config:
+          description:
+            - The device's committed configuration, in the format specified by
+              I(config_format), as a single multi-line string.
+          returned: when I(config_format) is not C(none).
+          type: str
+        has_2RE:
+          description:
+            - Indicates if the device has more than one Routing Engine installed.
+              Because Ansible does not allow keys to begin with a number, this fact
+              is returned in place of PyEZ's C(2RE) fact.
+          returned: success
+          type: bool
+        re_name:
+          description:
+            - The name of the current Routing Engine to which Ansible is connected.
+          returned: success
+          type: str
+        master_state:
+          description:
+            - The mastership state of the Routing Engine to which Ansible is
+              connected. C(true) if the RE is the master Routing Engine. C(false)
+              if the RE is not the master Routing Engine.
+          returned: success
+          type: bool
 changed:
   description:
     - Indicates if the device's state has changed. Since this module does not
@@ -170,7 +192,7 @@ changed:
 facts:
   description:
     - Returned for backwards compatibility. Returns the same keys and values
-      which are returned under I(ansible_facts.junos).
+      which are returned under I(ansible_facts) as C(junos).
   returned: success
   type: dict
 failed:
@@ -326,14 +348,12 @@ def save_inventory(junos_module, inventory):
 
 
 def main():
-    config_format_choices = [None]
-    config_format_choices += juniper_junos_common.CONFIG_FORMAT_CHOICES
-
     # Create the module instance.
     junos_module = juniper_junos_common.JuniperJunosModule(
         argument_spec=dict(
             config_format=dict(
-                choices=config_format_choices,
+                type="str",
+                choices=juniper_junos_common.CONFIG_FORMAT_CHOICES,
                 required=False,
                 default=None,
             ),

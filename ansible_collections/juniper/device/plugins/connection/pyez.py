@@ -34,17 +34,10 @@
 from __future__ import absolute_import, division, print_function
 
 
-try:
-    import xmltodict
-
-    HAS_XMLTODICT = True
-except ImportError:
-    HAS_XMLTODICT = False
-
 __metaclass__ = type
 
-DOCUMENTATION = """author: Juniper Automation Team
-connection: pyez
+DOCUMENTATION = """name: pyez
+author: Juniper Networks (@juniper)
 short_description: Use pyez to run command on JUNOS appliances
 description:
 - This connection plugin provides a connection to remote devices over the junos-pyez library.
@@ -213,6 +206,13 @@ options:
 """
 import json
 import logging
+
+try:
+    import xmltodict
+
+    HAS_XMLTODICT = True
+except ImportError:
+    HAS_XMLTODICT = False
 
 from ansible.errors import AnsibleError
 from ansible.module_utils._text import to_bytes

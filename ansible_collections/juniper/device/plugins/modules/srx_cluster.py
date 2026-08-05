@@ -64,8 +64,8 @@ options:
       - Enable or disable cluster mode. When C(true) cluster mode is enabled
         and I(cluster_id) and I(node_id) must also be specified. When C(false)
         cluster mode is disabled and the device returns to stand-alone mode.
-    required: true
-    default: none
+    required: True
+    default: null
     type: bool
     aliases:
       - cluster_enable
@@ -74,7 +74,7 @@ options:
       - The cluster ID to configure.
       - Required when I(enable) is C(true).
     required: false
-    default: none
+    default: null
     type: int
     aliases:
       - cluster
@@ -83,10 +83,26 @@ options:
       - The node ID to configure. (C(0) or C(1))
       - Required when I(enable) is C(true).
     required: false
-    default: none
+    default: null
     type: int
     aliases:
       - node
+  _connection:
+    description:
+      - Internal use only.
+    type: str
+  _inventory_hostname:
+    description:
+      - Internal use only.
+    type: str
+  _module_name:
+    description:
+      - Internal use only.
+    type: str
+  _module_utils_path:
+    description:
+      - Internal use only.
+    type: path
 """
 
 EXAMPLES = """
@@ -159,7 +175,6 @@ def main():
                 type="bool",
                 required=True,
                 aliases=["cluster_enable"],
-                default=None,
             ),
             cluster_id=dict(
                 type="int",
