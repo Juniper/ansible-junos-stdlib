@@ -117,7 +117,7 @@ options:
       - A list of member IDs to target for the action on a Junos Virtual Chassis
         or Junos chassis cluster. When specified, the action is performed only
         on the listed member IDs.
-    required: True
+    required: False
     default: null
     type: list
     elements: str
@@ -305,7 +305,7 @@ def main():
             at=dict(type="str", required=False, default=None),
             in_min=dict(type="int", required=False, aliases=["in"], default=0),
             all_re=dict(type="bool", required=False, default=True),
-            member_id=dict(type="list", elements="str", required=True),
+            member_id=dict(type="list", elements="str", required=False),
             other_re=dict(type="bool", required=False, default=False),
             vmhost=dict(required=False, type="bool", default=False),
             media=dict(type="bool", required=False, default=False),
