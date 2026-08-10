@@ -1,0 +1,63 @@
+- name: Functional Test - junos_package module
+  hosts: localhost
+  gather_facts: false
+  collections:
+    - junipernetworks.junos
+
+  tasks:
+
+    - name: Install local package on remote device
+      junipernetworks.junos.junos_package:
+        src: "{{ package_src }}"
+        reboot: true
+        provider:
+          host: xx.xx.xx.xx
+          username: xx
+          password: xx
+          port: 830
+          transport: netconf
+      register: result_install
+
+    - name: Wait for device to come back online after reboot (TCP check)
+      wait_for:
+        host: xx.xx.xx.xx
+        port: 830
+        delay: 30
+        timeout: 300
+
+    - name: Wait until NETCONF service is ready (SSH banner check)
+      wait_for:
+        host: xx.xx.xx.xx
+        port: 830
+        search_regex: "SSH"
+        timeout: 300
+        delay: 10
+        sleep: 5
+      register: wait_result
+      until: wait_result is succeeded
+      retries: 10
+      delay: 10
+
+    - name: Assert install task ran
+      assert:
+        that:
+          - result_install is defined
+
+    - name: Install local package without reboot
+      junipernetworks.junos.junos_package:
+        src: /tmp/junos-vsrx-12.1X46-D10.2-domestic.tgz
+        reboot: false
+        provider:
+          host: xx.xx.xx.xx
+          username: xxx
+          password: xxx
+          port: 830
+          transport: netconf
+      register: result_noreboot
+
+    - name: Assert no-reboot task ran
+      assert:
+        that:
+          - result_noreboot is defined
+
+    

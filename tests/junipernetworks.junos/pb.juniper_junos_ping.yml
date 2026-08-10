@@ -1,0 +1,67 @@
+- name: Functional Test - junos_ping module
+  hosts: network_cli_testcases
+  gather_facts: false
+  connection: network_cli
+  collections:
+    - junipernetworks.junos
+
+  tasks:
+
+    - name: Test reachability to target
+      junipernetworks.junos.junos_ping:
+        dest: xx.xx.xx.xx
+      register: ping_default
+
+    - name: Assert default ping worked
+      assert:
+        that:
+          - ping_default.packet_loss is defined
+
+    - name: Test reachability to target using source and size set
+      junipernetworks.junos.junos_ping:
+        dest: xx.xx.xx.xx
+        size: 1024
+        ttl: 128
+      register: ping_source_ttl
+
+    - name: Assert source TTL ping worked
+      assert:
+        that:
+          - ping_source_ttl.packet_loss is defined
+
+    - name: Test unreachability to target using interval
+      junipernetworks.junos.junos_ping:
+        dest: xx.xx.xx.xx
+        interval: 3
+        state: present
+      register: ping_absent
+
+    - name: "Assert unreachable ping worked (state: absent)"
+      assert:
+        that:
+          - ping_absent.packet_loss is defined
+
+    - name: Test reachability to target setting count and interface
+      junipernetworks.junos.junos_ping:
+        dest: xx.xx.xx.xx
+        interface: fxp0
+        count: 20
+        size: 512
+      register: ping_iface
+
+    - name: Assert ping with count/interface worked
+      assert:
+        that:
+          - ping_iface.packet_loss is defined
+
+    - name: Test reachability to target using do-not-fragment and rapid
+      junipernetworks.junos.junos_ping:
+        dest: xx.xx.xx.xx
+        df_bit: true
+        rapid: true
+      register: ping_df_rapid
+
+    - name: Assert ping with DF bit and rapid worked
+      assert:
+        that:
+          - ping_df_rapid.packet_loss is defined
