@@ -6,6 +6,28 @@ Juniper Device Collection Release Notes
 Changelog for Juniper Device Ansible Collection
 ===========================
 
+Version 2.0.3 (2026-08-12)
+---------------------------
+Enhancements
+------------
+- [FEATURE] junos.device.junos_acls | require 'fragments' attribute support in the junos,device,junos_acls module #842
+- [FEATURE] junos.device.junos_acls | require 'log' attribute support in the junos,device,junos_acls module #843
+- [FEATURE] The juniper.device.junos_facts module does not populate the acl_interfaces network resource when a Junos firewall filter is attached to an interface using the standard input or output configuration hierarchy. #846
+- [FEATURE] The juniper.device.junos_interfaces module fails with state: replaced on Junos platforms where interface speed is configured under the chassis hierarchy rather than directly under the interface hierarchy. #847
+- [FEATURE] junos.device.junos_acls | unable to create a firewall filter/acl term as pointing to next term #848
+- [FEATURE] junos.device.junos_acls | for ipv6 'icmp6' needs to be used instead of 'icmp' #849
+- [FEATURE] junos.device.junos_acls | for ipv6 'payload-protocol' needs to be used instead of 'protocol' #850
+- [FEATURE] junos.device.junos_acls | junos_acls module does not provide 'unreachable' icmp-type #853
+
+Bugs Fixed
+-----------
+
+- [BUG] juniper.device.junos_acls | Port_Protocol range values silently dropped when ACL config pushed to device #839
+- [BUG] juniper.device.junos_acls | ansible playbook failing while trying to push ICMP attribute to device #840
+- [BUG] juniper.device.junos_acls | ansible playbook failing while trying to attach named Prefix_lists to firewall filters on device #841
+- [BUG] junos.device.junos_acls | unable to deploy term with icmp-code as port_unreachable for junos evo based QFX5x device #851
+- [BUG] junos.device.junos_acls | unable to deploy term with icmp attribute 'ttl_exceeded' for junos evo based QFX5x device #852
+
 Version 2.0.2 (2026-07-13)
 ---------------------------
 Enhancements
