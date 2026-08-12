@@ -14,7 +14,6 @@ Enhancements
 
 Bugs Fixed
 -----------
-
 - Fixed issues in juniper.device.junos_acls module #839 #840 #841 #851 #852
 
 Version 2.0.2 (2026-07-13)
