@@ -10,7 +10,7 @@ Version 2.0.3 (2026-08-12)
 ---------------------------
 Enhancements
 ------------
-- Supported additional featues in junos.device.junos_acls module #842 #843 #846 #847 #848 #849 #850 #853
+- Supported additional features in junos.device.junos_acls module #842 #843 #846 #847 #848 #849 #850 #853
 
 Bugs Fixed
 -----------
