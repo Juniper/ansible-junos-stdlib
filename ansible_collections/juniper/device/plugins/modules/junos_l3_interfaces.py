@@ -81,6 +81,10 @@ options:
             description:
             - IPv4 address to be set for the specific interface
             type: str
+          preferred:
+            description:
+            - Mark this address as preferred on the interface.
+            type: bool
       ipv6:
         description:
         - IPv6 addresses to be set for the Layer 3 logical interface mentioned in
@@ -94,6 +98,10 @@ options:
             description:
             - IPv6 address to be set for the specific interface
             type: str
+          preferred:
+            description:
+            - Mark this address as preferred on the interface.
+            type: bool
   running_config:
     description:
     - This option is used only with state I(parsed).

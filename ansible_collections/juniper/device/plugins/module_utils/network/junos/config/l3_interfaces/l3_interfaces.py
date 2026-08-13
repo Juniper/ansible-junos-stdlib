@@ -243,6 +243,8 @@ class L3_interfaces(ConfigBase):
             else:
                 ip_addresses = build_child_xml_node(ip_protocol, "address")
                 build_child_xml_node(ip_addresses, "name", ip_addr["address"])
+                if ip_addr.get("preferred"):
+                    build_child_xml_node(ip_addresses, "preferred")
 
     def _state_deleted(self, want, have):
         """Generate XML configuration to remove the current configuration of the provided objects.
