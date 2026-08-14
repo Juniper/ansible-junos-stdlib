@@ -155,6 +155,8 @@ class InterfacesFacts(object):
             config["enabled"] = False
         else:
             config["enabled"] = True
+        vlan_tagging = utils.get_xml_conf_arg(conf, "vlan-tagging", data="tag")
+        config["vlan_tagging"] = bool(vlan_tagging)
         cfg = self._get_xml_dict(conf)
         unit_cfg = cfg.get("interface")
         if "unit" in unit_cfg.keys():
@@ -162,15 +164,21 @@ class InterfacesFacts(object):
             unit_lst = []
             unit_dict = {}
             if isinstance(units, dict):
-                if "description" in units.keys():
+                if "description" in units.keys() or "vlan-id" in units.keys():
                     unit_dict["name"] = units["name"]
-                    unit_dict["description"] = units["description"]
+                    if "description" in units.keys():
+                        unit_dict["description"] = units["description"]
+                    if "vlan-id" in units.keys():
+                        unit_dict["vlan_id"] = int(units["vlan-id"])
                     unit_lst.append(unit_dict)
             else:
                 for unit in units:
-                    if "description" in unit.keys():
+                    if "description" in unit.keys() or "vlan-id" in unit.keys():
                         unit_dict["name"] = unit["name"]
-                        unit_dict["description"] = unit["description"]
+                        if "description" in unit.keys():
+                            unit_dict["description"] = unit["description"]
+                        if "vlan-id" in unit.keys():
+                            unit_dict["vlan_id"] = int(unit["vlan-id"])
                         unit_lst.append(unit_dict)
                         unit_dict = {}
             config["units"] = unit_lst

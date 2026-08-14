@@ -230,16 +230,18 @@ class Interfaces(ConfigBase):
             if config.get("enabled") is not None:
                 build_child_xml_node(intf, "enable" if config.get("enabled") else "disable")
 
+            if config.get("vlan_tagging"):
+                build_child_xml_node(intf, "vlan-tagging")
+
             if config.get("units"):
                 units = config.get("units")
                 for unit in units:
                     unit_node = build_child_xml_node(intf, "unit")
                     build_child_xml_node(unit_node, "name", str(unit["name"]))
-                    build_child_xml_node(
-                        unit_node,
-                        "description",
-                        unit["description"],
-                    )
+                    if unit.get("description"):
+                        build_child_xml_node(unit_node, "description", unit["description"])
+                    if unit.get("vlan_id") is not None:
+                        build_child_xml_node(unit_node, "vlan-id", str(unit["vlan_id"]))
 
             holdtime = config.get("hold_time")
             if holdtime:
@@ -330,6 +332,14 @@ class Interfaces(ConfigBase):
                         {"delete": "delete"},
                     )
 
+                if have_cfg.get("vlan_tagging"):
+                    build_child_xml_node(
+                        intf,
+                        "vlan-tagging",
+                        None,
+                        {"delete": "delete"},
+                    )
+
                 logical_cfg = have_cfg if have_cfg else config
                 if logical_cfg.get("units"):
                     units = logical_cfg.get("units")
@@ -340,12 +350,20 @@ class Interfaces(ConfigBase):
                             "name",
                             str(unit["name"]),
                         )
-                        build_child_xml_node(
-                            unit_node,
-                            "description",
-                            None,
-                            {"delete": "delete"},
-                        )
+                        if unit.get("description") is not None:
+                            build_child_xml_node(
+                                unit_node,
+                                "description",
+                                None,
+                                {"delete": "delete"},
+                            )
+                        if unit.get("vlan_id") is not None:
+                            build_child_xml_node(
+                                unit_node,
+                                "vlan-id",
+                                None,
+                                {"delete": "delete"},
+                            )
 
                 if have_cfg.get("hold_time"):
                     holdtime_ele = build_child_xml_node(intf, "hold-time")
