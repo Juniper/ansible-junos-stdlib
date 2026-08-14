@@ -64,6 +64,14 @@ options:
         - Logical interface number. Value of C(unit) should be of type integer
         default: 0
         type: int
+      vlan_id:
+        description:
+        - VLAN ID for a tagged logical interface.
+        type: int
+      vlan_tagging:
+        description:
+        - Enable VLAN tagging on the physical interface.
+        type: bool
       mtu:
         description:
         - Protocol family maximum transmission unit.

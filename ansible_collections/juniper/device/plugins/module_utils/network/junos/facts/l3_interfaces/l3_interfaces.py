@@ -137,6 +137,10 @@ class L3_interfacesFacts(object):
         interface = {}
         ipv4 = []
         ipv6 = []
+        if "vlan-tagging" in int_dict:
+            interface["vlan_tagging"] = True
+        if "vlan-id" in unit:
+            interface["vlan_id"] = int(unit["vlan-id"])
         if "family" in unit.keys():
             if "inet" in unit["family"].keys():
                 interface["name"] = int_dict["name"]
