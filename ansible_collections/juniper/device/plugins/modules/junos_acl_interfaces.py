@@ -55,7 +55,8 @@ options:
     suboptions:
       name:
         description:
-        - Name/Identifier for the interface.
+        - Name/Identifier for the interface. Use dotted notation for a logical
+          interface, for example C(xe-0/0/9.10) or C(irb.10).
         type: str
       access_groups:
         type: list

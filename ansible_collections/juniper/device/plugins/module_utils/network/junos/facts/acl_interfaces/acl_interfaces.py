@@ -169,7 +169,13 @@ class Acl_interfacesFacts(object):
                                     },
                                 )
                 if access_groups["acls"]:
-                    config["name"] = conf["interface"]["name"]
+                    interface_name = conf["interface"]["name"]
+                    unit_name = conf["interface"]["unit"].get("name", "0")
+                    config["name"] = (
+                        "{0}.{1}".format(interface_name, unit_name)
+                        if str(unit_name) != "0"
+                        else interface_name
+                    )
                     config["access_groups"].append(access_groups)
 
         return utils.remove_empties(config)
