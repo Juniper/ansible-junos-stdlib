@@ -278,7 +278,7 @@ options:
       - Whether or not to have the target Junos device should validate the
         current configuration against the new software package.
     required: false
-    default: false
+    default: True
     type: bool
   version:
     description:
