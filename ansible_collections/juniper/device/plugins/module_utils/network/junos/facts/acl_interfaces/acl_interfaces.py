@@ -176,6 +176,10 @@ class Acl_interfacesFacts(object):
                         if str(unit_name) != "0"
                         else interface_name
                     )
+                    if "vlan-tagging" in conf["interface"]:
+                        config["vlan_tagging"] = True
+                    if "vlan-id" in conf["interface"]["unit"]:
+                        config["vlan_id"] = int(conf["interface"]["unit"]["vlan-id"])
                     config["access_groups"].append(access_groups)
 
         return utils.remove_empties(config)

@@ -60,6 +60,8 @@ class Acl_interfacesArgs(object):  # pylint: disable=R0903
                     "type": "list",
                 },
                 "name": {"type": "str"},
+                "vlan_id": {"type": "int"},
+                "vlan_tagging": {"type": "bool"},
             },
             "type": "list",
         },

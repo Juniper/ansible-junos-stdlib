@@ -58,6 +58,14 @@ options:
         - Name/Identifier for the interface. Use dotted notation for a logical
           interface, for example C(xe-0/0/9.10) or C(irb.10).
         type: str
+      vlan_tagging:
+        description:
+        - Enable VLAN tagging on the interface.
+        type: bool
+      vlan_id:
+        description:
+        - VLAN ID for a tagged logical interface.
+        type: int
       access_groups:
         type: list
         elements: dict

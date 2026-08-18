@@ -167,7 +167,39 @@ Parameters
                 <td>
                 </td>
                 <td>
-                        <div>Name/Identifier for the interface.</div>
+                        <div>Name/Identifier for the interface. Use dotted notation for a logical interface, for example <code>xe-0/0/9.10</code> or <code>irb.10</code>.</div>
+                </td>
+            </tr>
+            <tr>
+                    <td class="elbow-placeholder"></td>
+                <td colspan="3">
+                    <div class="ansibleOptionAnchor" id="parameter-"></div>
+                    <b>vlan_tagging</b>
+                    <a class="ansibleOptionLink" href="#parameter-" title="Permalink to this option"></a>
+                    <div style="font-size: small">
+                        <span style="color: purple">boolean</span>
+                    </div>
+                </td>
+                <td>
+                </td>
+                <td>
+                        <div>Enable VLAN tagging on the interface.</div>
+                </td>
+            </tr>
+            <tr>
+                    <td class="elbow-placeholder"></td>
+                <td colspan="3">
+                    <div class="ansibleOptionAnchor" id="parameter-"></div>
+                    <b>vlan_id</b>
+                    <a class="ansibleOptionLink" href="#parameter-" title="Permalink to this option"></a>
+                    <div style="font-size: small">
+                        <span style="color: purple">integer</span>
+                    </div>
+                </td>
+                <td>
+                </td>
+                <td>
+                        <div>VLAN ID for a tagged logical interface.</div>
                 </td>
             </tr>
 

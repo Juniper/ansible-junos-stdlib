@@ -241,6 +241,18 @@ class Acl_interfaces(ConfigBase):
 
         for config in want:
             root_node, unit_node = self._get_common_xml_node(config["name"])
+            if config.get("vlan_tagging"):
+                if delete:
+                    build_child_xml_node(root_node, "vlan-tagging", None, delete)
+                else:
+                    build_child_xml_node(root_node, "vlan-tagging")
+            if config.get("vlan_id") is not None:
+                build_child_xml_node(
+                    unit_node,
+                    "vlan-id",
+                    None if delete else str(config["vlan_id"]),
+                    delete,
+                )
             family_node = build_child_xml_node(unit_node, "family")
             for acl_filter in config["access_groups"]:
                 inet_family = "inet"
