@@ -218,6 +218,8 @@ class L3_interfaces(ConfigBase):
             if config.get("vlan_tagging"):
                 build_child_xml_node(root_node, "vlan-tagging")
             build_child_xml_node(unit_node, "name", str(config["unit"]))
+            if config.get("description"):
+                build_child_xml_node(unit_node, "description", config["description"])
             if config.get("vlan_id") is not None:
                 build_child_xml_node(unit_node, "vlan-id", str(config["vlan_id"]))
             if config.get("ipv4"):
@@ -267,6 +269,13 @@ class L3_interfaces(ConfigBase):
             family = build_child_xml_node(unit_node, "family")
             intf = next((intf for intf in have if intf["name"] == config["name"]), None)
             if intf:
+                if "description" in intf:
+                    build_child_xml_node(
+                        unit_node,
+                        "description",
+                        None,
+                        {"delete": "delete"},
+                    )
                 if any(key in intf for key in ("ipv4", "mtu")):
                     ipv4 = build_child_xml_node(family, "inet")
                     self._delete_ipv4_config(intf, ipv4)

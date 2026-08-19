@@ -40,6 +40,7 @@ class L3_interfacesArgs(object):  # pylint: disable=R0903
                 },
                 "name": {"required": True, "type": "str"},
                 "unit": {"type": "int", "default": 0},
+                "description": {"type": "str"},
                 "mtu": {"type": "int"},
                 "vlan_id": {"type": "int"},
                 "vlan_tagging": {"type": "bool"},

@@ -64,6 +64,10 @@ options:
         - Logical interface number. Value of C(unit) should be of type integer
         default: 0
         type: int
+      description:
+        description:
+        - Description for the logical interface.
+        type: str
       vlan_id:
         description:
         - VLAN ID for a tagged logical interface.

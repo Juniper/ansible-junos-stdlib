@@ -59,6 +59,22 @@ Parameters
                     <td class="elbow-placeholder"></td>
                 <td colspan="2">
                     <div class="ansibleOptionAnchor" id="parameter-"></div>
+                                        <b>description</b>
+                                        <a class="ansibleOptionLink" href="#parameter-" title="Permalink to this option"></a>
+                                        <div style="font-size: small">
+                                            <span style="color: purple">string</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                    </td>
+                                    <td>
+                                            <div>Description for the logical interface.</div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                        <td class="elbow-placeholder"></td>
+                                    <td colspan="2">
+                                        <div class="ansibleOptionAnchor" id="parameter-"></div>
                     <b>ipv4</b>
                     <a class="ansibleOptionLink" href="#parameter-" title="Permalink to this option"></a>
                     <div style="font-size: small">
