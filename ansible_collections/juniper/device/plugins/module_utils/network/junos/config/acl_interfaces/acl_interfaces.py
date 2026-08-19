@@ -261,18 +261,19 @@ class Acl_interfaces(ConfigBase):
                 inet_node = build_child_xml_node(family_node, inet_family)
                 if acl_filter.get("acls"):
                     filter_node = build_child_xml_node(inet_node, "filter")
+                    singular = config.get("filter_binding", "list") == "singular"
                     for acl in acl_filter["acls"]:
                         acl_node = None
                         if acl["direction"] == "in":
                             acl_node = build_child_xml_node(
                                 filter_node,
-                                "input-list",
+                                "input" if singular else "input-list",
                                 acl["name"],
                             )
                         else:
                             acl_node = build_child_xml_node(
                                 filter_node,
-                                "output-list",
+                                "output" if singular else "output-list",
                                 acl["name"],
                             )
                         if delete:

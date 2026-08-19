@@ -202,6 +202,28 @@ Parameters
                         <div>VLAN ID for a tagged logical interface.</div>
                 </td>
             </tr>
+            <tr>
+                    <td class="elbow-placeholder"></td>
+                <td colspan="3">
+                    <div class="ansibleOptionAnchor" id="parameter-"></div>
+                    <b>filter_binding</b>
+                    <a class="ansibleOptionLink" href="#parameter-" title="Permalink to this option"></a>
+                    <div style="font-size: small">
+                        <span style="color: purple">string</span>
+                    </div>
+                </td>
+                <td>
+                        <ul style="margin: 0; padding: 0"><b>Choices:</b>
+                                    <li><div style="color: blue"><b>list</b>&nbsp;&larr;</div></li>
+                                    <li>singular</li>
+                        </ul>
+                </td>
+                <td>
+                        <div>Controls the Junos XML tags used to bind filters to the interface.</div>
+                        <div>C(list) uses C(input-list)/C(output-list), supported on standard Junos.</div>
+                        <div>C(singular) uses C(input)/C(output), required on Junos EVO.</div>
+                </td>
+            </tr>
 
             <tr>
                 <td colspan="4">

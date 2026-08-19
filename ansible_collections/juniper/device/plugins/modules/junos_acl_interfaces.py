@@ -66,6 +66,14 @@ options:
         description:
         - VLAN ID for a tagged logical interface.
         type: int
+      filter_binding:
+        description:
+        - Controls the Junos XML tags used to bind filters to the interface.
+        - C(list) uses C(input-list)/C(output-list), supported on standard Junos.
+        - C(singular) uses C(input)/C(output), required on Junos EVO.
+        type: str
+        choices: [list, singular]
+        default: list
       access_groups:
         type: list
         elements: dict
