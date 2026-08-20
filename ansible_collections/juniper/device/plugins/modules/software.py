@@ -278,7 +278,7 @@ options:
       - Whether or not to have the target Junos device should validate the
         current configuration against the new software package.
     required: false
-    default: false
+    default: True
     type: bool
   version:
     description:
@@ -505,7 +505,7 @@ def main():
         issu=dict(required=False, type="bool", default=False),
         nssu=dict(required=False, type="bool", default=False),
         force_host=dict(required=False, type="bool", default=False),
-        validate=dict(required=False, type="bool", default=False),
+        validate=dict(required=False, type="bool", default=True),
         cleanfs=dict(required=False, type="bool", default=True),
         all_re=dict(required=False, type="bool", default=True),
         member_id=dict(required=False, type="list", elements="str", default=None),
