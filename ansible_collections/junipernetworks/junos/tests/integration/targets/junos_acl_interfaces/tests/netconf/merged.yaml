@@ -11,6 +11,7 @@
       ansible.builtin.set_fact:
         config:
           - name: ge-1/0/0
+            filter_binding: list
             access_groups:
               - afi: ipv4
                 acls:
@@ -23,6 +24,7 @@
       junipernetworks.junos.junos_acl_interfaces: &merged
         config:
           - name: ge-1/0/0
+            filter_binding: list
             access_groups:
               - afi: ipv4
                 acls:
