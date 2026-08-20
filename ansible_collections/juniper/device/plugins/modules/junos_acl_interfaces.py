@@ -55,8 +55,25 @@ options:
     suboptions:
       name:
         description:
-        - Name/Identifier for the interface.
+        - Name/Identifier for the interface. Use dotted notation for a logical
+          interface, for example C(xe-0/0/9.10) or C(irb.10).
         type: str
+      vlan_tagging:
+        description:
+        - Enable VLAN tagging on the interface.
+        type: bool
+      vlan_id:
+        description:
+        - VLAN ID for a tagged logical interface.
+        type: int
+      filter_binding:
+        description:
+        - Controls the Junos XML tags used to bind filters to the interface.
+        - C(list) uses C(input-list)/C(output-list), supported on standard Junos.
+        - C(singular) uses C(input)/C(output), required on Junos EVO.
+        type: str
+        choices: [list, singular]
+        default: list
       access_groups:
         type: list
         elements: dict

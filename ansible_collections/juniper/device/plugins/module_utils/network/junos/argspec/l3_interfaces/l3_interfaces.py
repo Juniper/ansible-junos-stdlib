@@ -24,17 +24,26 @@ class L3_interfacesArgs(object):  # pylint: disable=R0903
             "options": {
                 "ipv4": {
                     "elements": "dict",
-                    "options": {"address": {"type": "str"}},
+                    "options": {
+                        "address": {"type": "str"},
+                        "preferred": {"type": "bool"},
+                    },
                     "type": "list",
                 },
                 "ipv6": {
                     "elements": "dict",
-                    "options": {"address": {"type": "str"}},
+                    "options": {
+                        "address": {"type": "str"},
+                        "preferred": {"type": "bool"},
+                    },
                     "type": "list",
                 },
                 "name": {"required": True, "type": "str"},
                 "unit": {"type": "int", "default": 0},
+                "description": {"type": "str"},
                 "mtu": {"type": "int"},
+                "vlan_id": {"type": "int"},
+                "vlan_tagging": {"type": "bool"},
             },
             "type": "list",
         },

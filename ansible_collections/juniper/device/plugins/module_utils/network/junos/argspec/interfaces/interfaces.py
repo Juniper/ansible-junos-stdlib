@@ -57,12 +57,14 @@ class InterfacesArgs(object):
                 },
                 "mtu": {"type": "int"},
                 "name": {"required": True, "type": "str"},
+                "vlan_tagging": {"type": "bool"},
                 "speed": {"type": "str"},
                 "units": {
                     "elements": "dict",
                     "options": {
                         "name": {"type": "int"},
                         "description": {"type": "str"},
+                        "vlan_id": {"type": "int"},
                     },
                     "type": "list",
                 },

@@ -64,6 +64,18 @@ options:
         - Logical interface number. Value of C(unit) should be of type integer
         default: 0
         type: int
+      description:
+        description:
+        - Description for the logical interface.
+        type: str
+      vlan_id:
+        description:
+        - VLAN ID for a tagged logical interface.
+        type: int
+      vlan_tagging:
+        description:
+        - Enable VLAN tagging on the physical interface.
+        type: bool
       mtu:
         description:
         - Protocol family maximum transmission unit.
@@ -81,6 +93,10 @@ options:
             description:
             - IPv4 address to be set for the specific interface
             type: str
+          preferred:
+            description:
+            - Mark this address as preferred on the interface.
+            type: bool
       ipv6:
         description:
         - IPv6 addresses to be set for the Layer 3 logical interface mentioned in
@@ -94,6 +110,10 @@ options:
             description:
             - IPv6 address to be set for the specific interface
             type: str
+          preferred:
+            description:
+            - Mark this address as preferred on the interface.
+            type: bool
   running_config:
     description:
     - This option is used only with state I(parsed).

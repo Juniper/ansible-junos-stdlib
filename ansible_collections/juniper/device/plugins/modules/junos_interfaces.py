@@ -70,6 +70,10 @@ options:
         - Set the value to C(true) to administratively enabled the interface or C(false)
           to disable it.
         type: bool
+      vlan_tagging:
+        description:
+        - Enable VLAN tagging on the interface.
+        type: bool
       hold_time:
         description:
         - The hold time for given interface name.
@@ -105,6 +109,9 @@ options:
           description:
             description: Specify logical interface description.
             type: str
+          vlan_id:
+            description: Specify VLAN ID for the logical interface.
+            type: int
   running_config:
     description:
     - This option is used only with state I(parsed).
