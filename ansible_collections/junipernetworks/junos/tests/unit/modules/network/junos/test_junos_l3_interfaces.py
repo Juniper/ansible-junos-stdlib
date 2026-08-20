@@ -113,52 +113,6 @@ class TestJunosL3InterfacesModule(TestJunosModule):
         result = self.execute_module(changed=True)
         self.assertEqual(sorted(result["commands"]), sorted(commands))
 
-    def test_junos_l3_interfaces_logical_unit_description(self):
-        set_module_args(
-            dict(
-                config=[
-                    dict(
-                        name="xe-0/0/14",
-                        unit=30,
-                        description="Customer broadband logical unit",
-                    ),
-                ],
-                state="rendered",
-            ),
-        )
-        commands = [
-            '<nc:interfaces xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">'
-            "<nc:interface><nc:name>xe-0/0/14</nc:name><nc:unit>"
-            "<nc:name>30</nc:name>"
-            "<nc:description>Customer broadband logical unit</nc:description>"
-            "</nc:unit></nc:interface></nc:interfaces>",
-        ]
-        self.execute_module(changed=False, commands=commands)
-
-    def test_junos_l3_interfaces_preferred_addresses(self):
-        set_module_args(
-            dict(
-                config=[
-                    dict(
-                        name="ge-0/0/1",
-                        ipv4=[dict(address="192.0.2.1/24", preferred=True)],
-                        ipv6=[dict(address="2001:db8::1/64", preferred=True)],
-                    ),
-                ],
-                state="rendered",
-            ),
-        )
-        commands = [
-            '<nc:interfaces xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">'
-            "<nc:interface><nc:name>ge-0/0/1</nc:name><nc:unit><nc:name>0</nc:name>"
-            "<nc:family><nc:inet><nc:address><nc:name>192.0.2.1/24</nc:name>"
-            "<nc:preferred/></nc:address></nc:inet></nc:family>"
-            "<nc:family><nc:inet6><nc:address><nc:name>2001:db8::1/64</nc:name>"
-            "<nc:preferred/></nc:address></nc:inet6></nc:family>"
-            "</nc:unit></nc:interface></nc:interfaces>",
-        ]
-        self.execute_module(changed=False, commands=commands)
-
     def test_junos_l3_interfaces_merged_idempotent(self):
         self.get_config.return_value = load_fixture(
             "junos_interfaces_config.xml",

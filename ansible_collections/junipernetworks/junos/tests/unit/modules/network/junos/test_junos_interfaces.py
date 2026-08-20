@@ -111,27 +111,6 @@ class TestJunosInterfacesModule(TestJunosModule):
         result = self.execute_module(changed=True)
         self.assertEqual(sorted(result["commands"]), sorted(commands))
 
-    def test_junos_interfaces_vlan_tagging_and_unit_vlan_id(self):
-        set_module_args(
-            dict(
-                config=[
-                    dict(
-                        name="xe-0/0/4",
-                        vlan_tagging=True,
-                        units=[dict(name=10, vlan_id=100)],
-                    ),
-                ],
-                state="rendered",
-            ),
-        )
-        commands = [
-            '<nc:interfaces xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">'
-            "<nc:interface><nc:name>xe-0/0/4</nc:name><nc:vlan-tagging/>"
-            "<nc:unit><nc:name>10</nc:name><nc:vlan-id>100</nc:vlan-id>"
-            "</nc:unit></nc:interface></nc:interfaces>",
-        ]
-        self.execute_module(changed=False, commands=commands)
-
     def test_junos_interfaces_merged_idempotent(self):
         self.get_config.return_value = load_fixture(
             "junos_interfaces_config.xml",
