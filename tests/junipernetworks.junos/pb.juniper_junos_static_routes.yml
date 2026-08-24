@@ -1,0 +1,33 @@
+- name: Functional Test - junos_static_routes (safe states only)
+  hosts: netconf_connection_testcases
+  connection: netconf
+  gather_facts: no
+
+  tasks:
+
+    - name: 1. Render static route config for 192.168.16.0/24 → 172.16.1.2
+      junipernetworks.junos.junos_static_routes:
+        config:
+          - vrf: default
+            address_families:
+              - afi: ipv4
+                routes:
+                  - dest: 192.168.16.0/24
+                    next_hop:
+                      - forward_router_address: 172.16.1.2
+        state: rendered
+      register: rendered_output
+
+    - name: Debug rendered config
+      debug:
+        var: rendered_output.rendered
+
+    - name: 2. Parse running config from parsed_static_routes.cfg
+      junipernetworks.junos.junos_static_routes:
+        running_config: "{{ lookup('file', 'parsed_configs/parsed_static_routes.cfg') }}"
+        state: parsed
+      register: parsed_output
+
+    - name: Debug parsed output
+      debug:
+        var: parsed_output.parsed
