@@ -1,0 +1,3 @@
+---
+trivial:
+  - "Removed unused ``tests/unit/requirements.txt`` and obsolete Python 2 compatibility branches from unit test helpers."
