@@ -6,6 +6,17 @@ Juniper Device Collection Release Notes
 Changelog for Juniper Device Ansible Collection
 ===========================
 
+Version 2.0.5 (2026-09-11)
+---------------------------
+Enhancements
+------------
+- Supported additional features in juniper.device.junos_interfaces, juniper.device.junos_bgp_global module #865 #874 #875
+
+Bugs Fixed
+-----------
+- Fixed issues in juniper.device.junos_bgp_global #871 #872 #873 
+
+
 Version 2.0.4 (2026-08-20)
 ---------------------------
 Enhancements
