@@ -40,6 +40,12 @@ except ImportError:
     HAS_XMLTODICT = False
 
 
+def _xml_text(value):
+    if isinstance(value, dict):
+        return value.get("#text")
+    return value
+
+
 class Routing_instancesFacts(object):
     """The junos routing_instances fact class"""
 
@@ -229,6 +235,78 @@ class Routing_instancesFacts(object):
             else:
                 vrf_exp_lst.append(vrf_exp)
             instance_dict["vrf_exports"] = vrf_exp_lst
+
+        # read routing-options prefix limits
+        if instance.get("routing-options"):
+            routing_options = instance.get("routing-options")
+            routing_options_list = []
+            if isinstance(routing_options.get("rib"), list):
+                ribs = routing_options.get("rib")
+            else:
+                ribs = [routing_options.get("rib")]
+            for rib in ribs:
+                if not rib:
+                    continue
+                rib_name = rib.get("name")
+                family = "ipv4" if rib_name and ".inet." in rib_name else "ipv6" if rib_name and ".inet6." in rib_name else None
+                option = {
+                    "name": "rib",
+                    "family": family,
+                }
+                max_prefixes = rib.get("maximum-prefixes")
+                if isinstance(max_prefixes, dict):
+                    text_value = _xml_text(max_prefixes)
+                    threshold_value = _xml_text(max_prefixes.get("threshold"))
+                    if text_value is not None:
+                        option["maximum_prefixes"] = int(text_value)
+                    if threshold_value is not None:
+                        option["threshold"] = int(threshold_value)
+                elif max_prefixes is not None:
+                    option["maximum_prefixes"] = int(_xml_text(max_prefixes))
+                    threshold_value = _xml_text(rib.get("threshold"))
+                    if threshold_value is not None:
+                        option["threshold"] = int(threshold_value)
+                teardown_value = _xml_text(rib.get("teardown"))
+                if teardown_value is not None:
+                    option["threshold"] = int(teardown_value)
+                if family:
+                    routing_options_list.append(option)
+            if routing_options_list:
+                instance_dict["routing_options"] = routing_options_list
+
+        # read protocol prefix limits
+        if instance.get("protocols"):
+            protocols = instance.get("protocols")
+            protocol_list = []
+            for protocol_name, protocol_cfg in protocols.items():
+                if not isinstance(protocol_cfg, dict):
+                    continue
+                family_cfg = protocol_cfg.get("family")
+                if not isinstance(family_cfg, dict):
+                    continue
+                for family_name, family_cfg2 in family_cfg.items():
+                    if not isinstance(family_cfg2, dict):
+                        continue
+                    for group_name, group_cfg in family_cfg2.items():
+                        if not isinstance(group_cfg, dict):
+                            continue
+                        prefix_limit = group_cfg.get("prefix-limit")
+                        if not prefix_limit:
+                            continue
+                        protocol = {
+                            "name": protocol_name,
+                            "family": "ipv4" if family_name == "inet" else "ipv6" if family_name == "inet6" else family_name,
+                            "group": group_name,
+                        }
+                        maximum_value = _xml_text(prefix_limit.get("maximum"))
+                        if maximum_value is not None:
+                            protocol["maximum_prefixes"] = int(maximum_value)
+                        teardown_value = _xml_text(prefix_limit.get("teardown"))
+                        if teardown_value is not None:
+                            protocol["threshold"] = int(teardown_value)
+                        protocol_list.append(protocol)
+            if protocol_list:
+                instance_dict["protocols"] = protocol_list
 
         # read bridge domains
         if instance.get("bridge-domains"):

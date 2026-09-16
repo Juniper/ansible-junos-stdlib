@@ -331,6 +331,12 @@ class Routing_instances(ConfigBase):
                     instance.get("route_distinguisher"),
                 )
 
+            if instance.get("routing_options"):
+                self._render_routing_options(rinst_node, instance)
+
+            if instance.get("protocols"):
+                self._render_protocols(rinst_node, instance)
+
             # add node vrf-import
             if instance.get("vrf_imports"):
                 vrf_imports = instance.get("vrf_imports")
@@ -347,6 +353,58 @@ class Routing_instances(ConfigBase):
                 instance_xml.append(rinst_node)
 
         return instance_xml
+
+    def _render_routing_options(self, rinst_node, instance):
+        routing_options = instance.get("routing_options")
+        if not routing_options:
+            return
+
+        routing_options_node = build_child_xml_node(rinst_node, "routing-options")
+        for option in routing_options:
+            if not option:
+                continue
+            rib_node = build_child_xml_node(routing_options_node, "rib")
+            family = option.get("family")
+            family_name = "inet" if family == "ipv4" else "inet6" if family == "ipv6" else family
+            rib_name = option.get("rib_name")
+            if not rib_name:
+                rib_name = option.get("name")
+            if rib_name and rib_name.lower() == "rib":
+                rib_name = "{0}.{1}.0".format(instance["name"], family_name)
+            if not rib_name:
+                rib_name = "{0}.{1}.0".format(instance["name"], family_name)
+            build_child_xml_node(rib_node, "name", rib_name)
+            if option.get("maximum_prefixes") is not None:
+                max_prefixes_node = build_child_xml_node(rib_node, "maximum-prefixes")
+                max_prefixes_node.text = str(option.get("maximum_prefixes"))
+                if option.get("threshold") is not None:
+                    threshold_node = build_child_xml_node(max_prefixes_node, "threshold")
+                    threshold_node.text = str(option.get("threshold"))
+
+    def _render_protocols(self, rinst_node, instance):
+        protocols = instance.get("protocols")
+        if not protocols:
+            return
+
+        protocols_node = build_child_xml_node(rinst_node, "protocols")
+        for protocol in protocols:
+            if not protocol:
+                continue
+            protocol_name = protocol.get("name")
+            if not protocol_name:
+                continue
+            protocol_node = build_child_xml_node(protocols_node, protocol_name)
+            family = protocol.get("family")
+            family_name = "inet" if family == "ipv4" else "inet6" if family == "ipv6" else family
+            family_node = build_child_xml_node(protocol_node, "family")
+            family_value_node = build_child_xml_node(family_node, family_name)
+            group = protocol.get("group") or "any"
+            group_node = build_child_xml_node(family_value_node, group)
+            prefix_limit_node = build_child_xml_node(group_node, "prefix-limit")
+            if protocol.get("maximum_prefixes") is not None:
+                build_child_xml_node(prefix_limit_node, "maximum", protocol.get("maximum_prefixes"))
+            if protocol.get("threshold") is not None:
+                build_child_xml_node(prefix_limit_node, "teardown", protocol.get("threshold"))
 
     def _state_deleted(self, want, have):
         """The command generator when state is deleted

@@ -82,6 +82,27 @@ class Routing_instancesArgs(object):  # pylint: disable=R0903
                 "no_vrf_propagate_ttl": {"type": "bool"},
                 "qualified_bum_pruning_mode": {"type": "bool"},
                 "route_distinguisher": {"type": "str"},
+                "routing_options": {
+                    "elements": "dict",
+                    "options": {
+                        "family": {"choices": ["ipv4", "ipv6"], "type": "str"},
+                        "maximum_prefixes": {"type": "int"},
+                        "name": {"type": "str"},
+                        "threshold": {"type": "int"},
+                    },
+                    "type": "list",
+                },
+                "protocols": {
+                    "elements": "dict",
+                    "options": {
+                        "family": {"choices": ["ipv4", "ipv6"], "type": "str"},
+                        "group": {"type": "str"},
+                        "maximum_prefixes": {"type": "int"},
+                        "name": {"type": "str"},
+                        "threshold": {"type": "int"},
+                    },
+                    "type": "list",
+                },
                 "routing_interface": {"elements": "str", "type": "list"},
                 "type": {
                     "choices": [
