@@ -105,7 +105,7 @@ class TestJunosInterfacesModule(TestJunosModule):
         commands = [
             '<nc:interfaces xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">'
             "<nc:interface><nc:name>ge-0/0/1</nc:name><nc:description>This is configured with ansible resource module</nc:description>"
-            "<nc:speed>100m</nc:speed><nc:mtu>1024</nc:mtu><nc:enable/></nc:interface></nc:interfaces>",
+            "<nc:speed>100m</nc:speed><nc:mtu>1024</nc:mtu></nc:interface></nc:interfaces>",
         ]
 
         result = self.execute_module(changed=True)
@@ -128,7 +128,7 @@ class TestJunosInterfacesModule(TestJunosModule):
         )
         commands = [
             '<nc:interfaces xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">'
-            "<nc:interface><nc:name>ae32</nc:name><nc:enable/><nc:unit><nc:name>301</nc:name>"
+            "<nc:interface><nc:name>ae32</nc:name><nc:unit><nc:name>301</nc:name>"
             "<nc:enable/></nc:unit><nc:unit><nc:name>302</nc:name>"
             "<nc:disable/></nc:unit></nc:interface></nc:interfaces>",
         ]
@@ -152,7 +152,7 @@ class TestJunosInterfacesModule(TestJunosModule):
         )
         commands = [
             '<nc:interfaces xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">'
-            "<nc:interface><nc:name>ae32</nc:name><nc:enable/>"
+            "<nc:interface><nc:name>ae32</nc:name>"
             "<nc:unit><nc:name>301</nc:name><nc:enable/></nc:unit>"
             "<nc:unit><nc:name>302</nc:name><nc:disable/></nc:unit>"
             "</nc:interface></nc:interfaces>",
@@ -236,7 +236,7 @@ class TestJunosInterfacesModule(TestJunosModule):
             '<nc:unit><nc:name>301</nc:name><nc:enable delete="delete"/></nc:unit>'
             '<nc:unit><nc:name>302</nc:name><nc:disable delete="delete"/></nc:unit>'
             "</nc:interface>"
-            "<nc:interface><nc:name>ae32</nc:name><nc:enable/>"
+            "<nc:interface><nc:name>ae32</nc:name>"
             "<nc:unit><nc:name>301</nc:name><nc:disable/></nc:unit>"
             "<nc:unit><nc:name>302</nc:name><nc:enable/></nc:unit>"
             "</nc:interface></nc:interfaces>",
@@ -281,7 +281,7 @@ class TestJunosInterfacesModule(TestJunosModule):
             '<nc:interfaces xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">'
             "<nc:interface><nc:name>ge-0/0/2</nc:name>"
             "<nc:description>This is configured with ansible</nc:description>"
-            "<nc:speed>100m</nc:speed><nc:mtu>1024</nc:mtu><nc:enable/></nc:interface></nc:interfaces>",
+            "<nc:speed>100m</nc:speed><nc:mtu>1024</nc:mtu></nc:interface></nc:interfaces>",
         ]
 
         self.assertEqual(sorted(result["commands"]), commands)
@@ -324,7 +324,7 @@ class TestJunosInterfacesModule(TestJunosModule):
             '<nc:interfaces xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">'
             "<nc:interface><nc:name>ge-0/0/2</nc:name>"
             "<nc:description>This is configured with ansible</nc:description>"
-            "<nc:speed>100m</nc:speed><nc:mtu>1024</nc:mtu><nc:enable/></nc:interface></nc:interfaces>",
+            "<nc:speed>100m</nc:speed><nc:mtu>1024</nc:mtu></nc:interface></nc:interfaces>",
         ]
         result = self.execute_module(changed=True)
         self.assertEqual(sorted(result["commands"]), commands)
@@ -382,7 +382,6 @@ class TestJunosInterfacesModule(TestJunosModule):
             "<nc:description>This is configured with ansible resource module</nc:description>"
             "<nc:speed>100m</nc:speed>"
             "<nc:mtu>1024</nc:mtu>"
-            "<nc:enable/>"
             "</nc:interface></nc:interfaces>",
         ]
         result = self.execute_module(changed=False)
