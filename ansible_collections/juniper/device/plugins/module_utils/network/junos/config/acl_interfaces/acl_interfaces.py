@@ -258,23 +258,31 @@ class Acl_interfaces(ConfigBase):
                 inet_family = "inet"
                 if acl_filter["afi"] == "ipv6":
                     inet_family = "inet6"
+                elif acl_filter["afi"] == "ethernet-switching":
+                    inet_family = "ethernet-switching"
                 inet_node = build_child_xml_node(family_node, inet_family)
                 if acl_filter.get("acls"):
                     filter_node = build_child_xml_node(inet_node, "filter")
-                    singular = config.get("filter_binding", "list") == "singular"
+                    singular = (
+                        acl_filter["afi"] == "ethernet-switching"
+                        or config.get("filter_binding", "list") == "singular"
+                    )
                     for acl in acl_filter["acls"]:
                         acl_node = None
+                        # Singular leaves are deleted without a value; only the
+                        # list variants need the name to target a member.
+                        acl_value = None if (delete and singular) else acl["name"]
                         if acl["direction"] == "in":
                             acl_node = build_child_xml_node(
                                 filter_node,
                                 "input" if singular else "input-list",
-                                acl["name"],
+                                acl_value,
                             )
                         else:
                             acl_node = build_child_xml_node(
                                 filter_node,
                                 "output" if singular else "output-list",
-                                acl["name"],
+                                acl_value,
                             )
                         if delete:
                             acl_node.attrib.update(delete)

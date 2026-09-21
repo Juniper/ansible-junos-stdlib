@@ -136,7 +136,13 @@ class Acl_interfacesFacts(object):
         if "unit" in conf["interface"] and "family" in conf["interface"]["unit"]:
             for family in conf["interface"]["unit"]["family"].keys():
                 access_groups = {
-                    "afi": "ipv6" if family == "inet6" else "ipv4",
+                    "afi": (
+                        "ipv6"
+                        if family == "inet6"
+                        else "ethernet-switching"
+                        if family == "ethernet-switching"
+                        else "ipv4"
+                    ),
                     "acls": [],
                 }
                 if conf["interface"]["unit"]["family"][family] is not None and conf["interface"][

@@ -84,7 +84,7 @@ options:
             description:
             - Specifies the AFI for the ACL(s) to be configured on this interface.
             type: str
-            choices: [ipv4, ipv6]
+            choices: [ipv4, ipv6, ethernet-switching]
           acls:
             type: list
             description:
