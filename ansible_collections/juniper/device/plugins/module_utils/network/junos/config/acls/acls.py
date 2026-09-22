@@ -330,6 +330,12 @@ class Acls(ConfigBase):
                                 icmp = ace["protocol_options"]["icmp"]
                                 icmp_code = None
                                 icmp_type = None
+                                # IPv6 uses "destination-unreachable" where IPv4 uses "unreachable"
+                                unreachable_type = (
+                                    "destination-unreachable"
+                                    if family == "inet6"
+                                    else "unreachable"
+                                )
                                 if icmp.get("dod_host_prohibited") is True:
                                     if not icmp_code:
                                         icmp_code = build_child_xml_node(
@@ -535,7 +541,7 @@ class Acls(ConfigBase):
                                         )
                                     build_child_xml_node(
                                         icmp_type,
-                                        "unreachable",
+                                        unreachable_type,
                                     )
                                 if icmp.get("ttl_exceeded") is True:
                                     if not icmp_code:
@@ -548,15 +554,15 @@ class Acls(ConfigBase):
                                         "ttl-eq-zero-during-transit",
                                     )
                                 icmp_code_parent_type = {
-                                    "dod_host_prohibited": "unreachable",
-                                    "dod_net_prohibited": "unreachable",
-                                    "host_tos_unreachable": "unreachable",
-                                    "host_unknown": "unreachable",
-                                    "host_unreachable": "unreachable",
-                                    "network_unknown": "unreachable",
-                                    "port_unreachable": "unreachable",
-                                    "protocol_unreachable": "unreachable",
-                                    "source_route_failed": "unreachable",
+                                    "dod_host_prohibited": unreachable_type,
+                                    "dod_net_prohibited": unreachable_type,
+                                    "host_tos_unreachable": unreachable_type,
+                                    "host_unknown": unreachable_type,
+                                    "host_unreachable": unreachable_type,
+                                    "network_unknown": unreachable_type,
+                                    "port_unreachable": unreachable_type,
+                                    "protocol_unreachable": unreachable_type,
+                                    "source_route_failed": unreachable_type,
                                     "host_redirect": "redirect",
                                     "host_tos_redirect": "redirect",
                                     "net_redirect": "redirect",
@@ -572,7 +578,7 @@ class Acls(ConfigBase):
                                     ("router_advertisement", "router-advertisement"),
                                     ("router_solicitation", "router-solicit"),
                                     ("time_exceeded", "time-exceeded"),
-                                    ("unreachable", "unreachable"),
+                                    ("unreachable", unreachable_type),
                                 ):
                                     if icmp.get(opt) is True:
                                         emitted_types.add(tname)

@@ -257,7 +257,10 @@ options:
                         description: TTL exceeded
                         type: bool
                       unreachable:
-                        description: All destination unreachable messages (icmp-type unreachable).
+                        description:
+                          - All destination unreachable messages.
+                          - For IPv4 (afi C(ipv4)) this maps to icmp-type C(unreachable).
+                          - For IPv6 (afi C(ipv6)) this maps to icmp-type C(destination-unreachable).
                         type: bool
   running_config:
     description:
