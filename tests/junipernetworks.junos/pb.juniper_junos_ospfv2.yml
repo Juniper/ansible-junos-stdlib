@@ -1,0 +1,181 @@
+- name: Functional Test - junos_ospfv2 module
+  hosts: junos_device
+  gather_facts: false
+  connection: ansible.netcommon.netconf
+
+  tasks:
+
+    - name: DELETE - Reset before MERGED
+      junipernetworks.junos.junos_ospfv2:
+        config: []
+        state: deleted
+
+    - name: MERGED - Configure OSPFv2 instance
+      junipernetworks.junos.junos_ospfv2:
+        config:
+          - reference_bandwidth: 10g
+            areas:
+              - area_id: 0.0.0.100
+                area_ranges:
+                  - address: 10.200.17.0/24
+                    exact: true
+                    restrict: true
+                    override_metric: 2000
+                  - address: 10.200.15.0/24
+                    exact: true
+                    restrict: true
+                    override_metric: 2000
+                stub:
+                  default_metric: 100
+                  set: true
+                interfaces:
+                  - name: so-0/0/0.0
+                    priority: 3
+                    metric: 5
+                    flood_reduction: false
+                    passive: true
+                    bandwidth_based_metrics:
+                      - bandwidth: 1g
+                        metric: 5
+                      - bandwidth: 10g
+                        metric: 40
+                    timers:
+                      dead_interval: 4
+                      hello_interval: 2
+                      poll_interval: 2
+                      retransmit_interval: 2
+            rfc1583compatibility: false
+        state: merged
+
+    - name: DELETE - Reset before REPLACED
+      junipernetworks.junos.junos_ospfv2:
+        config: []
+        state: deleted
+
+    - name: REPLACED - Replace OSPFv2 instance
+      junipernetworks.junos.junos_ospfv2:
+        config:
+          - reference_bandwidth: 10g
+            areas:
+              - area_id: 0.0.0.100
+                area_ranges:
+                  - address: 10.200.17.0/24
+                    exact: true
+                    restrict: true
+                  - address: 10.200.16.0/24
+                    exact: true
+                    restrict: true
+                    override_metric: 1000
+                stub:
+                  default_metric: 100
+                  set: true
+                interfaces:
+                  - name: so-0/0/0.0
+                    priority: 3
+                    metric: 5
+                    flood_reduction: false
+                    passive: true
+                    bandwidth_based_metrics:
+                      - bandwidth: 1g
+                        metric: 5
+                      - bandwidth: 10g
+                        metric: 40
+                    timers:
+                      dead_interval: 4
+                      hello_interval: 2
+                      poll_interval: 2
+                      retransmit_interval: 2
+            rfc1583compatibility: false
+        state: replaced
+
+    - name: DELETE - Reset before OVERRIDDEN
+      junipernetworks.junos.junos_ospfv2:
+        config: []
+        state: deleted
+
+    - name: OVERRIDDEN - Override OSPFv2 instance
+      junipernetworks.junos.junos_ospfv2:
+        config:
+          - reference_bandwidth: 10g
+            areas:
+              - area_id: 0.0.0.110
+                area_ranges:
+                  - address: 20.200.17.0/24
+                    exact: true
+                    restrict: true
+                    override_metric: 2000
+                  - address: 20.200.15.0/24
+                    exact: true
+                    restrict: true
+                    override_metric: 2000
+                stub:
+                  default_metric: 200
+                  set: true
+                interfaces:
+                  - name: so-0/0/0.0
+                    priority: 3
+                    metric: 5
+                    flood_reduction: false
+                    passive: true
+                    bandwidth_based_metrics:
+                      - bandwidth: 1g
+                        metric: 5
+                      - bandwidth: 10g
+                        metric: 40
+        state: overridden
+
+    - name: RENDERED - Render OSPFv2 config
+      junipernetworks.junos.junos_ospfv2:
+        config:
+          - reference_bandwidth: 10g
+            areas:
+              - area_id: 0.0.0.100
+                area_ranges:
+                  - address: 10.200.17.0/24
+                    exact: true
+                    restrict: true
+                    override_metric: 2000
+                  - address: 10.200.15.0/24
+                    exact: true
+                    restrict: true
+                    override_metric: 2000
+                stub:
+                  default_metric: 100
+                  set: true
+                interfaces:
+                  - name: so-0/0/0.0
+                    priority: 3
+                    metric: 5
+                    flood_reduction: false
+                    passive: true
+                    bandwidth_based_metrics:
+                      - bandwidth: 1g
+                        metric: 5
+                      - bandwidth: 10g
+                        metric: 40
+                    timers:
+                      dead_interval: 4
+                      hello_interval: 2
+                      poll_interval: 2
+                      retransmit_interval: 2
+        state: rendered
+
+    - name: GATHERED - Get current OSPFv2 config
+      junipernetworks.junos.junos_ospfv2:
+        config: []
+        state: gathered
+      register: ospf_gather
+
+    - name: Show GATHERED
+      ansible.builtin.debug:
+        var: ospf_gather.gathered
+
+    - name: PARSED - Parsed ospfv2 config from XML
+      junipernetworks.junos.junos_ospfv2:
+        running_config: "{{ lookup('file', './parsed_configs/parsed_ospfv2.cfg') }}"
+        state: parsed
+      register: ospf_parsed
+
+    - name: Show PARSED
+      ansible.builtin.debug:
+        var: ospf_parsed.parsed
