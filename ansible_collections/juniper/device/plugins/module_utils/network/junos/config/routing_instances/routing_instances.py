@@ -363,16 +363,19 @@ class Routing_instances(ConfigBase):
         for option in routing_options:
             if not option:
                 continue
-            rib_node = build_child_xml_node(routing_options_node, "rib")
             family = option.get("family")
             family_name = "inet" if family == "ipv4" else "inet6" if family == "ipv6" else family
-            rib_name = option.get("rib_name")
-            if not rib_name:
-                rib_name = option.get("name")
-            if rib_name and rib_name.lower() == "rib":
+            rib_name = option.get("name")
+            # A missing name (or the sentinel "rib") means auto-derive the RIB
+            # name, which requires a family to build "<instance>.<family>.0".
+            if not rib_name or rib_name.lower() == "rib":
+                if not family_name:
+                    self._module.fail_json(
+                        msg="family is required to derive the rib name for routing_options "
+                        "in routing-instance {0}".format(instance["name"]),
+                    )
                 rib_name = "{0}.{1}.0".format(instance["name"], family_name)
-            if not rib_name:
-                rib_name = "{0}.{1}.0".format(instance["name"], family_name)
+            rib_node = build_child_xml_node(routing_options_node, "rib")
             build_child_xml_node(rib_node, "name", rib_name)
             if option.get("maximum_prefixes") is not None:
                 max_prefixes_node = build_child_xml_node(rib_node, "maximum-prefixes")

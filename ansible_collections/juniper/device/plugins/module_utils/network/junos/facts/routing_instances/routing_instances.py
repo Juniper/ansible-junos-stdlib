@@ -267,7 +267,7 @@ class Routing_instancesFacts(object):
                     if threshold_value is not None:
                         option["threshold"] = int(threshold_value)
                 teardown_value = _xml_text(rib.get("teardown"))
-                if teardown_value is not None:
+                if teardown_value is not None and "threshold" not in option:
                     option["threshold"] = int(teardown_value)
                 if family:
                     routing_options_list.append(option)
