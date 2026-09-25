@@ -202,3 +202,144 @@ class TestJunosAclsModule(TestJunosModule):
             self._normalize_prefix_list(ace["destination"]["prefix_list"]),
             [{"name": "DEST-TRUSTED-1"}, {"name": "DEST-TRUSTED-2"}],
         )
+
+    def test_junos_acls_ipv6_icmp_unreachable_rendered(self):
+        # Issue 885: IPv6 icmp-type "unreachable" must render as
+        # "destination-unreachable".
+        set_module_args(
+            dict(
+                config=[
+                    dict(
+                        afi="ipv6",
+                        acls=[
+                            dict(
+                                name="FILTER-V6-ICMP",
+                                aces=[
+                                    dict(
+                                        name="140",
+                                        grant="permit",
+                                        protocol="icmp",
+                                        protocol_options=dict(
+                                            icmp=dict(unreachable=True),
+                                        ),
+                                    ),
+                                ],
+                            ),
+                        ],
+                    ),
+                ],
+                state="rendered",
+            ),
+        )
+        result = self.execute_module(changed=False)
+        rendered = result["rendered"]
+        self.assertIn("<nc:inet6>", rendered)
+        self.assertIn("<nc:icmp-type>", rendered)
+        self.assertIn("<nc:destination-unreachable/>", rendered)
+        self.assertNotIn("<nc:unreachable/>", rendered)
+
+    def test_junos_acls_ipv6_icmp_port_unreachable_rendered(self):
+        # Issue 885: IPv6 icmp-code "port-unreachable" must emit the
+        # "destination-unreachable" parent icmp-type.
+        set_module_args(
+            dict(
+                config=[
+                    dict(
+                        afi="ipv6",
+                        acls=[
+                            dict(
+                                name="FILTER-V6-ICMP",
+                                aces=[
+                                    dict(
+                                        name="150",
+                                        grant="permit",
+                                        protocol="icmp",
+                                        protocol_options=dict(
+                                            icmp=dict(port_unreachable=True),
+                                        ),
+                                    ),
+                                ],
+                            ),
+                        ],
+                    ),
+                ],
+                state="rendered",
+            ),
+        )
+        result = self.execute_module(changed=False)
+        rendered = result["rendered"]
+        self.assertIn("<nc:icmp-code>", rendered)
+        self.assertIn("<nc:port-unreachable/>", rendered)
+        self.assertIn("<nc:icmp-type>", rendered)
+        self.assertIn("<nc:destination-unreachable/>", rendered)
+
+    def test_junos_acls_ipv4_icmp_unreachable_rendered(self):
+        # Issue 885: IPv4 icmp-type "unreachable" must remain "unreachable".
+        set_module_args(
+            dict(
+                config=[
+                    dict(
+                        afi="ipv4",
+                        acls=[
+                            dict(
+                                name="FILTER-V4-ICMP",
+                                aces=[
+                                    dict(
+                                        name="10",
+                                        grant="permit",
+                                        protocol="icmp",
+                                        protocol_options=dict(
+                                            icmp=dict(unreachable=True),
+                                        ),
+                                    ),
+                                ],
+                            ),
+                        ],
+                    ),
+                ],
+                state="rendered",
+            ),
+        )
+        result = self.execute_module(changed=False)
+        rendered = result["rendered"]
+        self.assertIn("<nc:inet>", rendered)
+        self.assertIn("<nc:icmp-type>", rendered)
+        self.assertIn("<nc:unreachable/>", rendered)
+        self.assertNotIn("<nc:destination-unreachable/>", rendered)
+
+    def test_junos_acls_ipv6_destination_unreachable_parsed(self):
+        # Issue 885: parsing "destination-unreachable" icmp-type maps back to
+        # the "unreachable" option.
+        parsed_str = """
+            <rpc-reply message-id="urn:uuid:1cadb4e8-5bba-47f4-986e-72906227008a">
+                <configuration>
+                    <firewall>
+                        <family>
+                            <inet6>
+                                <filter>
+                                    <name>FILTER-V6-ICMP</name>
+                                    <term>
+                                        <name>140</name>
+                                        <from>
+                                            <payload-protocol>icmp</payload-protocol>
+                                            <icmp-type>destination-unreachable</icmp-type>
+                                        </from>
+                                        <then>
+                                            <accept/>
+                                        </then>
+                                    </term>
+                                </filter>
+                            </inet6>
+                        </family>
+                    </firewall>
+                </configuration>
+            </rpc-reply>
+        """
+
+        set_module_args(dict(running_config=parsed_str, state="parsed"))
+        result = self.execute_module(changed=False)
+
+        ace = result["parsed"][0]["acls"][0]["aces"][0]
+        self.assertTrue(
+            ace["protocol_options"]["icmp"]["unreachable"],
+        )

@@ -194,6 +194,68 @@ class TestJunosRouting_instancesModule(TestJunosModule):
         result = self.execute_module(changed=True)
         self.assertEqual(result["before"], result["after"])
 
+    def test_junos_routing_instances_merged_prefix_limits(self):
+        set_module_args(
+            dict(
+                config=[
+                    dict(
+                        name="ANSIBLE_TEST_VRF",
+                        type="vrf",
+                        route_distinguisher="1:100",
+                        routing_options=[
+                            dict(
+                                family="ipv4",
+                                name="rib",
+                                maximum_prefixes=1000,
+                                threshold=75,
+                            ),
+                            dict(
+                                family="ipv6",
+                                name="rib",
+                                maximum_prefixes=1000,
+                                threshold=75,
+                            ),
+                        ],
+                        protocols=[
+                            dict(
+                                family="ipv4",
+                                name="bgp",
+                                group="any",
+                                maximum_prefixes=1000,
+                                threshold=75,
+                            ),
+                            dict(
+                                family="ipv6",
+                                name="bgp",
+                                group="any",
+                                maximum_prefixes=5000,
+                                threshold=75,
+                            ),
+                        ],
+                    ),
+                ],
+                state="merged",
+            ),
+        )
+
+        commands = [
+            '<nc:routing-instances xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">'
+            '<nc:instance><nc:name>ANSIBLE_TEST_VRF</nc:name><nc:instance-type>vrf</nc:instance-type>'
+            '<nc:route-distinguisher><nc:rd-type>1:100</nc:rd-type></nc:route-distinguisher>'
+            '<nc:routing-options><nc:rib><nc:name>ANSIBLE_TEST_VRF.inet.0</nc:name>'
+            '<nc:maximum-prefixes>1000<nc:threshold>75</nc:threshold></nc:maximum-prefixes>'
+            '</nc:rib><nc:rib><nc:name>ANSIBLE_TEST_VRF.inet6.0</nc:name>'
+            '<nc:maximum-prefixes>1000<nc:threshold>75</nc:threshold></nc:maximum-prefixes>'
+            '</nc:rib></nc:routing-options><nc:protocols><nc:bgp><nc:family><nc:inet>'
+            '<nc:any><nc:prefix-limit><nc:maximum>1000</nc:maximum><nc:teardown>75</nc:teardown>'
+            '</nc:prefix-limit></nc:any></nc:inet></nc:family></nc:bgp><nc:bgp><nc:family>'
+            '<nc:inet6><nc:any><nc:prefix-limit><nc:maximum>5000</nc:maximum><nc:teardown>75</nc:teardown>'
+            '</nc:prefix-limit></nc:any></nc:inet6></nc:family></nc:bgp></nc:protocols>'
+            '</nc:instance></nc:routing-instances>',
+        ]
+        result = self.execute_module(changed=True, commands=commands)
+        self.assertEqual(sorted(result["commands"]), sorted(commands))
+
     def test_junos_routing_instances_replaced(self):
         """
         :return:
@@ -488,6 +550,241 @@ class TestJunosRouting_instancesModule(TestJunosModule):
         self.sort_routing_instances(result["parsed"])
         self.sort_routing_instances(parsed_list)
         self.assertEqual(result["parsed"], parsed_list)
+
+    def test_junos_routing_instances_parsed_prefix_limits_with_xml_attributes(self):
+        parsed_str = """
+            <rpc-reply>
+                <configuration xmlns:junos="http://xml.juniper.net/junos/24.2R0/junos">
+                    <routing-instances>
+                        <instance>
+                            <name>ANSIBLE_TEST_VRF</name>
+                            <routing-options>
+                                <rib>
+                                    <name>ANSIBLE_TEST_VRF.inet.0</name>
+                                    <maximum-prefixes junos:style="decimal">1000
+                                        <threshold junos:style="decimal">75</threshold>
+                                    </maximum-prefixes>
+                                </rib>
+                            </routing-options>
+                            <protocols>
+                                <bgp>
+                                    <family>
+                                        <inet>
+                                            <any>
+                                                <prefix-limit>
+                                                    <maximum junos:style="decimal">1000</maximum>
+                                                    <teardown junos:style="decimal">75</teardown>
+                                                </prefix-limit>
+                                            </any>
+                                        </inet>
+                                    </family>
+                                </bgp>
+                            </protocols>
+                        </instance>
+                    </routing-instances>
+                </configuration>
+            </rpc-reply>
+        """
+        set_module_args(dict(running_config=parsed_str, state="parsed"))
+
+        result = self.execute_module(changed=False)
+
+        self.assertEqual(
+            result["parsed"],
+            [
+                {
+                    "name": "ANSIBLE_TEST_VRF",
+                    "routing_options": [
+                        {
+                            "family": "ipv4",
+                            "name": "rib",
+                            "maximum_prefixes": 1000,
+                            "threshold": 75,
+                        },
+                    ],
+                    "protocols": [
+                        {
+                            "family": "ipv4",
+                            "name": "bgp",
+                            "group": "any",
+                            "maximum_prefixes": 1000,
+                            "threshold": 75,
+                        },
+                    ],
+                },
+            ],
+        )
+
+    def test_junos_routing_instances_parsed_prefix_limits_scalar(self):
+        # maximum-prefixes as a plain scalar with a sibling <threshold> (the
+        # non-attribute XML shape, no junos:style) must still parse.
+        parsed_str = """
+            <rpc-reply>
+                <configuration>
+                    <routing-instances>
+                        <instance>
+                            <name>ANSIBLE_TEST_VRF</name>
+                            <routing-options>
+                                <rib>
+                                    <name>ANSIBLE_TEST_VRF.inet.0</name>
+                                    <maximum-prefixes>1000</maximum-prefixes>
+                                    <threshold>80</threshold>
+                                </rib>
+                            </routing-options>
+                        </instance>
+                    </routing-instances>
+                </configuration>
+            </rpc-reply>
+        """
+        set_module_args(dict(running_config=parsed_str, state="parsed"))
+
+        result = self.execute_module(changed=False)
+
+        self.assertEqual(
+            result["parsed"],
+            [
+                {
+                    "name": "ANSIBLE_TEST_VRF",
+                    "routing_options": [
+                        {
+                            "family": "ipv4",
+                            "name": "rib",
+                            "maximum_prefixes": 1000,
+                            "threshold": 80,
+                        },
+                    ],
+                },
+            ],
+        )
+
+    def test_junos_routing_instances_parsed_teardown_does_not_override_threshold(self):
+        # When both a sibling <threshold> and <teardown> are present, threshold
+        # must win; teardown must not silently overwrite it.
+        parsed_str = """
+            <rpc-reply>
+                <configuration>
+                    <routing-instances>
+                        <instance>
+                            <name>ANSIBLE_TEST_VRF</name>
+                            <routing-options>
+                                <rib>
+                                    <name>ANSIBLE_TEST_VRF.inet6.0</name>
+                                    <maximum-prefixes>2000</maximum-prefixes>
+                                    <threshold>80</threshold>
+                                    <teardown>90</teardown>
+                                </rib>
+                            </routing-options>
+                        </instance>
+                    </routing-instances>
+                </configuration>
+            </rpc-reply>
+        """
+        set_module_args(dict(running_config=parsed_str, state="parsed"))
+
+        result = self.execute_module(changed=False)
+
+        self.assertEqual(
+            result["parsed"],
+            [
+                {
+                    "name": "ANSIBLE_TEST_VRF",
+                    "routing_options": [
+                        {
+                            "family": "ipv6",
+                            "name": "rib",
+                            "maximum_prefixes": 2000,
+                            "threshold": 80,
+                        },
+                    ],
+                },
+            ],
+        )
+
+    def test_junos_routing_instances_rendered_explicit_rib_name(self):
+        # An explicit (non-"rib") RIB name must be used verbatim, not auto-derived.
+        set_module_args(
+            dict(
+                config=[
+                    dict(
+                        name="ANSIBLE_TEST_VRF",
+                        type="vrf",
+                        routing_options=[
+                            dict(
+                                family="ipv4",
+                                name="ANSIBLE_TEST_VRF.inet.2",
+                                maximum_prefixes=500,
+                            ),
+                        ],
+                    ),
+                ],
+                state="rendered",
+            ),
+        )
+
+        rendered = (
+            '<nc:routing-instances xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">'
+            "<nc:instance><nc:name>ANSIBLE_TEST_VRF</nc:name>"
+            "<nc:instance-type>vrf</nc:instance-type>"
+            "<nc:routing-options><nc:rib><nc:name>ANSIBLE_TEST_VRF.inet.2</nc:name>"
+            "<nc:maximum-prefixes>500</nc:maximum-prefixes></nc:rib></nc:routing-options>"
+            "</nc:instance></nc:routing-instances>"
+        )
+        result = self.execute_module(changed=False)
+        self.assertEqual(result["rendered"], rendered)
+
+    def test_junos_routing_instances_rendered_protocols_default_group(self):
+        # An omitted protocol group must default to "any".
+        set_module_args(
+            dict(
+                config=[
+                    dict(
+                        name="ANSIBLE_TEST_VRF",
+                        type="vrf",
+                        protocols=[
+                            dict(
+                                family="ipv4",
+                                name="bgp",
+                                maximum_prefixes=1000,
+                                threshold=75,
+                            ),
+                        ],
+                    ),
+                ],
+                state="rendered",
+            ),
+        )
+
+        rendered = (
+            '<nc:routing-instances xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">'
+            "<nc:instance><nc:name>ANSIBLE_TEST_VRF</nc:name>"
+            "<nc:instance-type>vrf</nc:instance-type>"
+            "<nc:protocols><nc:bgp><nc:family><nc:inet><nc:any><nc:prefix-limit>"
+            "<nc:maximum>1000</nc:maximum><nc:teardown>75</nc:teardown>"
+            "</nc:prefix-limit></nc:any></nc:inet></nc:family></nc:bgp></nc:protocols>"
+            "</nc:instance></nc:routing-instances>"
+        )
+        result = self.execute_module(changed=False)
+        self.assertEqual(result["rendered"], rendered)
+
+    def test_junos_routing_instances_rendered_routing_options_requires_family(self):
+        # Auto-deriving the RIB name without a family must fail rather than
+        # emit "<instance>.None.0".
+        set_module_args(
+            dict(
+                config=[
+                    dict(
+                        name="ANSIBLE_TEST_VRF",
+                        type="vrf",
+                        routing_options=[
+                            dict(maximum_prefixes=100),
+                        ],
+                    ),
+                ],
+                state="rendered",
+            ),
+        )
+        result = self.execute_module(failed=True)
+        self.assertIn("family is required", result["msg"])
 
     def test_junos_routing_instances_merged_comment_01(self):
         original_set_module_args = set_module_args

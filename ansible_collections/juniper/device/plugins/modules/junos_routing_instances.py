@@ -179,9 +179,48 @@ options:
       qualified_bum_pruning_mode:
         description: Enable BUM pruning for VPLS instance.
         type: bool
+      protocols:
+        description: Protocol address-family prefix-limit configuration.
+        type: list
+        elements: dict
+        suboptions:
+          family:
+            description: Address family for the protocol prefix limit.
+            type: str
+            choices: [ipv4, ipv6]
+          name:
+            description: Protocol name, such as B(bgp).
+            type: str
+          group:
+            description: Protocol family prefix-limit group, such as B(any).
+            type: str
+          maximum_prefixes:
+            description: Maximum number of prefixes accepted for the protocol family.
+            type: int
+          threshold:
+            description: Percentage of the maximum prefix count that triggers teardown.
+            type: int
       route_distinguisher:
         description: Route distinguisher for this instance
         type: str
+      routing_options:
+        description: Routing table maximum-prefix configuration.
+        type: list
+        elements: dict
+        suboptions:
+          family:
+            description: Address family for the routing table.
+            type: str
+            choices: [ipv4, ipv6]
+          name:
+            description: RIB selector or explicit routing table name. Use B(rib) to derive the table name from the instance and family.
+            type: str
+          maximum_prefixes:
+            description: Maximum number of prefixes allowed in the routing table.
+            type: int
+          threshold:
+            description: Percentage threshold for the maximum prefix count.
+            type: int
       routing_interface:
         description: Routing interface name for this routing-instance.
         type: list

@@ -28,6 +28,7 @@ __metaclass__ = type
 
 import importlib.util
 from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import MagicMock
 
 
@@ -41,8 +42,125 @@ _facts_module = importlib.util.module_from_spec(_spec)
 _spec.loader.exec_module(_facts_module)
 Acl_interfacesFacts = _facts_module.Acl_interfacesFacts
 
+_config_file = _repo_root / "ansible_collections/juniper/device/plugins/module_utils/network/junos/config/acl_interfaces/acl_interfaces.py"
+_spec = importlib.util.spec_from_file_location("local_acl_interfaces_config", str(_config_file))
+_config_module = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_config_module)
+Acl_interfaces = _config_module.Acl_interfaces
+
+_argspec_file = _repo_root / "ansible_collections/juniper/device/plugins/module_utils/network/junos/argspec/acl_interfaces/acl_interfaces.py"
+_spec = importlib.util.spec_from_file_location("local_acl_interfaces_argspec", str(_argspec_file))
+_argspec_module = importlib.util.module_from_spec(_spec)
+_spec.loader.exec_module(_argspec_module)
+Acl_interfacesArgs = _argspec_module.Acl_interfacesArgs
+
 
 class TestJunosAclInterfacesFacts(object):
+    def test_junos_acl_interfaces_ethernet_switching_rendered(self):
+        afi_choices = Acl_interfacesArgs.argument_spec["config"]["options"]["access_groups"]["options"][
+            "afi"
+        ]["choices"]
+        assert "ethernet-switching" in afi_choices
+
+        config_obj = Acl_interfaces.__new__(Acl_interfaces)
+        config_obj._module = SimpleNamespace(params={"state": "rendered"})
+        rendered = config_obj.set_state(
+            [
+                {
+                    "name": "ae10.0",
+                    "access_groups": [
+                        {
+                            "afi": "ethernet-switching",
+                            "acls": [
+                                {"name": "inbound_acl", "direction": "in"},
+                                {"name": "outbound_acl", "direction": "out"},
+                            ],
+                        },
+                    ],
+                },
+            ],
+            [],
+        )
+
+        assert rendered == (
+            '<nc:interfaces xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">'
+            "<nc:interface><nc:name>ae10</nc:name><nc:unit><nc:name>0</nc:name>"
+            "<nc:family><nc:ethernet-switching><nc:filter>"
+            "<nc:input>inbound_acl</nc:input><nc:output>outbound_acl</nc:output>"
+            "</nc:filter></nc:ethernet-switching></nc:family></nc:unit>"
+            "</nc:interface></nc:interfaces>"
+        )
+
+    def test_junos_acl_interfaces_ethernet_switching_deleted(self):
+        config_obj = Acl_interfaces.__new__(Acl_interfaces)
+        config_obj._module = SimpleNamespace(params={"state": "deleted"})
+        rendered = config_obj.set_state(
+            [
+                {
+                    "name": "ae10.0",
+                    "access_groups": [
+                        {
+                            "afi": "ethernet-switching",
+                            "acls": [
+                                {"name": "inbound_acl", "direction": "in"},
+                                {"name": "outbound_acl", "direction": "out"},
+                            ],
+                        },
+                    ],
+                },
+            ],
+            [],
+        )
+
+        # Singular leaves must delete without a value, else Junos rejects it.
+        assert rendered == (
+            '<nc:interfaces xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">'
+            "<nc:interface><nc:name>ae10</nc:name><nc:unit><nc:name>0</nc:name>"
+            "<nc:family><nc:ethernet-switching><nc:filter>"
+            '<nc:input delete="delete"/><nc:output delete="delete"/>'
+            "</nc:filter></nc:ethernet-switching></nc:family></nc:unit>"
+            "</nc:interface></nc:interfaces>"
+        )
+
+    def test_junos_acl_interfaces_parsed_ethernet_switching(self):
+        parsed_str = """
+            <rpc-reply>
+                <configuration>
+                    <interfaces>
+                        <interface>
+                            <name>ae10</name>
+                            <unit>
+                                <name>0</name>
+                                <family>
+                                    <ethernet-switching>
+                                        <filter>
+                                            <input><filter-name>inbound_acl</filter-name></input>
+                                            <output><filter-name>outbound_acl</filter-name></output>
+                                        </filter>
+                                    </ethernet-switching>
+                                </family>
+                            </unit>
+                        </interface>
+                    </interfaces>
+                </configuration>
+            </rpc-reply>
+        """
+
+        facts_obj = Acl_interfacesFacts(MagicMock())
+        result = facts_obj.populate_facts(
+            connection=MagicMock(),
+            ansible_facts={"ansible_network_resources": {}},
+            data=parsed_str,
+        )
+
+        parsed = result["ansible_network_resources"]["acl_interfaces"][0]
+        assert parsed["name"] == "ae10"
+        assert parsed["access_groups"][0]["afi"] == "ethernet-switching"
+        assert parsed["access_groups"][0]["acls"] == [
+            {"name": "inbound_acl", "direction": "in"},
+            {"name": "outbound_acl", "direction": "out"},
+        ]
+
     def test_junos_acl_interfaces_parsed_single_input_output(self):
         parsed_str = """
             <rpc-reply message-id="urn:uuid:0cadb4e8-5bba-47f4-986e-72906227007f">

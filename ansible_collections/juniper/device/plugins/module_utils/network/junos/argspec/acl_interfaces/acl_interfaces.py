@@ -55,7 +55,10 @@ class Acl_interfacesArgs(object):  # pylint: disable=R0903
                             },
                             "type": "list",
                         },
-                        "afi": {"choices": ["ipv4", "ipv6"], "type": "str"},
+                        "afi": {
+                            "choices": ["ipv4", "ipv6", "ethernet-switching"],
+                            "type": "str",
+                        },
                     },
                     "type": "list",
                 },

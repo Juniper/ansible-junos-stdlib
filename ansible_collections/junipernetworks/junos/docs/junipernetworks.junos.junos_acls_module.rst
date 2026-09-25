@@ -874,6 +874,32 @@ Parameters
                         <div>TTL exceeded</div>
                 </td>
             </tr>
+            <tr>
+                    <td class="elbow-placeholder"></td>
+                    <td class="elbow-placeholder"></td>
+                    <td class="elbow-placeholder"></td>
+                    <td class="elbow-placeholder"></td>
+                    <td class="elbow-placeholder"></td>
+                <td colspan="2">
+                    <div class="ansibleOptionAnchor" id="parameter-"></div>
+                    <b>unreachable</b>
+                    <a class="ansibleOptionLink" href="#parameter-" title="Permalink to this option"></a>
+                    <div style="font-size: small">
+                        <span style="color: purple">boolean</span>
+                    </div>
+                </td>
+                <td>
+                        <ul style="margin: 0; padding: 0"><b>Choices:</b>
+                                    <li>no</li>
+                                    <li>yes</li>
+                        </ul>
+                </td>
+                <td>
+                        <div>All destination unreachable messages.</div>
+                        <div>For IPv4 (afi <code>ipv4</code>) this maps to icmp-type <code>unreachable</code>.</div>
+                        <div>For IPv6 (afi <code>ipv6</code>) this maps to icmp-type <code>destination-unreachable</code>.</div>
+                </td>
+            </tr>
 
 
             <tr>

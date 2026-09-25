@@ -64,7 +64,6 @@ options:
         - full-duplex
         - half-duplex
       enabled:
-        default: true
         description:
         - Administrative state of the interface.
         - Set the value to C(true) to administratively enabled the interface or C(false)
