@@ -14,6 +14,7 @@
         speed: 100m
         enabled: false
         duplex: full-duplex
+        vlan_tagging: false
         hold_time:
           up: 2000
           down: 2200
@@ -23,12 +24,14 @@
         mtu: 2048
         speed: 10m
         enabled: true
+        vlan_tagging: false
         hold_time:
           up: 3000
           down: 3200
 
       - name: fxp0
         enabled: true
+        vlan_tagging: false
 
 - block:
     - name: Apply the provided configuration (base config)

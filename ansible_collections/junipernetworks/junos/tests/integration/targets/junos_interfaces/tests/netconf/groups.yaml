@@ -14,13 +14,16 @@
       - name: ge-0/0/11
         description: within test group
         enabled: true
+        vlan_tagging: false
 
       - name: ge-0/0/12
         description: global interface config
         enabled: true
+        vlan_tagging: false
 
       - name: fxp0
         enabled: true
+        vlan_tagging: false
 
 - name: Teardown delete interface configuration
   junipernetworks.junos.junos_config: &id001

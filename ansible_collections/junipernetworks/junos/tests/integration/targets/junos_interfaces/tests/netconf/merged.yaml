@@ -16,6 +16,7 @@
         speed: 100m
         enabled: false
         duplex: full-duplex
+        vlan_tagging: false
         hold_time:
           up: 2000
           down: 2200
@@ -25,19 +26,24 @@
         mtu: 2048
         speed: 10m
         enabled: true
+        vlan_tagging: false
         hold_time:
           up: 3000
           down: 3200
 
       - enabled: true
         name: fe-0/0/2
+        vlan_tagging: true
         units:
           - description: "This is logical interface UNIT 10"
             name: 10
+            vlan_id: 10
           - description: "This is logical interface UNIT 11"
             name: 11
+            vlan_id: 11
       - name: fxp0
         enabled: true
+        vlan_tagging: false
 
 - block:
     - name: Merge the provided configuration with the exisiting running configuration

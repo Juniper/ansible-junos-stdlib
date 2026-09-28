@@ -11,9 +11,11 @@
       - name: ge-0/0/1
         description: Overridden by Ansible - Interface 1
         enabled: true
+        vlan_tagging: false
 
       - name: fxp0
         enabled: true
+        vlan_tagging: false
 
 - block:
     - name: Configure initial state for interface

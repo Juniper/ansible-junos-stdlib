@@ -13,8 +13,10 @@
     expected_deleted_output:
       - name: fxp0
         enabled: true
+        vlan_tagging: false
       - name: ge-0/0/2
         enabled: true
+        vlan_tagging: false
 
 - block:
     - name: Configure initial state for interface
