@@ -4,7 +4,7 @@
       ansible_connection }}
 
 - ansible.builtin.set_fact:
-    expected_rendered_output: '<nc:interfaces xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"><nc:interface><nc:name>ge-0/0/2</nc:name><nc:description>Configured by Ansible</nc:description><nc:speed>20m</nc:speed><nc:mtu>2048</nc:mtu><nc:enable/><nc:hold-time><nc:up>3200</nc:up><nc:down>3200</nc:down></nc:hold-time></nc:interface></nc:interfaces>'
+    expected_rendered_output: '<nc:interfaces xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"><nc:interface><nc:name>ge-0/0/2</nc:name><nc:description>Configured by Ansible</nc:description><nc:speed>20m</nc:speed><nc:mtu>2048</nc:mtu><nc:hold-time><nc:up>3200</nc:up><nc:down>3200</nc:down></nc:hold-time></nc:interface></nc:interfaces>'
 
 - name: Render platform specific commands from task input using rendered state
   register: result
