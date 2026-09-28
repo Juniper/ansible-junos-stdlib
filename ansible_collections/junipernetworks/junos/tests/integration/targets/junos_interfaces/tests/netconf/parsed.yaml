@@ -15,6 +15,7 @@
         mtu: 1024
         name: ge-0/0/1
         speed: 100m
+        vlan_tagging: false
 
       - description: Configured by Ansible
         enabled: true
@@ -24,6 +25,7 @@
         mtu: 2048
         name: ge-0/0/2
         speed: 10m
+        vlan_tagging: false
 
 - name: Parse externally provided interfaces config to agnostic model
   register: result
