@@ -6,6 +6,17 @@ Juniper Device Collection Release Notes
 Changelog for Juniper Device Ansible Collection
 ===========================
 
+Version 2.0.6 (2026-09-28)
+---------------------------
+Enhancements
+------------
+- Supported additional features in juniper.device.junos_acls, juniper.device.junos_routing_instances juniper.device.junos_acl_interfaces  module #885 #878 #873
+
+Bugs Fixed
+-----------
+- Fixed issues in juniper.device.junos_interfaces   #877
+
+
 Version 2.0.5 (2026-09-11)
 ---------------------------
 Enhancements
