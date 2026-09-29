@@ -434,14 +434,19 @@ def main():
         purge_request = handle_purge(module, want)
 
     with locked_config(module):
+        purge_diff = None
         if purge_request:
-            load_config(
+            purge_diff = load_config(
                 module,
                 tostring(purge_request),
                 warnings,
                 action="replace",
             )
         diff = load_config(module, tostring(ele), warnings, action="merge")
+
+        # the merge diff already reflects the cumulative uncommitted candidate,
+        # but fall back to the purge diff in case the merge step is a no-op.
+        diff = diff or purge_diff
 
         commit = not module.check_mode
         if diff:
