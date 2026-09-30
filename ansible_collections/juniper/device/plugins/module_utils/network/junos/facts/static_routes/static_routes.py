@@ -126,6 +126,8 @@ class Static_routesFacts(object):
                 {"forward_router_address": route["next-hop"]},
             )
             routes_dict["routes"].append(route_dict)
+        # sort routes for deterministic ordering, independent of device return order
+        routes_dict["routes"] = sorted(routes_dict["routes"], key=lambda r: r["dest"])
         return routes_dict
 
     def render_config(self, spec, conf):

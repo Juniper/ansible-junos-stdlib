@@ -10,6 +10,7 @@ merged:
     as_number: "65534"
     asdot_notation: true
     authentication_algorithm: "md5"
+    authentication_key_chain: "testchain"
     bgp_error_tolerance:
       malformed_route_limit: 20000000
     bmp:
@@ -37,6 +38,7 @@ merged:
     as_number: "65534"
     asdot_notation: true
     authentication_algorithm: "md5"
+    authentication_key_chain: "testchain"
     bgp_error_tolerance:
       malformed_route_limit: 20000000
     bmp:
