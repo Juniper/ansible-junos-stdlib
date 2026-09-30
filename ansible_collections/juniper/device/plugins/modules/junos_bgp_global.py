@@ -1115,6 +1115,54 @@ EXAMPLES = """
 # add-path-display-ipv4-address;
 # egress-te-sid-stats;
 
+- name: Merge neighbor multihop and remove-private config
+  junipernetworks.junos.junos_bgp_global:
+    config:
+      as_number: "65100"
+      groups:
+        - name: ANSIBLE_TEST
+          neighbors:
+            - neighbor_address: 10.0.11.0
+              peer_as: "65101"
+              multihop:
+                set: true
+                ttl: 5
+              remove_private:
+                set: true
+    state: merged
+
+# Task Output:
+# ------------
+# before: {}
+#
+# commands:
+# - '<nc:protocols xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"><nc:bgp><nc:group>
+#   <nc:name>ANSIBLE_TEST</nc:name><nc:neighbor><nc:name>10.0.11.0</nc:name>
+#   <nc:peer-as>65101</nc:peer-as><nc:multihop><nc:ttl>5</nc:ttl></nc:multihop>
+#   <nc:remove-private/></nc:neighbor></nc:group></nc:bgp></nc:protocols>'
+# - '<nc:routing-options xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
+#   <nc:autonomous-system>65100</nc:autonomous-system></nc:routing-options>'
+
+- name: Remove a boolean option by setting it to false (deletes as-override)
+  junipernetworks.junos.junos_bgp_global:
+    config:
+      as_number: "65100"
+      groups:
+        - name: ANSIBLE_TEST
+          neighbors:
+            - neighbor_address: 10.0.11.0
+              peer_as: "65101"
+              as_override: false
+    state: merged
+
+# Task Output:
+# ------------
+# commands:
+# - '<nc:protocols xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"><nc:bgp><nc:group>
+#   <nc:name>ANSIBLE_TEST</nc:name><nc:neighbor><nc:name>10.0.11.0</nc:name>
+#   <nc:as-override delete="delete"/><nc:peer-as>65101</nc:peer-as></nc:neighbor>
+#   </nc:group></nc:bgp></nc:protocols>'
+
 - name: Replace running config with provided config
   junipernetworks.junos.junos_bgp_global:
     config:
