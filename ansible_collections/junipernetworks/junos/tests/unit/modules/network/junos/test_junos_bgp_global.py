@@ -483,6 +483,35 @@ class TestJunosBgp_globalModule(TestJunosModule):
         result = self.execute_module(changed=False)
         self.assertEqual(result["rendered"], rendered)
 
+    def test_junos_bgp_global_rendered_neighbor_multihop_set_false_delete(self):
+        set_module_args(
+            dict(
+                config=dict(
+                    groups=[
+                        dict(
+                            name="ANSIBLE_TEST",
+                            neighbors=[
+                                dict(
+                                    neighbor_address="10.0.11.0",
+                                    peer_as="65101",
+                                    multihop=dict(set=False),
+                                ),
+                            ],
+                        ),
+                    ],
+                ),
+                state="rendered",
+            ),
+        )
+        rendered = (
+            '<nc:protocols xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"><nc:bgp>'
+            "<nc:group><nc:name>ANSIBLE_TEST</nc:name><nc:neighbor><nc:name>10.0.11.0</nc:name>"
+            '<nc:peer-as>65101</nc:peer-as><nc:multihop delete="delete"/></nc:neighbor>'
+            "</nc:group></nc:bgp></nc:protocols>"
+        )
+        result = self.execute_module(changed=False)
+        self.assertEqual(result["rendered"], rendered)
+
     def test_junos_bgp_global_rendered_neighbor_multihop_no_nexthop_change(self):
         set_module_args(
             dict(
@@ -564,6 +593,35 @@ class TestJunosBgp_globalModule(TestJunosModule):
             "<nc:group><nc:name>ANSIBLE_TEST</nc:name><nc:neighbor><nc:name>10.0.11.0</nc:name>"
             "<nc:peer-as>65101</nc:peer-as><nc:remove-private/></nc:neighbor></nc:group>"
             "</nc:bgp></nc:protocols>"
+        )
+        result = self.execute_module(changed=False)
+        self.assertEqual(result["rendered"], rendered)
+
+    def test_junos_bgp_global_rendered_neighbor_remove_private_set_false_delete(self):
+        set_module_args(
+            dict(
+                config=dict(
+                    groups=[
+                        dict(
+                            name="ANSIBLE_TEST",
+                            neighbors=[
+                                dict(
+                                    neighbor_address="10.0.11.0",
+                                    peer_as="65101",
+                                    remove_private=dict(set=False),
+                                ),
+                            ],
+                        ),
+                    ],
+                ),
+                state="rendered",
+            ),
+        )
+        rendered = (
+            '<nc:protocols xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"><nc:bgp>'
+            "<nc:group><nc:name>ANSIBLE_TEST</nc:name><nc:neighbor><nc:name>10.0.11.0</nc:name>"
+            '<nc:peer-as>65101</nc:peer-as><nc:remove-private delete="delete"/></nc:neighbor>'
+            "</nc:group></nc:bgp></nc:protocols>"
         )
         result = self.execute_module(changed=False)
         self.assertEqual(result["rendered"], rendered)

@@ -720,31 +720,49 @@ class Bgp_global(ConfigBase):
         # Generate config commands for multihop
         if want.get("multihop"):
             multihop = want.get("multihop")
-            multihop_node = build_child_xml_node(bgp_root, "multihop")
-            if multihop.get("ttl") is not None:
+            if multihop.get("set") is False:
+                # Explicit set false removes the multihop configuration.
                 build_child_xml_node(
-                    multihop_node,
-                    "ttl",
-                    multihop.get("ttl"),
+                    bgp_root,
+                    "multihop",
+                    None,
+                    {"delete": "delete"},
                 )
-            if multihop.get("no_nexthop_change"):
-                build_child_xml_node(multihop_node, "no-nexthop-change")
+            else:
+                multihop_node = build_child_xml_node(bgp_root, "multihop")
+                if multihop.get("ttl") is not None:
+                    build_child_xml_node(
+                        multihop_node,
+                        "ttl",
+                        multihop.get("ttl"),
+                    )
+                if multihop.get("no_nexthop_change"):
+                    build_child_xml_node(multihop_node, "no-nexthop-change")
 
         # Generate config commands for remove-private
         if want.get("remove_private"):
             remove_private = want.get("remove_private")
-            rp_node = build_child_xml_node(bgp_root, "remove-private")
-            if remove_private.get("all_replace_nearest"):
-                all_node = build_child_xml_node(rp_node, "all")
-                replace_node = build_child_xml_node(all_node, "replace")
-                build_child_xml_node(replace_node, "nearest")
-            elif remove_private.get("all_replace"):
-                all_node = build_child_xml_node(rp_node, "all")
-                build_child_xml_node(all_node, "replace")
-            elif remove_private.get("all"):
-                build_child_xml_node(rp_node, "all")
-            if remove_private.get("no_peer_loop_check"):
-                build_child_xml_node(rp_node, "no-peer-loop-check")
+            if remove_private.get("set") is False:
+                # Explicit set false removes the remove-private configuration.
+                build_child_xml_node(
+                    bgp_root,
+                    "remove-private",
+                    None,
+                    {"delete": "delete"},
+                )
+            else:
+                rp_node = build_child_xml_node(bgp_root, "remove-private")
+                if remove_private.get("all_replace_nearest"):
+                    all_node = build_child_xml_node(rp_node, "all")
+                    replace_node = build_child_xml_node(all_node, "replace")
+                    build_child_xml_node(replace_node, "nearest")
+                elif remove_private.get("all_replace"):
+                    all_node = build_child_xml_node(rp_node, "all")
+                    build_child_xml_node(all_node, "replace")
+                elif remove_private.get("all"):
+                    build_child_xml_node(rp_node, "all")
+                if remove_private.get("no_peer_loop_check"):
+                    build_child_xml_node(rp_node, "no-peer-loop-check")
 
     def _add_apply_groups(self, node, config):
         for apply_group in config.get("apply_groups", []):
