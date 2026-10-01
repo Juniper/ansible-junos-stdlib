@@ -689,12 +689,80 @@ class Bgp_global(ConfigBase):
             build_child_xml_node(local_as_node, "as-number", local_as["as_num"])
             if local_as.get("alias"):
                 build_child_xml_node(local_as_node, "alias")
+            elif local_as.get("alias") is False:
+                build_child_xml_node(
+                    local_as_node,
+                    "alias",
+                    None,
+                    {"delete": "delete"},
+                )
             if local_as.get("private"):
                 build_child_xml_node(local_as_node, "private")
+            elif local_as.get("private") is False:
+                build_child_xml_node(
+                    local_as_node,
+                    "private",
+                    None,
+                    {"delete": "delete"},
+                )
             if local_as.get("loops") is not None:
                 build_child_xml_node(local_as_node, "loops", local_as["loops"])
             if local_as.get("no_prepend_global_as"):
                 build_child_xml_node(local_as_node, "no-prepend-global-as")
+            elif local_as.get("no_prepend_global_as") is False:
+                build_child_xml_node(
+                    local_as_node,
+                    "no-prepend-global-as",
+                    None,
+                    {"delete": "delete"},
+                )
+
+        # Generate config commands for multihop
+        if want.get("multihop"):
+            multihop = want.get("multihop")
+            if multihop.get("set") is False:
+                # Explicit set false removes the multihop configuration.
+                build_child_xml_node(
+                    bgp_root,
+                    "multihop",
+                    None,
+                    {"delete": "delete"},
+                )
+            else:
+                multihop_node = build_child_xml_node(bgp_root, "multihop")
+                if multihop.get("ttl") is not None:
+                    build_child_xml_node(
+                        multihop_node,
+                        "ttl",
+                        multihop.get("ttl"),
+                    )
+                if multihop.get("no_nexthop_change"):
+                    build_child_xml_node(multihop_node, "no-nexthop-change")
+
+        # Generate config commands for remove-private
+        if want.get("remove_private"):
+            remove_private = want.get("remove_private")
+            if remove_private.get("set") is False:
+                # Explicit set false removes the remove-private configuration.
+                build_child_xml_node(
+                    bgp_root,
+                    "remove-private",
+                    None,
+                    {"delete": "delete"},
+                )
+            else:
+                rp_node = build_child_xml_node(bgp_root, "remove-private")
+                if remove_private.get("all_replace_nearest"):
+                    all_node = build_child_xml_node(rp_node, "all")
+                    replace_node = build_child_xml_node(all_node, "replace")
+                    build_child_xml_node(replace_node, "nearest")
+                elif remove_private.get("all_replace"):
+                    all_node = build_child_xml_node(rp_node, "all")
+                    build_child_xml_node(all_node, "replace")
+                elif remove_private.get("all"):
+                    build_child_xml_node(rp_node, "all")
+                if remove_private.get("no_peer_loop_check"):
+                    build_child_xml_node(rp_node, "no-peer-loop-check")
 
     def _add_apply_groups(self, node, config):
         for apply_group in config.get("apply_groups", []):
@@ -948,7 +1016,14 @@ class Bgp_global(ConfigBase):
         else:
             if w_key in want.keys():
                 b_val = want.get(w_key)
-                if b_val is not None:
-                    if b_val is True:
-                        build_child_xml_node(node, h_key)
+                if b_val is True:
+                    build_child_xml_node(node, h_key)
+                elif b_val is False:
+                    # Explicit false removes the option from the device.
+                    build_child_xml_node(
+                        node,
+                        h_key,
+                        None,
+                        {"delete": "delete"},
+                    )
         return node
