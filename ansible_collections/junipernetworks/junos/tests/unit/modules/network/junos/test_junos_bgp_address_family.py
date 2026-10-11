@@ -1828,6 +1828,79 @@ class TestJunosBgp_address_familyModule(TestJunosModule):
                 result = self.execute_module(failed=True)
                 self.assertIn(expected_message, result["msg"])
 
+    def test_junos_bgp_address_family_prefix_limit_idle_timeout_without_teardown(self):
+        # Issue 895: idle-timeout options alone must create the teardown parent.
+        cases = (
+            (
+                dict(maximum=160, idle_timeout_value=5),
+                "<nc:teardown><nc:idle-timeout><nc:timeout>5</nc:timeout>"
+                "</nc:idle-timeout></nc:teardown>",
+            ),
+            (
+                dict(maximum=160, idle_timeout=True),
+                "<nc:teardown><nc:idle-timeout/></nc:teardown>",
+            ),
+            (
+                dict(maximum=160, forever=True),
+                "<nc:teardown><nc:idle-timeout><nc:forever/></nc:idle-timeout></nc:teardown>",
+            ),
+        )
+        for option in ("prefix_limit", "accepted_prefix_limit"):
+            element = option.replace("_", "-")
+            for limit, teardown_xml in cases:
+                with self.subTest(option=option, limit=limit):
+                    set_module_args(
+                        dict(
+                            config=dict(
+                                groups=[
+                                    dict(
+                                        name="ANSIBLE_GROUP_TEST",
+                                        address_family=[
+                                            dict(
+                                                afi="inet6",
+                                                af_type=[{"type": "unicast", option: limit}],
+                                            ),
+                                        ],
+                                    ),
+                                ],
+                            ),
+                            state="rendered",
+                        ),
+                    )
+                    result = self.execute_module(changed=False)
+                    self.assertIn(
+                        "<nc:%s><nc:maximum>160</nc:maximum>%s</nc:%s>"
+                        % (element, teardown_xml, element),
+                        result["rendered"],
+                    )
+
+    def test_junos_bgp_address_family_prefix_limit_idle_timeout_false_with_value(self):
+        # Issue 895 log: idle_timeout=False plus idle_timeout_value is a clear error.
+        set_module_args(
+            dict(
+                config=dict(
+                    address_family=[
+                        dict(
+                            afi="inet6",
+                            af_type=[
+                                dict(
+                                    type="unicast",
+                                    prefix_limit=dict(
+                                        maximum=160,
+                                        idle_timeout=False,
+                                        idle_timeout_value=5,
+                                    ),
+                                ),
+                            ],
+                        ),
+                    ],
+                ),
+                state="merged",
+            ),
+        )
+        result = self.execute_module(failed=True)
+        self.assertIn("idle_timeout: false cannot be combined", result["msg"])
+
     def test_junos_bgp_address_family_prefix_limit_facts_include_containers(self):
         from ansible_collections.juniper.device.plugins.module_utils.network.junos.facts.bgp_address_family.bgp_address_family import (
             Bgp_address_familyFacts,
@@ -3217,6 +3290,82 @@ class TestJunosBgp_address_familyModule(TestJunosModule):
         self.assertEqual(af_type["type"], "unicast")
         self.assertEqual(af_type["import"], ["MATCH-COMM-TEST", "ACCEPT-ALL"])
         self.assertEqual(af_type["export"], ["REJECT-ALL"])
+
+    def test_junos_bgp_address_family_multiple_groups(self):
+        # Issue 896: every entry in config.groups must be rendered, not only the last.
+        for state in ("merged", "replaced", "overridden", "rendered"):
+            with self.subTest(state=state):
+                set_module_args(
+                    dict(
+                        config=dict(
+                            groups=[
+                                dict(
+                                    name="ANSIBLE_GROUP_TEST1",
+                                    address_family=[
+                                        dict(
+                                            afi="inet6",
+                                            af_type=[
+                                                dict(
+                                                    type="unicast",
+                                                    prefix_limit=dict(
+                                                        maximum=260,
+                                                        limit_threshold=50,
+                                                    ),
+                                                ),
+                                            ],
+                                        ),
+                                    ],
+                                ),
+                                dict(
+                                    name="ANSIBLE_GROUP_TEST2",
+                                    address_family=[
+                                        dict(
+                                            afi="inet6",
+                                            af_type=[
+                                                dict(
+                                                    type="unicast",
+                                                    prefix_limit=dict(
+                                                        maximum=160,
+                                                        limit_threshold=49,
+                                                    ),
+                                                ),
+                                            ],
+                                        ),
+                                    ],
+                                    neighbors=[
+                                        dict(
+                                            neighbor_address="14.14.14.14",
+                                            address_family=[
+                                                dict(
+                                                    afi="inet",
+                                                    af_type=[dict(type="unicast", no_install=True)],
+                                                ),
+                                            ],
+                                        ),
+                                    ],
+                                ),
+                                dict(
+                                    name="ANSIBLE_GROUP_TEST3",
+                                    address_family=[
+                                        dict(
+                                            afi="inet",
+                                            af_type=[dict(type="unicast", damping=True)],
+                                        ),
+                                    ],
+                                ),
+                            ],
+                        ),
+                        state=state,
+                    ),
+                )
+                result = self.execute_module(changed=state != "rendered")
+                xml = result["rendered"] if state == "rendered" else "".join(result["commands"])
+                for name in ("ANSIBLE_GROUP_TEST1", "ANSIBLE_GROUP_TEST2", "ANSIBLE_GROUP_TEST3"):
+                    self.assertEqual(xml.count("<nc:name>%s</nc:name>" % name), 1, name)
+                self.assertIn("<nc:maximum>260</nc:maximum>", xml)
+                self.assertIn("<nc:maximum>160</nc:maximum>", xml)
+                self.assertIn("<nc:no-install/>", xml)
+                self.assertIn("<nc:damping/>", xml)
 
     """
     def test_junos_bgp_address_family_merged_idempotent(self):

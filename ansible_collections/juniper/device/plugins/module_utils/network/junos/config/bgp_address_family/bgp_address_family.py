@@ -259,7 +259,7 @@ class Bgp_address_family(ConfigBase):
                         w_naf_list = neighbor.get("address_family")
                         self.render_af(w_naf_list, n_family_root)
 
-            family_xml.append(groups_node)
+                family_xml.append(groups_node)
 
         family_xml.append(family_root)
 
