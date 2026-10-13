@@ -742,6 +742,16 @@ class Bgp_global(ConfigBase):
                         {"delete": "delete"},
                     )
 
+                if multipath.get("allow_external_internal") is True:
+                    build_child_xml_node(multipath_node, "allow-external-internal")
+                elif multipath.get("allow_external_internal") is False:
+                    build_child_xml_node(
+                        multipath_node,
+                        "allow-external-internal",
+                        None,
+                        {"delete": "delete"},
+                    )
+
                 if multipath.get("multiple_as") is False:
                     build_child_xml_node(
                         multipath_node,

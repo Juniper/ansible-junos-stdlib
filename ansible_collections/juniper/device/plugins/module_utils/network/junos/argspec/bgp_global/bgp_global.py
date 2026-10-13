@@ -441,6 +441,7 @@ class Bgp_globalArgs(object):  # pylint: disable=R0903
                         },
                         "multipath": {
                             "options": {
+                                "allow_external_internal": {"type": "bool"},
                                 "disable": {"type": "bool"},
                                 "multiple_as": {"type": "bool"},
                                 "multiple_as_disable": {"type": "bool"},
@@ -717,6 +718,9 @@ class Bgp_globalArgs(object):  # pylint: disable=R0903
                                 },
                                 "multipath": {
                                     "options": {
+                                        "allow_external_internal": {
+                                            "type": "bool",
+                                        },
                                         "disable": {"type": "bool"},
                                         "multiple_as": {"type": "bool"},
                                         "multiple_as_disable": {
@@ -1049,6 +1053,7 @@ class Bgp_globalArgs(object):  # pylint: disable=R0903
                 },
                 "multipath": {
                     "options": {
+                        "allow_external_internal": {"type": "bool"},
                         "disable": {"type": "bool"},
                         "multiple_as": {"type": "bool"},
                         "multiple_as_disable": {"type": "bool"},

@@ -466,6 +466,9 @@ options:
           set:
             description: Set allow load sharing among multiple BGP paths.
             type: bool
+          allow_external_internal:
+            description: Combine external and internal paths into the multipath set (Junos 23.4R1 and later).
+            type: bool
           disable:
             description: Disable Multipath.
             type: bool

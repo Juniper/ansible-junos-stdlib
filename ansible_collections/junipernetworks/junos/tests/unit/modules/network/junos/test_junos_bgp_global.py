@@ -328,6 +328,15 @@ class TestJunosBgp_globalModule(TestJunosModule):
         test_cases = (
             (dict(set=True), "<nc:multipath/>"),
             (dict(disable=True), "<nc:multipath><nc:disable/></nc:multipath>"),
+            (
+                dict(allow_external_internal=True),
+                "<nc:multipath><nc:allow-external-internal/></nc:multipath>",
+            ),
+            (
+                dict(allow_external_internal=False),
+                '<nc:multipath><nc:allow-external-internal delete="delete"/>'
+                "</nc:multipath>",
+            ),
             (dict(multiple_as=True), "<nc:multipath><nc:multiple-as/></nc:multipath>"),
             (
                 dict(multiple_as_disable=True),
@@ -355,6 +364,69 @@ class TestJunosBgp_globalModule(TestJunosModule):
                 )
                 result = self.execute_module(changed=False)
                 self.assertEqual(result["rendered"], prefix + expected_xml + suffix)
+
+    def test_junos_bgp_global_rendered_multipath_group_and_neighbor(self):
+        set_module_args(
+            dict(
+                config=dict(
+                    groups=[
+                        dict(
+                            name="TEST",
+                            multipath=dict(allow_external_internal=True),
+                            neighbors=[
+                                dict(
+                                    neighbor_address="10.0.0.1",
+                                    multipath=dict(allow_external_internal=True),
+                                ),
+                            ],
+                        ),
+                    ],
+                ),
+                state="rendered",
+            ),
+        )
+        rendered = (
+            '<nc:protocols xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"><nc:bgp>'
+            "<nc:group><nc:name>TEST</nc:name><nc:multipath><nc:allow-external-internal/>"
+            "</nc:multipath><nc:neighbor><nc:name>10.0.0.1</nc:name><nc:multipath>"
+            "<nc:allow-external-internal/></nc:multipath></nc:neighbor></nc:group>"
+            "</nc:bgp></nc:protocols>"
+        )
+        result = self.execute_module(changed=False)
+        self.assertEqual(result["rendered"], rendered)
+
+    def test_junos_bgp_global_rendered_multipath_allow_external_internal_false(self):
+        set_module_args(
+            dict(
+                config=dict(
+                    multipath=dict(allow_external_internal=False),
+                    groups=[
+                        dict(
+                            name="TEST",
+                            multipath=dict(allow_external_internal=False),
+                            neighbors=[
+                                dict(
+                                    neighbor_address="10.0.0.1",
+                                    multipath=dict(allow_external_internal=False),
+                                ),
+                            ],
+                        ),
+                    ],
+                ),
+                state="rendered",
+            ),
+        )
+        rendered = (
+            '<nc:protocols xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"><nc:bgp>'
+            '<nc:multipath><nc:allow-external-internal delete="delete"/></nc:multipath>'
+            "<nc:group><nc:name>TEST</nc:name><nc:multipath>"
+            '<nc:allow-external-internal delete="delete"/></nc:multipath>'
+            "<nc:neighbor><nc:name>10.0.0.1</nc:name><nc:multipath>"
+            '<nc:allow-external-internal delete="delete"/></nc:multipath></nc:neighbor>'
+            "</nc:group></nc:bgp></nc:protocols>"
+        )
+        result = self.execute_module(changed=False)
+        self.assertEqual(result["rendered"], rendered)
 
     def test_junos_bgp_global_merged_multipath_multiple_as(self):
         set_module_args(
@@ -1119,6 +1191,42 @@ class TestJunosBgp_globalModule(TestJunosModule):
         self.assertEqual(
             group["neighbors"][0]["apply_groups"],
             ["NB_GLOBAL", "BGP_BASIC"],
+        )
+
+    def test_junos_bgp_global_parsed_multipath_allow_external_internal(self):
+        parsed_str = """
+            <rpc-reply message-id="urn:uuid:0cadb4e8-5bba-47f4-986e-72906227007f">
+                <configuration>
+                    <protocols>
+                        <bgp>
+                            <multipath>
+                                <allow-external-internal/>
+                            </multipath>
+                            <group>
+                                <name>TEST</name>
+                                <multipath>
+                                    <allow-external-internal/>
+                                </multipath>
+                                <neighbor>
+                                    <name>10.0.0.1</name>
+                                    <multipath>
+                                        <allow-external-internal/>
+                                    </multipath>
+                                </neighbor>
+                            </group>
+                        </bgp>
+                    </protocols>
+                </configuration>
+            </rpc-reply>
+        """
+        set_module_args(dict(running_config=parsed_str, state="parsed"))
+        result = self.execute_module(changed=False)
+        parsed = result["parsed"]
+        self.assertTrue(parsed["multipath"]["allow_external_internal"])
+        group = parsed["groups"][0]
+        self.assertTrue(group["multipath"]["allow_external_internal"])
+        self.assertTrue(
+            group["neighbors"][0]["multipath"]["allow_external_internal"],
         )
 
     def test_junos_bgp_global_parsed_inactive_group_and_neighbor(self):

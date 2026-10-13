@@ -735,6 +735,8 @@ class Bgp_globalFacts(object):
             else:
                 if "disable" in multipath.keys():
                     cfg["disable"] = True
+                if "allow-external-internal" in multipath.keys():
+                    cfg["allow_external_internal"] = True
                 if "multiple-as" in multipath.keys():
                     mas = multipath.get("multiple-as")
                     if mas is None:
