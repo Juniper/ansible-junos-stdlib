@@ -288,7 +288,62 @@ class TestJunosBgp_address_familyModule(TestJunosModule):
                 },
             ],
         }
-        self.assertEqual(sorted(parsed_dict), sorted(result["parsed"]))
+        self.assertEqual(parsed_dict, result["parsed"])
+
+    def test_junos_bgp_address_family_prefix_limit_parsed(self):
+        cases = [
+            ("", {}),
+            ("<teardown/>", {"teardown": True}),
+            (
+                "<teardown><limit-threshold>99</limit-threshold></teardown>",
+                {"limit_threshold": 99},
+            ),
+            (
+                "<teardown><idle-timeout/></teardown>",
+                {"idle_timeout": True},
+            ),
+            (
+                "<teardown><limit-threshold>99</limit-threshold>"
+                "<idle-timeout><timeout>2000</timeout></idle-timeout></teardown>",
+                {"limit_threshold": 99, "idle_timeout_value": 2000},
+            ),
+            (
+                "<teardown><limit-threshold>99</limit-threshold>"
+                "<idle-timeout><forever/></idle-timeout></teardown>",
+                {"limit_threshold": 99, "forever": True},
+            ),
+        ]
+        for limit_tag in ("accepted-prefix-limit", "prefix-limit"):
+            for teardown, expected in cases:
+                with self.subTest(limit_tag=limit_tag, teardown=teardown):
+                    parsed_str = (
+                        "<rpc-reply><configuration><protocols><bgp><family><inet><unicast>"
+                        "<{0}><maximum>20</maximum>{1}</{0}>"
+                        "</unicast></inet></family></bgp></protocols></configuration></rpc-reply>"
+                    ).format(limit_tag, teardown)
+                    set_module_args(
+                        dict(running_config=parsed_str, state="parsed"),
+                    )
+                    result = self.execute_module(changed=False)
+                    self.assertEqual(
+                        {
+                            "address_family": [
+                                {
+                                    "afi": "inet",
+                                    "af_type": [
+                                        {
+                                            "type": "unicast",
+                                            limit_tag.replace("-", "_"): {
+                                                "maximum": 20,
+                                                **expected,
+                                            },
+                                        },
+                                    ],
+                                },
+                            ],
+                        },
+                        result["parsed"],
+                    )
 
     def test_junos_bgp_address_family_groups_single_entry_parsed(self):
         parsed_str = """
@@ -1901,7 +1956,7 @@ class TestJunosBgp_address_familyModule(TestJunosModule):
         result = self.execute_module(failed=True)
         self.assertIn("idle_timeout: false cannot be combined", result["msg"])
 
-    def test_junos_bgp_address_family_prefix_limit_facts_include_containers(self):
+    def test_junos_bgp_address_family_prefix_limit_facts_omit_populated_containers(self):
         from ansible_collections.juniper.device.plugins.module_utils.network.junos.facts.bgp_address_family.bgp_address_family import (
             Bgp_address_familyFacts,
         )
@@ -1921,9 +1976,7 @@ class TestJunosBgp_address_familyModule(TestJunosModule):
             ),
             {
                 "maximum": "160",
-                "teardown": True,
                 "limit_threshold": "70",
-                "idle_timeout": True,
                 "idle_timeout_value": "5",
             },
         )
@@ -1939,9 +1992,7 @@ class TestJunosBgp_address_familyModule(TestJunosModule):
                 },
             ),
             {
-                "teardown": True,
                 "limit_threshold": "70",
-                "idle_timeout": True,
                 "forever": True,
             },
         )
