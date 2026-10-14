@@ -259,7 +259,7 @@ class Bgp_address_family(ConfigBase):
                         w_naf_list = neighbor.get("address_family")
                         self.render_af(w_naf_list, n_family_root)
 
-            family_xml.append(groups_node)
+                family_xml.append(groups_node)
 
         family_xml.append(family_root)
 
@@ -277,64 +277,11 @@ class Bgp_address_family(ConfigBase):
                     type_node = build_child_xml_node(nlri_node, type["type"])
                     #  Add node for accepted-prefix-limit
                     if "accepted_prefix_limit" in type.keys():
-                        apl = type.get("accepted_prefix_limit")
-                        # build node for accepted-prefix-limit
-                        apl_node = build_child_xml_node(
+                        self._render_prefix_limit(
                             type_node,
                             "accepted-prefix-limit",
+                            type["accepted_prefix_limit"],
                         )
-                        # Add node for maximum
-                        if "maximum" in apl.keys():
-                            build_child_xml_node(
-                                apl_node,
-                                "maximum",
-                                apl["maximum"],
-                            )
-                        # Add node for teardown
-                        td_node = None
-                        if "limit_threshold" in apl.keys():
-                            td_node = build_child_xml_node(
-                                apl_node,
-                                "teardown",
-                            )
-                            # add node for limit-threshold
-                            build_child_xml_node(
-                                td_node,
-                                "limit-threshold",
-                                apl.get("limit_threshold"),
-                            )
-                        elif "teardown" in apl.keys():
-                            td_node = build_child_xml_node(
-                                apl_node,
-                                "teardown",
-                            )
-                        it_node = None
-                        # Add node for teardown idle_timeout
-                        if "idle_timeout_value" in apl.keys():
-                            it_node = build_child_xml_node(
-                                td_node,
-                                "idle-timeout",
-                            )
-                            # add node for timeout
-                            build_child_xml_node(
-                                it_node,
-                                "timeout",
-                                apl.get("idle_timeout_value"),
-                            )
-
-                        elif "forever" in apl.keys():
-                            if it_node is None:
-                                it_node = build_child_xml_node(
-                                    td_node,
-                                    "idle-timeout",
-                                )
-                            if it_node is not None:
-                                it_node = build_child_xml_node(
-                                    td_node,
-                                    "idle-timeout",
-                                )
-                            # add forever node
-                            build_child_xml_node(it_node, "forever")
 
                     #  Add node for add-path
                     if "add_path" in type.keys():
@@ -524,6 +471,12 @@ class Bgp_address_family(ConfigBase):
                             # build node for explicit_null
                             build_child_xml_node(type_node, "explicit-null")
 
+                    # one node per policy to preserve the chain order
+                    for policy in type.get("export") or []:
+                        build_child_xml_node(type_node, "export", policy)
+                    for policy in type.get("import") or []:
+                        build_child_xml_node(type_node, "import", policy)
+
                     #  add node extended-nexthop
                     if "extended_nexthop" in type.keys():
                         enh = type.get("extended_nexthop")
@@ -636,50 +589,11 @@ class Bgp_address_family(ConfigBase):
 
                     #  Add node for prefix-limit
                     if "prefix_limit" in type.keys():
-                        pl = type.get("prefix_limit")
-                        # build node for prefix-limit
-                        pl_node = build_child_xml_node(
+                        self._render_prefix_limit(
                             type_node,
                             "prefix-limit",
+                            type["prefix_limit"],
                         )
-                        # Add node for maximum
-                        if "maximum" in pl.keys():
-                            build_child_xml_node(
-                                pl_node,
-                                "maximum",
-                                pl["maximum"],
-                            )
-                        # Add node for teardown
-                        td_node = None
-                        if "limit_threshold" in pl.keys():
-                            td_node = build_child_xml_node(
-                                pl_node,
-                                "teardown",
-                                pl.get("limit_threshold"),
-                            )
-                        elif "teardown" in pl.keys():
-                            td_node = build_child_xml_node(pl_node, "teardown")
-                        it_node = None
-                        # Add node for teardown idle_timeout
-                        if "idle_timeout_value" in pl.keys():
-                            it_node = build_child_xml_node(
-                                td_node,
-                                "idle-timeout",
-                                pl.get("idle_timeout_value"),
-                            )
-                        elif "idle_timeout" in pl.keys():
-                            it_node = build_child_xml_node(
-                                td_node,
-                                "idle-timeout",
-                            )
-                        if "forever" in pl.keys():
-                            if it_node is None:
-                                it_node = build_child_xml_node(
-                                    td_node,
-                                    "idle-timeout",
-                                )
-                            # add forever node
-                            build_child_xml_node(it_node, "forever")
 
                     # add resolve-vpn
                     if "resolve_vpn" in type.keys():
@@ -798,6 +712,112 @@ class Bgp_address_family(ConfigBase):
                             "labeled_path",
                         ):
                             build_child_xml_node(ts_node, "labeled-path")
+
+    def _render_prefix_limit(self, type_node, element_name, prefix_limit):
+        if (
+            prefix_limit.get("teardown") is False
+            and (
+                "limit_threshold" in prefix_limit
+                or prefix_limit.get("idle_timeout") is True
+                or "idle_timeout_value" in prefix_limit
+                or prefix_limit.get("forever") is True
+            )
+        ):
+            self._module.fail_json(
+                msg=(
+                    "teardown: false cannot be combined with limit_threshold, "
+                    "idle_timeout, idle_timeout_value, or forever"
+                ),
+            )
+        if (
+            prefix_limit.get("idle_timeout") is False
+            and (
+                "idle_timeout_value" in prefix_limit
+                or prefix_limit.get("forever") is True
+            )
+        ):
+            self._module.fail_json(
+                msg=(
+                    "idle_timeout: false cannot be combined with idle_timeout_value "
+                    "or forever: true"
+                ),
+            )
+        if prefix_limit.get("forever") is True and "idle_timeout_value" in prefix_limit:
+            self._module.fail_json(
+                msg="forever: true cannot be combined with idle_timeout_value",
+            )
+
+        prefix_limit_node = build_child_xml_node(type_node, element_name)
+        if "maximum" in prefix_limit:
+            build_child_xml_node(
+                prefix_limit_node,
+                "maximum",
+                prefix_limit["maximum"],
+            )
+
+        if prefix_limit.get("teardown") is False:
+            build_child_xml_node(
+                prefix_limit_node,
+                "teardown",
+                None,
+                {"delete": "delete"},
+            )
+            return
+
+        has_teardown_config = any(
+            key in prefix_limit
+            for key in (
+                "limit_threshold",
+                "teardown",
+                "idle_timeout",
+                "idle_timeout_value",
+                "forever",
+            )
+        )
+        if not has_teardown_config:
+            return
+
+        teardown_node = build_child_xml_node(prefix_limit_node, "teardown")
+        if "limit_threshold" in prefix_limit:
+            build_child_xml_node(
+                teardown_node,
+                "limit-threshold",
+                prefix_limit["limit_threshold"],
+            )
+
+        if prefix_limit.get("idle_timeout") is False:
+            build_child_xml_node(
+                teardown_node,
+                "idle-timeout",
+                None,
+                {"delete": "delete"},
+            )
+        elif "idle_timeout_value" in prefix_limit:
+            idle_timeout_node = build_child_xml_node(teardown_node, "idle-timeout")
+            build_child_xml_node(
+                idle_timeout_node,
+                "timeout",
+                prefix_limit["idle_timeout_value"],
+            )
+            if prefix_limit.get("forever") is False:
+                build_child_xml_node(
+                    idle_timeout_node,
+                    "forever",
+                    None,
+                    {"delete": "delete"},
+                )
+        elif prefix_limit.get("forever") is True:
+            idle_timeout_node = build_child_xml_node(teardown_node, "idle-timeout")
+            build_child_xml_node(idle_timeout_node, "forever")
+        elif prefix_limit.get("idle_timeout") is True or prefix_limit.get("forever") is False:
+            idle_timeout_node = build_child_xml_node(teardown_node, "idle-timeout")
+            if prefix_limit.get("forever") is False:
+                build_child_xml_node(
+                    idle_timeout_node,
+                    "forever",
+                    None,
+                    {"delete": "delete"},
+                )
 
     def _state_deleted(self, want, have):
         """The command generator when state is deleted

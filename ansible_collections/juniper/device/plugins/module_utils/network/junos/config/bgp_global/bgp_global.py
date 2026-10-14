@@ -306,8 +306,10 @@ class Bgp_global(ConfigBase):
                 # Generate commands for each group in group list
                 for group in groups:
                     groups_node = build_child_xml_node(bgp_root, "group")
-                    if group.get("inactive"):
+                    if group.get("inactive") is True:
                         groups_node.set("inactive", "inactive")
+                    elif group.get("inactive") is False:
+                        groups_node.set("active", "active")
                     build_child_xml_node(groups_node, "name", group["name"])
                     self._add_apply_groups(groups_node, group)
                     # Parse the boolean value attributes
@@ -341,8 +343,10 @@ class Bgp_global(ConfigBase):
                                 groups_node,
                                 "neighbor",
                             )
-                            if neighbor.get("inactive"):
+                            if neighbor.get("inactive") is True:
                                 neighbors_node.set("inactive", "inactive")
+                            elif neighbor.get("inactive") is False:
+                                neighbors_node.set("active", "active")
                             build_child_xml_node(
                                 neighbors_node,
                                 "name",
@@ -689,12 +693,167 @@ class Bgp_global(ConfigBase):
             build_child_xml_node(local_as_node, "as-number", local_as["as_num"])
             if local_as.get("alias"):
                 build_child_xml_node(local_as_node, "alias")
+            elif local_as.get("alias") is False:
+                build_child_xml_node(
+                    local_as_node,
+                    "alias",
+                    None,
+                    {"delete": "delete"},
+                )
             if local_as.get("private"):
                 build_child_xml_node(local_as_node, "private")
+            elif local_as.get("private") is False:
+                build_child_xml_node(
+                    local_as_node,
+                    "private",
+                    None,
+                    {"delete": "delete"},
+                )
             if local_as.get("loops") is not None:
                 build_child_xml_node(local_as_node, "loops", local_as["loops"])
             if local_as.get("no_prepend_global_as"):
                 build_child_xml_node(local_as_node, "no-prepend-global-as")
+            elif local_as.get("no_prepend_global_as") is False:
+                build_child_xml_node(
+                    local_as_node,
+                    "no-prepend-global-as",
+                    None,
+                    {"delete": "delete"},
+                )
+
+        if want.get("multipath"):
+            multipath = want.get("multipath")
+            if multipath.get("set") is False:
+                build_child_xml_node(
+                    bgp_root,
+                    "multipath",
+                    None,
+                    {"delete": "delete"},
+                )
+            else:
+                multipath_node = build_child_xml_node(bgp_root, "multipath")
+                if multipath.get("disable") is True:
+                    build_child_xml_node(multipath_node, "disable")
+                elif multipath.get("disable") is False:
+                    build_child_xml_node(
+                        multipath_node,
+                        "disable",
+                        None,
+                        {"delete": "delete"},
+                    )
+
+                if multipath.get("allow_external_internal") is True:
+                    build_child_xml_node(multipath_node, "allow-external-internal")
+                elif multipath.get("allow_external_internal") is False:
+                    build_child_xml_node(
+                        multipath_node,
+                        "allow-external-internal",
+                        None,
+                        {"delete": "delete"},
+                    )
+
+                if multipath.get("multiple_as") is False:
+                    build_child_xml_node(
+                        multipath_node,
+                        "multiple-as",
+                        None,
+                        {"delete": "delete"},
+                    )
+                elif (
+                    multipath.get("multiple_as") is True
+                    or multipath.get("multiple_as_disable") is not None
+                ):
+                    multiple_as_node = build_child_xml_node(
+                        multipath_node,
+                        "multiple-as",
+                    )
+                    if multipath.get("multiple_as_disable") is True:
+                        build_child_xml_node(multiple_as_node, "disable")
+                    elif multipath.get("multiple_as_disable") is False:
+                        build_child_xml_node(
+                            multiple_as_node,
+                            "disable",
+                            None,
+                            {"delete": "delete"},
+                        )
+
+        # Generate config commands for multihop
+        if want.get("multihop"):
+            multihop = want.get("multihop")
+            if multihop.get("set") is False:
+                # Explicit set false removes the multihop configuration.
+                build_child_xml_node(
+                    bgp_root,
+                    "multihop",
+                    None,
+                    {"delete": "delete"},
+                )
+            else:
+                multihop_node = build_child_xml_node(bgp_root, "multihop")
+                if multihop.get("ttl") is not None:
+                    build_child_xml_node(
+                        multihop_node,
+                        "ttl",
+                        multihop.get("ttl"),
+                    )
+                if multihop.get("no_nexthop_change"):
+                    build_child_xml_node(multihop_node, "no-nexthop-change")
+
+        # Generate config commands for remove-private
+        if want.get("remove_private"):
+            remove_private = want.get("remove_private")
+            if remove_private.get("set") is False:
+                # Explicit set false removes the remove-private configuration.
+                build_child_xml_node(
+                    bgp_root,
+                    "remove-private",
+                    None,
+                    {"delete": "delete"},
+                )
+            else:
+                rp_node = build_child_xml_node(bgp_root, "remove-private")
+                if remove_private.get("all_replace_nearest") is True:
+                    all_node = build_child_xml_node(rp_node, "all")
+                    replace_node = build_child_xml_node(all_node, "replace")
+                    build_child_xml_node(replace_node, "nearest")
+                elif remove_private.get("all_replace_nearest") is False:
+                    all_node = build_child_xml_node(rp_node, "all")
+                    replace_node = build_child_xml_node(all_node, "replace")
+                    build_child_xml_node(
+                        replace_node,
+                        "nearest",
+                        None,
+                        {"delete": "delete"},
+                    )
+                elif remove_private.get("all_replace") is True:
+                    all_node = build_child_xml_node(rp_node, "all")
+                    build_child_xml_node(all_node, "replace")
+                elif remove_private.get("all_replace") is False:
+                    all_node = build_child_xml_node(rp_node, "all")
+                    build_child_xml_node(
+                        all_node,
+                        "replace",
+                        None,
+                        {"delete": "delete"},
+                    )
+                elif remove_private.get("all") is True:
+                    build_child_xml_node(rp_node, "all")
+                elif remove_private.get("all") is False:
+                    build_child_xml_node(
+                        rp_node,
+                        "all",
+                        None,
+                        {"delete": "delete"},
+                    )
+                if remove_private.get("no_peer_loop_check") is True:
+                    build_child_xml_node(rp_node, "no-peer-loop-check")
+                elif remove_private.get("no_peer_loop_check") is False:
+                    build_child_xml_node(
+                        rp_node,
+                        "no-peer-loop-check",
+                        None,
+                        {"delete": "delete"},
+                    )
 
     def _add_apply_groups(self, node, config):
         for apply_group in config.get("apply_groups", []):
@@ -948,7 +1107,14 @@ class Bgp_global(ConfigBase):
         else:
             if w_key in want.keys():
                 b_val = want.get(w_key)
-                if b_val is not None:
-                    if b_val is True:
-                        build_child_xml_node(node, h_key)
+                if b_val is True:
+                    build_child_xml_node(node, h_key)
+                elif b_val is False:
+                    # Explicit false removes the option from the device.
+                    build_child_xml_node(
+                        node,
+                        h_key,
+                        None,
+                        {"delete": "delete"},
+                    )
         return node

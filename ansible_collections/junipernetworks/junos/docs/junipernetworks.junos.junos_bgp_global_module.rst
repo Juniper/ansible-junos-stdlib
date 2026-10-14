@@ -3789,6 +3789,27 @@ Parameters
                     <td class="elbow-placeholder"></td>
                 <td colspan="5">
                     <div class="ansibleOptionAnchor" id="parameter-"></div>
+                    <b>inactive</b>
+                    <a class="ansibleOptionLink" href="#parameter-" title="Permalink to this option"></a>
+                    <div style="font-size: small">
+                        <span style="color: purple">boolean</span>
+                    </div>
+                </td>
+                <td>
+                        <ul style="margin: 0; padding: 0"><b>Choices:</b>
+                                    <li>no</li>
+                                    <li>yes</li>
+                        </ul>
+                </td>
+                <td>
+                        <div>Deactivate this BGP group.</div>
+                </td>
+            </tr>
+            <tr>
+                    <td class="elbow-placeholder"></td>
+                    <td class="elbow-placeholder"></td>
+                <td colspan="5">
+                    <div class="ansibleOptionAnchor" id="parameter-"></div>
                     <b>neighbors</b>
                     <a class="ansibleOptionLink" href="#parameter-" title="Permalink to this option"></a>
                     <div style="font-size: small">
@@ -6011,6 +6032,28 @@ Parameters
                 </td>
                 <td>
                         <div>Specify neighbor address.</div>
+                </td>
+            </tr>
+            <tr>
+                    <td class="elbow-placeholder"></td>
+                    <td class="elbow-placeholder"></td>
+                    <td class="elbow-placeholder"></td>
+                <td colspan="4">
+                    <div class="ansibleOptionAnchor" id="parameter-"></div>
+                    <b>inactive</b>
+                    <a class="ansibleOptionLink" href="#parameter-" title="Permalink to this option"></a>
+                    <div style="font-size: small">
+                        <span style="color: purple">boolean</span>
+                    </div>
+                </td>
+                <td>
+                        <ul style="margin: 0; padding: 0"><b>Choices:</b>
+                                    <li>no</li>
+                                    <li>yes</li>
+                        </ul>
+                </td>
+                <td>
+                    <div>Deactivate this BGP neighbor.</div>
                 </td>
             </tr>
             <tr>
@@ -10575,6 +10618,10 @@ Notes
    - This module works with connection ``netconf``. See `the Junos OS Platform Options <../network/user_guide/platform_junos.html>`_.
    - Tested against JunOS v18.4R1
 
+.. note::
+
+    In ``state: merged``, explicitly setting a supported boolean option to ``false`` deletes that option. This includes ``multihop.set: false``, ``remove_private.set: false``, and boolean BGP attributes. For ``inactive``, setting the value to ``false`` activates the group or neighbor.
+
 
 
 Examples
@@ -10690,6 +10737,52 @@ Examples
     # }
     # add-path-display-ipv4-address;
     # egress-te-sid-stats;
+
+        - name: Merge neighbor multihop and remove-private config
+            junipernetworks.junos.junos_bgp_global:
+                config:
+                    as_number: "65100"
+                    groups:
+                        - name: ANSIBLE_TEST
+                            neighbors:
+                                - neighbor_address: 10.0.11.0
+                                    peer_as: "65101"
+                                    multihop:
+                                        set: true
+                                        ttl: 5
+                                    remove_private:
+                                        set: true
+                state: merged
+
+        # Task Output:
+        # ------------
+        # commands:
+        # - '<nc:protocols xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"><nc:bgp><nc:group>
+        #   <nc:name>ANSIBLE_TEST</nc:name><nc:neighbor><nc:name>10.0.11.0</nc:name>
+        #   <nc:peer-as>65101</nc:peer-as><nc:multihop><nc:ttl>5</nc:ttl></nc:multihop>
+        #   <nc:remove-private/></nc:neighbor></nc:group></nc:bgp></nc:protocols>'
+        # - '<nc:routing-options xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">
+        #   <nc:autonomous-system>65100</nc:autonomous-system></nc:routing-options>'
+
+        - name: Remove a boolean option by setting it to false (deletes as-override)
+            junipernetworks.junos.junos_bgp_global:
+                config:
+                    as_number: "65100"
+                    groups:
+                        - name: ANSIBLE_TEST
+                            neighbors:
+                                - neighbor_address: 10.0.11.0
+                                    peer_as: "65101"
+                                    as_override: false
+                state: merged
+
+        # Task Output:
+        # ------------
+        # commands:
+        # - '<nc:protocols xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"><nc:bgp><nc:group>
+        #   <nc:name>ANSIBLE_TEST</nc:name><nc:neighbor><nc:name>10.0.11.0</nc:name>
+        #   <nc:as-override delete="delete"/><nc:peer-as>65101</nc:peer-as></nc:neighbor>
+        #   </nc:group></nc:bgp></nc:protocols>'
 
     # Using replaced
     #

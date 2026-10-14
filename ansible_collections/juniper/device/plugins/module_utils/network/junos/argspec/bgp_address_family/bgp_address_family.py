@@ -144,12 +144,14 @@ class Bgp_address_familyArgs(object):  # pylint: disable=R0903
                                     },
                                     "type": "dict",
                                 },
+                                "export": {"elements": "str", "type": "list"},
                                 "extended_nexthop": {"type": "bool"},
                                 "extended_nexthop_color": {"type": "bool"},
                                 "graceful_restart_forwarding_state_bit": {
                                     "choices": ["from-fib", "set"],
                                     "type": "str",
                                 },
+                                "import": {"elements": "str", "type": "list"},
                                 "legacy_redirect_ip_action": {
                                     "options": {
                                         "receive": {"type": "bool"},
@@ -391,6 +393,10 @@ class Bgp_address_familyArgs(object):  # pylint: disable=R0903
                                             },
                                             "type": "dict",
                                         },
+                                        "export": {
+                                            "elements": "str",
+                                            "type": "list",
+                                        },
                                         "extended_nexthop": {"type": "bool"},
                                         "extended_nexthop_color": {
                                             "type": "bool",
@@ -398,6 +404,10 @@ class Bgp_address_familyArgs(object):  # pylint: disable=R0903
                                         "graceful_restart_forwarding_state_bit": {
                                             "choices": ["from-fib", "set"],
                                             "type": "str",
+                                        },
+                                        "import": {
+                                            "elements": "str",
+                                            "type": "list",
                                         },
                                         "legacy_redirect_ip_action": {
                                             "options": {
@@ -686,6 +696,10 @@ class Bgp_address_familyArgs(object):  # pylint: disable=R0903
                                                     },
                                                     "type": "dict",
                                                 },
+                                                "export": {
+                                                    "elements": "str",
+                                                    "type": "list",
+                                                },
                                                 "extended_nexthop": {
                                                     "type": "bool",
                                                 },
@@ -698,6 +712,10 @@ class Bgp_address_familyArgs(object):  # pylint: disable=R0903
                                                         "set",
                                                     ],
                                                     "type": "str",
+                                                },
+                                                "import": {
+                                                    "elements": "str",
+                                                    "type": "list",
                                                 },
                                                 "legacy_redirect_ip_action": {
                                                     "options": {

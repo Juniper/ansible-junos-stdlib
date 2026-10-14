@@ -244,6 +244,12 @@ options:
                   connected_only:
                     description: Advertise explicit null only for connected routes.
                     type: bool
+              export:
+                description:
+                  - Export policy names applied to this address family.
+                  - Policies are evaluated in the order given.
+                type: list
+                elements: str
               extended_nexthop:
                 description: Enable extended nexthop encoding.
                 type: bool
@@ -254,6 +260,12 @@ options:
                 description: Specify BGP graceful restart options.
                 type: str
                 choices: ['from-fib', 'set']
+              import:
+                description:
+                  - Import policy names applied to this address family.
+                  - Policies are evaluated in the order given.
+                type: list
+                elements: str
               local_ipv4_address:
                 description: Specify local IPv4 address.
                 type: str

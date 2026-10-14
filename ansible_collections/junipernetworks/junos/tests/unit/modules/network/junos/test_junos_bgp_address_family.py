@@ -1725,13 +1725,226 @@ class TestJunosBgp_address_familyModule(TestJunosModule):
             '<nc:protocols xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">'
             "<nc:bgp><nc:family><nc:evpn><nc:signaling><nc:accepted-prefix-limit>"
             "<nc:maximum>20</nc:maximum><nc:teardown><nc:limit-threshold>98</nc:limit-threshold>"
-            "<nc:idle-timeout/><nc:idle-timeout><nc:forever/></nc:idle-timeout></nc:teardown>"
+            "<nc:idle-timeout><nc:forever/></nc:idle-timeout></nc:teardown>"
             "</nc:accepted-prefix-limit></nc:signaling></nc:evpn></nc:family></nc:bgp></nc:protocols>",
             '<nc:routing-options xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"/>',
         ]
 
         result = self.execute_module(changed=True)
         self.assertEqual(sorted(result["commands"]), sorted(commands))
+
+    def test_junos_bgp_address_family_prefix_limit_false_options(self):
+        set_module_args(
+            dict(
+                config=dict(
+                    address_family=[
+                        dict(
+                            afi="inet",
+                            af_type=[
+                                dict(
+                                    type="unicast",
+                                    prefix_limit=dict(
+                                        maximum=160,
+                                        teardown=False,
+                                    ),
+                                ),
+                                dict(
+                                    type="multicast",
+                                    prefix_limit=dict(
+                                        maximum=260,
+                                        teardown=True,
+                                        limit_threshold=70,
+                                        idle_timeout_value=5,
+                                        forever=False,
+                                    ),
+                                ),
+                                dict(
+                                    type="any",
+                                    prefix_limit=dict(
+                                        maximum=360,
+                                        limit_threshold=80,
+                                        idle_timeout=False,
+                                    ),
+                                ),
+                                dict(
+                                    type="flow",
+                                    accepted_prefix_limit=dict(
+                                        maximum=460,
+                                        teardown=False,
+                                    ),
+                                ),
+                            ],
+                        ),
+                    ],
+                ),
+                state="rendered",
+            ),
+        )
+        rendered = (
+            '<nc:protocols xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">'
+            '<nc:bgp><nc:family><nc:inet><nc:unicast><nc:prefix-limit>'
+            '<nc:maximum>160</nc:maximum><nc:teardown delete="delete"/>'
+            '</nc:prefix-limit></nc:unicast><nc:multicast><nc:prefix-limit>'
+            '<nc:maximum>260</nc:maximum><nc:teardown><nc:limit-threshold>70</nc:limit-threshold>'
+            '<nc:idle-timeout><nc:timeout>5</nc:timeout><nc:forever delete="delete"/>'
+            '</nc:idle-timeout></nc:teardown></nc:prefix-limit></nc:multicast>'
+            '<nc:any><nc:prefix-limit><nc:maximum>360</nc:maximum><nc:teardown>'
+            '<nc:limit-threshold>80</nc:limit-threshold>'
+            '<nc:idle-timeout delete="delete"/></nc:teardown></nc:prefix-limit></nc:any>'
+            '<nc:flow><nc:accepted-prefix-limit><nc:maximum>460</nc:maximum>'
+            '<nc:teardown delete="delete"/></nc:accepted-prefix-limit></nc:flow>'
+            '</nc:inet></nc:family></nc:bgp></nc:protocols>'
+        )
+        result = self.execute_module(changed=False)
+        self.assertEqual(result["rendered"], rendered)
+
+    def test_junos_bgp_address_family_prefix_limit_rejects_conflicts(self):
+        for prefix_limit, expected_message in (
+            (
+                dict(maximum=160, teardown=False, limit_threshold=70),
+                "teardown: false cannot be combined",
+            ),
+            (
+                dict(maximum=160, limit_threshold=70, idle_timeout_value=5, forever=True),
+                "forever: true cannot be combined with idle_timeout_value",
+            ),
+        ):
+            with self.subTest(prefix_limit=prefix_limit):
+                set_module_args(
+                    dict(
+                        config=dict(
+                            address_family=[
+                                dict(
+                                    afi="inet",
+                                    af_type=[
+                                        dict(type="unicast", prefix_limit=prefix_limit),
+                                    ],
+                                ),
+                            ],
+                        ),
+                        state="rendered",
+                    ),
+                )
+                result = self.execute_module(failed=True)
+                self.assertIn(expected_message, result["msg"])
+
+    def test_junos_bgp_address_family_prefix_limit_idle_timeout_without_teardown(self):
+        # Issue 895: idle-timeout options alone must create the teardown parent.
+        cases = (
+            (
+                dict(maximum=160, idle_timeout_value=5),
+                "<nc:teardown><nc:idle-timeout><nc:timeout>5</nc:timeout>"
+                "</nc:idle-timeout></nc:teardown>",
+            ),
+            (
+                dict(maximum=160, idle_timeout=True),
+                "<nc:teardown><nc:idle-timeout/></nc:teardown>",
+            ),
+            (
+                dict(maximum=160, forever=True),
+                "<nc:teardown><nc:idle-timeout><nc:forever/></nc:idle-timeout></nc:teardown>",
+            ),
+        )
+        for option in ("prefix_limit", "accepted_prefix_limit"):
+            element = option.replace("_", "-")
+            for limit, teardown_xml in cases:
+                with self.subTest(option=option, limit=limit):
+                    set_module_args(
+                        dict(
+                            config=dict(
+                                groups=[
+                                    dict(
+                                        name="ANSIBLE_GROUP_TEST",
+                                        address_family=[
+                                            dict(
+                                                afi="inet6",
+                                                af_type=[{"type": "unicast", option: limit}],
+                                            ),
+                                        ],
+                                    ),
+                                ],
+                            ),
+                            state="rendered",
+                        ),
+                    )
+                    result = self.execute_module(changed=False)
+                    self.assertIn(
+                        "<nc:%s><nc:maximum>160</nc:maximum>%s</nc:%s>"
+                        % (element, teardown_xml, element),
+                        result["rendered"],
+                    )
+
+    def test_junos_bgp_address_family_prefix_limit_idle_timeout_false_with_value(self):
+        # Issue 895 log: idle_timeout=False plus idle_timeout_value is a clear error.
+        set_module_args(
+            dict(
+                config=dict(
+                    address_family=[
+                        dict(
+                            afi="inet6",
+                            af_type=[
+                                dict(
+                                    type="unicast",
+                                    prefix_limit=dict(
+                                        maximum=160,
+                                        idle_timeout=False,
+                                        idle_timeout_value=5,
+                                    ),
+                                ),
+                            ],
+                        ),
+                    ],
+                ),
+                state="merged",
+            ),
+        )
+        result = self.execute_module(failed=True)
+        self.assertIn("idle_timeout: false cannot be combined", result["msg"])
+
+    def test_junos_bgp_address_family_prefix_limit_facts_include_containers(self):
+        from ansible_collections.juniper.device.plugins.module_utils.network.junos.facts.bgp_address_family.bgp_address_family import (
+            Bgp_address_familyFacts,
+        )
+
+        parser = Bgp_address_familyFacts(None)
+        self.assertEqual(
+            parser.parse_accepted_prefix_limit(
+                {
+                    "prefix-limit": {
+                        "maximum": "160",
+                        "teardown": {
+                            "limit-threshold": "70",
+                            "idle-timeout": {"timeout": "5"},
+                        },
+                    },
+                },
+            ),
+            {
+                "maximum": "160",
+                "teardown": True,
+                "limit_threshold": "70",
+                "idle_timeout": True,
+                "idle_timeout_value": "5",
+            },
+        )
+        self.assertEqual(
+            parser.parse_accepted_prefix_limit(
+                {
+                    "accepted-prefix-limit": {
+                        "teardown": {
+                            "limit-threshold": "70",
+                            "idle-timeout": {"forever": None},
+                        },
+                    },
+                },
+            ),
+            {
+                "teardown": True,
+                "limit_threshold": "70",
+                "idle_timeout": True,
+                "forever": True,
+            },
+        )
 
     def test_junos_bgp_address_family_config_003(self):
         """
@@ -2555,7 +2768,8 @@ class TestJunosBgp_address_familyModule(TestJunosModule):
         commands = [
             '<nc:protocols xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0">'
             "<nc:bgp><nc:family><nc:inet><nc:labeled-unicast><nc:prefix-limit>"
-            "<nc:maximum>4294967290</nc:maximum><nc:teardown>22<nc:idle-timeout>2200</nc:idle-timeout>"
+            "<nc:maximum>4294967290</nc:maximum><nc:teardown><nc:limit-threshold>22</nc:limit-threshold>"
+            "<nc:idle-timeout><nc:timeout>2200</nc:timeout></nc:idle-timeout>"
             "</nc:teardown></nc:prefix-limit></nc:labeled-unicast>"
             "</nc:inet></nc:family></nc:bgp></nc:protocols>",
             '<nc:routing-options xmlns:nc="urn:ietf:params:xml:ns:netconf:base:1.0"/>',
@@ -2957,6 +3171,201 @@ class TestJunosBgp_address_familyModule(TestJunosModule):
 
         result = self.execute_module(changed=True)
         self.assertEqual(sorted(result["commands"]), sorted(commands))
+
+    def test_junos_bgp_address_family_import_export_global(self):
+        set_module_args(
+            dict(
+                config=dict(
+                    address_family=[
+                        dict(
+                            afi="inet",
+                            af_type=[
+                                dict(
+                                    type="unicast",
+                                    **{
+                                        "import": ["MATCH-COMM-TEST", "ACCEPT-ALL"],
+                                        "export": ["MATCH-COMM-TEST", "REJECT-ALL"],
+                                    },
+                                ),
+                            ],
+                        ),
+                    ],
+                ),
+                state="merged",
+            ),
+        )
+        result = self.execute_module(changed=True)
+        xml = "".join(result["commands"])
+        self.assertIn(
+            "<nc:unicast>"
+            "<nc:export>MATCH-COMM-TEST</nc:export>"
+            "<nc:export>REJECT-ALL</nc:export>"
+            "<nc:import>MATCH-COMM-TEST</nc:import>"
+            "<nc:import>ACCEPT-ALL</nc:import>"
+            "</nc:unicast>",
+            xml,
+        )
+
+    def test_junos_bgp_address_family_import_export_group_and_neighbor(self):
+        set_module_args(
+            dict(
+                config=dict(
+                    groups=[
+                        dict(
+                            name="ANSIBLE_GROUP_TEST",
+                            address_family=[
+                                dict(
+                                    afi="inet6",
+                                    af_type=[
+                                        dict(
+                                            type="multicast",
+                                            **{"import": ["P1", "P2"], "export": ["P3"]},
+                                        ),
+                                    ],
+                                ),
+                            ],
+                            neighbors=[
+                                dict(
+                                    neighbor_address="14.14.14.14",
+                                    address_family=[
+                                        dict(
+                                            afi="inet",
+                                            af_type=[
+                                                dict(
+                                                    type="unicast",
+                                                    **{"import": ["N1"], "export": ["N2", "N3"]},
+                                                ),
+                                            ],
+                                        ),
+                                    ],
+                                ),
+                            ],
+                        ),
+                    ],
+                ),
+                state="merged",
+            ),
+        )
+        result = self.execute_module(changed=True)
+        xml = "".join(result["commands"])
+        self.assertIn(
+            "<nc:inet6><nc:multicast><nc:export>P3</nc:export>"
+            "<nc:import>P1</nc:import><nc:import>P2</nc:import>"
+            "</nc:multicast></nc:inet6>",
+            xml,
+        )
+        self.assertIn(
+            "<nc:inet><nc:unicast><nc:export>N2</nc:export>"
+            "<nc:export>N3</nc:export><nc:import>N1</nc:import>"
+            "</nc:unicast></nc:inet>",
+            xml,
+        )
+
+    def test_junos_bgp_address_family_import_export_parsed(self):
+        parsed_str = """
+            <rpc-reply>
+                <configuration>
+                    <protocols>
+                        <bgp>
+                            <group>
+                                <name>ANSIBLE_GROUP_TEST</name>
+                                <family>
+                                    <inet>
+                                        <unicast>
+                                            <import>MATCH-COMM-TEST</import>
+                                            <import>ACCEPT-ALL</import>
+                                            <export>REJECT-ALL</export>
+                                        </unicast>
+                                    </inet>
+                                </family>
+                            </group>
+                        </bgp>
+                    </protocols>
+                </configuration>
+            </rpc-reply>
+        """
+        set_module_args(dict(running_config=parsed_str, state="parsed"))
+        result = self.execute_module(changed=False)
+        af_type = result["parsed"]["groups"][0]["address_family"][0]["af_type"][0]
+        self.assertEqual(af_type["type"], "unicast")
+        self.assertEqual(af_type["import"], ["MATCH-COMM-TEST", "ACCEPT-ALL"])
+        self.assertEqual(af_type["export"], ["REJECT-ALL"])
+
+    def test_junos_bgp_address_family_multiple_groups(self):
+        # Issue 896: every entry in config.groups must be rendered, not only the last.
+        for state in ("merged", "replaced", "overridden", "rendered"):
+            with self.subTest(state=state):
+                set_module_args(
+                    dict(
+                        config=dict(
+                            groups=[
+                                dict(
+                                    name="ANSIBLE_GROUP_TEST1",
+                                    address_family=[
+                                        dict(
+                                            afi="inet6",
+                                            af_type=[
+                                                dict(
+                                                    type="unicast",
+                                                    prefix_limit=dict(
+                                                        maximum=260,
+                                                        limit_threshold=50,
+                                                    ),
+                                                ),
+                                            ],
+                                        ),
+                                    ],
+                                ),
+                                dict(
+                                    name="ANSIBLE_GROUP_TEST2",
+                                    address_family=[
+                                        dict(
+                                            afi="inet6",
+                                            af_type=[
+                                                dict(
+                                                    type="unicast",
+                                                    prefix_limit=dict(
+                                                        maximum=160,
+                                                        limit_threshold=49,
+                                                    ),
+                                                ),
+                                            ],
+                                        ),
+                                    ],
+                                    neighbors=[
+                                        dict(
+                                            neighbor_address="14.14.14.14",
+                                            address_family=[
+                                                dict(
+                                                    afi="inet",
+                                                    af_type=[dict(type="unicast", no_install=True)],
+                                                ),
+                                            ],
+                                        ),
+                                    ],
+                                ),
+                                dict(
+                                    name="ANSIBLE_GROUP_TEST3",
+                                    address_family=[
+                                        dict(
+                                            afi="inet",
+                                            af_type=[dict(type="unicast", damping=True)],
+                                        ),
+                                    ],
+                                ),
+                            ],
+                        ),
+                        state=state,
+                    ),
+                )
+                result = self.execute_module(changed=state != "rendered")
+                xml = result["rendered"] if state == "rendered" else "".join(result["commands"])
+                for name in ("ANSIBLE_GROUP_TEST1", "ANSIBLE_GROUP_TEST2", "ANSIBLE_GROUP_TEST3"):
+                    self.assertEqual(xml.count("<nc:name>%s</nc:name>" % name), 1, name)
+                self.assertIn("<nc:maximum>260</nc:maximum>", xml)
+                self.assertIn("<nc:maximum>160</nc:maximum>", xml)
+                self.assertIn("<nc:no-install/>", xml)
+                self.assertIn("<nc:damping/>", xml)
 
     """
     def test_junos_bgp_address_family_merged_idempotent(self):
