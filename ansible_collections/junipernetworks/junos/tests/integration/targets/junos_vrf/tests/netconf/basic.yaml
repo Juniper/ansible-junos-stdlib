@@ -10,6 +10,7 @@
 
 - name: Configure vrf and its parameter
   register: result
+  diff: true
   junipernetworks.junos.junos_vrf:
     name: test-1
     description: test-vrf-1
@@ -49,6 +50,7 @@
 
 - name: Change vrf parameter
   register: result
+  diff: true
   junipernetworks.junos.junos_vrf:
     name: test-1
     description: test-vrf-1
@@ -71,6 +73,7 @@
 
 - name: Deactivate vrf
   register: result
+  diff: true
   junipernetworks.junos.junos_vrf:
     name: test-1
     description: test-vrf-1
@@ -96,6 +99,7 @@
 
 - name: Activate vrf
   register: result
+  diff: true
   junipernetworks.junos.junos_vrf:
     name: test-1
     description: test-vrf-1
@@ -121,6 +125,7 @@
 
 - name: Delete vrf
   register: result
+  diff: true
   junipernetworks.junos.junos_vrf:
     name: test-1
     description: test-vrf-1
@@ -169,6 +174,7 @@
 
 - name: Create vrf using aggregate
   register: result
+  diff: true
   junipernetworks.junos.junos_vrf:
     aggregate:
       - name: test-1
@@ -207,6 +213,7 @@
 
 - name: Deactivate vrf configuration using aggregate
   register: result
+  diff: true
   junipernetworks.junos.junos_vrf:
     aggregate:
       - name: test-1
@@ -242,6 +249,7 @@
 
 - name: Deactivate vrf configuration using aggregate
   register: result
+  diff: true
   junipernetworks.junos.junos_vrf:
     aggregate:
       - name: test-1
@@ -277,6 +285,7 @@
 
 - name: Delete vrf configuration using aggregate
   register: result
+  diff: true
   junipernetworks.junos.junos_vrf:
     aggregate:
       - name: test-1

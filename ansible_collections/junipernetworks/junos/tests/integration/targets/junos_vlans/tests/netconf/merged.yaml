@@ -16,6 +16,11 @@
         l3_interface: "irb.12"
 
 - block:
+    - name: Define the l3 interface referenced by the vlan
+      junipernetworks.junos.junos_config:
+        lines:
+          - set interfaces irb unit 12
+
     - name: Merge the provided configuration with the exisiting running configuration
       register: result
       junipernetworks.junos.junos_vlans: &id001

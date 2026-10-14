@@ -3,6 +3,10 @@
     msg="START cli_config/cli_replace.yaml on connection={{ ansible_connection
     }}"
 
+- name: enable SFTP for config file transfer
+  ansible.netcommon.cli_config:
+    config: set system services ssh sftp-server
+
 - name: set interface config
   loop:
     - delete interfaces ge-0/0/11

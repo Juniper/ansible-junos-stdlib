@@ -13,7 +13,6 @@
       - name: ge-0/0/1
         description: Configured by Ansible - Interface 1
         mtu: 1024
-        speed: 100m
         enabled: false
         duplex: full-duplex
         vlan_tagging: false
@@ -24,16 +23,19 @@
       - name: ge-0/0/2
         description: Configured by Ansible - Interface 2
         mtu: 2048
-        speed: 10m
         enabled: true
         vlan_tagging: false
         hold_time:
           up: 3000
           down: 3200
 
-      - name: fxp0
-        enabled: true
-        vlan_tagging: false
+- name: Include speed expectations on classic Junos
+  ansible.builtin.set_fact:
+    expected_merged_output: >-
+      {{ [expected_merged_output[0] | combine({'speed': '100m'}),
+          expected_merged_output[1] | combine({'speed': '10m'}),
+          {'name': 'fxp0', 'enabled': true, 'vlan_tagging': false}] }}
+  when: not is_evo
 
 - block:
     - name: Merge the provided configuration with the exisiting running configuration
@@ -43,7 +45,7 @@
           - name: ge-0/0/1
             description: Configured by Ansible - Interface 1
             mtu: 1024
-            speed: 100m
+            speed: "{{ '100m' if not is_evo else omit }}"
             enabled: false
             duplex: full-duplex
             hold_time:
@@ -52,7 +54,7 @@
           - name: ge-0/0/2
             description: Configured by Ansible - Interface 2
             mtu: 2048
-            speed: 10m
+            speed: "{{ '10m' if not is_evo else omit }}"
             hold_time:
               up: 3000
               down: 3200
@@ -64,10 +66,16 @@
         state: gathered
 
     - name: Assert that facts were correctly generated
+      vars:
+        gathered_interfaces: >-
+          {{ result['gathered'] | selectattr('name', 'in', ['ge-0/0/1', 'ge-0/0/2']) | list
+             if is_evo else result['gathered'] }}
       ansible.builtin.assert:
         that:
-          "{{ expected_merged_output | symmetric_difference(result['gathered']) |length\
+          "{{ expected_merged_output | symmetric_difference(gathered_interfaces) |length\
           \ == 0 }}"
+        fail_msg: >-
+          Expected {{ expected_merged_output }}, gathered {{ gathered_interfaces }}
 
   always:
     - name: Reset configuration

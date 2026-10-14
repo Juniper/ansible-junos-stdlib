@@ -292,6 +292,13 @@ class Bgp_address_familyFacts(object):
             if not nlri:
                 nlri_dict["set"] = True
                 return nlri_dict
+            # Junos EVO wraps some statements (e.g. extended-nexthop) in <undocumented>
+            undocumented = nlri.get("undocumented")
+            if isinstance(undocumented, dict):
+                nlri = dict(nlri)
+                nlri.pop("undocumented")
+                for key, value in undocumented.items():
+                    nlri.setdefault(key, value)
             # Parse accepted-prefix-limit
             if "accepted-prefix-limit" in nlri.keys():
                 apl_dict = self.parse_accepted_prefix_limit(nlri)

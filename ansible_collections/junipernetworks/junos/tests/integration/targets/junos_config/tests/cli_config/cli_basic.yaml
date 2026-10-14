@@ -35,6 +35,7 @@
 
 - name: test rollabck
   register: result
+  diff: true
   ansible.netcommon.cli_config:
     rollback: 1
 
@@ -47,7 +48,7 @@
   ignore_errors: true
   register: result
   ansible.netcommon.cli_config:
-    config: delete system root-authentication
+    config: delete groups global system root-authentication
 
 - ansible.builtin.assert:
     that:

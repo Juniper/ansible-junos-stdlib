@@ -11,7 +11,6 @@
       - name: ge-0/0/1
         description: Configured by Ansible - Interface 1
         mtu: 1024
-        speed: 100m
         enabled: false
         duplex: full-duplex
         vlan_tagging: false
@@ -22,16 +21,19 @@
       - name: ge-0/0/2
         description: Configured by Ansible - Interface 2
         mtu: 2048
-        speed: 10m
         enabled: true
         vlan_tagging: false
         hold_time:
           up: 3000
           down: 3200
 
-      - name: fxp0
-        enabled: true
-        vlan_tagging: false
+- name: Expect speeds and fxp0 on classic Junos
+  ansible.builtin.set_fact:
+    expected_revert_output: >-
+      {{ [expected_revert_output[0] | combine({'speed': '100m'}),
+          expected_revert_output[1] | combine({'speed': '10m'}),
+          {'name': 'fxp0', 'enabled': true, 'vlan_tagging': false}] }}
+  when: not is_evo
 
 - block:
     - name: Apply the provided configuration (base config)
@@ -41,7 +43,7 @@
           - name: ge-0/0/1
             description: Configured by Ansible - Interface 1
             mtu: 1024
-            speed: 100m
+            speed: "{{ omit if is_evo else '100m' }}"
             enabled: false
             duplex: full-duplex
             hold_time:
@@ -51,7 +53,7 @@
           - name: ge-0/0/2
             description: Configured by Ansible - Interface 2
             mtu: 2048
-            speed: 10m
+            speed: "{{ omit if is_evo else '10m' }}"
             enabled: true
             hold_time:
               up: 3000
@@ -72,9 +74,9 @@
           - name: ge-0/0/1
             description: Configured by Ansible - Interface 1 modified
             mtu: 3048
-            speed: 10m
+            speed: "{{ omit if is_evo else '10m' }}"
             enabled: true
-            duplex: half-duplex
+            duplex: "{{ omit if is_evo else 'half-duplex' }}"
             hold_time:
               up: 3000
               down: 2200
@@ -82,7 +84,7 @@
           - name: ge-0/0/2
             description: Configured by Ansible - Interface 2 modified
             mtu: 4048
-            speed: 100m
+            speed: "{{ omit if is_evo else '100m' }}"
             enabled: false
             hold_time:
               up: 4000
@@ -95,14 +97,22 @@
 
     - name: Revert back to base config using facts round trip
       register: revert
+      vars:
+        facts_interfaces: "{{ ansible_facts['network_resources']['interfaces'] }}"
       junipernetworks.junos.junos_interfaces:
-        config: "{{ ansible_facts['network_resources']['interfaces'] }}"
+        config: >-
+          {{ facts_interfaces | selectattr('name', 'in', ['ge-0/0/1', 'ge-0/0/2']) | list
+             if is_evo else facts_interfaces }}
         state: replaced
 
     - name: Assert that config was reverted
+      vars:
+        after_interfaces: >-
+          {{ revert['after'] | selectattr('name', 'in', ['ge-0/0/1', 'ge-0/0/2']) | list
+             if is_evo else revert['after'] }}
       ansible.builtin.assert:
         that:
-          "{{ expected_revert_output | symmetric_difference(revert['after'])\
+          "{{ expected_revert_output | symmetric_difference(after_interfaces)\
           \ |length == 0 }}"
   always:
     - ansible.builtin.include_tasks: _remove_config.yaml

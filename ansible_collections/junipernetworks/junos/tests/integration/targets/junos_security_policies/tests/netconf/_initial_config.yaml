@@ -28,6 +28,11 @@
       - set services icap-redirect profile test_icap server test_icap_server host 10.10.10.11
       - set services user-identification device-information end-user-profile profile-name test_end_user_profile attribute device-identity string Windows
       - set services user-identification device-information end-user-profile profile-name test_end_user_profile domain-name test_domain
+      # required for security policy option firewall-authentication push-to-identity-management
+      - set services user-identification identity-management connection primary address 192.0.2.1
+      - set services user-identification identity-management connection primary client-id test_client_id
+      - set services user-identification identity-management connection primary client-secret test_client_secret
+      - set services user-identification identity-management connection connect-method https
       - set services ssl proxy profile SECURITY-SSL-PROXY root-ca SECURITY-cert
       - set access profile WEBAUTH client FWClient1 firewall-user password pwd
       - set access firewall-authentication web-authentication default-profile WEBAUTH

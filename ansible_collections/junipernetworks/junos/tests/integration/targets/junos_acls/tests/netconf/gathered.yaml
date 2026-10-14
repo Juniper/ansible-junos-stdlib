@@ -11,6 +11,16 @@
         expected_gathered_output:
           - acls:
               - aces:
+                  - name: ssh_rule
+                    source:
+                      prefix_list:
+                        - name: "ipv4-interfaces"
+                        - name: "ospf-all-routers"
+                      port_protocol:
+                        eq: ssh
+                    protocol: tcp
+                name: allow_ssh_acl
+              - aces:
                   - name: ten_dot
                     source:
                       address: 10.0.0.0/8
@@ -42,16 +52,6 @@
                         eq: bgp
                     protocol: tcp
                 name: third_acl
-              - aces:
-                  - name: ssh_rule
-                    source:
-                      prefix_list:
-                        - name: "ipv4-interfaces"
-                        - name: "ospf-all-routers"
-                      port_protocol:
-                        eq: ssh
-                    protocol: tcp
-                name: allow_ssh_acl
             afi: ipv4
           - acls:
               - aces:
@@ -60,6 +60,7 @@
                       address: ::11/128
                       port_protocol:
                         eq: "631"
+                    protocol: tcp
                 name: initial_acl6
             afi: ipv6
 

@@ -11,23 +11,25 @@
       - name: ge-0/0/1
         description: Replaced by Ansible - Interface 1
         mtu: 2048
-        speed: 10m
         enabled: true
         vlan_tagging: false
 
       - name: ge-0/0/2
         description: Configured by Ansible - Interface 2
         mtu: 2048
-        speed: 10m
         enabled: true
         vlan_tagging: false
         hold_time:
           up: 3000
           down: 3200
 
-      - name: fxp0
-        enabled: true
-        vlan_tagging: false
+- name: Expect speeds and fxp0 on classic Junos
+  ansible.builtin.set_fact:
+    expected_replaced_output: >-
+      {{ [expected_replaced_output[0] | combine({'speed': '10m'}),
+          expected_replaced_output[1] | combine({'speed': '10m'}),
+          {'name': 'fxp0', 'enabled': true, 'vlan_tagging': false}] }}
+  when: not is_evo
 
 - block:
     - name: Configure initial state for interface
@@ -37,7 +39,7 @@
           - name: ge-0/0/1
             description: Configured by Ansible - Interface 1
             mtu: 1024
-            speed: 100m
+            speed: "{{ omit if is_evo else '100m' }}"
             enabled: false
             duplex: full-duplex
             hold_time:
@@ -47,7 +49,7 @@
           - name: ge-0/0/2
             description: Configured by Ansible - Interface 2
             mtu: 2048
-            speed: 10m
+            speed: "{{ omit if is_evo else '10m' }}"
             hold_time:
               up: 3000
               down: 3200
@@ -60,14 +62,18 @@
           - name: ge-0/0/1
             description: Replaced by Ansible - Interface 1
             mtu: 2048
-            speed: 10m
+            speed: "{{ omit if is_evo else '10m' }}"
             enabled: true
         state: replaced
 
     - name: Assert the configuration is reflected on host
+      vars:
+        after_interfaces: >-
+          {{ result['after'] | selectattr('name', 'in', ['ge-0/0/1', 'ge-0/0/2']) | list
+             if is_evo else result['after'] }}
       ansible.builtin.assert:
         that:
-          - "{{ expected_replaced_output | symmetric_difference(result['after'])\
+          - "{{ expected_replaced_output | symmetric_difference(after_interfaces)\
             \ |length == 0 }}"
 
     - name:

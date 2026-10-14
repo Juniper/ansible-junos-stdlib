@@ -4,10 +4,11 @@
 - name: setup
   junipernetworks.junos.junos_config:
     lines:
-      - set system host-name {{ inventory_hostname_short }}
+      - set system host-name {{ inventory_hostname_short | replace('_', '-') }}
 
 - name: configure single command
   register: result
+  diff: true
   junipernetworks.junos.junos_config:
     lines:
       - set system host-name localhost
@@ -43,6 +44,7 @@
 
 - name: Configure syslog file
   register: result
+  diff: true
   junipernetworks.junos.junos_config:
     lines:
       - set system syslog file test1 any any
@@ -55,6 +57,7 @@
 
 - name: Rollback junos config
   register: result
+  diff: true
   junipernetworks.junos.junos_config:
     rollback: 1
 
@@ -67,6 +70,6 @@
 - name: teardown
   junipernetworks.junos.junos_config:
     lines:
-      - set system host-name {{ inventory_hostname_short }}
+      - set system host-name {{ inventory_hostname_short | replace('_', '-') }}
 
 - ansible.builtin.debug: msg="END netconf/single.yaml on connection={{ ansible_connection }}"

@@ -12,6 +12,7 @@
       - delete protocols bgp advertise-from-main-vpn-tables
       - delete protocols bgp advertise-inactive
       - delete protocols bgp authentication-algorithm
+      - delete protocols bgp authentication-key-chain
       - delete protocols bgp bgp-error-tolerance
       - delete protocols bgp bmp
       - delete protocols bgp damping
@@ -31,6 +32,12 @@
       - delete protocols bgp egress-te-backup-paths
       - delete protocols bgp group external
       - delete protocols bgp group internal
+
+- name: Ensure the authentication key-chain referenced by BGP tests exists
+  junipernetworks.junos.junos_config:
+    lines:
+      - set security authentication-key-chains key-chain testchain key 0 secret juniper123
+      - set security authentication-key-chains key-chain testchain key 0 start-time "2024-1-1.00:00:00 +0000"
 
 - name: Debug task
   ansible.builtin.debug:

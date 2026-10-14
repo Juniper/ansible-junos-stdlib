@@ -5,6 +5,7 @@
 - name: Configure policy options w.r.t routing-instances
   junipernetworks.junos.junos_config:
     lines:
+      - set interfaces irb unit 12
       - set vlans vlan1 vlan-id 1
       - set vlans vlan2 vlan-id 2
       - set vlans vlan2 vlan-id 2 l3-interface irb.12

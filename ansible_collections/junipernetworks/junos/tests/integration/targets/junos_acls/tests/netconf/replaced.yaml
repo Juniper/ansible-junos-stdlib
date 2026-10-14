@@ -59,6 +59,7 @@
                       address: ::11/128
                       port_protocol:
                         eq: "631"
+                    protocol: tcp
                 name: initial_acl6
             afi: ipv6
 

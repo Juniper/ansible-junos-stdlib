@@ -17,7 +17,9 @@
         enabled: true
         vlan_tagging: false
 
-- block:
+# Overridden strips the baseline config of every other EVO port and mgmt interface.
+- when: not is_evo
+  block:
     - name: Configure initial state for interface
       register: result
       junipernetworks.junos.junos_interfaces:

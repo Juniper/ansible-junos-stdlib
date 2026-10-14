@@ -14,6 +14,11 @@
       - "'ansible_net_system' in result['ansible_facts']"
       - "'ansible_net_model' in result['ansible_facts']"
 
+# Junos EVO has no "security" configuration hierarchy.
+- name: Set platform flag
+  ansible.builtin.set_fact:
+    is_evo: "{{ result.ansible_facts.ansible_net_version is search('EVO') }}"
+
 - name: Collect config facts from device
   register: result
   junipernetworks.junos.junos_facts:
@@ -115,14 +120,24 @@
   register: result
   junipernetworks.junos.junos_facts:
     available_network_resources: true
-    gather_network_resources: all
+    gather_network_resources: "{{ ['all'] + (security_resources | map('regex_replace', '^', '!') | list if is_evo else []) }}"
+  vars:
+    security_resources:
+      - security_policies
+      - security_policies_global
+      - security_zones
 
 - name: Assert that correct available_network_resources returned
   ansible.builtin.assert:
     that:
       - result.changed == false
-      - "{{ result['ansible_facts']['available_network_resources'] | symmetric_difference(result['ansible_facts']['ansible_net_gather_network_resources']) |length\
+      - "{{ (result['ansible_facts']['available_network_resources'] | difference(security_resources if is_evo else [])) | symmetric_difference(result['ansible_facts']['ansible_net_gather_network_resources']) |length\
         \ == 0 }}"
+  vars:
+    security_resources:
+      - security_policies
+      - security_policies_global
+      - security_zones
 
 - name: Debug task
   ansible.builtin.debug: msg="END netconf/facts.yaml on connection={{ ansible_connection }}"

@@ -18,6 +18,7 @@
           advertise_from_main_vpn_tables: true
           advertise_inactive: true
           authentication_algorithm: "md5"
+          authentication_key_chain: "testchain"
           bgp_error_tolerance:
             malformed_route_limit: 20000000
           bmp:

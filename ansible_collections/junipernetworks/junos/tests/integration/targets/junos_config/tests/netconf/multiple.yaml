@@ -5,14 +5,15 @@
   register: test
   junipernetworks.junos.junos_config:
     lines:
-      - set system host-name {{ inventory_hostname_short }}
+      - set system host-name {{ inventory_hostname_short | replace('_', '-') }}
       - delete interfaces lo0
 
 - name: configure multiple commands
   register: result
+  diff: true
   junipernetworks.junos.junos_config:
     lines:
-      - set system host-name {{ inventory_hostname_short }}
+      - set system host-name {{ inventory_hostname_short | replace('_', '-') }}
       - set interfaces lo0 unit 0 family inet address 192.0.2.1/32
 
 - ansible.builtin.assert:
@@ -25,7 +26,7 @@
   register: result
   junipernetworks.junos.junos_config:
     lines:
-      - set system host-name {{ inventory_hostname_short }}
+      - set system host-name {{ inventory_hostname_short | replace('_', '-') }}
       - set interfaces lo0 unit 0 family inet address 192.0.2.1/32
 
 - ansible.builtin.assert:
@@ -37,7 +38,7 @@
   register: test
   junipernetworks.junos.junos_config:
     lines:
-      - set system host-name {{ inventory_hostname_short }}
+      - set system host-name {{ inventory_hostname_short | replace('_', '-') }}
       - delete interfaces lo0
 
 - ansible.builtin.debug: msg="END netconf/multiple.yaml on connection={{ ansible_connection }}"

@@ -3,6 +3,15 @@
     msg="START cli_config/cli_basic.yaml on connection={{ ansible_connection
     }}"
 
+- name: Collect default facts to detect the platform
+  register: platform_facts
+  junipernetworks.junos.junos_facts:
+
+# Junos EVO has no "security" configuration hierarchy.
+- name: Set platform flag
+  ansible.builtin.set_fact:
+    is_evo: "{{ platform_facts.ansible_facts.ansible_net_version is search('EVO') }}"
+
 - name: Reset acls
   junipernetworks.junos.junos_acls:
     state: deleted
@@ -54,14 +63,17 @@
 - name: Reset security_policies
   junipernetworks.junos.junos_security_policies:
     state: deleted
+  when: not is_evo
 
 - name: Reset security_policies_global
   junipernetworks.junos.junos_security_policies_global:
     state: deleted
+  when: not is_evo
 
 - name: Reset security_zones
   junipernetworks.junos.junos_security_zones:
     state: deleted
+  when: not is_evo
 
 - name: Reset snmp_server
   junipernetworks.junos.junos_snmp_server:
@@ -74,7 +86,9 @@
 - name: Gather junipernetworks junos facts
   junipernetworks.junos.junos_facts:
     gather_subset: config
-    gather_network_resources:
+    gather_network_resources: "{{ base_resources + ([] if is_evo else security_resources) }}"
+  vars:
+    base_resources:
       - acls
       - lldp_global
       - lldp_interfaces
@@ -86,12 +100,13 @@
       - prefix_lists
       - routing_instances
       - routing_options
-      - security_policies
-      - security_policies_global
-      - security_zones
       - snmp_server
       - static_routes
       - vlans
+    security_resources:
+      - security_policies
+      - security_policies_global
+      - security_zones
   register: gather_resources
 
 - name: Display Facts
@@ -112,12 +127,17 @@
       - " gather_resources['ansible_facts']['ansible_network_resources']['prefix_lists'] == []"
       - " gather_resources['ansible_facts']['ansible_network_resources']['routing_instances'] == []"
       - " gather_resources['ansible_facts']['ansible_network_resources']['routing_options'] == []"
-      - " gather_resources['ansible_facts']['ansible_network_resources']['security_policies'] == {}"
-      - " gather_resources['ansible_facts']['ansible_network_resources']['security_policies_global'] == {}"
-      - " gather_resources['ansible_facts']['ansible_network_resources']['security_zones'] == {}"
       - " gather_resources['ansible_facts']['ansible_network_resources']['snmp_server'] == {}"
       - " gather_resources['ansible_facts']['ansible_network_resources']['static_routes'] == []"
       - " gather_resources['ansible_facts']['ansible_network_resources']['vlans'] == []"
+
+- name: Assert that empty security facts was generated
+  ansible.builtin.assert:
+    that:
+      - " gather_resources['ansible_facts']['ansible_network_resources']['security_policies'] == {}"
+      - " gather_resources['ansible_facts']['ansible_network_resources']['security_policies_global'] == {}"
+      - " gather_resources['ansible_facts']['ansible_network_resources']['security_zones'] == {}"
+  when: not is_evo
 
 - ansible.builtin.debug:
     msg="END cli_config/cli_basic.yaml on connection={{ ansible_connection

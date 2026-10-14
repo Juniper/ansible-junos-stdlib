@@ -352,6 +352,11 @@ class Security_policiesFacts(object):
                     permit["application_services"] = {}
                     application_services = permit["application_services"]
                     policy_application_services = policy_permit["application-services"] or {}
+                    # Newer Junos releases wrap hidden knobs (e.g. gprs-*-profile) in <undocumented>
+                    if isinstance(policy_application_services.get("undocumented"), dict):
+                        policy_application_services = dict(policy_application_services)
+                        for key, value in policy_application_services.pop("undocumented").items():
+                            policy_application_services.setdefault(key, value)
 
                     if "advanced-anti-malware-policy" in policy_application_services:
                         application_services["advanced_anti_malware_policy"] = (

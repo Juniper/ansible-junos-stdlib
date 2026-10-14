@@ -17,7 +17,7 @@
   ignore_errors: true
   junipernetworks.junos.junos_config:
     lines:
-      - set system host-name {{ inventory_hostname_short }}
+      - set system host-name {{ inventory_hostname_short | replace('_', '-') }}
       - set system foo
 
 - ansible.builtin.assert:

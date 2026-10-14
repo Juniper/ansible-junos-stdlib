@@ -6,8 +6,10 @@
         command: request system reboot
         prompt:
           - Reboot the system?
+          - do you wish to continue\?
         answer:
           - y
+          - "yes"
 
       tags:
         - reboot
@@ -15,8 +17,30 @@
         delay: 60
         sleep: 40
 
-    - ansible.netcommon.cli_command:
-        command: show version
+    - name: Reset ansible connection
+      meta: reset_connection
+
+    - name: show version
+      block:
+        - ansible.netcommon.cli_command:
+            command: show version
+          register: result
+      rescue:
+        # A session opened while the device is still booting stays dead, so `until` retries cannot recover.
+        - name: Wait for the CLI to finish starting
+          ansible.builtin.pause:
+            seconds: 60
+
+        - name: Reset ansible connection
+          meta: reset_connection
+
+        - name: show version (retry on a new connection)
+          ansible.netcommon.cli_command:
+            command: show version
+          register: result
+          until: result is succeeded
+          retries: 5
+          delay: 30
   when: ansible_connection == 'ansible.netcommon.network_cli'
 
 - ansible.builtin.debug: msg="END cli/reboot.yaml on connection={{ ansible_connection }}"
