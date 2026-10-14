@@ -21,9 +21,11 @@
         enabled: true
         vlan_tagging: false
 
-      - name: fxp0
-        enabled: true
-        vlan_tagging: false
+- name: Expect fxp0 on classic Junos
+  ansible.builtin.set_fact:
+    expected_group_output: >-
+      {{ expected_group_output + [{'name': 'fxp0', 'enabled': true, 'vlan_tagging': false}] }}
+  when: not is_evo
 
 - name: Teardown delete interface configuration
   junipernetworks.junos.junos_config: &id001
@@ -47,9 +49,14 @@
         gather_network_resources: interfaces
 
     - name: Assert the configuration is reflected on host
+      vars:
+        gathered_interfaces: "{{ result['ansible_facts']['ansible_network_resources']['interfaces'] }}"
+        compared_interfaces: >-
+          {{ gathered_interfaces | selectattr('name', 'in', ['ge-0/0/11', 'ge-0/0/12']) | list
+             if is_evo else gathered_interfaces }}
       ansible.builtin.assert:
         that:
-          - "{{ expected_group_output | symmetric_difference(result['ansible_facts']['ansible_network_resources']['interfaces'])|length\
+          - "{{ expected_group_output | symmetric_difference(compared_interfaces)|length\
             \ == 0 }}"
   always:
     - name: Teardown delete interface configuration

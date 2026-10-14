@@ -7,6 +7,7 @@
     lines:
       - delete vlans vlan1
       - delete vlans vlan2
+      - delete interfaces irb unit 12
 
 - ansible.builtin.debug:
     msg: End junos_vlans teardown ansible_connection={{ ansible_connection }}

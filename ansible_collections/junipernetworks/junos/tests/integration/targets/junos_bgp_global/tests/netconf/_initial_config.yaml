@@ -14,6 +14,7 @@
       - set protocols bgp advertise-from-main-vpn-tables
       - set protocols bgp advertise-inactive
       - set protocols bgp authentication-algorithm md5
+      - set protocols bgp authentication-key-chain testchain
       - set protocols bgp bgp-error-tolerance malformed-route-limit 20000000
       - set protocols bgp bmp monitor enable
       - set protocols bgp damping

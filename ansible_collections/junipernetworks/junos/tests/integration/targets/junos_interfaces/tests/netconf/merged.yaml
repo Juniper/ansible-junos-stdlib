@@ -13,7 +13,6 @@
       - name: ge-0/0/1
         description: Configured by Ansible - Interface 1
         mtu: 1024
-        speed: 100m
         enabled: false
         duplex: full-duplex
         vlan_tagging: false
@@ -24,7 +23,6 @@
       - name: ge-0/0/2
         description: Configured by Ansible - Interface 2
         mtu: 2048
-        speed: 10m
         enabled: true
         vlan_tagging: false
         hold_time:
@@ -41,9 +39,15 @@
           - description: "This is logical interface UNIT 11"
             name: 11
             vlan_id: 11
-      - name: fxp0
-        enabled: true
-        vlan_tagging: false
+
+- name: Expect speeds and fxp0 on classic Junos
+  ansible.builtin.set_fact:
+    expected_merged_output: >-
+      {{ [expected_merged_output[0] | combine({'speed': '100m'}),
+          expected_merged_output[1] | combine({'speed': '10m'}),
+          expected_merged_output[2],
+          {'name': 'fxp0', 'enabled': true, 'vlan_tagging': false}] }}
+  when: not is_evo
 
 - block:
     - name: Merge the provided configuration with the exisiting running configuration
@@ -53,7 +57,7 @@
           - name: ge-0/0/1
             description: Configured by Ansible - Interface 1
             mtu: 1024
-            speed: 100m
+            speed: "{{ omit if is_evo else '100m' }}"
             enabled: false
             duplex: full-duplex
             hold_time:
@@ -63,7 +67,7 @@
           - name: ge-0/0/2
             description: Configured by Ansible - Interface 2
             mtu: 2048
-            speed: 10m
+            speed: "{{ omit if is_evo else '10m' }}"
             hold_time:
               up: 3000
               down: 3200
@@ -76,9 +80,13 @@
         state: merged
 
     - name: Assert the configuration is reflected on host
+      vars:
+        after_interfaces: >-
+          {{ result['after'] | selectattr('name', 'in', ['ge-0/0/1', 'ge-0/0/2', 'fe-0/0/2']) | list
+             if is_evo else result['after'] }}
       ansible.builtin.assert:
         that:
-          - "{{ expected_merged_output | symmetric_difference(result['after']) |length\
+          - "{{ expected_merged_output | symmetric_difference(after_interfaces) |length\
             \ == 0 }}"
 
     - name:

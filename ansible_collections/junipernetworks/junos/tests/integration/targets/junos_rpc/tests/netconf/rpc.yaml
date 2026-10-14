@@ -23,9 +23,9 @@
 - ansible.builtin.assert:
     that:
       - result.changed == false
-      - "'<name>\nlo0\n</name>' in result['xml']"
-      - "'<name>\nem0\n</name>' not in result['xml']"
-      - "'<name>\fxp0\n</name>' not in result['xml']"
+      - result['xml'] is search('<name>\s*lo0\s*</name>')
+      - result['xml'] is not search('<name>\s*em0\s*</name>')
+      - result['xml'] is not search('<name>\s*fxp0\s*</name>')
 
 - name: Execute RPC on device and get output in text format
   register: result
@@ -60,7 +60,10 @@
   register: result
   ignore_errors: true
   junipernetworks.junos.junos_rpc:
-    rpc: show-interface-information
+    # show-interface-information is a valid Junos RPC alias on current Junos
+    # versions (returns the same data as get-interface-information), so use a
+    # genuinely unknown rpc name here to exercise the failure path.
+    rpc: totally-bogus-rpc-xyz
 
 - ansible.builtin.assert:
     that:

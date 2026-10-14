@@ -4,7 +4,7 @@
 - name: setup
   junipernetworks.junos.junos_config:
     lines:
-      - set system host-name {{ inventory_hostname_short }}
+      - set system host-name {{ inventory_hostname_short | replace('_', '-') }}
       - delete interfaces lo0
 
 - name: configure device with text config
@@ -37,6 +37,7 @@
 
 - name: configure device with set config
   register: result
+  diff: true
   junipernetworks.junos.junos_config:
     src: basic/config.set
 
@@ -66,6 +67,7 @@
 
 - name: configure device with xml config
   register: result
+  diff: true
   junipernetworks.junos.junos_config:
     src: basic/config.xml
 

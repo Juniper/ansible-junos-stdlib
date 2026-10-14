@@ -133,6 +133,14 @@ class Ntp_globalFacts(object):
         # Parse facts for BGP address-family global node
         conf = conf.get("ntp")
 
+        # Deprecated statements (e.g. boot-server) are reported by Junos under an
+        # "undocumented" wrapper instead of directly under "ntp"; merge them in
+        # so the existing per-key parsing below still picks them up.
+        undocumented = conf.get("undocumented")
+        if undocumented:
+            for key, value in undocumented.items():
+                conf.setdefault(key, value)
+
         # Read allow-duplicates node
         if "authentication-key" in conf.keys():
             auth_key_lst = []

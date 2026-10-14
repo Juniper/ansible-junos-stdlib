@@ -48,7 +48,6 @@ import json
 import re
 
 from functools import wraps
-from itertools import chain
 
 from ansible.errors import AnsibleConnectionFailure
 from ansible.module_utils._text import to_text
@@ -240,9 +239,14 @@ class Cliconf(CliconfBase):
 
     @configure
     def discard_changes(self):
-        command = "rollback 0"
-        for cmd in chain(to_list(command), ["exit"]):
-            self.send_command(cmd)
+        self.send_command("rollback 0")
+        # Junos may prompt for confirmation here if it considers the rollback
+        # an uncommitted change; auto-answer to avoid hanging on exit.
+        self.send_command(
+            "exit",
+            prompt=r"Exit with uncommitted changes\? \[yes,no\]",
+            answer="yes",
+        )
 
     @configure
     def validate(self):

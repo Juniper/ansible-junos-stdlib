@@ -11,6 +11,16 @@
   ansible.builtin.set_fact:
     test_items: "{{ test_cases.files | map(attribute='path') | list }}"
 
+- name: Collect default facts to detect the platform
+  register: platform_facts
+  juniper.device.junos_facts:
+  vars:
+    ansible_connection: ansible.netcommon.netconf
+
+- name: Set platform flag
+  ansible.builtin.set_fact:
+    is_evo: "{{ platform_facts.ansible_facts.ansible_net_version is search('EVO') }}"
+
 - name: Run test case (connection=ansible.netcommon.netconf)
   ansible.builtin.include_tasks: "{{ test_case_to_run }}"
   with_items: "{{ test_items }}"

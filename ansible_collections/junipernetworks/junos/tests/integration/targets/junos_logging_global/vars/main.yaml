@@ -155,12 +155,6 @@ replaced:
     files:
       - name: "file101"
         allow_duplicates: true
-      - name: "file104"
-        allow_duplicates: true
-        any:
-          level: "any"
-        structured_data:
-          set: true
       - name: "file103"
         archive:
           no_binary_data: true
@@ -172,6 +166,12 @@ replaced:
         match_strings:
           - "^delete"
           - "^prompt"
+      - name: "file104"
+        allow_duplicates: true
+        any:
+          level: "any"
+        structured_data:
+          set: true
     hosts:
       - name: host111
         exclude_hostname: true

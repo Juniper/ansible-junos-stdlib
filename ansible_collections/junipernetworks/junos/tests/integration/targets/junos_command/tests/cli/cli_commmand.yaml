@@ -53,7 +53,7 @@
     - name: Assertion
       ansible.builtin.assert:
         that:
-          - "'failed' not in result"
+          - result.failed == false
 
     - register: result
       ignore_errors: true

@@ -35,6 +35,10 @@
     commands:
       - file delete 250mbfile
 
+- name: enable SFTP for file transfer
+  ansible.netcommon.cli_config:
+    config: set system services ssh sftp-server
+
 - name: copy file from ansible controller to a network device using sftp
   ansible.netcommon.net_put:
     src: /tmp/250mbfile

@@ -188,6 +188,7 @@
 
 - name: Purge users except the users in aggregate
   register: result
+  diff: true
   junipernetworks.junos.junos_user:
     aggregate:
       - name: "{{ ansible_user|default('ansible') }}"
@@ -196,6 +197,7 @@
 - ansible.builtin.assert:
     that:
       - result.changed == true
+      - result.diff is defined
       - result.diff.prepared is search("\- *user test_user1")
       - result.diff.prepared is search("\- *user test_user2")
 
