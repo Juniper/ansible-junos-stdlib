@@ -1,0 +1,217 @@
+- name: Functional Test - junos_ntp_global module
+  hosts: junos_device
+  gather_facts: false
+  connection: netconf
+  collections:
+    - junipernetworks.junos
+
+  tasks:
+
+    - name: Pre-clean - Delete existing NTP global config
+      junipernetworks.junos.junos_ntp_global:
+        config: {}
+        state: deleted
+      register: preclean_result
+    - name: Pre-create required routing instances
+      junipernetworks.junos.junos_routing_instances:
+        config:
+          - name: "rt1"
+            type: "virtual-router"
+          - name: "rt2"
+            type: "virtual-router"
+        state: merged  
+
+    - name: Apply NTP global config using merged
+      junipernetworks.junos.junos_ntp_global:
+        config:
+          boot_server: '78.46.194.186'
+          broadcasts:
+            - address: '172.16.255.255'
+              key: '50'
+              ttl: 200
+              version: 3
+              routing_instance_name: 'rt1'
+            - address: '192.16.255.255'
+              key: '50'
+              ttl: 200
+              version: 3
+              routing_instance_name: 'rt2'
+          broadcast_client: true
+          interval_range: 2
+          multicast_client: "224.0.0.1"
+          peers:
+            - peer: "78.44.194.186"
+            - peer: "172.44.194.186"
+              key_id: 10000
+              prefer: true
+              version: 3
+          servers:
+            - server: "48.46.194.186"
+              key_id: 34
+              prefer: true
+              version: 2
+              routing_instance: 'rt1'
+            - server: "48.45.194.186"
+              key_id: 34
+              prefer: true
+              version: 2
+          source_addresses:
+            - source_address: "172.45.194.186"
+              routing_instance: 'rt1'
+            - source_address: "171.45.194.186"
+              routing_instance: 'rt2'
+          threshold:
+            value: 300
+            action: "accept"
+          trusted_keys:
+            - key_id: 3000
+            - key_id: 2000
+        state: merged
+      register: merged_result
+
+    - name: Assert merged result
+      assert:
+        that:
+          - merged_result.changed == true
+
+    - name: Gather NTP global config
+      junipernetworks.junos.junos_ntp_global:
+        state: gathered
+      register: gathered_result
+
+    - name: Assert gathered result
+      assert:
+        that:
+          - gathered_result.gathered is defined
+
+    - name: Replace running NTP global config
+      junipernetworks.junos.junos_ntp_global:
+        config:
+          authentication_keys:
+            - id: 2
+              algorithm: 'md5'
+              key: 'asdfghd'
+            - id: 5
+              algorithm: 'sha1'
+              key: 'aasdad'
+          servers:
+            - server: "48.46.194.186"
+              key_id: 34
+              prefer: true
+              version: 2
+              routing_instance: 'rt1'
+            - server: "48.45.194.186"
+              key_id: 34
+              prefer: true
+              version: 2
+        state: replaced
+      register: replaced_result
+
+    - name: Assert replaced result
+      assert:
+        that:
+          - replaced_result.changed == true
+
+    - name: Override running NTP global config
+      junipernetworks.junos.junos_ntp_global:
+        config:
+          authentication_keys:
+            - id: 2
+              algorithm: 'md5'
+              key: 'asdfghd'
+            - id: 5
+              algorithm: 'sha1'
+              key: 'aasdad'
+          servers:
+            - server: "48.46.194.186"
+              key_id: 34
+              prefer: true
+              version: 2
+              routing_instance: 'rt1'
+            - server: "48.45.194.186"
+              key_id: 34
+              prefer: true
+              version: 2
+        state: overridden
+      register: overridden_result
+
+    - name: Assert overridden result
+      assert:
+        that:
+          - overridden_result.changed == true
+
+    - name: Delete NTP global configuration
+      junipernetworks.junos.junos_ntp_global:
+        config: {}
+        state: deleted
+      register: deleted_result
+
+    - name: Assert deleted result
+      assert:
+        that:
+          - deleted_result.changed == true
+
+    - name: Render NTP global configuration
+      junipernetworks.junos.junos_ntp_global:
+        config:
+          boot_server: '78.46.194.186'
+          broadcasts:
+            - address: '172.16.255.255'
+              key: '50'
+              ttl: 200
+              version: 3
+              routing_instance_name: 'rt1'
+            - address: '192.16.255.255'
+              key: '50'
+              ttl: 200
+              version: 3
+              routing_instance_name: 'rt2'
+          broadcast_client: true
+          interval_range: 2
+          multicast_client: "224.0.0.1"
+          peers:
+            - peer: "78.44.194.186"
+            - peer: "172.44.194.186"
+              key_id: 10000
+              prefer: true
+              version: 3
+          servers:
+            - server: "48.46.194.186"
+              key_id: 34
+              prefer: true
+              version: 2
+              routing_instance: 'rt1'
+            - server: "48.45.194.186"
+              key_id: 34
+              prefer: true
+              version: 2
+          source_addresses:
+            - source_address: "172.45.194.186"
+              routing_instance: 'rt1'
+            - source_address: "171.45.194.186"
+              routing_instance: 'rt2'
+          threshold:
+            value: 300
+            action: "accept"
+          trusted_keys:
+            - key_id: 3000
+            - key_id: 2000
+        state: rendered
+      register: rendered_result
+
+    - name: Assert rendered result
+      assert:
+        that:
+          - rendered_result.rendered is defined
+
+    - name: Parse NTP global config
+      junipernetworks.junos.junos_ntp_global:
+        running_config: "{{ lookup('file', 'parsed_configs/parsed_ntp_global.cfg') }}"
+        state: parsed
+      register: parsed_result
+
+    - name: Assert parsed result
+      assert:
+        that:
+          - parsed_result is defined
+          - parsed_result.parsed is defined

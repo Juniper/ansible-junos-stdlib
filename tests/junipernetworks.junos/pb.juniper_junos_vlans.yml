@@ -1,0 +1,49 @@
+
+- name: Functional Test - junos_vlans (read-only states)
+  hosts: netconf_connection_testcases
+  gather_facts: false
+  connection: netconf
+  collections:
+    - junipernetworks.junos
+
+  tasks:
+
+    - name: Render VLAN configuration (dry-run XML)
+      junipernetworks.junos.junos_vlans:
+        config:
+          - name: vlan1
+            vlan_id: 1
+          - name: vlan2
+            vlan_id: 2
+            l3_interface: irb.12
+        state: rendered
+      register: result_rendered
+
+    - name: Assert rendered VLAN config
+      assert:
+        that:
+          - result_rendered.rendered is defined
+          - result_rendered.changed == false
+
+    - name: Gather VLAN configuration from device
+      junipernetworks.junos.junos_vlans:
+        state: gathered
+      register: result_gathered
+
+    - name: Assert gathered VLAN config
+      assert:
+        that:
+          - result_gathered.gathered is defined
+          - result_gathered.changed == false
+
+    - name: Parse VLAN config from XML file
+      junipernetworks.junos.junos_vlans:
+        running_config: "{{ lookup('file', 'parsed_configs/parsed_junos_vlans.cfg') }}"
+        state: parsed
+      register: result_parsed
+
+    - name: Assert parsed VLAN config
+      assert:
+        that:
+          - result_parsed.parsed is defined
+          - result_parsed.changed == false
