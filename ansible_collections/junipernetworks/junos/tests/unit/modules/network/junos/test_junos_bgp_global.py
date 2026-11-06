@@ -90,6 +90,54 @@ class TestJunosBgp_globalModule(TestJunosModule):
 
         self.execute_show_command.side_effect = load_from_file
 
+    def test_junos_bgp_global_parsed_traceoptions_flags(self):
+        parsed_str = """
+            <rpc-reply><configuration><protocols><bgp>
+                <traceoptions><flag><name>state</name><detail/></flag></traceoptions>
+                <group><name>TEST</name>
+                    <traceoptions inactive="inactive">
+                        <file><filename>bgp.log</filename><size>5m</size></file>
+                        <flag><name>all</name></flag>
+                    </traceoptions>
+                    <neighbor><name>192.0.2.1</name>
+                        <traceoptions><flag><name>update</name><receive/></flag></traceoptions>
+                    </neighbor>
+                </group>
+                <group><name>MULTIPLE</name>
+                    <traceoptions>
+                        <file><filename>multi.log</filename><size>5000000</size></file>
+                        <flag><name>all</name></flag>
+                        <flag><name>update</name><send/></flag>
+                    </traceoptions>
+                </group>
+            </bgp></protocols></configuration></rpc-reply>
+        """
+        set_module_args(dict(running_config=parsed_str, state="parsed"))
+        result = self.execute_module(changed=False)["parsed"]
+
+        self.assertEqual(result["traceoptions"]["flag"], [dict(name="state", detail=True)])
+        groups = {group["name"]: group for group in result["groups"]}
+        self.assertEqual(
+            groups["TEST"]["traceoptions"],
+            dict(file=dict(filename="bgp.log", size=5242880), flag=[dict(name="all")]),
+        )
+        self.assertEqual(
+            groups["TEST"]["neighbors"][0]["traceoptions"]["flag"],
+            [dict(name="update", receive=True)],
+        )
+        self.assertEqual(
+            groups["MULTIPLE"]["traceoptions"]["flag"],
+            [dict(name="all"), dict(name="update", send=True)],
+        )
+        self.assertEqual(groups["MULTIPLE"]["traceoptions"]["file"]["size"], 5000000)
+
+        set_module_args(dict(state="gathered"))
+        self.execute_show_command.side_effect = None
+        self.execute_show_command.return_value = parsed_str
+        with patch.object(self, "load_fixtures"):
+            gathered = self.execute_module(changed=False)["gathered"]
+        self.assertEqual(gathered, result)
+
     def test_junos_bgp_global_merged(self):
         set_module_args(
             dict(

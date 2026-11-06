@@ -18,6 +18,7 @@ from copy import deepcopy
 
 from ansible.module_utils._text import to_bytes
 from ansible.module_utils.basic import missing_required_lib
+from ansible.module_utils.common.text.formatters import human_to_bytes
 from ansible_collections.ansible.netcommon.plugins.module_utils.network.common.utils import (
     generate_dict,
     remove_empties,
@@ -980,12 +981,14 @@ class Bgp_globalFacts(object):
                 if "world-readable" in file.keys():
                     file_dict["world_readable"] = True
                 if "size" in file.keys():
-                    file_dict["size"] = file.get("size")
+                    file_dict["size"] = human_to_bytes(file.get("size"))
                 to_dict["file"] = file_dict
             # read flag
             if "flag" in to.keys():
                 flag_lst = []
                 flag = to.get("flag")
+                if not isinstance(flag, list):
+                    flag = [flag]
                 for event in flag:
                     flag_dict = {}
                     if event is not None:
