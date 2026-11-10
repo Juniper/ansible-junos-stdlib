@@ -77,8 +77,6 @@ class Bgp_address_family(ConfigBase):
         result = {"changed": False}
         state = self._module.params["state"]
 
-        warnings = list()
-
         if self.state in self.ACTION_STATES or self.state == "purged":
             existing_bgp_address_family_facts = self.get_bgp_address_family_facts()
         else:
@@ -130,8 +128,6 @@ class Bgp_address_family(ConfigBase):
             result["before"] = existing_bgp_address_family_facts
             if result["changed"]:
                 result["after"] = changed_bgp_address_family_facts
-
-            result["warnings"] = warnings
 
         return result
 

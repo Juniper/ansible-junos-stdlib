@@ -142,6 +142,7 @@ class TestJunosBgp_globalModule(TestJunosModule):
             result = self.execute_module(changed=True)
         self.assertEqual(result["before"], parsed)
         self.assertEqual(result["after"], parsed)
+        self.assertNotIn("warnings", result)
         self.assertIn("<nc:import>IMPORT-A</nc:import><nc:import>IMPORT-B</nc:import>", result["commands"][0])
 
     def test_junos_bgp_global_rendered_single_policy_strings(self):

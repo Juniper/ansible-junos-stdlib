@@ -86,7 +86,6 @@ class Ospfv3(ConfigBase):
         """
         result = {"changed": False}
         state = self._module.params["state"]
-        warnings = list()
 
         if self.state in self.ACTION_STATES:
             existing_ospfv3_facts = self.get_ospfv3_facts()
@@ -137,7 +136,6 @@ class Ospfv3(ConfigBase):
             if result["changed"]:
                 result["after"] = changed_ospfv3_facts
 
-            result["warnings"] = warnings
         return result
 
     def set_config(self, existing_ospfv3_facts):

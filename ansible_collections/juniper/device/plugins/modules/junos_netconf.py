@@ -95,7 +95,7 @@ commands:
 """
 import re
 
-from ansible.module_utils._text import to_text
+from ansible.module_utils.common.text.converters import to_text
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.connection import ConnectionError
 from ansible_collections.ansible.netcommon.plugins.module_utils.network.common.utils import to_list
@@ -188,8 +188,7 @@ def main():
         supports_check_mode=True,
     )
 
-    warnings = list()
-    result = {"changed": False, "warnings": warnings}
+    result = {"changed": False}
 
     want = map_params_to_obj(module)
     have = map_config_to_obj(module)

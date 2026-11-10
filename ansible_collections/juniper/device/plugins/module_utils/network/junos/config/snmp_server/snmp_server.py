@@ -78,8 +78,6 @@ class Snmp_server(ConfigBase):
         result = {"changed": False}
         state = self._module.params["state"]
 
-        warnings = list()
-
         if self.state in self.ACTION_STATES or self.state == "purged":
             existing_snmp_server_facts = self.get_snmp_server_facts()
         else:
@@ -127,8 +125,6 @@ class Snmp_server(ConfigBase):
             result["before"] = existing_snmp_server_facts
             if result["changed"]:
                 result["after"] = changed_snmp_server_facts
-
-            result["warnings"] = warnings
 
         return result
 

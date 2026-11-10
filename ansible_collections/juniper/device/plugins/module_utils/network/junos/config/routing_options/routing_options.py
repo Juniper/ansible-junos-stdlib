@@ -78,8 +78,6 @@ class Routing_options(ConfigBase):
         result = {"changed": False}
         state = self._module.params["state"]
 
-        warnings = list()
-
         if self.state in self.ACTION_STATES:
             existing_routing_options_facts = self.get_routing_options_facts()
         else:
@@ -129,8 +127,6 @@ class Routing_options(ConfigBase):
             result["before"] = existing_routing_options_facts
             if result["changed"]:
                 result["after"] = changed_routing_options_facts
-
-            result["warnings"] = warnings
 
         return result
 

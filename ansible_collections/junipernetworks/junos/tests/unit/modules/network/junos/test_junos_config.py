@@ -121,6 +121,19 @@ class TestJunosConfigModule(TestJunosModule):
         set_module_args(dict(src=src))
         self.execute_module()
 
+    def test_junos_config_reports_load_warnings(self):
+        set_module_args(dict(lines=["set system host-name test"]))
+
+        def load_with_warning(module, candidate, warnings, **kwargs):
+            warnings.append("configuration warning")
+            return None
+
+        self.load_config.side_effect = load_with_warning
+        with patch.object(junos_config.AnsibleModule, "warn") as warn:
+            result = self.execute_module()
+        warn.assert_called_once_with("configuration warning")
+        self.assertNotIn("warnings", result)
+
     def test_junos_config_src_set(self):
         src = load_fixture("junos_config.set", content="str")
         set_module_args(dict(src=src))

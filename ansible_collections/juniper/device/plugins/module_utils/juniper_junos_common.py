@@ -58,7 +58,7 @@ try:
     HAS_XMLTODICT = True
 except ImportError:
     HAS_XMLTODICT = False
-from ansible.module_utils._text import to_bytes
+from ansible.module_utils.common.text.converters import to_bytes
 from ansible.module_utils.basic import AnsibleModule, boolean
 from ansible.module_utils.common.validation import check_type_dict
 
@@ -1775,12 +1775,9 @@ class JuniperJunosModule(AnsibleModule):
             results["msg"] = "Ping returned errors: %s" % (err_msg)
             self.exit_json(**results)
 
-        # Add any warnings into the results
         warnings = resp.findall("rpc-error[error-severity='warning']/error-message")
-        if len(warnings) != 0:
-            # Create list of the text attributes of each element in the
-            # warnings list.
-            results["warnings"] = list(map(lambda warn: warn.text, warnings))
+        for warning in warnings:
+            self.warn(warning.text)
 
         # Try to find probe summary
         probe_summary = resp.find("probe-results-summary")
