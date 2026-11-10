@@ -138,7 +138,7 @@ def main():
     additional_facts, additional_warnings = result
     ansible_facts.update(additional_facts)
     for warning in additional_warnings:
-      module.warn(warning)
+        module.warn(warning)
     module.exit_json(ansible_facts=ansible_facts)
 
 

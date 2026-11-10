@@ -530,7 +530,7 @@ def main():
             result["changed"] = True
 
     for warning in warnings:
-      module.warn(warning)
+        module.warn(warning)
     module.exit_json(**result)
 
 

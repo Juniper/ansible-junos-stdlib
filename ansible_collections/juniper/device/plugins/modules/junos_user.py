@@ -460,7 +460,7 @@ def main():
                 result["diff"] = {"prepared": diff}
 
     for warning in warnings:
-      module.warn(warning)
+        module.warn(warning)
     module.exit_json(**result)
 
 
