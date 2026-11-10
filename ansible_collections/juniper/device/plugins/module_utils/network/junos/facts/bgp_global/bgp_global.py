@@ -555,7 +555,8 @@ class Bgp_globalFacts(object):
 
         # Read export value
         if "export" in conf.keys():
-            cfg_dict["export"] = conf["export"]
+            exports = conf["export"]
+            cfg_dict["export"] = exports if isinstance(exports, list) else [exports]
 
         # Read forwarding-context value
         if "forwarding-context" in conf.keys():
@@ -626,13 +627,7 @@ class Bgp_globalFacts(object):
         # Read import value
         if "import" in conf.keys():
             imports = conf.get("import")
-            import_lst = []
-            if isinstance(imports, dict):
-                import_lst.append(imports)
-            else:
-                for entry in imports:
-                    import_lst.append(entry)
-            cfg_dict["import"] = import_lst
+            cfg_dict["import"] = imports if isinstance(imports, list) else [imports]
 
         # Read include-mp-next-hop value
         if "include-mp-next-hop" in conf.keys():

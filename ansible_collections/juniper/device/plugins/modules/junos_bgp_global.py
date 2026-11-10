@@ -300,8 +300,9 @@ options:
         description: Enforce neighbor AS is the first AS in AS-PATH attribute (EBGP).
         type: bool
       export: &export
-        description: Specify export policy.
-        type: str
+        description: Specify export policies in evaluation order.
+        type: list
+        elements: str
       forwarding_context: &forwarding_context
         description: Specify routing-instance used for data-forwarding and transport-session.
         type: str
@@ -368,7 +369,7 @@ options:
             description: Idle the peer until the user intervenes.
             type: bool
       import: &import
-        description: Specify import policy.
+        description: Specify import policies in evaluation order.
         type: list
         elements: str
       include_mp_next_hop: &include_mp_next_hop

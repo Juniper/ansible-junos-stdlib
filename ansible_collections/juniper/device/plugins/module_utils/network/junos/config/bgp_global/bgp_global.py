@@ -1103,7 +1103,11 @@ class Bgp_global(ConfigBase):
         """
         if cfg:
             if want.get(w_key):
-                build_child_xml_node(node, h_key, want[w_key])
+                if w_key in ("import", "export"):
+                    for policy in want[w_key]:
+                        build_child_xml_node(node, h_key, policy)
+                else:
+                    build_child_xml_node(node, h_key, want[w_key])
         else:
             if w_key in want.keys():
                 b_val = want.get(w_key)

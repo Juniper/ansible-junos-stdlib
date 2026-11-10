@@ -28,6 +28,8 @@ __metaclass__ = type
 
 from unittest.mock import patch
 
+from lxml import etree
+
 from ansible_collections.juniper.device.plugins.modules import junos_bgp_global
 from ansible_collections.junipernetworks.junos.tests.unit.modules.utils import set_module_args
 
@@ -89,6 +91,64 @@ class TestJunosBgp_globalModule(TestJunosModule):
             return output
 
         self.execute_show_command.side_effect = load_from_file
+
+    def test_junos_bgp_global_rendered_policy_chains(self):
+        policies = {"import": ["IMPORT-A", "IMPORT-B"], "export": ["EXPORT-A", "EXPORT-B"]}
+        config = dict(policies)
+        config["groups"] = [
+            dict(name="TEST", neighbors=[dict(neighbor_address="192.0.2.1", **policies)], **policies),
+        ]
+        set_module_args(dict(config=config, state="rendered"))
+        rendered = self.execute_module(changed=False)["rendered"]
+        root = etree.fromstring(rendered.encode())
+        namespace = {"nc": "urn:ietf:params:xml:ns:netconf:base:1.0"}
+        for path in ("nc:bgp", "nc:bgp/nc:group", "nc:bgp/nc:group/nc:neighbor"):
+            scope = root.find(path, namespace)
+            for policy_type, expected in policies.items():
+                self.assertEqual(scope.xpath("nc:" + policy_type + "/text()", namespaces=namespace), expected)
+
+    def test_junos_bgp_global_parsed_policy_chains(self):
+        parsed_str = """
+            <rpc-reply><configuration><protocols><bgp>
+                <import>IMPORT-A</import><import>IMPORT-B</import>
+                <export>EXPORT-A</export><export>EXPORT-B</export>
+                <group><name>TEST</name>
+                    <import>GROUP-IN</import><export>GROUP-OUT</export>
+                    <neighbor><name>192.0.2.1</name>
+                        <import>PEER-IN</import><export>PEER-OUT</export>
+                    </neighbor>
+                </group>
+            </bgp></protocols></configuration></rpc-reply>
+        """
+        set_module_args(dict(running_config=parsed_str, state="parsed"))
+        parsed = self.execute_module(changed=False)["parsed"]
+        self.assertEqual(parsed["import"], ["IMPORT-A", "IMPORT-B"])
+        self.assertEqual(parsed["export"], ["EXPORT-A", "EXPORT-B"])
+        group = parsed["groups"][0]
+        self.assertEqual(group["import"], ["GROUP-IN"])
+        self.assertEqual(group["export"], ["GROUP-OUT"])
+        self.assertEqual(group["neighbors"][0]["import"], ["PEER-IN"])
+        self.assertEqual(group["neighbors"][0]["export"], ["PEER-OUT"])
+
+        set_module_args(dict(state="gathered"))
+        self.execute_show_command.side_effect = None
+        self.execute_show_command.return_value = parsed_str
+        with patch.object(self, "load_fixtures"):
+            gathered = self.execute_module(changed=False)["gathered"]
+        self.assertEqual(gathered, parsed)
+
+        set_module_args(dict(config={"import": ["IMPORT-A", "IMPORT-B"]}, state="merged"))
+        with patch.object(self, "load_fixtures"):
+            result = self.execute_module(changed=True)
+        self.assertEqual(result["before"], parsed)
+        self.assertEqual(result["after"], parsed)
+        self.assertIn("<nc:import>IMPORT-A</nc:import><nc:import>IMPORT-B</nc:import>", result["commands"][0])
+
+    def test_junos_bgp_global_rendered_single_policy_strings(self):
+        set_module_args(dict(config={"import": "IMPORT-A", "export": "EXPORT-A"}, state="rendered"))
+        rendered = self.execute_module(changed=False)["rendered"]
+        self.assertIn("<nc:import>IMPORT-A</nc:import>", rendered)
+        self.assertIn("<nc:export>EXPORT-A</nc:export>", rendered)
 
     def test_junos_bgp_global_parsed_traceoptions_flags(self):
         parsed_str = """

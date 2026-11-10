@@ -184,7 +184,7 @@ class Bgp_globalArgs(object):  # pylint: disable=R0903
                 },
                 "egress_te_sid_stats": {"type": "bool"},
                 "enforce_first_as": {"type": "bool"},
-                "export": {"type": "str"},
+                "export": {"elements": "str", "type": "list"},
                 "forwarding_context": {"type": "str"},
                 "graceful_restart": {
                     "options": {
@@ -347,7 +347,7 @@ class Bgp_globalArgs(object):  # pylint: disable=R0903
                             "type": "dict",
                         },
                         "enforce_first_as": {"type": "bool"},
-                        "export": {"type": "str"},
+                            "export": {"elements": "str", "type": "list"},
                         "forwarding_context": {"type": "str"},
                         "graceful_restart": {
                             "options": {
@@ -604,7 +604,7 @@ class Bgp_globalArgs(object):  # pylint: disable=R0903
                                     "type": "dict",
                                 },
                                 "enforce_first_as": {"type": "bool"},
-                                "export": {"type": "str"},
+                                        "export": {"elements": "str", "type": "list"},
                                 "forwarding_context": {"type": "str"},
                                 "graceful_restart": {
                                     "options": {
