@@ -216,7 +216,7 @@ except ImportError:
     HAS_XMLTODICT = False
 
 from ansible.errors import AnsibleError
-from ansible.module_utils._text import to_bytes
+from ansible.module_utils.common.text.converters import to_bytes
 from ansible.plugins.connection import NetworkConnectionBase, ensure_connect
 
 

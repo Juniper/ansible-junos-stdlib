@@ -73,7 +73,6 @@ class Lldp_interfaces(ConfigBase):
         """
         result = {"changed": False}
         state = self._module.params["state"]
-        warnings = list()
 
         if self.state in self.ACTION_STATES:
             existing_lldp_interfaces_facts = self.get_lldp_interfaces_facts()
@@ -125,8 +124,6 @@ class Lldp_interfaces(ConfigBase):
             result["before"] = existing_lldp_interfaces_facts
             if result["changed"]:
                 result["after"] = changed_lldp_interfaces_facts
-
-            result["warnings"] = warnings
 
         return result
 

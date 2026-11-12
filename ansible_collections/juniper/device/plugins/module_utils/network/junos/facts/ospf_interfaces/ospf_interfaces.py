@@ -16,7 +16,7 @@ __metaclass__ = type
 
 from copy import deepcopy
 
-from ansible.module_utils._text import to_bytes
+from ansible.module_utils.common.text.converters import to_bytes
 from ansible.module_utils.basic import missing_required_lib
 from ansible_collections.ansible.netcommon.plugins.module_utils.network.common.utils import (
     generate_dict,

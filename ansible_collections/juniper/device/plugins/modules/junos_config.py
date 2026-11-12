@@ -279,7 +279,7 @@ time:
 import json
 import re
 
-from ansible.module_utils._text import to_native, to_text
+from ansible.module_utils.common.text.converters import to_native, to_text
 from ansible.module_utils.basic import AnsibleModule
 from ansible_collections.ansible.netcommon.plugins.module_utils.network.common.netconf import (
     exec_rpc,
@@ -445,7 +445,7 @@ def main():
     candidate = module.params["lines"] or module.params["src"]
     commit = not module.check_mode
 
-    result = {"changed": False, "warnings": warnings}
+    result = {"changed": False}
 
     if module.params["backup"]:
         if module.params["backup_options"] is not None:
@@ -529,6 +529,8 @@ def main():
 
             result["changed"] = True
 
+    for warning in warnings:
+        module.warn(warning)
     module.exit_json(**result)
 
 

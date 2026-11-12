@@ -71,8 +71,6 @@ class Lldp_global(ConfigBase):
         result = {"changed": False}
         state = self._module.params["state"]
 
-        warnings = list()
-
         if self.state in self.ACTION_STATES:
             existing_lldp_global_facts = self.get_lldp_global_facts()
         else:
@@ -121,8 +119,6 @@ class Lldp_global(ConfigBase):
             result["before"] = existing_lldp_global_facts
             if result["changed"]:
                 result["after"] = changed_lldp_global_facts
-
-            result["warnings"] = warnings
 
         return result
 

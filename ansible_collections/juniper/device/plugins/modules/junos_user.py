@@ -209,7 +209,7 @@ diff:
 from copy import deepcopy
 from functools import partial
 
-from ansible.module_utils._text import to_text
+from ansible.module_utils.common.text.converters import to_text
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.connection import ConnectionError
 from ansible_collections.ansible.netcommon.plugins.module_utils.network.common.utils import (
@@ -424,7 +424,7 @@ def main():
     )
 
     warnings = list()
-    result = {"changed": False, "warnings": warnings}
+    result = {"changed": False}
 
     want = map_params_to_obj(module)
     ele = map_obj_to_ele(module, want)
@@ -459,6 +459,8 @@ def main():
             if module._diff:
                 result["diff"] = {"prepared": diff}
 
+    for warning in warnings:
+        module.warn(warning)
     module.exit_json(**result)
 
 

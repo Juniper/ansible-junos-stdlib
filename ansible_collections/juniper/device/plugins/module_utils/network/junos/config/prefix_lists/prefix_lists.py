@@ -76,8 +76,6 @@ class Prefix_lists(ConfigBase):
         result = {"changed": False}
         state = self._module.params["state"]
 
-        warnings = list()
-
         if self.state in self.ACTION_STATES or self.state == "purged":
             existing_prefix_lists_facts = self.get_prefix_lists_facts()
         else:
@@ -127,8 +125,6 @@ class Prefix_lists(ConfigBase):
             result["before"] = existing_prefix_lists_facts
             if result["changed"]:
                 result["after"] = changed_prefix_lists_facts
-
-            result["warnings"] = warnings
 
         return result
 

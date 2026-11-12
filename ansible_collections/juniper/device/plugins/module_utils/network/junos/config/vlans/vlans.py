@@ -82,7 +82,6 @@ class Vlans(ConfigBase):
         """
         result = {"changed": False}
         state = self._module.params["state"]
-        warnings = list()
 
         if self.state in self.ACTION_STATES:
             existing_vlans_facts = self.get_vlans_facts()
@@ -133,7 +132,6 @@ class Vlans(ConfigBase):
             if result["changed"]:
                 result["after"] = changed_vlans_facts
 
-            result["warnings"] = warnings
         return result
 
     def set_config(self, existing_vlans_facts):

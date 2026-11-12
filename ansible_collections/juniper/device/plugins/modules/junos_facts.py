@@ -129,7 +129,6 @@ def main():
         supports_check_mode=True,
     )
 
-    warnings = []
     ansible_facts = {}
     if module.params.get("available_network_resources"):
         ansible_facts["available_network_resources"] = sorted(
@@ -138,8 +137,9 @@ def main():
     result = Facts(module).get_facts()
     additional_facts, additional_warnings = result
     ansible_facts.update(additional_facts)
-    warnings.extend(additional_warnings)
-    module.exit_json(ansible_facts=ansible_facts, warnings=warnings)
+    for warning in additional_warnings:
+        module.warn(warning)
+    module.exit_json(ansible_facts=ansible_facts)
 
 
 if __name__ == "__main__":
