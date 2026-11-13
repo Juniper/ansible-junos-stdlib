@@ -167,7 +167,7 @@ import re
 import shlex
 import time
 
-from ansible.module_utils._text import to_text
+from ansible.module_utils.common.text.converters import to_text
 from ansible.module_utils.basic import AnsibleModule
 from ansible.module_utils.connection import ConnectionError
 from ansible_collections.ansible.netcommon.plugins.module_utils.network.common.netconf import (
@@ -464,7 +464,6 @@ def main():
 
     result = {
         "changed": False,
-        "warnings": warnings,
         "stdout": responses,
         "stdout_lines": list(to_lines(responses)),
     }
@@ -472,6 +471,8 @@ def main():
     if output:
         result["output"] = output
 
+    for warning in warnings:
+        module.warn(warning)
     module.exit_json(**result)
 
 

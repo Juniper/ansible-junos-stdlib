@@ -73,8 +73,6 @@ class Acls(ConfigBase):
         result = {"changed": False}
         state = self._module.params["state"]
 
-        warnings = list()
-
         if self.state in self.ACTION_STATES:
             existing_acls_facts = self.get_acls_facts()
         else:
@@ -124,8 +122,6 @@ class Acls(ConfigBase):
             result["before"] = existing_acls_facts
             if result["changed"]:
                 result["after"] = changed_acls_facts
-
-            result["warnings"] = warnings
 
         return result
 

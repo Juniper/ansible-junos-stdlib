@@ -73,7 +73,6 @@ class Lacp(ConfigBase):
         """
         result = {"changed": False}
         state = self._module.params["state"]
-        warnings = list()
 
         if self.state in self.ACTION_STATES:
             existing_lacp_facts = self.get_lacp_facts()
@@ -123,8 +122,6 @@ class Lacp(ConfigBase):
             result["before"] = existing_lacp_facts
             if result["changed"]:
                 result["after"] = changed_lacp_facts
-
-            result["warnings"] = warnings
 
         return result
 

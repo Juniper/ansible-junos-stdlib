@@ -76,8 +76,6 @@ class Ntp_global(ConfigBase):
         result = {"changed": False}
         state = self._module.params["state"]
 
-        warnings = list()
-
         if self.state in self.ACTION_STATES or self.state == "purged":
             existing_ntp_global_facts = self.get_ntp_global_facts()
         else:
@@ -125,8 +123,6 @@ class Ntp_global(ConfigBase):
             result["before"] = existing_ntp_global_facts
             if result["changed"]:
                 result["after"] = changed_ntp_global_facts
-
-            result["warnings"] = warnings
 
         return result
 

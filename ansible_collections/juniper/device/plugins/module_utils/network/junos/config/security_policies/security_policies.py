@@ -76,8 +76,6 @@ class Security_policies(ConfigBase):
         """
         result = {"changed": False}
 
-        warnings = list()
-
         if self.state in self.ACTION_STATES or self.state == "purged":
             existing_security_policies_facts = self.get_security_policies_facts()
         else:
@@ -129,7 +127,6 @@ class Security_policies(ConfigBase):
             if result["changed"]:
                 result["after"] = changed_security_policies_facts
 
-            result["warnings"] = warnings
         return result
 
     def set_config(self, existing_security_policies_facts):

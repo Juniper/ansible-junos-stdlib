@@ -74,7 +74,6 @@ class Acl_interfaces(ConfigBase):
         """
         result = {"changed": False}
         state = self._module.params["state"]
-        warnings = list()
 
         if self.state in self.ACTION_STATES:
             existing_acl_interfaces_facts = self.get_acl_interfaces_facts()
@@ -127,7 +126,6 @@ class Acl_interfaces(ConfigBase):
             if result["changed"]:
                 result["after"] = changed_acl_interfaces_facts
 
-            result["warnings"] = warnings
         return result
 
     def set_config(self, existing_acl_interfaces_facts):

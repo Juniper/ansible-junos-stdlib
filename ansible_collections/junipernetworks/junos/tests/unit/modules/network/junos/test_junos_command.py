@@ -103,6 +103,18 @@ class TestJunosCommandModule(TestJunosModule):
         self.assertEqual(len(result["stdout"]), 1)
         self.assertTrue(result["stdout"][0].startswith("Hostname:"))
 
+    def test_junos_command_check_mode_reports_warning(self):
+        set_module_args(
+            dict(commands=["request system reboot"], _ansible_check_mode=True),
+        )
+        with patch.object(junos_command.AnsibleModule, "warn") as warn:
+            result = self.execute_module()
+        warn.assert_called_once_with(
+            "Only show commands are supported when using check_mode, not "
+            "executing request system reboot",
+        )
+        self.assertNotIn("warnings", result)
+
     def test_junos_command_multiple(self):
         set_module_args(dict(commands=["show version", "show version"]))
         result = self.execute_module()

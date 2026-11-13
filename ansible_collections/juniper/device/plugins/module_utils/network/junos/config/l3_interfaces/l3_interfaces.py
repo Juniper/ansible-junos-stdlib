@@ -74,7 +74,6 @@ class L3_interfaces(ConfigBase):
         """
         result = {"changed": False}
         state = self._module.params["state"]
-        warnings = list()
 
         if self.state in self.ACTION_STATES:
             existing_l3_interfaces_facts = self.get_l3_interfaces_facts()
@@ -126,8 +125,6 @@ class L3_interfaces(ConfigBase):
             result["before"] = existing_l3_interfaces_facts
             if result["changed"]:
                 result["after"] = changed_interfaces_facts
-
-            result["warnings"] = warnings
 
         return result
 

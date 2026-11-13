@@ -74,7 +74,6 @@ class Static_routes(ConfigBase):
         """
         result = {"changed": False}
         state = self._module.params["state"]
-        warnings = list()
 
         if self.state in self.ACTION_STATES:
             existing_static_routes_facts = self.get_static_routes_facts()
@@ -127,7 +126,6 @@ class Static_routes(ConfigBase):
             if result["changed"]:
                 result["after"] = changed_static_routes_facts
 
-            result["warnings"] = warnings
         return result
 
     def set_config(self, existing_static_routes_facts):

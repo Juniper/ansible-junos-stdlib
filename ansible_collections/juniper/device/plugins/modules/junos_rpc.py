@@ -124,8 +124,7 @@ def main():
         supports_check_mode=False,
     )
 
-    warnings = list()
-    result = {"changed": False, "warnings": warnings}
+    result = {"changed": False}
 
     rpc = str(module.params["rpc"]).replace("_", "-")
 

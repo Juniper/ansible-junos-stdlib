@@ -113,6 +113,19 @@ class TestJunosCommandModule(TestJunosModule):
 
         self.exec_rpc.side_effect = load_from_file
 
+    def test_junos_get_facts_reports_warnings(self):
+        with patch.object(junos_facts, "AnsibleModule") as module_class, patch.object(
+            junos_facts, "Facts"
+        ) as facts_class:
+            module = module_class.return_value
+            module.params = {"available_network_resources": False}
+            facts_class.return_value.get_facts.return_value = ({"test_fact": "value"}, ["test warning"])
+
+            junos_facts.main()
+
+            module.warn.assert_called_once_with("test warning")
+            module.exit_json.assert_called_once_with(ansible_facts={"test_fact": "value"})
+
     def test_junos_get_facts(self):
         set_module_args(dict())
         result = self.execute_module(format="xml")
