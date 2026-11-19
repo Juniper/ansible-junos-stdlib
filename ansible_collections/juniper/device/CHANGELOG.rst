@@ -6,6 +6,18 @@ Juniper Device Collection Release Notes
 Changelog for Juniper Device Ansible Collection
 ===========================
 
+Version 2.0.8 (2026-11-13)
+--------------------------
+Enhancements
+------------
+- Added support for Ubuntu 26 in the Dockerfile to execute the Ansible playbook in the Ubuntu 26 environment. #908
+
+Bug Fixed
+---------
+- Fixed bugs in the bgp global module #910 #911
+- Fixed deprecated warning reported from Ansible core infra #908
+
+
 Version 2.0.7 (2026-10-14)
 ---------------------------
 Enhancements

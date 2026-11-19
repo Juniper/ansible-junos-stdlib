@@ -102,7 +102,7 @@ jobs:
       - name: Run tox sanity tests
         if: matrix.collection == 'juniper/device'
         working-directory: ansible_collections/${{ matrix.collection }}
-        run: ansible-test sanity --python 3.12
+        run: ansible-test sanity --python ${{ matrix.python }}
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
       - name: Run tox sanity tests
