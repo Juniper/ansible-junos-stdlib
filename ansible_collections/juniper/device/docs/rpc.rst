@@ -136,6 +136,8 @@ The following options may be specified for this module:
     <td>
         <div>The keyword arguments and values to the RPCs specified by the <em>rpcs</em> option. The value of this option can either be a single dictionary of keywords and values, or a list of dictionaries containing keywords and values.</div>
         <div>There must be a one-to-one correspondence between the elements in the <em>kwargs</em> list and the RPCs in the <em>rpcs</em> list. In other words, the two lists must always contain the same number of elements. For RPC arguments which do not require a value, specify the value of True as shown in the :ref:`rpc-examples-label`.</div>
+        <div>By default, values recognized as Ansible booleans, including <code>"0"</code> and <code>"1"</code>, are converted to booleans. Set <code>allow_bool_values</code> to <code>false</code> within <em>kwargs</em> to disable this conversion. Quote numeric RPC values so they are passed as strings.</div>
+        <div><code>allow_bool_values</code> controls parsing and is not sent to the device. For a list of dictionaries, its setting applies to the current and subsequent dictionaries until another dictionary changes it.</div>
         </br><div style="font-size: small;">aliases: kwarg, args, arg</div>
     </td>
     </tr>
@@ -481,6 +483,16 @@ Examples
             format: json
             dest: get_interface_information.conf
           register: junos
+
+        - name: Get PIC information with numeric slot values
+          rpc:
+            rpc: get-pic-detail
+            kwargs:
+              allow_bool_values: false
+              fpc-slot: "0"
+              pic-slot: "0"
+            format: xml
+          register: pic_info
 
 
 Return Values
