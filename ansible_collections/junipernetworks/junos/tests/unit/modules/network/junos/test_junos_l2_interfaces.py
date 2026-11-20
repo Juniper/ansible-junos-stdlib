@@ -28,6 +28,8 @@ __metaclass__ = type
 
 from unittest.mock import patch
 
+from lxml import etree
+
 from ansible_collections.juniper.device.plugins.modules import junos_l2_interfaces
 from ansible_collections.junipernetworks.junos.tests.unit.modules.utils import set_module_args
 
@@ -312,6 +314,89 @@ class TestJunosL2InterfacesModule(TestJunosModule):
         )
         result = self.execute_module(changed=False)
         self.assertEqual(sorted(result["rendered"]), sorted(rendered))
+
+    def test_native_vlan_rendered_location(self):
+        ns = {"nc": "urn:ietf:params:xml:ns:netconf:base:1.0"}
+        for enhanced, expected_path in (
+            (True, "nc:native-vlan-id"),
+            (False, "nc:unit/nc:family/nc:ethernet-switching/nc:native-vlan-id"),
+        ):
+            with self.subTest(enhanced_layer=enhanced):
+                set_module_args(
+                    dict(
+                        config=[
+                            dict(
+                                name="xe-0/1/0",
+                                enhanced_layer=enhanced,
+                                trunk=dict(allowed_vlans=["k8s-admin"], native_vlan="4"),
+                            ),
+                        ],
+                        state="rendered",
+                    ),
+                )
+                result = self.execute_module(changed=False)
+                interface = etree.fromstring(result["rendered"].encode()).find("nc:interface", ns)
+                native = interface.xpath(".//nc:native-vlan-id", namespaces=ns)
+                self.assertEqual(len(native), 1)
+                self.assertEqual(interface.find(expected_path, ns).text, "4")
+
+    def test_native_vlan_parsed_non_els(self):
+        running_config = """
+        <rpc-reply><configuration><interfaces><interface>
+          <name>xe-0/1/0</name><unit><name>0</name><family><ethernet-switching>
+            <port-mode>trunk</port-mode><vlan><members>k8s-admin</members></vlan>
+            <native-vlan-id>4</native-vlan-id>
+          </ethernet-switching></family></unit>
+        </interface></interfaces></configuration></rpc-reply>
+        """
+        set_module_args(dict(running_config=running_config, state="parsed"))
+        result = self.execute_module(changed=False)
+        self.assertEqual(
+            result["parsed"],
+            [
+                dict(
+                    name="xe-0/1/0",
+                    unit=0,
+                    enhanced_layer=False,
+                    trunk=dict(allowed_vlans=["k8s-admin"], native_vlan="4"),
+                ),
+            ],
+        )
+
+    def test_native_vlan_delete_and_replace_non_els(self):
+        self.get_res_config.return_value = etree.fromstring(
+            b"<rpc-reply><configuration><interfaces><interface>"
+            b"<name>xe-0/1/0</name><unit><name>0</name><family><ethernet-switching>"
+            b"<port-mode>trunk</port-mode><vlan><members>k8s-admin</members></vlan>"
+            b"<native-vlan-id>4</native-vlan-id>"
+            b"</ethernet-switching></family></unit></interface></interfaces></configuration>"
+            b"</rpc-reply>",
+        )
+        ns = {"nc": "urn:ietf:params:xml:ns:netconf:base:1.0"}
+        path = "nc:unit/nc:family/nc:ethernet-switching/nc:native-vlan-id"
+        for state in ("deleted", "replaced"):
+            with self.subTest(state=state):
+                set_module_args(
+                    dict(
+                        config=[
+                            dict(
+                                name="xe-0/1/0",
+                                enhanced_layer=False,
+                                trunk=dict(allowed_vlans=["k8s-admin"], native_vlan="5"),
+                            ),
+                        ],
+                        state=state,
+                    ),
+                )
+                result = self.execute_module(changed=True)
+                root = etree.fromstring(result["commands"][0].encode())
+                interfaces = root.findall("nc:interface", ns)
+                deleted_native = interfaces[0].find(path, ns)
+                self.assertIsNotNone(deleted_native)
+                self.assertEqual(deleted_native.get("delete"), "delete")
+                self.assertIsNone(interfaces[0].find("nc:native-vlan-id", ns))
+                if state == "replaced":
+                    self.assertEqual(interfaces[1].find(path, ns).text, "5")
 
     def test_junos_l2_interfaces_merged_comment_01(self):
         original_set_module_args = set_module_args

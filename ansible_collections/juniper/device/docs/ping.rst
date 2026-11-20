@@ -94,6 +94,17 @@ The following options may be specified for this module:
     </tr>
 
     <tr>
+    <td>inet<br/><div style="font-size: small;"></div></td>
+    <td>bool</td>
+    <td>no</td>
+    <td>False</td>
+    <td><ul><li>yes</li><li>no</li></ul></td>
+    <td>
+        <div>Force the IPv4 address family when pinging the destination.</div>
+    </td>
+    </tr>
+
+    <tr>
     <td>interface<br/><div style="font-size: small;"></div></td>
     <td>str</td>
     <td>no</td>
@@ -467,6 +478,11 @@ Examples
           debug:
             var: response.packet_loss
 
+        - name: Ping a hostname using IPv4
+          ping:
+            dest: "www.juniper.net"
+            inet: true
+
         - name: Ping 192.68.1.1 with IP packet size of 1500. Register response.
           ping:
             dest: "192.68.1.1"
@@ -580,6 +596,16 @@ Return Values
     </td>
     <td align=center>when ping successfully executed, even if the <em>acceptable_percent_loss</em> was exceeded.</td>
     <td align=center>str</td>
+    <td align=center></td>
+    </tr>
+
+    <tr>
+    <td>inet</td>
+    <td>
+        <div>Whether the IPv4 address family was requested, as specified by the <em>inet</em> option.</div>
+    </td>
+    <td align=center>when ping successfully executed, even if the <em>acceptable_percent_loss</em> was exceeded.</td>
+    <td align=center>bool</td>
     <td align=center></td>
     </tr>
 

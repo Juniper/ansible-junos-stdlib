@@ -166,8 +166,13 @@ options:
         two lists must always contain the same number of elements. For RPC
         arguments which do not require a value, specify the value of True as
         shown in the :ref:`rpc-examples-label`.
-      - By default "0" and "1" will be converted to boolean values. In case
-        it doesn't need to be transformed to boolean pass first kwargs as
+      - By default, values recognized as Ansible booleans, including C("0")
+        and C("1"), are converted to booleans. Set C(allow_bool_values) to
+        C(false) within I(kwargs) to disable this conversion. Quote numeric
+        RPC values so they are passed as strings.
+      - C(allow_bool_values) controls parsing and is not sent to the device.
+        For a list of dictionaries, its setting applies to the current and
+        subsequent dictionaries until another dictionary changes it.
     required: false
     default: null
     type: str
@@ -273,6 +278,16 @@ EXAMPLES = """
         format: json
         dest: get_interface_information.conf
       register: junos
+
+    - name: Get PIC information with numeric slot values
+      juniper.device.rpc:
+        rpc: get-pic-detail
+        kwargs:
+          allow_bool_values: false
+          fpc-slot: "0"
+          pic-slot: "0"
+        format: xml
+      register: pic_info
 """
 
 RETURN = """

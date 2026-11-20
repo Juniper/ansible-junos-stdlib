@@ -78,6 +78,8 @@ options:
             description:
             - Native VLAN to be configured in trunk port. It is used as the trunk
               native VLAN ID.
+            - On non-ELS devices, set C(enhanced_layer) to C(false) to configure
+              the native VLAN under C(unit/family/ethernet-switching).
             type: str
       enhanced_layer:
         description:

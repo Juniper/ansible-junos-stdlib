@@ -88,6 +88,12 @@ options:
     required: false
     default: false
     type: bool
+  inet:
+    description:
+      - Force the IPv4 address family when pinging the destination.
+    required: false
+    default: false
+    type: bool
   interface:
     description:
       - The source interface from which the the ping is sent. If not
@@ -206,6 +212,11 @@ EXAMPLES = """
       ansible.builtin.debug:
         var: response.packet_loss
 
+    - name: Ping a hostname using IPv4
+      juniper.device.ping:
+        dest: "www.juniper.net"
+        inet: true
+
     - name: Ping 192.68.1.1 with IP packet size of 1500. Register response.
       juniper.device.ping:
         dest: "192.68.1.1"
@@ -287,6 +298,12 @@ host:
   returned: when ping successfully executed, even if the
             I(acceptable_percent_loss) was exceeded.
   type: str
+inet:
+  description:
+    - Whether the IPv4 address family was requested, as specified by I(inet).
+  returned: when ping successfully executed, even if the
+            I(acceptable_percent_loss) was exceeded.
+  type: bool
 interface:
   description:
     - The source interface of the pings sent as specified by the
@@ -434,6 +451,7 @@ def main():
         ttl=dict(type="int", required=False, default=None),
         size=dict(type="int", required=False, default=None),
         do_not_fragment=dict(type="bool", required=False, default=False),
+        inet=dict(type="bool", required=False, default=False),
         source=dict(
             type="str",
             required=False,

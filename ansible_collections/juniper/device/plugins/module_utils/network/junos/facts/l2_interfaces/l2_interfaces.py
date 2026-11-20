@@ -151,6 +151,8 @@ class L2_interfacesFacts(object):
 
             config["trunk"]["native_vlan"] = utils.get_xml_conf_arg(
                 conf,
-                "native-vlan-id",
+                "native-vlan-id"
+                if enhanced_layer
+                else "unit/family/ethernet-switching/native-vlan-id",
             )
         return utils.remove_empties(config)

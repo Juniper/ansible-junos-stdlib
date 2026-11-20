@@ -250,7 +250,9 @@ class L2_interfaces(ConfigBase):
                     for vlan in allowed_vlans:
                         build_child_xml_node(vlan_node, "members", vlan)
                 if native_vlan:
-                    build_child_xml_node(intf, "native-vlan-id", native_vlan)
+                    build_child_xml_node(
+                        intf if enhanced_layer else eth_node, "native-vlan-id", native_vlan
+                    )
 
                 if allowed_vlans or native_vlan:
                     intf_xml.append(intf)
@@ -332,7 +334,7 @@ class L2_interfaces(ConfigBase):
                     {"delete": "delete"},
                 )
                 build_child_xml_node(
-                    intf,
+                    intf if enhanced_layer else eth_node,
                     "native-vlan-id",
                     None,
                     {"delete": "delete"},
